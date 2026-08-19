@@ -37,7 +37,13 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .sub{max-width:54ch;margin:0;color:var(--peat);font-size:var(--t-xl)}
 
 .scale-sec{padding:34px 0 26px;border-bottom:1px solid var(--line)}
-.scale-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px 16px;flex-wrap:wrap;margin-bottom:10px}
+.scale-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px 16px;
+  flex-wrap:wrap;margin-bottom:10px;width:100%;background:none;border:0;padding:0;
+  cursor:pointer;color:inherit;text-align:left;font:inherit}
+.scale-head .caret{display:inline-block;transition:transform .18s}
+.scale-sec.zu .scale-head .caret{transform:rotate(-90deg)}
+.scale-sec.zu #scale-body{display:none}
+.scale-hint{font-family:var(--f-body);font-size:var(--t-s);color:var(--peat);margin:0 0 4px}
 
 .scale-title{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);letter-spacing:-.01em;margin:0}
 .scale-note{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);letter-spacing:.04em}
@@ -49,7 +55,8 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .pin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;cursor:pointer;color:inherit;animation:rise .5s cubic-bezier(.2,.8,.3,1) backwards}
 @keyframes rise{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
 .pin-label{font-family:var(--f-data);font-size:var(--t-mono);font-weight:600;letter-spacing:.03em;white-space:nowrap;
-  background:var(--paper);padding:1px 4px;border-radius:3px;max-width:40vw;overflow:hidden;text-overflow:ellipsis}
+  background:var(--paper);padding:1px 5px;border-radius:3px;max-width:34vw;overflow:hidden;
+  text-overflow:ellipsis;box-shadow:0 0 0 2px var(--paper)}
 @keyframes rise{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
 .pin-stem{width:1.5px;height:14px;background:var(--ink);opacity:.5}
 .pin-dot{width:13px;height:13px;border-radius:50%;background:var(--paper);border:2.5px solid var(--ink);margin-bottom:-6px;transition:transform .18s}
@@ -230,11 +237,17 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 /* ---- Fällig ---- */
 .faellig{border-top:1px solid var(--line);padding:24px 0 4px}
 .faellig h2{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);letter-spacing:-.01em;margin:0 0 12px}
-.due-list{display:flex;flex-wrap:wrap;gap:8px}
+/* Raster statt Flex-Umbruch: sonst richtet sich jede Karte nach der Länge
+   ihres Namens und die Liste franst am rechten Rand aus. */
+.due-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+@media(min-width:640px){.due-list{grid-template-columns:1fr 1fr}}
 .due{
   display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:3px;cursor:pointer;
-  border:1px solid var(--line);background:var(--sand);color:inherit;font:inherit;text-align:left
+  border:1px solid var(--line);background:var(--sand);color:inherit;font:inherit;text-align:left;
+  width:100%;min-width:0
 }
+.due>span:last-child{min-width:0;flex:1 1 auto}
+.due-name{display:block;overflow-wrap:anywhere}
 .due:hover{border-color:var(--ink)}
 .due:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .due.over{border-left:3px solid var(--terra)}
@@ -243,6 +256,63 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .due-when{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);display:block;margin-top:1px}
 .due.over .due-when{color:var(--terra)}
 .allgut{color:var(--moss);font-style:italic;margin:0}
+.warn-grund{display:block;margin-top:4px;font-size:var(--t-s);opacity:.85}
+.modus-hinweis{font-size:var(--t-s);color:var(--peat);line-height:1.5;
+  margin:2px 0 12px;padding-left:10px;border-left:2px solid var(--line)}
+
+/* ── Startseite beim ersten Öffnen ── */
+.wk{position:fixed;inset:0;z-index:200;background:var(--paper);
+  overflow-y:auto;-webkit-overflow-scrolling:touch}
+.wk-blatt{max-width:600px;margin:0 auto;padding:38px 22px 48px;min-height:100%;
+  display:flex;flex-direction:column;justify-content:center}
+.wk-nr{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 10px}
+.wk-titel{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,8vw,44px);
+  line-height:1.08;margin:0 0 14px;letter-spacing:-.01em}
+.wk-lead{font-size:var(--t-l);line-height:1.55;color:var(--ink-2);margin:0 0 22px}
+.wk-liste{list-style:none;padding:0;margin:0 0 28px}
+.wk-liste li{padding:11px 0;border-top:1px solid var(--line)}
+.wk-liste li:last-child{border-bottom:1px solid var(--line)}
+.wk-liste b{display:block;font-family:var(--f-display);font-weight:600;font-size:var(--t-l)}
+.wk-liste span{display:block;font-size:var(--t-s);color:var(--peat);line-height:1.5;margin-top:2px}
+.wk-knoepfe{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.wk-haupt{background:var(--water);color:#fff;border:1px solid var(--water);
+  padding:13px 24px;border-radius:3px;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.wk-neben{background:none;border:0;color:var(--peat);text-decoration:underline;
+  cursor:pointer;font:inherit;font-size:var(--t-s);padding:8px 4px}
+.wk-wahl{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.wk-gross{flex:1 1 130px;padding:16px 14px;border:1px solid var(--line);border-radius:3px;
+  background:var(--sand);color:inherit;font:inherit;font-size:var(--t-l);cursor:pointer}
+.wk-gross[aria-pressed="true"]{border-color:var(--ink);background:var(--paper);
+  box-shadow:inset 0 0 0 1px var(--ink)}
+.wk-frage{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 10px}
+.wk-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.wk-chips button{padding:10px 16px;border:1px solid var(--line);border-radius:20px;
+  background:var(--sand);color:inherit;font:inherit;cursor:pointer}
+.wk-chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.wk-klein{font-size:var(--t-s);color:var(--peat);margin:16px 0 0}
+.wk-warnung{border-left:3px solid #B08A3A;background:var(--sand);padding:14px 16px;
+  border-radius:3px;line-height:1.55;margin:0 0 24px}
+.raum-batch{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.raum-batch-lab{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 8px}
+.raum-batch button{margin:0 8px 8px 0}
+.tier-wahl{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.tier-wahl button{font-size:var(--t-s)}
+.tier-wahl button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sich-hinweis{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
+  margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);
+  border-left:3px solid #B08A3A;border-radius:3px;background:var(--sand);
+  font-family:var(--f-body);font-size:var(--t-s);color:var(--peat)}
+.sich-hinweis span{flex:1 1 220px;min-width:0}
+.sich-hinweis button{font-size:var(--t-s)}
+.erst-block{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.erst-titel{font-family:var(--f-display);font-weight:600;font-size:var(--t-l);margin:0 0 4px}
+.erst-sub{font-family:var(--f-body);font-size:var(--t-s);color:var(--peat);margin:0 0 12px}
+.erst-block .due{opacity:.72}
+.erst-block .due:hover{opacity:1}
 
 /* ---- Gießtracker ---- */
 .tracker{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 4px}
@@ -710,6 +780,29 @@ body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
 .sub-tab td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
 .sub-tab td:first-child{width:3ch;font-variant-numeric:tabular-nums;font-weight:700}
 .sub-liter{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.topf-num{display:none}
+.topf-block{margin:4px 0 6px}
+.topf-lab{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 10px}
+.topf-karussell{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.topf-karussell::-webkit-scrollbar{height:0}
+.topf-form{flex:0 0 auto;scroll-snap-align:start;display:flex;flex-direction:column;
+  align-items:center;gap:4px;width:86px;padding:10px 6px 8px;cursor:pointer;
+  border:1px solid var(--line);border-radius:4px;background:var(--sand);
+  color:var(--ink-2);font:inherit;text-align:center}
+.topf-form b{font-size:var(--t-s);font-weight:600;line-height:1.2}
+.topf-form i{font-style:normal;font-size:var(--t-mono);font-family:var(--f-data);opacity:.7;line-height:1.2}
+.topf-form[aria-checked="true"]{border-color:var(--ink);background:var(--paper);color:var(--ink);
+  box-shadow:inset 0 0 0 1px var(--ink)}
+.topf-hinweis{font-size:var(--t-s);color:var(--peat);margin:2px 0 14px;line-height:1.5}
+.topf-schieber{display:block;margin:0 0 10px}
+.topf-schieber .lab{display:block;margin-bottom:6px}
+.topf-schieber input[type=range]{width:100%;accent-color:var(--water)}
+.topf-ergebnis{font-family:var(--f-display);font-size:var(--t-l);margin:0;line-height:1.4}
+.topf-ergebnis b{font-weight:600}
+.topf-ergebnis span{display:block;font-family:var(--f-body);font-size:var(--t-s);
+  color:var(--peat);font-weight:400;margin-top:3px}
 .sub-menge,.sub-lese{font-size:var(--t-s);color:var(--ink-2);line-height:1.5;margin:0 0 12px}
 .sb-balken{margin:12px 0 6px}
 .sb-zeile{display:flex;align-items:center;gap:9px;margin-bottom:7px}
@@ -985,6 +1078,156 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
            probleme katzentext beob todo giesstipp log
    Optional: winterruhe:true  ·  hinweis:"..."
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════ Giftigkeit nach Tierart ══════════════════
+   Grundlage: die Giftpflanzenliste der ASPCA (Hund, Katze), die
+   Zimmerpflanzenlisten von kaninchenwiese.de und birds-online.de
+   (Nager, Vögel), sowie die Giftdatenbank der Universität Zürich.
+
+   Wichtig zur Einordnung: Von den knapp 400 Arten der ASPCA-Liste sind
+   fast alle gleichzeitig für Hund und Katze giftig. Für Zimmerpflanzen
+   gilt deshalb als Faustregel: katzengiftig heißt auch hundegiftig.
+   Die Unterschiede stecken in wenigen, dafür wichtigen Ausnahmen.
+
+   Bei Nagern und Vögeln ist die Datenlage deutlich dünner. Was sich
+   nicht belegen ließ, steht hier als 'unklar' und wird in der App als
+   ungeprüft ausgewiesen — nicht als unbedenklich. */
+const TIERARTEN = {
+  katze: {name:'Katze',  mehrzahl:'Katzen',        hoehe:220, klettert:true},
+  hund:  {name:'Hund',   mehrzahl:'Hunde',         hoehe:100, klettert:false},
+  nager: {name:'Nager',  mehrzahl:'Nager',         hoehe:40,  klettert:false},
+  vogel: {name:'Vogel',  mehrzahl:'Ziervögel',     hoehe:999, klettert:true}
+};
+
+/* Regeln auf Ebene der Pflanzenfamilie oder Gattung. Sie greifen der
+   Reihe nach; die erste passende gewinnt. */
+const GIFT_REGELN = [
+  { pruef:/^(Lilium|Hemerocallis)/i,
+    wirkung:{katze:'schwer', hund:'leicht', nager:'schwer', vogel:'schwer'},
+    grund:'Für Katzen lebensgefährlich — schon Pollen oder Blumenwasser können die Nieren zerstören. Bei Hunden bleibt es meist beim Magen-Darm-Aufruhr.' },
+
+  { pruef:/^Cycas|Sagopalme/i,
+    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+    grund:'Alle Teile giftig, die Samen am stärksten. Ein bis zwei Samen können bei Hunden zu Leberversagen führen.' },
+
+  { pruef:/^Persea|Avocado/i,
+    wirkung:{katze:'leicht', hund:'leicht', nager:'schwer', vogel:'schwer'},
+    grund:'Persin ist für Vögel und Kleintiere besonders gefährlich und kann zum plötzlichen Herztod führen. Hunde und Katzen vertragen kleine Mengen meist.' },
+
+  { familie:/Araceae|Aronstab/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'mittel', vogel:'mittel'},
+    grund:'Nadelförmige Calciumoxalatkristalle verätzen Maul und Schleimhäute. Betrifft alle vier Tierarten gleichermaßen.' },
+
+  { familie:/Euphorbiaceae|Wolfsmilch/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'schwer', vogel:'schwer'},
+    grund:'Der Milchsaft reizt Haut und Schleimhäute stark. Für Nager und Vögel wegen des geringen Körpergewichts besonders riskant.' },
+
+  { familie:/Apocynaceae|Hundsgift/i,
+    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+    grund:'Enthält herzwirksame Glykoside — bei allen Tierarten ernst zu nehmen.' },
+
+  { familie:/Solanaceae|Nachtschatten/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'schwer', vogel:'mittel'},
+    grund:'Solanin, vor allem in unreifen Früchten und Blättern.' },
+
+  { pruef:/^(Dracaena|Sansevieria|Yucca)/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'mittel', vogel:'unklar'},
+    grund:'Steroidsaponine reizen die Schleimhäute von Hund und Katze. Für Vögel ist die Wirkung nicht belegt — die Quellen widersprechen sich, deshalb im Zweifel außer Reichweite.' },
+
+  { pruef:/^Ficus/i,
+    wirkung:{katze:'leicht', hund:'leicht', nager:'mittel', vogel:'mittel'},
+    grund:'Der Milchsaft reizt Haut und Maul. Bei Nagern und Vögeln stärker ins Gewicht fallend.' },
+
+  { pruef:/^(Begonia)/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'mittel', vogel:'mittel'},
+    grund:'Vor allem die Knolle. Begonia rex und gracilis gelten als besonders giftig.' },
+
+  { pruef:/^(Cyclamen|Alpenveilchen)/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'schwer', vogel:'mittel'},
+    grund:'Saponine, in der Knolle am stärksten konzentriert.' },
+
+  { pruef:/^(Aloe)/i,
+    wirkung:{katze:'mittel', hund:'mittel', nager:'mittel', vogel:'mittel'},
+    grund:'Aloin wirkt stark abführend und führt zu Erbrechen und Durchfall.' },
+
+  { pruef:/^(Chlorophytum|Grünlilie)/i,
+    wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
+    grund:'Gilt für alle vier Tierarten als unbedenklich. Katzen knabbern gern daran, das ist harmlos.' },
+
+  { pruef:/^(Calathea|Maranta|Peperomia|Pilea|Haworthia|Echeveria|Sedum)/i,
+    wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
+    grund:'In allen ausgewerteten Listen als unbedenklich geführt.' },
+
+  { familie:/Arecaceae|Palmengewächse/i,
+    wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
+    grund:'Echte Palmen gelten als unbedenklich. Achtung: Die Sagopalme ist keine echte Palme und hochgiftig.' },
+
+  { familie:/Polypodiaceae|Nephrolepis|Farngewächse/i,
+    wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
+    grund:'Echte Farne wie der Schwertfarn gelten als unbedenklich.' }
+];
+
+/* Stufen und wie ernst sie zu nehmen sind. */
+const GIFT_STUFEN = {
+  keine:  {rang:0, wort:'unbedenklich',   ton:'ok'},
+  leicht: {rang:1, wort:'leicht giftig',  ton:'mild'},
+  mittel: {rang:2, wort:'giftig',         ton:'warn'},
+  schwer: {rang:3, wort:'stark giftig',   ton:'schwer'},
+  unklar: {rang:1, wort:'ungeprüft',      ton:'unklar'}
+};
+
+/* Wie hoch ein Tier kommt. Der Vogel fliegt und erreicht alles. */
+const ERREICHBARKEIT = {
+  boden:  {name:'Auf dem Boden',       hoehe:0,   text:'für alle Tiere erreichbar'},
+  niedrig:{name:'Niedrig, bis 60 cm',  hoehe:60,  text:'Hunde und Nager kommen dran'},
+  mittel: {name:'Mittelhoch, bis 1,5 m', hoehe:150, text:'Katzen springen mühelos hinauf'},
+  hoch:   {name:'Hoch oder hängend',   hoehe:200, text:'nur Katzen mit Anlauf, Vögel immer'},
+  sicher: {name:'Gesichert oder geschlossen', hoehe:9999, text:'für kein Tier erreichbar'}
+};
+
+/* Giftbewertung einer Pflanze für eine Tierart. Erst die Regeln, dann
+   als Rückfall das alte Katzenfeld — damit bestehende Einträge und
+   selbst angelegte Pflanzen weiter funktionieren. */
+function giftFuer(p, tier){
+  const bot = (p.botanisch || '') + ' ' + (p.art || '');
+  const fam = p.familie || '';
+  for(const r of GIFT_REGELN){
+    const treffer = (r.pruef && r.pruef.test(bot)) || (r.familie && r.familie.test(fam));
+    if(treffer) return {stufe: r.wirkung[tier] || 'unklar', grund: r.grund, quelle:'regel'};
+  }
+  /* Keine Regel gegriffen: das vorhandene Katzenfeld übertragen. */
+  if(p.giftig === true || p.giftig === 1){
+    return {stufe: tier === 'katze' ? 'mittel' : 'unklar',
+            grund: tier === 'katze'
+              ? 'Als für Katzen giftig hinterlegt.'
+              : 'Für Katzen als giftig hinterlegt. Für diese Tierart liegt keine geprüfte Angabe vor — im Zweifel außer Reichweite stellen.',
+            quelle:'feld'};
+  }
+  if(p.giftig === false || p.giftig === 0){
+    return {stufe: tier === 'katze' ? 'keine' : 'unklar',
+            grund: tier === 'katze'
+              ? 'Als katzensicher hinterlegt.'
+              : 'Für Katzen als unbedenklich hinterlegt. Für diese Tierart liegt keine geprüfte Angabe vor.',
+            quelle:'feld'};
+  }
+  return {stufe:'unklar', grund:'Für diese Art liegt keine geprüfte Angabe vor.', quelle:'leer'};
+}
+
+/* Welche Tiere hält der Nutzer? */
+function meineTiere(){
+  const t = (S.tiere && S.tiere.arten) || [];
+  return S.tiere && S.tiere.aktiv ? t : [];
+}
+
+/* Kommt das Tier an diesen Platz heran? */
+function erreichbarFuer(stufe, tier){
+  const e = ERREICHBARKEIT[stufe] || ERREICHBARKEIT.boden;
+  const t = TIERARTEN[tier];
+  if(!t) return false;
+  if(stufe === 'sicher') return false;
+  if(tier === 'vogel') return true;      /* fliegt überall hin */
+  return t.hoehe >= e.hoehe;
+}
+
 const KLASSEN = {
   S:{name:"Karnivoren",kurz:"Anstau, dauerhaft nass",feuchte:100,sommer:"Untersetzer dauerhaft 1–2 cm gefüllt",winter:"Untersetzer leer, nur leicht feucht"},
   A:{name:"Durstig",kurz:"gleichmäßig feucht",feuchte:75,sommer:"alle 2–4 Tage",winter:"alle 5–8 Tage"},
@@ -2302,6 +2545,31 @@ function aussenKanten(r){
 }
 function kantenArt(r, kante){ return KANTEN_ART[r.kanten[kante.id] || 'wand'] || KANTEN_ART.wand; }
 
+/* ══════════════════ Genaue Maße einzelner Kanten ══════════════════
+   Eine Kachel ist 50 cm breit, echte Fenster sind es selten. Wer eine
+   130 cm breite Front hat, markiert drei Kacheln und setzt bei einer
+   davon die Breite auf 30 — dann rechnet das Licht mit 130 statt 150 cm.
+   Sockel- und Oberkante lassen sich ebenso überschreiben. Gezeichnet
+   wird weiterhin im gewohnten Raster; nur die Rechnung wird genauer. */
+function kantenMass(r, kanteId){
+  const eigen = (r.kantenMass && r.kantenMass[kanteId]) || {};
+  const art = KANTEN_ART[r.kanten[kanteId] || 'wand'] || KANTEN_ART.wand;
+  return {
+    b:      eigen.b      != null ? eigen.b      : KACHEL,
+    sockel: eigen.sockel != null ? eigen.sockel : art.sockel,
+    oben:   eigen.oben   != null ? eigen.oben   : art.oben,
+    eigen:  Object.keys(eigen).length > 0
+  };
+}
+function kantenMassSetzen(r, kanteId, werte){
+  r.kantenMass = r.kantenMass || {};
+  const sauber = {};
+  ['b','sockel','oben'].forEach(k=>{ if(werte[k] != null) sauber[k] = werte[k]; });
+  if(Object.keys(sauber).length) r.kantenMass[kanteId] = sauber;
+  else delete r.kantenMass[kanteId];
+  sichern();
+}
+
 /* Himmelsrichtung einer Kante: Raumdrehung plus Lage */
 function kantenAzimut(r, k){
   const versatz = {o:0, r:90, u:180, l:270}[k];
@@ -2331,9 +2599,19 @@ function sonnigImRaum(r, x, y, h, sonne){
     let k;
     if(nx !== kx) k = nx > kx ? 'r' : 'l';
     else          k = ny > ky ? 'u' : 'o';
-    const art = KANTEN_ART[r.kanten[k+':'+kx+','+ky] || 'wand'];
-    if(art.oben === 0) return false;                   // massive Wand
-    return z >= art.sockel && z <= art.oben;
+    const kanteId = k+':'+kx+','+ky;
+    const m = kantenMass(r, kanteId);
+    if(m.oben === 0) return false;                     // massive Wand
+    if(z < m.sockel || z > m.oben) return false;
+    /* Ist die Öffnung schmaler als die Kachel, sitzt sie mittig. Der
+       Strahl muss dann auch seitlich durch die Öffnung passen. */
+    if(m.b < KACHEL){
+      const laengs = (k === 'l' || k === 'r') ? cy : cx;
+      const inKachel = ((laengs % KACHEL) + KACHEL) % KACHEL;
+      const rand = (KACHEL - m.b) / 2;
+      if(inKachel < rand || inKachel > KACHEL - rand) return false;
+    }
+    return true;
   }
   return false;
 }
@@ -2343,7 +2621,8 @@ let SONNE_CACHE = {}, SONNE_CACHE_SIG = '';
 function raumSignatur(r){
   return r.id + '|' + r.drehung + '|' + r.dach + '|' + r.deckeH + '|' + r.sp + 'x' + r.re
     + '|' + Object.keys(r.kacheln).sort().join() + '|'
-    + Object.keys(r.kanten).sort().map(k=>k+r.kanten[k]).join();
+    + Object.keys(r.kanten).sort().map(k=>k+r.kanten[k]).join()
+    + '|' + JSON.stringify(r.kantenMass || {});
 }
 function cachePruefen(r){
   const sig = raumSignatur(r);
@@ -2917,10 +3196,83 @@ function bewertung(wert){
   return {stufe:'schlecht', text:'Passt nicht'};
 }
 
-/* Topfvolumen grob aus dem Durchmesser */
-function topfLiter(durchmesser){
+/* ══════════════════ Topfformen und Volumen ══════════════════
+   Die alte Schätzung rechnete nur mit dem Durchmesser hoch drei. Das
+   trifft einen Standardtopf halbwegs, liegt bei einer flachen Schale
+   aber um mehr als das Doppelte daneben. Jetzt wird die Form
+   mitgerechnet: runde Töpfe als Kegelstumpf, eckige als Pyramidenstumpf.
+
+   Die Verhältniszahlen (Höhe und Bodendurchmesser, jeweils im Verhältnis
+   zum oberen Durchmesser) stammen aus den Maßen handelsüblicher Töpfe. */
+const TOPFFORMEN = {
+  kultur: {
+    name:'Kulturtopf', kurz:'rund, klassisch',
+    eckig:false, hFaktor:0.90, bodenFaktor:0.68,
+    text:'Der Standardtopf aus dem Handel — oben weiter als unten, etwa so hoch wie breit.'
+  },
+  schale: {
+    name:'Schale', kurz:'flach',
+    eckig:false, hFaktor:0.42, bodenFaktor:0.78,
+    text:'Flache Schale für Sukkulenten, Bonsai oder Schalengärten. Braucht deutlich weniger Substrat, als man denkt.'
+  },
+  orchidee: {
+    name:'Orchideentopf', kurz:'schlank, durchsichtig',
+    eckig:false, hFaktor:1.05, bodenFaktor:0.70,
+    text:'Höher als breit, meist durchsichtig mit vielen Schlitzen. Die Löcher kosten etwa ein Zehntel des Volumens.',
+    abzug:0.10
+  },
+  quadrat: {
+    name:'Quadratisch', kurz:'eckig',
+    eckig:true, hFaktor:0.95, bodenFaktor:0.72,
+    text:'Eckige Töpfe fassen bei gleicher Kantenlänge spürbar mehr als runde — die Ecken zählen mit.'
+  },
+  hoch: {
+    name:'Hoher Topf', kurz:'tief, für Pfahlwurzeln',
+    eckig:false, hFaktor:1.45, bodenFaktor:0.72,
+    text:'Deutlich höher als breit, für Pflanzen mit tiefen Wurzeln wie Palmen oder Zitrus.'
+  }
+};
+
+/* Kegelstumpf: V = (pi * h / 3) * (R² + R*r + r²)
+   Pyramidenstumpf: V = (h / 3) * (A1 + A2 + Wurzel(A1*A2))
+   Alle Maße in Zentimetern, Ergebnis in Litern (1 l = 1000 cm³). */
+function topfVolumen(durchmesser, formKey){
+  const f = TOPFFORMEN[formKey] || TOPFFORMEN.kultur;
   const d = Math.max(5, durchmesser || 0);
-  return Math.round(0.00045 * d*d*d * 10) / 10;
+  const h = d * f.hFaktor;
+  const dUnten = d * f.bodenFaktor;
+  let cm3;
+  if(f.eckig){
+    const a1 = d * d, a2 = dUnten * dUnten;
+    cm3 = (h / 3) * (a1 + a2 + Math.sqrt(a1 * a2));
+  } else {
+    const R = d / 2, r = dUnten / 2;
+    cm3 = (Math.PI * h / 3) * (R*R + R*r + r*r);
+  }
+  if(f.abzug) cm3 *= (1 - f.abzug);
+  /* Bis zum Rand füllt niemand — oben bleiben rund zwei Finger Luft. */
+  cm3 *= 0.88;
+  return Math.round(cm3 / 1000 * 100) / 100;
+}
+
+/* Der alte Name bleibt erhalten, damit bestehende Aufrufe weiter gehen. */
+function topfLiter(durchmesser, formKey){
+  return topfVolumen(durchmesser, formKey || (typeof subForm !== 'undefined' ? subForm : 'kultur'));
+}
+
+/* Kleine Zeichnung der Topfform fürs Karussell. */
+function topfIcon(formKey){
+  const f = TOPFFORMEN[formKey] || TOPFFORMEN.kultur;
+  const breite = 34, hoehe = Math.min(38, 34 * f.hFaktor);
+  const unten = breite * f.bodenFaktor;
+  const x1 = (44 - breite) / 2, x2 = (44 - unten) / 2;
+  const y1 = 42 - hoehe, y2 = 42;
+  const eck = f.eckig ? '0' : '2';
+  return `<svg viewBox="0 0 44 46" width="44" height="46" aria-hidden="true">
+    <path d="M${x1} ${y1} L${44-x1} ${y1} L${44-x2} ${y2} L${x2} ${y2} Z"
+      fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" rx="${eck}"/>
+    <line x1="${x1-1}" y1="${y1}" x2="${45-x1}" y2="${y1}" stroke="currentColor" stroke-width="2.2"/>
+  </svg>`;
 }
 
 const SUBSTRAT_WARNUNGEN = [
@@ -3475,9 +3827,77 @@ function papierkorbRender(){
 }
 
 </script>
+<!-- Beim allerersten Öffnen: kurze Vorstellung und die zwei Fragen,
+     die sonst nirgends auffallen. Danach nie wieder. -->
+<div id="willkommen" class="wk" hidden>
+  <div class="wk-blatt">
+    <div class="wk-schritt" data-wk="1">
+      <p class="wk-nr">Willkommen</p>
+      <h1 class="wk-titel">Greenkeeper</h1>
+      <p class="wk-lead">Ein Notizbuch für deine Pflanzen. Alles bleibt auf diesem Gerät —
+        kein Konto, keine Anmeldung, keine Daten irgendwo draußen.</p>
+      <ul class="wk-liste">
+        <li><b>Sammlung</b><span>Steckbrief, Fotos und Gießstand für jede Pflanze.</span></li>
+        <li><b>Heute</b><span>Was dran ist — und ein Gießmodus, der dich Pflanze für Pflanze durchführt.</span></li>
+        <li><b>Doktor</b><span>Schritt für Schritt zur wahrscheinlichsten Ursache, wenn etwas nicht stimmt.</span></li>
+        <li><b>Substrat</b><span>Mischung nach Pflanzenart, mit Mengenrechner für deinen Topf.</span></li>
+        <li><b>Grundriss</b><span>Deinen Raum zeichnen und sehen, wie viel Sonne wo ankommt.</span></li>
+      </ul>
+      <div class="wk-knoepfe">
+        <button class="wk-haupt" data-wkgo="2">Los geht's</button>
+        <button class="wk-neben" data-wkfertig="0">Überspringen</button>
+      </div>
+    </div>
+
+    <div class="wk-schritt" data-wk="2" hidden>
+      <p class="wk-nr">Frage 1 von 2</p>
+      <h2 class="wk-titel">Hast du Haustiere?</h2>
+      <p class="wk-lead">Viele Zimmerpflanzen sind für Tiere giftig. Wenn du magst, warnt dich
+        die App, sobald eine davon in Reichweite steht.</p>
+      <div class="wk-wahl">
+        <button class="wk-gross" data-wktiere="1">Ja</button>
+        <button class="wk-gross" data-wktiere="0">Nein</button>
+      </div>
+      <div id="wk-arten-block" hidden>
+        <p class="wk-frage">Welche? Mehrere möglich.</p>
+        <div class="wk-chips" id="wk-arten"></div>
+      </div>
+      <div class="wk-knoepfe">
+        <button class="wk-haupt" data-wkgo="3">Weiter</button>
+      </div>
+    </div>
+
+    <div class="wk-schritt" data-wk="3" hidden>
+      <p class="wk-nr">Frage 2 von 2</p>
+      <h2 class="wk-titel">Möchtest du den Grundriss nutzen?</h2>
+      <p class="wk-lead">Du zeichnest deinen Raum mit Fenstern und Himmelsrichtung. Die App
+        rechnet daraus aus, wie viele Sonnenstunden an jedem Platz ankommen — und sagt dir,
+        welche Pflanze wo gut steht. Das ist der aufwendigste Teil, aber auch der nützlichste.</p>
+      <div class="wk-wahl">
+        <button class="wk-gross" data-wkplan="1">Ja, zeig mir das</button>
+        <button class="wk-gross" data-wkplan="0">Später</button>
+      </div>
+      <p class="wk-klein">Du kannst das jederzeit ändern — unter „Mehr“.</p>
+    </div>
+
+    <div class="wk-schritt" data-wk="4" hidden>
+      <p class="wk-nr">Fertig</p>
+      <h2 class="wk-titel">Kann losgehen</h2>
+      <p class="wk-lead">Ein letzter Hinweis, der wichtigste von allen:</p>
+      <p class="wk-warnung">Alles liegt nur in diesem Browser. Wird er aufgeräumt oder das
+        Gerät gewechselt, ist alles weg. Lade regelmäßig eine Sicherung herunter — unter
+        „Mehr“, ganz oben. Die App erinnert dich alle zwei Wochen daran.</p>
+      <div class="wk-knoepfe">
+        <button class="wk-haupt" data-wkfertig="1">Erste Pflanze anlegen</button>
+        <button class="wk-neben" data-wkfertig="0">Erstmal umsehen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow">Sammlung · <span id="count"></span> Pflanzen</p>
+    <p class="eyebrow">Sammlung · <span id="count"></span> Pflanzen · Stand <span id="stand-datum"></span></p>
     <h1 id="kopf-titel">Was heute<br>Wasser braucht</h1>
     <p class="sub" id="kopf-sub">Jede Pflanze sitzt irgendwo zwischen dauerhaft nassem Moor und staubtrockener Savanne. Diese Skala ordnet die Sammlung — alles Weitere folgt daraus.</p>
   </header>
@@ -3500,15 +3920,19 @@ function papierkorbRender(){
     </button>
   </section>
 
-  <section data-ans="sammlung" class="scale-sec">
-    <div class="scale-head">
+  <section data-ans="sammlung" class="scale-sec" id="scale-sec">
+    <button class="scale-head" id="scale-head" aria-expanded="true" aria-controls="scale-body">
       <h2 class="scale-title">Feuchte-Skala</h2>
-      <span class="scale-note">Tippen zum Öffnen</span>
-    </div>
+      <span class="scale-note"><span id="scale-zustand">Zuklappen</span> <span class="caret">▾</span></span>
+    </button>
+    <div id="scale-body">
+    <p class="scale-hint">Jede Pflanze sitzt irgendwo zwischen dauernassem Moor und
+      staubtrockener Savanne. Einen Punkt antippen öffnet die Pflanze.</p>
     <div class="scale">
       <div class="scale-track"></div>
       <div id="pins"></div>
       <div class="scale-ticks"><span class="tick">Anstau, nie trocken</span><span class="tick">staubtrocken</span></div>
+    </div>
     </div>
     <div class="legend closed" id="legend">
       <button class="legend-head" id="legend-head" aria-expanded="false"><span class="caret">▾</span> Zeichenerklärung</button>
@@ -3715,7 +4139,17 @@ function papierkorbRender(){
     <div class="fgrid">
       <label><span class="lab">Für welche Pflanze?</span><select id="sub-pflanze"></select></label>
       <label><span class="lab">Gruppe</span><select id="sub-ziel"></select></label>
-      <label><span class="lab">Topfdurchmesser in cm</span><input id="sub-topf" type="number" min="5" max="80" step="1"></label>
+      <label class="topf-num"><span class="lab">Topfdurchmesser in cm</span><input id="sub-topf" type="number" min="5" max="80" step="1"></label>
+    </div>
+    <div class="topf-block">
+      <p class="topf-lab">Welche Form hat der Topf?</p>
+      <div class="topf-karussell" id="topf-karussell" role="radiogroup" aria-label="Topfform"></div>
+      <p class="topf-hinweis" id="topf-hinweis"></p>
+      <label class="topf-schieber">
+        <span class="lab">Durchmesser oben: <b id="topf-wert">18 cm</b></span>
+        <input id="topf-slider" type="range" min="6" max="45" step="1" value="18">
+      </label>
+      <p class="topf-ergebnis" id="topf-ergebnis"></p>
     </div>
     <div id="sub-ziel-text"></div>
 
@@ -3736,7 +4170,7 @@ function papierkorbRender(){
       <select id="raum-wahl"></select>
       <button id="btn-raum-auf">Raum einrichten</button>
     </div>
-    <div class="fgrid raumgrid" id="raum-einrichten" hidden>
+    <div class="fgrid raumgrid" id="raum-einrichten">
       <label class="fspan"><span class="lab">Räume</span>
         <span class="tools"><button id="btn-raum-neu">Neuer Raum</button><button id="btn-raum-weg" class="loeschen">Diesen Raum löschen</button></span></label>
       <label><span class="lab">Name</span><input id="r-name"></label>
@@ -3753,6 +4187,7 @@ function papierkorbRender(){
       <button data-pmodus="kacheln">Grundriss</button>
       <button data-pmodus="kanten">Wände</button>
     </div>
+    <p class="modus-hinweis" id="modus-hinweis"></p>
     <div class="pleiste" id="kanten-leiste" hidden></div>
     <div class="pleiste" id="moebel-leiste" hidden></div>
 
@@ -3801,6 +4236,15 @@ function papierkorbRender(){
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="mb-name"></label>
         <label><span class="lab">Höhe in cm</span><input id="mb-hoehe" type="number" min="0" step="5"></label>
+        <p class="hint" id="mb-raster-hinweis" hidden></p>
+        <label id="mb-zone-feld"><span class="lab">Für Tiere erreichbar</span>
+          <select id="mb-zone">
+            <option value="boden">Auf dem Boden — für alle erreichbar</option>
+            <option value="niedrig">Niedrig, bis 60 cm — Hunde und Nager</option>
+            <option value="mittel">Mittelhoch, bis 1,5 m — Katzen springen hinauf</option>
+            <option value="hoch">Hoch oder hängend — nur Katzen mit Anlauf</option>
+            <option value="sicher">Gesichert oder geschlossen — kein Tier kommt ran</option>
+          </select></label>
         <label><span class="lab">Breite in cm</span><input id="mb-breite" type="number" min="15" step="5"></label>
         <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
         <label class="fspan check"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
@@ -3837,6 +4281,36 @@ function papierkorbRender(){
         <button id="btn-melde-mail">Als E-Mail öffnen</button>
       </div>
     </div>
+  </section>
+
+  <section data-ans="mehr" class="plan">
+    <h2>Sicherung</h2>
+    <p class="sub" id="storage-state"></p>
+    <p class="sub" id="storage-size"></p>
+    <div class="tools">
+      <button id="btn-download" class="haupt">Sicherung herunterladen</button>
+      <button id="btn-import">Sicherung laden</button>
+      <button id="btn-export">Als Text anzeigen</button>
+      <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
+    </div>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+    <textarea id="exportbox" hidden readonly aria-label="Sicherung als Text"></textarea>
+  </section>
+
+  <section data-ans="mehr" class="plan" id="tier-sec">
+    <h2>Haustiere</h2>
+    <p class="lead">Ob die App vor giftigen Pflanzen in Reichweite warnen soll — und vor welchen Tieren.</p>
+    <div class="ctrl-row"><span class="ctrl-lab">Hast du Haustiere?</span>
+      <span class="tier-wahl" id="tier-anaus">
+        <button class="chip" data-tieraktiv="1" aria-pressed="false">Ja</button>
+        <button class="chip" data-tieraktiv="0" aria-pressed="false">Nein</button>
+      </span></div>
+    <div id="tier-arten-block" hidden>
+      <p class="hint">Mehrere möglich. Jede Pflanze wird für jedes gewählte Tier einzeln geprüft.</p>
+      <div class="tier-wahl" id="tier-arten"></div>
+      <p class="hint">Wo eine Pflanze steht, legst du im Grundriss am Möbelstück fest — dort gibt es das Feld „Für Tiere erreichbar“.</p>
+    </div>
+    <p class="hint">Die Angaben stammen aus der Giftpflanzenliste der ASPCA sowie aus Fachlisten für Nager und Ziervögel. Für Hund und Katze ist die Datenlage gut, bei Nagern und Vögeln lückenhaft — was sich nicht belegen ließ, wird als „ungeprüft“ ausgewiesen und nicht als unbedenklich. Im Zweifel gilt: außer Reichweite stellen.</p>
   </section>
 
   <section data-ans="mehr" class="plan" id="rg-einst">
@@ -3909,19 +4383,6 @@ function papierkorbRender(){
     <p class="sub">Statt der Reiter unten läuft dann wieder alles untereinander. Am großen Bildschirm oft angenehmer.</p>
   </section>
 
-  <section data-ans="mehr" class="plan">
-    <h2>Sicherung</h2>
-    <p class="sub" id="storage-state"></p>
-    <p class="sub" id="storage-size"></p>
-    <div class="tools">
-      <button id="btn-download" class="haupt">Sicherung herunterladen</button>
-      <button id="btn-import">Sicherung laden</button>
-      <button id="btn-export">Als Text anzeigen</button>
-      <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
-    </div>
-    <input type="file" id="import-file" accept="application/json,.json" hidden>
-    <textarea id="exportbox" hidden readonly aria-label="Sicherung als Text"></textarea>
-  </section>
 
 
 </div>
@@ -3970,33 +4431,208 @@ const hatBilder = typeof BILDER !== 'undefined';
 /* ══════════════════ Zustand ══════════════════ */
 const KEY = 'pflanzenglossar-start';
 let SPEICHER_OK = true;
-let S = {tasks:{}, added:{}, deleted:{}, wish:null, water:{}, fotos:{}, fotosWeg:{}, eigene:[], zustand:{}, neueArten:[]};
+/* Eine einzige Stelle für alle Grundwerte. Vorher standen zwei
+   unterschiedliche Listen im Code — beim Start wurden andere Felder
+   angelegt als beim Laden einer Sicherung, und was in der einen Liste
+   fehlte, war hinterher undefined. */
+/* Steht in einer geladenen Sicherung wish auf null oder fehlt es ganz,
+   lief render() vorher in einen Absturz — der Import brach dann mittendrin
+   ab und die Anzeige blieb auf dem alten Stand stehen, obwohl die Daten
+   schon geschrieben waren. */
+const WUNSCH_START = [
+  {id:'w1', text:'Bims oder Lava zum Abmagern von Substraten', done:false},
+  {id:'w2', text:'Grobe Pinienrinde für Aroideen und Orchideen', done:false}
+];
+const LEERSTAND = () => ({
+  tasks:{}, added:{}, deleted:{}, wish:null, water:{}, fotos:{}, fotosWeg:{},
+  eigene:[], zustand:{}, neueArten:[], blatt:{}, edits:{}, vorrat:[], weg:{},
+  ereignisse:{}, gesehen:{}, orte:{}, acc:{giessen:1, aufgaben:1},
+  balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'',
+  letzteSicherung:null, startGesehen:null, grundrissWunsch:null,
+  /* Tierhaltung: aktiv sagt, ob überhaupt Warnungen kommen sollen. */
+  tiere:{aktiv:null, arten:['katze']},
+  feuchtRueck:{}   /* Rückmeldungen „noch feucht“ je Pflanze */
+});
+let S = LEERSTAND();
+
+/* Fehlende Felder ergänzen, ohne vorhandene zu überschreiben. */
+function grundwerteErgaenzen(){
+  const leer = LEERSTAND();
+  Object.keys(leer).forEach(k => {
+    if(S[k] === undefined || S[k] === null){
+      if(leer[k] !== null) S[k] = leer[k];
+      else if(!(k in S)) S[k] = null;
+    }
+  });
+  if(!S.acc || typeof S.acc !== 'object') S.acc = {giessen:1, aufgaben:1};
+  /* wish darf niemals null bleiben, sonst stolpert render() darüber. */
+  if(!Array.isArray(S.wish)) S.wish = WUNSCH_START.map(w=>Object.assign({}, w));
+  if(!S.tiere || typeof S.tiere !== 'object') S.tiere = {aktiv:null, arten:['katze']};
+  if(!Array.isArray(S.tiere.arten)) S.tiere.arten = ['katze'];
+  if(!S.feuchtRueck || typeof S.feuchtRueck !== 'object') S.feuchtRueck = {};
+  if(S.startGesehen === undefined) S.startGesehen = null;
+  if(S.grundrissWunsch === undefined) S.grundrissWunsch = null;
+  /* Ebenso alle Sammlungen, die als Liste erwartet werden. */
+  ['eigene','neueArten','vorrat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k] = []; });
+  ['tasks','added','deleted','water','fotos','fotosWeg','zustand','blatt','edits',
+   'weg','ereignisse','gesehen','orte'].forEach(k=>{
+    if(!S[k] || typeof S[k] !== 'object' || Array.isArray(S[k])) S[k] = {};
+  });
+}
 
 function laden(){
   try{ const roh = localStorage.getItem(KEY); if(roh) S = Object.assign(S, JSON.parse(roh)); }
   catch(e){ SPEICHER_OK = false; }
-  if(!S.zustand) S.zustand = {};
-  if(!S.neueArten) S.neueArten = [];
-  if(!S.blatt) S.blatt = {};
-  if(!S.edits) S.edits = {};
-  if(!S.acc) S.acc = {'giessen':1, 'aufgaben':1};
-  if(!S.vorrat) S.vorrat = [];
-  if(!S.weg) S.weg = {};
-  if(!S.ereignisse) S.ereignisse = {};
-  if(!S.gesehen) S.gesehen = {};
+  grundwerteErgaenzen();
+}
+
+/* ══════════════════ Fotospeicher ══════════════════
+   Der normale Browserspeicher fasst nur etwa fünf Megabyte, und Fotos
+   liegen darin als langer Text — nach rund fünfzig Bildern ist Schluss.
+   Deshalb wandern nur die Fotos in die zweite Speicherart des Browsers,
+   die IndexedDB heisst und mehrere hundert Megabyte fasst.
+
+   Am Rest des Programms ändert sich dadurch nichts: S.fotos bleibt ein
+   ganz normales Objekt im Arbeitsspeicher und wird überall gelesen wie
+   bisher. Nur beim Sichern wird es aus dem kleinen Speicher heraus- und
+   in den grossen hineingeschrieben. */
+const FOTO_DB = 'greenkeeper-fotos';
+const FOTO_LADEN = 'bilder';
+let fotoDb = null;
+let FOTOS_BEREIT = false;   /* Sperre: nicht speichern, bevor gelesen wurde */
+let FOTO_GROSS = false;     /* Steht der grosse Speicher zur Verfügung? */
+
+function fotoDbOeffnen(){
+  return new Promise(res=>{
+    if(fotoDb) return res(fotoDb);
+    let anfrage;
+    try{ anfrage = indexedDB.open(FOTO_DB, 1); }
+    catch(e){ return res(null); }
+    if(!anfrage) return res(null);
+    anfrage.onupgradeneeded = ev=>{
+      const db = ev.target.result;
+      if(!db.objectStoreNames.contains(FOTO_LADEN)) db.createObjectStore(FOTO_LADEN);
+    };
+    anfrage.onsuccess = ev=>{ fotoDb = ev.target.result; res(fotoDb); };
+    anfrage.onerror = ()=>res(null);
+    anfrage.onblocked = ()=>res(null);
+    /* Manche Browser antworten im privaten Fenster überhaupt nicht. */
+    setTimeout(()=>res(fotoDb), 2500);
+  });
+}
+
+function fotoLesen(){
+  return fotoDbOeffnen().then(db=>{
+    if(!db) return null;
+    return new Promise(res=>{
+      try{
+        const t = db.transaction(FOTO_LADEN, 'readonly');
+        const a = t.objectStore(FOTO_LADEN).get(KEY);
+        a.onsuccess = ()=>res(a.result || null);
+        a.onerror = ()=>res(null);
+      }catch(e){ res(null); }
+    });
+  }).catch(()=>null);
+}
+
+function fotoSchreiben(daten){
+  return fotoDbOeffnen().then(db=>{
+    if(!db) return false;
+    return new Promise(res=>{
+      try{
+        const t = db.transaction(FOTO_LADEN, 'readwrite');
+        t.objectStore(FOTO_LADEN).put(daten, KEY);
+        t.oncomplete = ()=>res(true);
+        t.onerror = ()=>res(false);
+        t.onabort = ()=>res(false);
+      }catch(e){ res(false); }
+    });
+  }).catch(()=>false);
+}
+
+/* Beim Start einmal: Fotos aus dem grossen Speicher holen. Liegen dort
+   noch keine, aber im kleinen schon welche, werden sie umgezogen. */
+async function fotosVorbereiten(){
+  const ausDb = await fotoLesen();
+  if(ausDb && typeof ausDb === 'object'){
+    FOTO_GROSS = true;
+    /* Was noch im kleinen Speicher liegt, hat Vorrang — es ist neuer. */
+    const ausLokal = S.fotos && Object.keys(S.fotos).length ? S.fotos : null;
+    S.fotos = Object.assign({}, ausDb, ausLokal || {});
+    FOTOS_BEREIT = true;
+    if(ausLokal) sichern();
+  } else {
+    const umzug = S.fotos && Object.keys(S.fotos).length ? S.fotos : {};
+    const ok = await fotoSchreiben(umzug);
+    FOTO_GROSS = !!ok;
+    FOTOS_BEREIT = true;
+    if(ok) sichern();
+  }
+  if(typeof statusText === 'function') statusText();
+  if(typeof render === 'function'){ try{ render(); }catch(e){ console.warn(e); } }
+}
+/* Wieviel Prozent des Browserspeichers belegt sind. Über 80 Prozent wird
+   es eng — dann rechtzeitig warnen, statt erst beim harten Anschlag. */
+const SPEICHER_MAX = 5 * 1024 * 1024;
+let speicherGewarnt = false;
+/* Nur was wirklich im kleinen Speicher landet, zählt gegen dessen Grenze. */
+function kleinerTeil(){
+  return (FOTO_GROSS && FOTOS_BEREIT) ? Object.assign({}, S, {fotos: {}}) : S;
+}
+function speicherAnteil(){
+  try{ return new Blob([JSON.stringify(kleinerTeil())]).size / SPEICHER_MAX; }catch(e){ return 0; }
+}
+function groesseKB(objekt){
+  try{ return Math.round(new Blob([JSON.stringify(objekt)]).size / 1024); }catch(e){ return 0; }
 }
 function sichern(){
-  try{ localStorage.setItem(KEY, JSON.stringify(S)); statusText(); }
-  catch(e){
+  try{
+    /* Fotos gehen in den grossen Speicher und werden aus dem kleinen
+       herausgehalten. Steht der grosse nicht zur Verfügung, bleibt alles
+       beim Alten — dann zählen die Fotos wieder gegen die fünf Megabyte. */
+    if(FOTO_GROSS && FOTOS_BEREIT){
+      const ohneFotos = Object.assign({}, S, {fotos: {}});
+      localStorage.setItem(KEY, JSON.stringify(ohneFotos));
+      fotoSchreiben(S.fotos || {});
+    } else {
+      localStorage.setItem(KEY, JSON.stringify(S));
+    }
+    SPEICHER_OK = true;
+    statusText();
+    const anteil = speicherAnteil();
+    if(anteil > 0.8 && !speicherGewarnt){
+      speicherGewarnt = true;
+      alert('Der Browserspeicher ist zu ' + Math.round(anteil*100) + ' Prozent voll.\n\n'
+        + 'Lade jetzt unter „Mehr“ eine Sicherung herunter. Fotos brauchen den meisten '
+        + 'Platz — wenn es eng wird, hilft es, ältere Bilder zu löschen.');
+    }
+    if(anteil < 0.7) speicherGewarnt = false;
+  }catch(e){
     SPEICHER_OK = false; statusText();
-    alert('Der Browserspeicher ist voll oder nicht verfügbar. Lade bitte eine Sicherung herunter, damit nichts verloren geht.');
+    alert('Der Browserspeicher ist voll — diese Änderung konnte NICHT gespeichert werden.\n\n'
+      + 'Schließe die Seite jetzt nicht. Lade zuerst unter „Mehr“ eine Sicherung herunter '
+      + 'und lösche danach ein paar Fotos, damit wieder Platz entsteht.');
   }
 }
+
+/* Neue Pflanzen bekamen früher die Nummer „100 plus Anzahl der eigenen“.
+   Nach dem Löschen einer Pflanze rutschte die Zählung zurück und die
+   nächste neue Pflanze erbte die ID einer alten — samt deren Fotos,
+   Gießverlauf und Aufgaben. Deshalb immer über der höchsten je
+   vergebenen Nummer bleiben. */
+function neueId(){
+  let hoechste = 99;
+  const pruefen = id => {
+    const m = /^E-(\d+)$/.exec(id || '');
+    if(m) hoechste = Math.max(hoechste, parseInt(m[1], 10));
+  };
+  (S.eigene || []).forEach(p => pruefen(p.id));
+  ['fotos','water','zustand','added','tasks','ereignisse','gesehen','weg','edits','blatt']
+    .forEach(k => Object.keys(S[k] || {}).forEach(pruefen));
+  return 'E-' + (hoechste + 1);
+}
 laden();
-if(!S.wish) S.wish = [
-  {id:'w1', text:'Bims oder Lava zum Abmagern von Substraten', done:false},
-  {id:'w2', text:'Grobe Pinienrinde für Aroideen und Orchideen', done:false}
-];
+/* Die Wunschliste wird jetzt schon in grundwerteErgaenzen() gefüllt. */
 
 /* Eigene Pflanzen an die Sammlung anhängen */
 function allePflanzen(){
@@ -4085,10 +4721,30 @@ function iconRow(p){ return `<span class="icons">${icoSonne(p)}${icoWasser(p)}${
 })();
 
 /* ══════════════════ Gießtracker ══════════════════ */
-const HEUTE = new Date();
-const iso = d => d.toISOString().slice(0,10);
-const tageSeit = s => Math.floor((HEUTE - new Date(s+'T12:00:00')) / 86400000);
+/* Datum immer nach Ortszeit bilden. toISOString() rechnet in UTC und
+   schiebt in Deutschland zwischen Mitternacht und zwei Uhr nachts alles
+   auf den Vortag — Gießeinträge landen dann am falschen Tag. */
+const iso = d => {
+  const zwei = n => String(n).padStart(2,'0');
+  return d.getFullYear() + '-' + zwei(d.getMonth()+1) + '-' + zwei(d.getDate());
+};
+const mitternacht = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+let HEUTE = new Date();
+/* Von Mitternacht zu Mitternacht rechnen. Sonst hängt das Ergebnis an der
+   Uhrzeit: vormittags galt „gestern gegossen“ noch als null Tage her. */
+const tageSeit = s => Math.round(
+  (mitternacht(HEUTE) - mitternacht(new Date(s+'T12:00:00'))) / 86400000);
 const sommer = () => { const m = HEUTE.getMonth()+1; return m>=4 && m<=9; };
+/* Als Startbildschirm-App bleibt die Seite tagelang offen. Ohne diese
+   Prüfung bliebe „heute“ für immer der Tag des letzten Ladens. */
+function tagPruefen(){
+  const jetzt = new Date();
+  const wechsel = iso(jetzt) !== iso(HEUTE);
+  HEUTE = jetzt;
+  if(wechsel && typeof render === 'function') render();
+}
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tagPruefen(); });
+setInterval(tagPruefen, 300000);
 
 function intervallVon(p){
   const iv = p.intervall || [8,12];
@@ -4096,7 +4752,14 @@ function intervallVon(p){
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
   if(z && z.def && z.def.f && z.def.f !== 1) basis = Math.max(1, Math.round(basis * z.def.f));
   else if(p.uebergang && p.uebergangBis && HEUTE < new Date(p.uebergangBis+'T23:59:59')) basis = p.uebergang;
-  return basis;
+  /* Von Hand bestätigte Verschiebung, höchstens vier Tage. */
+  const schub = (S.zustand[p.id] && S.zustand[p.id].giessSchub) || 0;
+  return basis + Math.min(4, Math.max(0, schub));
+}
+/* Für die Rückfrage: der Wert ohne Verschiebung. */
+function giessIntervall(p){
+  const schub = (S.zustand[p.id] && S.zustand[p.id].giessSchub) || 0;
+  return intervallVon(p) - Math.min(4, Math.max(0, schub));
 }
 function giessLog(id){ return (S.water[id]||[]).slice().sort().reverse(); }
 function giessStatus(p){
@@ -4106,31 +4769,64 @@ function giessStatus(p){
   if(!log.length) return {stand:'unbekannt', iv, tage:null, rest:null};
   const t = tageSeit(log[0]);
   const rest = iv - t;
-  return {stand: rest<0 ? 'over' : (rest<=1 ? 'soon' : 'ok'), iv, tage:t, rest, letzte:log[0]};
+  /* Eine Stufe früher warnen: „bald fällig" greift schon zwei Tage
+     vorher statt erst am Vortag. Lieber einen Tag zu früh nachsehen
+     als einen zu spät. */
+  return {stand: rest<0 ? 'over' : (rest<=2 ? 'soon' : 'ok'), iv, tage:t, rest, letzte:log[0]};
 }
+/* Ein zweites Antippen nahm den Eintrag früher stillschweigend zurück —
+   ein Fehlgriff löschte den Gießvermerk, ohne dass man es merkte.
+   Jetzt wird nachgefragt. Das Array wird sortiert geprüft, weil die
+   Reihenfolge nach einem Import nicht garantiert ist. */
 function giessen(id){
   const l = S.water[id] = S.water[id] || [];
   const heute = iso(HEUTE);
-  if(l[l.length-1] === heute) l.pop(); else l.push(heute);
+  if(l.includes(heute)){
+    if(!confirm('Für heute ist bereits ein Gießvermerk eingetragen.\n\nSoll er wieder entfernt werden?')) return false;
+    S.water[id] = l.filter(d => d !== heute);
+  } else {
+    l.push(heute); l.sort();
+  }
   sichern();
+  return true;
 }
 
+/* Pflanzen ohne einen einzigen Gießeintrag sind kein Notfall, sondern
+   nur noch nicht erfasst. Früher standen sie zwischen den überfälligen
+   und liefen in den roten Zähler — beim ersten Öffnen sah die ganze
+   Sammlung nach Alarm aus. Jetzt stehen sie in einem eigenen, ruhigen
+   Abschnitt darunter. */
+function karteHTML(p, st, wann){
+  return `<button class="due ${st.stand}" data-go="${p.id}">
+    <span class="ico wet" aria-hidden="true">${SVG.giessen}</span>
+    <span><span class="due-name">${esc(nice(p))}</span><span class="due-when">${esc(wann)}</span></span></button>`;
+}
 function faelligHTML(){
-  const liste = allePflanzen().map(p=>({p, st:giessStatus(p)}))
-    .filter(x=>x.st.stand==='over' || x.st.stand==='soon' || x.st.stand==='unbekannt')
-    .sort((a,b)=>{
-      const r = {over:0, soon:1, unbekannt:2};
-      return r[a.st.stand]-r[b.st.stand] || (a.st.rest??99)-(b.st.rest??99);
-    });
-  if(!liste.length) return `<p class="allgut">Alles versorgt. Nichts fällig.</p>`;
-  return `<div class="due-list">${liste.map(({p,st})=>{
-    const wann = st.stand==='unbekannt' ? 'noch nie eingetragen'
-      : st.stand==='over' ? `überfällig, ${-st.rest} ${-st.rest===1?'Tag':'Tage'}`
-      : st.rest===0 ? 'heute dran' : 'morgen dran';
-    return `<button class="due ${st.stand}" data-go="${p.id}">
-      <span class="ico wet" aria-hidden="true">${SVG.giessen}</span>
-      <span><span class="due-name">${esc(nice(p))}</span><span class="due-when">${esc(wann)}</span></span></button>`;
-  }).join('')}</div>`;
+  const alle = allePflanzen().map(p=>({p, st:giessStatus(p)}));
+  const dran = alle.filter(x=>x.st.stand==='over' || x.st.stand==='soon')
+    .sort((a,b)=>(a.st.rest??99)-(b.st.rest??99));
+  const neu = alle.filter(x=>x.st.stand==='unbekannt');
+
+  let raus = '';
+  if(dran.length){
+    raus += `<div class="due-list">${dran.map(({p,st})=>karteHTML(p, st,
+      st.stand==='over' ? `überfällig, ${-st.rest} ${-st.rest===1?'Tag':'Tage'}`
+      : st.rest===0 ? 'heute dran' : st.rest===1 ? 'morgen dran' : `in ${st.rest} Tagen`)).join('')}</div>`;
+    if(typeof raumKnoepfeHTML === 'function') raus += raumKnoepfeHTML();
+  } else {
+    raus += `<p class="allgut">Alles versorgt. Nichts fällig.</p>`;
+  }
+
+  if(neu.length){
+    raus += `<div class="erst-block">
+      <h3 class="erst-titel">Noch nicht erfasst</h3>
+      <p class="erst-sub">${neu.length === 1
+        ? 'Eine Pflanze hat noch keinen Gießeintrag. Sobald du sie einmal gießt, rechnet die App mit.'
+        : neu.length + ' Pflanzen haben noch keinen Gießeintrag. Sobald du sie einmal gießt, rechnet die App mit.'}</p>
+      <div class="due-list">${neu.map(({p,st})=>karteHTML(p, st, 'noch nie eingetragen')).join('')}</div>
+    </div>`;
+  }
+  return raus;
 }
 
 function trackerHTML(p){
@@ -4182,9 +4878,13 @@ function bildVerkleinern(file, maxPx, q){
   });
 }
 async function fotosHinzu(id, files){
+  /* Im großen Bildspeicher ist Platz für deutlich bessere Bilder.
+     Ohne ihn bleibt es bei der sparsamen Fassung von früher. */
+  const kante = FOTO_GROSS ? 1400 : 620;
+  const guete = FOTO_GROSS ? 0.82 : 0.62;
   for(const f of files){
     try{
-      const src = await bildVerkleinern(f, 620, .62);
+      const src = await bildVerkleinern(f, kante, guete);
       (S.fotos[id] = S.fotos[id]||[]).push({key:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), src, datum:iso(HEUTE)});
     }catch(e){ console.warn('Foto konnte nicht gelesen werden', e); }
   }
@@ -4421,7 +5121,12 @@ function kartenBeobachten(){
   }, {rootMargin: '120px 0px 120px 0px', threshold: 0});
   document.querySelectorAll('#out .card.open').forEach(c=>kartenWaechter.observe(c));
 }
-function zaehler(){ $('#count').textContent = allePflanzen().length; }
+function zaehler(){
+  $('#count').textContent = allePflanzen().length;
+  const st = $('#stand-datum');
+  if(st) st.textContent = HEUTE.toLocaleDateString('de-DE',
+    {day:'numeric', month:'long', year:'numeric'});
+}
 
 (function(){
   const G = {standort:'Standort', klasse:'Gießklasse', typ:'Typ', keine:'Keine'};
@@ -4803,48 +5508,70 @@ $('#btn-neu').onclick = ()=>{
   if(f.classList.contains('on')) f.scrollIntoView({behavior:'smooth', block:'nearest'});
 };
 $('#btn-neu-cancel').onclick = ()=>$('#form-neu').classList.remove('on');
-$('#btn-neu-save').onclick = async ()=>{
-  const name = $('#f-name').value.trim(), art = $('#f-art').value.trim();
-  if(!name && !art){ alert('Bitte mindestens Name oder Art angeben.'); return; }
-  const nr = 100 + (S.eigene.length);
-  const id = 'E-' + nr;
-  const gift = $('#f-giftig').value;
-  const kl = $('#f-klasse').value;
-  const iv = {S:[2,14], A:[3,6], B:[8,12], C:[17,42]}[kl];
-  const p = {
-    id, eigen:true, name: name || 'Name offen', art: art || 'Unbestimmt',
-    botanisch: $('#f-bot').value.trim(), familie:'', klasse: kl,
-    giftig: gift==='ja' ? true : (gift==='nein' ? false : 'unbekannt'),
-    standort: $('#f-standort').value.trim() || 'Ohne Angabe',
-    typ: $('#f-typ').value.trim() || 'Ohne Angabe',
-    sonne: $('#f-sonne').value, frostMin:null, duenger:null, intervall: iv,
-    eltern:null, linie:null, seit:'selbst angelegt',
-    notiz: $('#f-notiz').value.trim(), todo:[], log:[]
-  };
-  S.eigene.push(p);
-  const files = $('#f-fotos').files;
-  sichern();
-  if(files && files.length) await fotosHinzu(id, Array.from(files));
-  ['f-name','f-art','f-bot','f-standort','f-typ','f-notiz'].forEach(x=>$('#'+x).value='');
-  $('#f-fotos').value = '';
-  $('#form-neu').classList.remove('on');
-  render();
-  offen.add(id);
-  render();
-  const c = document.getElementById('c-'+id);
-  if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
-};
+/* Die frühere, einfachere Fassung des Anlegen-Knopfes stand hier. Sie wurde
+   später durch die Version mit Bibliothekssuche ersetzt, die weiter unten
+   folgt und diese hier ohnehin überschrieben hat. */
 
 /* ══════════════════ Sicherung ══════════════════ */
 function statusText(){
   $('#storage-state').textContent = SPEICHER_OK
     ? 'Haken, Bearbeitungen, Gießeinträge, eigene Fotos und selbst angelegte Pflanzen werden in diesem Browser gespeichert und sind beim nächsten Öffnen wieder da.'
     : 'Achtung: In dieser Ansicht ist kein Speicher verfügbar. Änderungen gelten nur, solange die Seite offen ist. Lade die Datei herunter und öffne sie direkt, dann bleibt alles erhalten.';
-  let gr = 0;
-  try{ gr = new Blob([JSON.stringify(S)]).size; }catch(e){}
-  $('#storage-size').textContent = 'Deine Daten belegen aktuell rund ' + Math.round(gr/1024) +
-    ' KB. Der Browserspeicher fasst etwa 5000 KB — vor allem Fotos füllen ihn. Lade regelmäßig eine Sicherung herunter.';
+  const klein = groesseKB(kleinerTeil());
+  const bilder = groesseKB(S.fotos || {});
+  const anzahl = Object.values(S.fotos || {}).reduce((a,v)=>a + (v ? v.length : 0), 0);
+  $('#storage-size').textContent = (FOTO_GROSS && FOTOS_BEREIT)
+    ? 'Notizen, Gießeinträge und Pflanzen belegen rund ' + klein + ' KB von etwa 5000 KB. '
+      + (anzahl
+          ? anzahl + (anzahl === 1 ? ' Foto liegt' : ' Fotos liegen') + ' mit ' + bilder
+            + ' KB im großen Bildspeicher, der ein Vielfaches davon fasst. '
+          : 'Fotos kommen in einen eigenen, viel größeren Bildspeicher. ')
+      + 'Lade trotzdem regelmäßig eine Sicherung herunter — beides bleibt nur auf diesem Gerät.'
+    : 'Deine Daten belegen rund ' + klein + ' KB von etwa 5000 KB. Der größere Bildspeicher '
+      + 'steht in dieser Ansicht nicht zur Verfügung, deshalb zählen Fotos hier voll mit. '
+      + 'Lade regelmäßig eine Sicherung herunter.';
 }
+/* Beim Herunterladen merken, wann zuletzt gesichert wurde. */
+function sicherungGemerkt(){
+  S.letzteSicherung = iso(HEUTE);
+  sichern();
+  if(typeof sicherungHinweis === 'function') sicherungHinweis();
+}
+
+/* Sanfter Streifen über der Sammlung, wenn seit über zwei Wochen keine
+   Sicherung mehr heruntergeladen wurde und tatsächlich Daten da sind. */
+function sicherungFaellig(){
+  const daten = (S.eigene||[]).length
+    + Object.keys(S.water||{}).length
+    + Object.keys(S.fotos||{}).length;
+  if(daten < 3) return 0;
+  if(!S.letzteSicherung) return 999;
+  return tageSeit(S.letzteSicherung) >= 14 ? tageSeit(S.letzteSicherung) : 0;
+}
+function sicherungHinweis(){
+  const alt = document.getElementById('sich-hinweis');
+  const tage = sicherungFaellig();
+  if(!tage){ if(alt) alt.remove(); return; }
+  if(alt) return;
+  const el = document.createElement('div');
+  el.id = 'sich-hinweis'; el.className = 'sich-hinweis';
+  el.innerHTML = `<span>${S.letzteSicherung
+      ? 'Die letzte Sicherung ist ' + tage + ' Tage her.'
+      : 'Von diesen Daten gibt es noch keine Sicherung.'}
+    Der Browserspeicher kann jederzeit geleert werden — dann ist alles weg.</span>
+    <button id="sich-jetzt">Jetzt sichern</button>
+    <button id="sich-spaeter" class="linkbtn">Später</button>`;
+  const ziel = document.querySelector('.wrap');
+  if(ziel) ziel.insertBefore(el, ziel.firstChild);
+  document.getElementById('sich-jetzt').onclick = ()=>{
+    const b = document.getElementById('btn-download'); if(b) b.click();
+  };
+  document.getElementById('sich-spaeter').onclick = ()=>{
+    /* Nur für diese Sitzung wegklicken, nicht dauerhaft abschalten. */
+    el.remove();
+  };
+}
+
 $('#btn-download').onclick = ()=>{
   const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
   const a = document.createElement('a');
@@ -4852,6 +5579,7 @@ $('#btn-download').onclick = ()=>{
   a.download = 'pflanzen-sicherung-' + iso(HEUTE) + '.json';
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  sicherungGemerkt();
 };
 $('#btn-import').onclick = ()=>$('#import-file').click();
 $('#import-file').onchange = ()=>{
@@ -4862,17 +5590,30 @@ $('#import-file').onchange = ()=>{
       const daten = JSON.parse(fr.result);
       if(!daten || typeof daten!=='object') throw new Error('Format');
       if(!confirm('Sicherung laden? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
-      S = Object.assign({tasks:{},added:{},deleted:{},wish:null,water:{},fotos:{},fotosWeg:{},eigene:[],zustand:{},neueArten:[],balkon:null,raeume:null,raumAktiv:null,orte:{},blatt:{},edits:{},acc:{},vorrat:[],weg:{},ereignisse:{},gesehen:{},rundgang:null,meldeMail:''}, daten);
-      if(!S.zustand) S.zustand = {}; if(!S.neueArten) S.neueArten = [];
-      if(!S.blatt) S.blatt = {}; if(!S.edits) S.edits = {};
-      if(!S.acc) S.acc = {'giessen':1, 'aufgaben':1};
+      S = Object.assign(LEERSTAND(), daten);
+      grundwerteErgaenzen();
+      /* Beim Einlesen einer Sicherung sind die Fotos vollständig da —
+         die Sperre darf das Schreiben nicht mehr verhindern. */
+      FOTOS_BEREIT = true;
       if(!S.ansichtsart) S.ansichtsart = 'fokus';
       S.einzeln = (S.ansichtsart === 'fokus');
       document.body.classList.toggle('liste', S.ansichtsart !== 'karten');
       if(typeof ansichtsartLeiste === 'function') ansichtsartLeiste();
-      sichern(); render();
-      alert('Sicherung geladen.');
-    }catch(err){ alert('Die Datei konnte nicht gelesen werden. Ist es eine Sicherung aus diesem Glossar?'); }
+      sichern();
+      /* Bricht die Anzeige aus irgendeinem Grund ab, sind die Daten trotzdem
+         schon geschrieben. Dann lieber neu laden als halb gezeichnet dastehen. */
+      try{ render(); if(typeof skala === 'function') skala(); }
+      catch(zeichenFehler){
+        console.error(zeichenFehler);
+        alert('Sicherung geladen. Die Seite wird einmal neu aufgebaut.');
+        location.reload(); return;
+      }
+      alert('Sicherung geladen: ' + allePflanzen().length + ' Pflanzen.');
+    }catch(err){
+      console.error(err);
+      alert('Die Datei konnte nicht gelesen werden.\n\n' + (err && err.message ? err.message : '')
+        + '\n\nIst es eine Sicherung aus dieser App?');
+    }
   };
   fr.readAsText(f);
   $('#import-file').value = '';
@@ -4881,9 +5622,12 @@ $('#btn-export').onclick = ()=>{
   const box = $('#exportbox'); box.hidden = !box.hidden;
   if(!box.hidden){ box.value = JSON.stringify(S, null, 2); box.select(); }
 };
-$('#btn-reset').onclick = ()=>{
+$('#btn-reset').onclick = async ()=>{
   if(!confirm('Alle eigenen Änderungen zurücksetzen? Das betrifft Haken, Gießeinträge, eigene Fotos und selbst angelegte Pflanzen.')) return;
   try{ localStorage.removeItem(KEY); }catch(e){}
+  /* Der Bildspeicher liegt getrennt und muss eigens geleert werden,
+     sonst tauchen die alten Fotos nach dem Neuladen wieder auf. */
+  try{ await fotoSchreiben({}); }catch(e){}
   location.reload();
 };
 
@@ -4909,13 +5653,18 @@ function skala(){
   /* Balken und Marken hängen beide an der Unterkante, die Skala
      wächst nach oben, wenn sich viele Marken stapeln. */
   const skalaEl = document.querySelector('.scale');
-  if(skalaEl) skalaEl.style.height = Math.max(138, 96 + hoch*27) + 'px';
+  if(skalaEl) skalaEl.style.height = Math.max(138, 96 + hoch*30) + 'px';
+  /* Stehen mehrere Marken übereinander, wandern die Namen abwechselnd
+     nach links und rechts. Sonst liegen sie alle auf derselben Senkrechten
+     und überdecken die Stiele der darunterliegenden Marken. */
   $('#pins').innerHTML = sorted.map((p,i)=>{
     const f = KLASSEN[p.klasse].feuchte;
     const off = (seen[f] = (seen[f]||0)+1) - 1;
     const left = Math.min(90, Math.max(10, 100-f));
-    const schub = left >= 68 ? -46 : (left <= 32 ? 46 : 0);
-    return `<button class="pin" style="left:${left}%;bottom:${48+off*27}px;animation-delay:${i*45}ms" data-go="${p.id}">
+    let schub = left >= 68 ? -46 : (left <= 32 ? 46 : 0);
+    if(stapel[f] > 1 && !schub) schub = off % 2 ? 34 : -34;
+    else if(stapel[f] > 1) schub += off % 2 ? 12 : -12;
+    return `<button class="pin" style="left:${left}%;bottom:${48+off*30}px;animation-delay:${i*45}ms" data-go="${p.id}">
       <span class="pin-label" style="transform:translateX(${schub}%)">${esc(kurz(p))}</span><span class="pin-stem"></span><span class="pin-dot"></span></button>`;
   }).join('');
 }
@@ -4923,6 +5672,249 @@ function skala(){
 statusText();
 render();
 skala();
+
+/* Feuchte-Skala auf- und zuklappen, Zustand merken. */
+(function(){
+  const sec = document.getElementById('scale-sec');
+  const kopf = document.getElementById('scale-head');
+  if(!sec || !kopf) return;
+  const anzeigen = ()=>{
+    const zu = sec.classList.contains('zu');
+    kopf.setAttribute('aria-expanded', String(!zu));
+    const t = document.getElementById('scale-zustand');
+    if(t) t.textContent = zu ? 'Aufklappen' : 'Zuklappen';
+  };
+  if(S.acc && S.acc.skala === 0) sec.classList.add('zu');
+  anzeigen();
+  kopf.onclick = ()=>{
+    const zu = sec.classList.toggle('zu');
+    S.acc = S.acc || {}; S.acc.skala = zu ? 0 : 1;
+    sichern(); anzeigen();
+  };
+})();
+
+/* ══════════════════ Sammelaktion je Raum ══════════════════
+   Nach dem Gießen mit der Kanne durch einen Raum ist es lästig, jede
+   Pflanze einzeln abzuhaken. Diese Knöpfe erledigen einen Raum auf
+   einmal — aber nur die dort fälligen, nicht die ganze Wohnung. */
+function raeumeMitFaelligen(){
+  const raus = [];
+  (S.raeume || []).forEach(r=>{
+    const drin = allePflanzen().filter(p=>{
+      const o = S.orte && S.orte[p.id];
+      if(!o || o.raum !== r.id) return false;
+      const st = giessStatus(p);
+      return st.stand === 'over' || st.stand === 'soon';
+    });
+    if(drin.length) raus.push({raum:r, pflanzen:drin});
+  });
+  return raus;
+}
+
+function raumGiessen(raumId){
+  const eintrag = raeumeMitFaelligen().find(x=>x.raum.id === raumId);
+  if(!eintrag) return;
+  const n = eintrag.pflanzen.length;
+  const frage = `${n} ${n===1?'fällige Pflanze':'fällige Pflanzen'} in „${eintrag.raum.name}“ als gegossen eintragen?\n\n`
+    + eintrag.pflanzen.map(p=>'· ' + nice(p)).join('\n');
+  if(!confirm(frage)) return;
+  const heute = iso(HEUTE);
+  eintrag.pflanzen.forEach(p=>{
+    const l = S.water[p.id] = S.water[p.id] || [];
+    if(!l.includes(heute)){ l.push(heute); l.sort(); }
+    if(S.feuchtRueck[p.id]) delete S.feuchtRueck[p.id];
+  });
+  sichern(); render();
+}
+
+function raumKnoepfeHTML(){
+  const liste = raeumeMitFaelligen();
+  if(!liste.length || liste.length === 0) return '';
+  return `<div class="raum-batch">
+    <p class="raum-batch-lab">Ganzen Raum auf einmal eintragen</p>
+    ${liste.map(x=>`<button class="sb" data-raumgiess="${esc(x.raum.id)}">${esc(x.raum.name)} · ${x.pflanzen.length}</button>`).join('')}
+  </div>`;
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-raumgiess]'); if(!b) return;
+  raumGiessen(b.dataset.raumgiess);
+});
+
+/* ══════════════════ Maßnahmen zu Aufgaben ══════════════════
+   Eine Stelle für beide Wege: die KI-Antwort beim Anlegen und die
+   Diagnose im Pflanzendoktor. Beide liefern Maßnahmen als Text, beide
+   sollen daraus echte Aufgaben machen, statt sie nur anzuzeigen. */
+function massnahmenZuAufgaben(pflanzeId, massnahmen, herkunft){
+  const liste = (Array.isArray(massnahmen) ? massnahmen : String(massnahmen||'').split(/;|\n/))
+    .map(t=>String(t).replace(/^[\s\-–—•*\d.)]+/,'').trim())
+    .filter(t=>t.length > 3);
+  if(!liste.length) return 0;
+  const p = allePflanzen().find(x=>x.id === pflanzeId);
+  const bestand = new Set(((S.added[pflanzeId]||[])).map(a=>(a.text||'').toLowerCase()));
+  let neu = 0;
+  liste.forEach(text=>{
+    if(bestand.has(text.toLowerCase())) return;   /* nicht doppelt anlegen */
+    S.added[pflanzeId] = S.added[pflanzeId] || [];
+    S.added[pflanzeId].push({
+      id: 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+      text, wann:'woche', quelle: herkunft || 'ki', angelegt: iso(HEUTE)
+    });
+    neu++;
+  });
+  /* Nachschauen, ob es geholfen hat — sonst gerät die Sache in Vergessenheit. */
+  if(neu){
+    S.added[pflanzeId].push({
+      id: 'a-' + Date.now() + '-nach',
+      text: 'Nachsehen, ob sich ' + (p ? nice(p) : 'die Pflanze') + ' erholt',
+      wann:'woche', quelle: herkunft || 'ki', angelegt: iso(HEUTE)
+    });
+    neu++;
+  }
+  sichern();
+  return neu;
+}
+
+/* ── Haustier-Einstellungen ──────────────────────────────── */
+function tierArtenZeichnen(){
+  const box = document.getElementById('tier-arten'); if(!box) return;
+  const gewaehlt = (S.tiere && S.tiere.arten) || [];
+  box.innerHTML = Object.keys(TIERARTEN).map(k=>{
+    const an = gewaehlt.includes(k);
+    return `<button class="chip" data-tierart="${k}" aria-pressed="${an}">${esc(TIERARTEN[k].name)}</button>`;
+  }).join('');
+}
+function tierEinstellungZeichnen(){
+  const aktiv = S.tiere && S.tiere.aktiv;
+  document.querySelectorAll('[data-tieraktiv]').forEach(b=>{
+    b.setAttribute('aria-pressed', String(aktiv !== null && String(aktiv?1:0) === b.dataset.tieraktiv));
+  });
+  const block = document.getElementById('tier-arten-block');
+  if(block) block.hidden = !aktiv;
+  tierArtenZeichnen();
+  const zf = document.getElementById('mb-zone-feld');
+  if(zf) zf.hidden = meineTiere().length === 0;
+}
+document.addEventListener('click', e=>{
+  const an = e.target.closest('[data-tieraktiv]');
+  if(an){
+    S.tiere = S.tiere || {arten:['katze']};
+    S.tiere.aktiv = an.dataset.tieraktiv === '1';
+    if(S.tiere.aktiv && !S.tiere.arten.length) S.tiere.arten = ['katze'];
+    sichern(); tierEinstellungZeichnen();
+    if(typeof planRender === 'function') try{ planRender(); }catch(x){}
+    render(); return;
+  }
+  const art = e.target.closest('[data-tierart]');
+  if(art){
+    const k = art.dataset.tierart;
+    S.tiere = S.tiere || {aktiv:true, arten:[]};
+    const i = S.tiere.arten.indexOf(k);
+    if(i >= 0) S.tiere.arten.splice(i,1); else S.tiere.arten.push(k);
+    sichern(); tierArtenZeichnen();
+    if(typeof planRender === 'function') try{ planRender(); }catch(x){}
+    render(); return;
+  }
+});
+tierEinstellungZeichnen();
+
+/* ══════════════════ Startseite beim ersten Öffnen ══════════════════
+   Zwei Einstellungen entscheiden darüber, ob die App überhaupt
+   sinnvoll warnt — Haustiere und Grundriss. Beide steckten bisher
+   irgendwo unter „Mehr" und wurden nie gefunden. Deshalb einmal am
+   Anfang fragen, danach nie wieder. */
+function wkSchritt(nr){
+  document.querySelectorAll('[data-wk]').forEach(el=>{
+    el.hidden = el.dataset.wk !== String(nr);
+  });
+  const w = document.getElementById('willkommen');
+  if(w) w.scrollTop = 0;
+}
+
+function wkArtenZeichnen(){
+  const box = document.getElementById('wk-arten'); if(!box) return;
+  const gewaehlt = (S.tiere && S.tiere.arten) || [];
+  box.innerHTML = Object.keys(TIERARTEN).map(k=>
+    `<button data-wkart="${k}" aria-pressed="${gewaehlt.includes(k)}">${esc(TIERARTEN[k].name)}</button>`).join('');
+}
+
+function wkFertig(zurSammlung){
+  S.startGesehen = iso(HEUTE);
+  if(S.tiere && S.tiere.aktiv === null) S.tiere.aktiv = false;
+  sichern();
+  const w = document.getElementById('willkommen');
+  if(w) w.hidden = true;
+  document.body.style.overflow = '';
+  tierEinstellungZeichnen();
+  render();
+  if(zurSammlung){
+    ansichtZeigen('sammlung');
+    const f = document.getElementById('form-neu');
+    if(f){ f.classList.add('on'); f.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+}
+
+document.addEventListener('click', e=>{
+  const go = e.target.closest('[data-wkgo]');
+  if(go){ wkSchritt(parseInt(go.dataset.wkgo,10)); return; }
+
+  const ti = e.target.closest('[data-wktiere]');
+  if(ti){
+    const ja = ti.dataset.wktiere === '1';
+    S.tiere = S.tiere || {arten:['katze']};
+    S.tiere.aktiv = ja;
+    if(ja && !S.tiere.arten.length) S.tiere.arten = ['katze'];
+    sichern();
+    document.querySelectorAll('[data-wktiere]').forEach(b=>
+      b.setAttribute('aria-pressed', String(b === ti)));
+    const block = document.getElementById('wk-arten-block');
+    if(block) block.hidden = !ja;
+    wkArtenZeichnen();
+    return;
+  }
+
+  const art = e.target.closest('[data-wkart]');
+  if(art){
+    const k = art.dataset.wkart;
+    S.tiere = S.tiere || {aktiv:true, arten:[]};
+    const i = S.tiere.arten.indexOf(k);
+    if(i >= 0) S.tiere.arten.splice(i,1); else S.tiere.arten.push(k);
+    sichern(); wkArtenZeichnen();
+    return;
+  }
+
+  const pl = e.target.closest('[data-wkplan]');
+  if(pl){
+    S.grundrissWunsch = pl.dataset.wkplan === '1';
+    sichern();
+    document.querySelectorAll('[data-wkplan]').forEach(b=>
+      b.setAttribute('aria-pressed', String(b === pl)));
+    setTimeout(()=>wkSchritt(4), 220);
+    return;
+  }
+
+  const fe = e.target.closest('[data-wkfertig]');
+  if(fe){ wkFertig(fe.dataset.wkfertig === '1'); return; }
+});
+
+/* Nur beim allerersten Mal zeigen — und nur, wenn noch nichts da ist.
+   Wer eine Sicherung einspielt, soll nicht mit Fragen empfangen werden. */
+(function(){
+  const w = document.getElementById('willkommen'); if(!w) return;
+  const schonDa = (S.eigene || []).length || Object.keys(S.water || {}).length;
+  if(S.startGesehen || schonDa) return;
+  w.hidden = false;
+  document.body.style.overflow = 'hidden';
+  wkSchritt(1);
+  wkArtenZeichnen();
+})();
+
+/* Fotos aus dem großen Speicher nachladen und die Anzeige auffrischen.
+   Das läuft im Hintergrund, damit die App sofort bedienbar ist. */
+if(typeof fotosVorbereiten === 'function') fotosVorbereiten();
+
+/* Erinnerung an die Sicherung, sobald etwas zu verlieren ist. */
+if(typeof sicherungHinweis === 'function') sicherungHinweis();
 /* Die Skala muss jedem Zu- und Abgang folgen, nicht nur dem Start */
 const _renderVorherSkala = render;
 render = function(){ _renderVorherSkala(); skala(); };
@@ -5141,6 +6133,9 @@ $('#btn-paste-los').onclick = ()=>{
   if(zcode && $('#f-zustand').querySelector(`option[value="${zcode}"]`)){
     $('#f-zustand').value = zcode; zustandHinweis(); uebernommen.push('Zustand gesetzt');
   }
+  /* Für den Anlegen-Knopf merken: die Maßnahmen sollen gleich als
+     Aufgaben mitkommen, sobald die Pflanze eine ID hat. */
+  letzteKiAntwort = d;
   const notiz = [];
   if(d.befund) notiz.push('Befund: ' + d.befund);
   if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
@@ -5158,13 +6153,15 @@ $('#btn-paste-los').onclick = ()=>{
 };
 
 /* ── Anlegen ─────────────────────────────────────────────── */
+/* Zuletzt eingelesene KI-Antwort, damit ihre Maßnahmen beim Anlegen
+   direkt zu Aufgaben werden. */
+let letzteKiAntwort = null;
 $('#btn-neu-save').onclick = async ()=>{
   const name = $('#f-name').value.trim();
   const suchtext = $('#f-art').value.trim();
   const art = gewaehlteArt ? gewaehlteArt.de : suchtext;
   if(!name && !art){ alert('Bitte mindestens einen Namen oder eine Art angeben.'); return; }
-  const nr = 100 + (S.eigene.length);
-  const id = 'E-' + nr;
+  const id = neueId();
   const gift = $('#f-giftig').value;
   const kl = $('#f-klasse').value;
   const a = gewaehlteArt;
@@ -5189,6 +6186,15 @@ $('#btn-neu-save').onclick = async ()=>{
   if(!a) neueArtMerken({art: art, bot: $('#f-bot').value.trim(), notiz: $('#f-standort').value.trim()});
   const files = $('#f-fotos').files;
   sichern();
+  /* Hat die KI Maßnahmen mitgeliefert, werden sie jetzt zu Aufgaben —
+     dieselbe Funktion, die auch der Pflanzendoktor benutzt. Damit kennt
+     der Doktor den Zustand von Anfang an und die Schritte stehen sofort
+     auf der Liste, statt nur in der Notiz zu verschwinden. */
+  let kiAufgaben = 0;
+  if(letzteKiAntwort && letzteKiAntwort.schritte){
+    kiAufgaben = massnahmenZuAufgaben(id, letzteKiAntwort.schritte.split(/[;·]|\s\u2013\s/), 'anlegen');
+  }
+  letzteKiAntwort = null;
   if(files && files.length) await fotosHinzu(id, Array.from(files));
   ['f-name','f-art','f-bot','f-standort','f-typ','f-notiz','f-paste'].forEach(x=>{ if($('#'+x)) $('#'+x).value=''; });
   $('#f-fotos').value = '';
@@ -5198,6 +6204,15 @@ $('#btn-neu-save').onclick = async ()=>{
   zustandListe(null);
   $('#form-neu').classList.remove('on');
   render();
+  if(kiAufgaben){
+    const meld = $('#paste-meld');
+    if(meld){
+      meld.hidden = false; meld.className = 'pastemeld ok';
+      meld.textContent = kiAufgaben + (kiAufgaben === 1
+        ? ' Aufgabe aus der Bestimmung übernommen.'
+        : ' Aufgaben aus der Bestimmung übernommen.') + ' Sie stehen jetzt unter „Heute“.';
+    }
+  }
   offen.add(id);
   render();
   const c = document.getElementById('c-'+id);
@@ -5375,8 +6390,22 @@ function stufeFuer(r, x, y, h, wert){
   return pLicht === 'hell' ? helligkeitStufe(wert) : 0;
 }
 
+/* ══════════════════ Möbel im Raster zeichnen ══════════════════
+   Ein 90 cm breites Möbel wurde bisher pixelgenau gezeichnet und saß
+   damit knapp neben dem Raster — es wirkte, als stimmte etwas nicht.
+   Gezeichnet wird deshalb auf halbe Kacheln gerundet: 25-cm-Schritte.
+   Damit landet ein 90er sauber auf 100, ein 75er bleibt bei 75 und
+   springt nicht auf 50 oder 100. Der eingegebene Wert bleibt erhalten
+   und steht weiter im Bearbeiten-Feld. */
+const ZEICHEN_RASTER = KACHEL / 2;   // 25 cm
+function aufRaster(cm){
+  const w = Math.round((cm || 0) / ZEICHEN_RASTER) * ZEICHEN_RASTER;
+  return Math.max(ZEICHEN_RASTER, w);
+}
+
 function moebelForm(m, fuell){
-  const x = m.x*MASS, y = m.y*MASS, b = m.b*MASS, t = m.t*MASS;
+  const x = m.x*MASS, y = m.y*MASS,
+        b = aufRaster(m.b)*MASS, t = aufRaster(m.t)*MASS;
   const art = MOEBEL_ARTEN[m.typ] || MOEBEL_ARTEN.boden;
   const sk = planSkala();
   const stil = `fill="${fuell}" stroke="#3a352c" stroke-width="${1.4*sk}"`;
@@ -5430,6 +6459,10 @@ function grundrissSVG(){
     else if(art==='offen'){ farbe = '#d8d2c2'; dicke = 2*sk; dash = ` stroke-dasharray="${2.5*sk} ${5*sk}"`; }
     s += `<line class="kante" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" stroke="${farbe}" stroke-width="${dicke}" stroke-linecap="square"${dash}/>`;
     s += `<line class="kante-griff" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" stroke="transparent" stroke-width="${16*sk}"/>`;
+    /* Ein Punkt markiert Kanten mit eigenen Maßen. */
+    if(r.kantenMass && r.kantenMass[k.id]){
+      s += `<circle cx="${(p[0]+p[2])/2}" cy="${(p[1]+p[3])/2}" r="${2.6*sk}" fill="${farbe}" stroke="none"/>`;
+    }
   });
 
   /* Möbel, jedes in seiner eigenen Lichtfarbe */
@@ -5512,7 +6545,11 @@ function planInfo(){
     licht = `${MONATE[pMonat-1]} · Stunden direkte Sonne pro Tag`;
   }
   return `<span>${esc(licht)}</span><span class="p-tipp">${esc(hinweis)}</span>
-    <span class="p-tipp">${esc(r.name)} · ${(r.sp*KACHEL/100).toFixed(1).replace('.',',')} × ${(r.re*KACHEL/100).toFixed(1).replace('.',',')} m · ${r.dach?'geschlossen':'offener Himmel'}</span>`;
+    <span class="p-tipp">${esc(r.name)} · ${
+      (r.echtB && r.echtT)
+        ? (r.echtB/100).toFixed(2).replace('.',',') + ' × ' + (r.echtT/100).toFixed(2).replace('.',',') + ' m'
+        : (r.sp*KACHEL/100).toFixed(1).replace('.',',') + ' × ' + (r.re*KACHEL/100).toFixed(1).replace('.',',') + ' m'
+    } · ${r.dach?'geschlossen':'offener Himmel'}</span>`;
 }
 
 function karteHTML(p){
@@ -5595,8 +6632,21 @@ function planWarnungen(){
   pflanzenIm(r.id).forEach(p=>{
     const o = pflanzenOrt(p.id);
     const u = platzUrteil(r, o.x, o.y, pMonat);
-    if(p.giftig === true && u.katze)
-      raus.push(`<b>${esc(nice(p))}</b> ist giftig und steht ${u.moebel?'auf „'+esc(u.moebel.name)+'“':'auf dem Boden'} — dort kommen die Katzen ran.`);
+    /* Für jede gehaltene Tierart einzeln prüfen. Die Erreichbarkeit
+       steht am Möbelstück; ohne Angabe gilt der Boden. */
+    const stellplatz = u.moebel && u.moebel.tierZone ? u.moebel.tierZone : 'boden';
+    const wo = u.moebel ? 'auf „'+esc(u.moebel.name)+'“' : 'auf dem Boden';
+    meineTiere().forEach(tier=>{
+      const t = TIERARTEN[tier]; if(!t) return;
+      if(!erreichbarFuer(stellplatz, tier)) return;
+      const g = giftFuer(p, tier);
+      const st = GIFT_STUFEN[g.stufe];
+      if(!st || st.rang === 0) return;
+      const kopf = g.stufe === 'unklar'
+        ? `<b>${esc(nice(p))}</b> ist für ${t.mehrzahl} nicht geprüft und steht ${wo} — dort kommen sie ran.`
+        : `<b>${esc(nice(p))}</b> ist für ${t.mehrzahl} ${st.wort} und steht ${wo} — dort kommen sie ran.`;
+      raus.push(`${kopf}<span class="warn-grund">${esc(g.grund)}</span>`);
+    });
     const urteil = lichtPasst(p.sonne || 'hell', u.stunden);
     if(urteil === 'zu dunkel' && u.stufe <= 2)
       raus.push(`<b>${esc(nice(p))}</b> steht im ${MONATE[pMonat-1]} zu dunkel: ${u.stunden.toFixed(1).replace('.',',')} Std Sonne, ${HELL_NAME[u.stufe]}.`);
@@ -5668,7 +6718,21 @@ function moebelFormular(m){
   pGewaehlt = {typ:'moebel', id:m.id};
   $('#moebel-bearb').classList.add('on');
   $('#mb-name').value = m.name; $('#mb-hoehe').value = m.h;
+  /* Ohne eigene Angabe aus der Höhe schätzen — das trifft es meistens. */
+  if($('#mb-zone')){
+    $('#mb-zone').value = m.tierZone
+      || (m.h >= 150 ? 'hoch' : m.h >= 60 ? 'mittel' : m.h >= 20 ? 'niedrig' : 'boden');
+  }
+  if($('#mb-zone-feld')) $('#mb-zone-feld').hidden = meineTiere().length === 0;
   $('#mb-breite').value = m.b; $('#mb-tiefe').value = m.t;
+  const rh = $('#mb-raster-hinweis');
+  if(rh){
+    const gb = aufRaster(m.b), gt = aufRaster(m.t);
+    rh.hidden = (gb === m.b && gt === m.t);
+    if(!rh.hidden) rh.textContent =
+      'Gezeichnet wird auf 25 cm gerundet: ' + gb + ' × ' + gt + ' cm. '
+      + 'Gespeichert bleibt dein Maß.';
+  }
   $('#mb-katze').checked = m.katze !== false;
   $('#moebel-bearb').dataset.id = m.id;
 }
@@ -5697,6 +6761,41 @@ function planLos(){
   planRender();
 }
 
+/* Maße einer Kante abfragen. Kurz gehalten, weil es auf dem Handy
+   ohne eigenes Fenster auskommen soll. */
+function kantenMassFragen(r, id){
+  const art = KANTEN_ART[r.kanten[id] || 'wand'] || KANTEN_ART.wand;
+  const m = kantenMass(r, id);
+  const roh = prompt(
+    art.name + ' — genaue Maße\n\n'
+    + 'Breite in cm (höchstens ' + KACHEL + ', eine Kachel), dann Unterkante, dann Oberkante.\n'
+    + 'Mit Komma trennen. Leer lassen setzt zurück auf die Standardwerte.\n\n'
+    + 'Beispiel für ein 130 cm breites Fenster: drei Kacheln setzen und bei einer davon 30 eintragen.',
+    m.b + ', ' + m.sockel + ', ' + m.oben);
+  if(roh === null) return;
+  if(!roh.trim()){ kantenMassSetzen(r, id, {}); planRender(); return; }
+  const z = roh.replace(/,/g, ' ').match(/\d+/g);
+  if(!z || !z.length){ alert('Das konnte ich nicht lesen.'); return; }
+  const b = Math.max(5, Math.min(KACHEL, parseInt(z[0],10) || KACHEL));
+  const sockel = z[1] != null ? Math.max(0, Math.min(400, parseInt(z[1],10))) : m.sockel;
+  const oben = z[2] != null ? Math.max(sockel + 5, Math.min(500, parseInt(z[2],10))) : m.oben;
+  kantenMassSetzen(r, id, {b, sockel, oben});
+  planRender();
+}
+
+/* Kurze Anleitung je Modus. Ohne sie war zum Beispiel nicht zu ahnen,
+   dass ein zweites Tippen auf ein Fenster dessen Maße öffnet. */
+const MODUS_HINWEISE = {
+  pflanzen: 'Eine Pflanze antippen und in den Raum setzen. Nochmal antippen zeigt ihren Steckbrief.',
+  moebel:   'Tippen setzt ein Möbelstück. Ein zweites Tippen öffnet Maße, Höhe und die Frage, ob Tiere drankommen.',
+  kacheln:  'Tippen legt Bodenfläche an oder nimmt sie weg. So schneidest du Erker und Nischen zurecht.',
+  kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. So bekommst du ein 130 cm breites Fenster genau hin: drei Kacheln setzen, bei einer davon 30 eintragen.'
+};
+function modusHinweisZeichnen(){
+  const el = document.getElementById('modus-hinweis');
+  if(el) el.textContent = MODUS_HINWEISE[pModus] || '';
+}
+
 /* ── Tippen im Grundriss ─────────────────────────────────── */
 function planTipp(ev){
   const r = raum(); if(!r) return;
@@ -5708,7 +6807,11 @@ function planTipp(ev){
   }
   if(pModus === 'kanten'){
     const k = ev.target.closest('[data-kante]'); if(!k) return;
-    r.kanten[k.dataset.kante] = pKanteArt;
+    const id = k.dataset.kante;
+    /* Hat die Kante schon die gewählte Art, geht es beim zweiten Tippen
+       um die genauen Maße — kein zusätzlicher Knopf nötig. */
+    if(r.kanten[id] === pKanteArt && pKanteArt !== 'wand'){ kantenMassFragen(r, id); return; }
+    r.kanten[id] = pKanteArt;
     sichern(); planRender(); return;
   }
   if(pModus === 'pflanzen' && pGewaehlt && pGewaehlt.typ === 'neu'){
@@ -5730,7 +6833,8 @@ function planAufbau(){
 document.addEventListener('click', e=>{
   const r = raum(); if(!r) return;
   const mod = e.target.closest('[data-pmodus]');
-  if(mod){ pModus = mod.dataset.pmodus; pGewaehlt = null; pKarte = null; planRender(); return; }
+  if(mod){ pModus = mod.dataset.pmodus; pGewaehlt = null; pKarte = null;
+    modusHinweisZeichnen(); planRender(); return; }
   const li = e.target.closest('[data-plicht]');
   if(li){ pLicht = li.dataset.plicht; planRender(); return; }
   const ka = e.target.closest('[data-kart]');
@@ -5762,6 +6866,7 @@ $('#btn-mb-save').onclick = ()=>{
   const m = (r.moebel||[]).find(x=>x.id===id); if(!m) return;
   m.name = $('#mb-name').value.trim() || m.name;
   m.h = Math.max(0, parseInt($('#mb-hoehe').value,10)||0);
+  if($('#mb-zone')) m.tierZone = $('#mb-zone').value;
   m.b = Math.max(15, parseInt($('#mb-breite').value,10)||m.b);
   m.t = Math.max(15, parseInt($('#mb-tiefe').value,10)||m.t);
   m.katze = $('#mb-katze').checked;
@@ -5775,16 +6880,74 @@ $('#btn-mb-weg').onclick = ()=>{
 $('#btn-mb-zu').onclick = ()=>{ $('#moebel-bearb').classList.remove('on'); pGewaehlt = null; planRender(); };
 
 /* ── Räume verwalten ─────────────────────────────────────── */
+/* Die Raumverwaltung war zugeklappt und der Knopf hieß nur „Raum
+   einrichten" — Räume anlegen, löschen und vermessen war damit praktisch
+   unauffindbar. Jetzt steht sie offen, und wer sie wegklappt, bekommt
+   das beim nächsten Mal wieder so. */
+function raumBoxZeichnen(){
+  const box = $('#raum-einrichten'), knopf = $('#btn-raum-auf');
+  if(!box || !knopf) return;
+  const zu = S.acc && S.acc.raumbox === 0;
+  box.hidden = zu;
+  knopf.textContent = zu ? 'Räume verwalten' : 'Weniger anzeigen';
+  knopf.setAttribute('aria-expanded', String(!zu));
+}
 $('#btn-raum-auf').onclick = ()=>{
-  const box = $('#raum-einrichten');
-  box.hidden = !box.hidden;
-  $('#btn-raum-auf').textContent = box.hidden ? 'Raum einrichten' : 'Fertig';
+  S.acc = S.acc || {};
+  S.acc.raumbox = (S.acc.raumbox === 0) ? 1 : 0;
+  sichern(); raumBoxZeichnen();
 };
+raumBoxZeichnen();
 $('#raum-wahl').onchange = ()=>{ S.raumAktiv = $('#raum-wahl').value; pKarte = null; sichern(); planRender(); };
+/* ══════════════════ Raummaße ══════════════════
+   Nach Kacheln zu fragen ist unnatürlich — niemand misst seinen Raum in
+   Fünfzigern. Gefragt wird deshalb nach echten Metern, gerundet wird im
+   Hintergrund. Das Raster auf dem Bildschirm bleibt bei 50 cm. */
+function masseAbfragen(vorgabeB, vorgabeT){
+  const roh = prompt(
+    'Wie groß ist der Raum?\n\n'
+    + 'Breite und Tiefe in Metern, mit Komma oder Punkt.\n'
+    + 'Zum Beispiel: 4,20 x 3,10',
+    (vorgabeB || 3).toString().replace('.', ',') + ' x ' + (vorgabeT || 2.5).toString().replace('.', ','));
+  if(!roh) return null;
+  const zahlen = roh.replace(/,/g, '.').match(/[\d.]+/g);
+  if(!zahlen || zahlen.length < 2){
+    alert('Das konnte ich nicht lesen. Bitte zwei Zahlen angeben, zum Beispiel: 4,20 x 3,10');
+    return null;
+  }
+  let b = parseFloat(zahlen[0]), t = parseFloat(zahlen[1]);
+  if(!(b > 0) || !(t > 0)) return null;
+  /* Wer in Zentimetern denkt, tippt vielleicht 420 statt 4,20. */
+  if(b > 30) b = b / 100;
+  if(t > 30) t = t / 100;
+  b = Math.min(10, Math.max(0.5, b));
+  t = Math.min(10, Math.max(0.5, t));
+  /* Auf ganze Kacheln runden, aber nie unter eine und nie auf null. */
+  const sp = Math.max(1, Math.min(20, Math.round(b * 100 / KACHEL)));
+  const re = Math.max(1, Math.min(20, Math.round(t * 100 / KACHEL)));
+  const istB = sp * KACHEL / 100, istT = re * KACHEL / 100;
+  const abwB = Math.abs(istB - b) * 100, abwT = Math.abs(istT - t) * 100;
+  if(abwB >= 10 || abwT >= 10){
+    const weiter = confirm(
+      'Das Raster arbeitet in Schritten von 50 cm.\n\n'
+      + 'Deine Angabe: ' + b.toFixed(2).replace('.', ',') + ' × ' + t.toFixed(2).replace('.', ',') + ' m\n'
+      + 'Gezeichnet wird: ' + istB.toFixed(2).replace('.', ',') + ' × ' + istT.toFixed(2).replace('.', ',') + ' m\n\n'
+      + 'Die genauen Maße merkt sich die App und rechnet damit beim Licht. '
+      + 'Nur die Zeichnung bleibt im Raster.\n\nSo übernehmen?');
+    if(!weiter) return null;
+  }
+  return {sp, re, echtB: Math.round(b * 100), echtT: Math.round(t * 100)};
+}
+
 $('#btn-raum-neu').onclick = ()=>{
   const name = prompt('Wie soll der Raum heißen?', 'Wohnzimmer');
   if(!name) return;
-  const r = neuerRaum(name.trim(), 6, 5, 180, true);
+  const m = masseAbfragen(3, 2.5);
+  if(!m) return;
+  const r = neuerRaum(name.trim(), m.sp, m.re, 180, true);
+  r.echtB = m.echtB; r.echtT = m.echtT;
+  const h = prompt('Wie hoch sind die Wände in Zentimetern?\n\nÜblich sind 240 bis 260.', '250');
+  if(h){ const hh = parseInt(String(h).replace(/\D/g,''),10); if(hh > 100 && hh < 500) r.deckeH = hh; }
   S.raeume.push(r); S.raumAktiv = r.id; sichern(); planAufbau(); planRender();
 };
 $('#btn-raum-weg').onclick = ()=>{
@@ -5801,10 +6964,11 @@ $('#r-drehung').addEventListener('change', sichern);
 $('#r-dach').onchange = ()=>{ raum().dach = !$('#r-dach').checked; sichern(); planRender(); };
 $('#btn-raum-groesse').onclick = ()=>{
   const r = raum();
-  const sp = parseInt(prompt('Wie viele Kacheln breit? (eine Kachel = 50 cm)', r.sp),10);
-  const re = parseInt(prompt('Wie viele Kacheln tief?', r.re),10);
-  if(!sp || !re) return;
-  r.sp = Math.min(20, Math.max(1, sp)); r.re = Math.min(20, Math.max(1, re));
+  const m = masseAbfragen(
+    (r.echtB || r.sp * KACHEL) / 100,
+    (r.echtT || r.re * KACHEL) / 100);
+  if(!m) return;
+  r.sp = m.sp; r.re = m.re; r.echtB = m.echtB; r.echtT = m.echtT;
   for(let y=0;y<r.re;y++) for(let x=0;x<r.sp;x++) if(r.kacheln[x+','+y]===undefined) r.kacheln[x+','+y]=1;
   sichern(); planRender();
 };
@@ -5825,6 +6989,7 @@ flaeche.addEventListener('click', planTipp);
 
 planAufbau();
 planRender();
+modusHinweisZeichnen();
 
 const _renderVorherPlan = render;
 render = function(){ _renderVorherPlan(); planRender(); };
@@ -6085,6 +7250,10 @@ document.addEventListener('click', e=>{
   const p = gmListe[gmIndex];
   if(a === 'ja'){ if(giessLog(p.id)[0] !== iso(HEUTE)) giessen(p.id); gmErledigt++; }
   if(a === 'nein' || a === 'spaeter') gmUebersprungen++;
+  /* „Noch feucht" ist eine echte Rückmeldung über die Pflanze und wird
+     gespeichert. „Später" sagt nur etwas über den Moment aus und zählt
+     deshalb nicht mit. */
+  if(a === 'nein' && p) feuchtGemeldet(p);
   gmWeiter();
 });
 $('#gm-abbruch').onclick = gmBeenden;
@@ -6104,6 +7273,70 @@ function gmKnopfAktualisieren(){
 const _renderVorherGm = render;
 render = function(){ _renderVorherGm(); gmKnopfAktualisieren(); };
 gmKnopfAktualisieren();
+
+/* ══════════════════ Gießrhythmus nachjustieren ══════════════════
+   Kommt bei einer fälligen Pflanze zweimal hintereinander „noch feucht",
+   passt der hinterlegte Rhythmus nicht zu ihrem Standort. Die App
+   verschiebt dann nichts von selbst, sondern fragt nach — und höchstens
+   bis vier Tage über den ursprünglichen Wert hinaus. */
+const FEUCHT_SCHWELLE = 2;
+const SCHUB_DECKEL = 4;
+
+function schubVon(id){ return (S.zustand[id] && S.zustand[id].giessSchub) || 0; }
+function schubSetzen(id, tage){
+  S.zustand[id] = Object.assign({}, S.zustand[id], {giessSchub: tage});
+  sichern();
+}
+
+function feuchtGemeldet(p){
+  const id = p.id;
+  const st = giessStatus(p);
+  /* Nur zählen, wenn die Pflanze überhaupt als fällig geführt wurde. */
+  if(st.stand !== 'over' && st.stand !== 'soon') return;
+  const bisher = S.feuchtRueck[id] || {zahl:0, zuletzt:null};
+  /* Am selben Tag nicht doppelt zählen. */
+  if(bisher.zuletzt === iso(HEUTE)) return;
+  bisher.zahl = (bisher.zahl || 0) + 1;
+  bisher.zuletzt = iso(HEUTE);
+  S.feuchtRueck[id] = bisher;
+  sichern();
+  if(bisher.zahl >= FEUCHT_SCHWELLE) schubFragen(p);
+}
+
+function schubFragen(p){
+  const id = p.id;
+  const jetzt = schubVon(id);
+  if(jetzt >= SCHUB_DECKEL){
+    /* Deckel erreicht — nicht weiter verschieben, aber auch nicht
+       immer wieder nachfragen. */
+    S.feuchtRueck[id] = {zahl:0, zuletzt:iso(HEUTE)};
+    sichern();
+    return;
+  }
+  const neu = jetzt + 1;
+  const iv = giessIntervall(p);
+  const frage = `${nice(p)} war jetzt zweimal noch feucht, obwohl sie dran gewesen wäre.\n\n`
+    + `Soll sie künftig einen Tag später fällig werden?\n\n`
+    + `Bisher: alle ${iv} Tage${jetzt ? ' (bereits um ' + jetzt + ' verschoben)' : ''}\n`
+    + `Neu: alle ${iv + 1} Tage`;
+  if(confirm(frage)){
+    schubSetzen(id, neu);
+    S.feuchtRueck[id] = {zahl:0, zuletzt:iso(HEUTE)};
+    sichern();
+  } else {
+    /* Nein heißt: erstmal Ruhe, Zähler zurück auf null. */
+    S.feuchtRueck[id] = {zahl:0, zuletzt:iso(HEUTE)};
+    sichern();
+  }
+}
+
+/* Gießen setzt den Zähler zurück — der Rhythmus stimmte dann ja. */
+const _giessenVorher = giessen;
+giessen = function(id){
+  const ok = _giessenVorher(id);
+  if(ok !== false && S.feuchtRueck[id]) { delete S.feuchtRueck[id]; sichern(); }
+  return ok;
+};
 
 /* ── Gießverlauf als kleine Kurve ────────────────────────── */
 function giessAbstaende(id){
@@ -6205,10 +7438,10 @@ const ANSICHT_KOPF = {
              'Räume im Grundriss, Möbel mit ihrer Höhe, Pflanzen als verschiebbare Marken. Die App rechnet den Sonnenlauf für jeden Tag im Jahr.'],
   substrat: ['Die richtige<br>Mischung',
              'Zielprofil je Pflanzengruppe, dazu dein Vorrat — daraus die beste Mischung in Teilen, mit Mengen für deinen Topf.'],
-  doktor:   ['Was ist da<br>los',
+  doktor:   ['Was der Pflanze<br>fehlt',
              'Schritt für Schritt zur wahrscheinlichsten Ursache. Am schnellsten mit Foto und einer KI — die App rechnet aber auch ohne, dann über deine Angaben.'],
-  mehr:     ['Anlegen und<br>sichern',
-             'Neue Pflanzen aufnehmen, fehlende Arten melden und die Daten sichern. Der wichtigste Knopf hier ist die Sicherung.']
+  mehr:     ['Sichern und<br>einstellen',
+             'Zuerst die Sicherung — sie liegt gleich oben. Darunter Rückmeldungen, der Rhythmus des Rundgangs und die Darstellung.']
 };
 
 function ansichtZeigen(name, merken){
@@ -6223,11 +7456,14 @@ function ansichtZeigen(name, merken){
     b.classList.toggle('on', an);
     b.setAttribute('aria-current', an ? 'page' : 'false');
   });
-  /* Die erste Sektion einer Ansicht bekommt keine eigene Überschrift,
-     weil der Kopf sie bereits nennt. */
+  /* Die erste Sektion einer Ansicht bekommt keine eigene Überschriftslinie,
+     weil der Kopf sie bereits nennt. Vorher wurde die erste Sektion im
+     Dokument genommen — die ist im Reiter „Mehr“ aber ausgeblendet, und
+     darum stand dort eine doppelte Trennlinie unter der Einleitung. */
   document.querySelectorAll('[data-ans]').forEach(el=>el.classList.remove('ans-erste'));
   if(!ANS_ALLE){
-    const erste = document.querySelector(`section[data-ans="${name}"]`);
+    const erste = [...document.querySelectorAll(`section[data-ans="${name}"]`)]
+      .find(el => !el.hidden);
     if(erste) erste.classList.add('ans-erste');
   }
   const kopf = ANSICHT_KOPF[name];
@@ -6239,7 +7475,9 @@ function ansichtZeigen(name, merken){
 /* Kleine Zahl an den Reitern: was wartet gerade auf mich? */
 function zaehlerAktualisieren(){
   const alle = allePflanzen();
-  const faellig = document.querySelectorAll('#faellig .due').length
+  /* Nur was wirklich dran ist. Pflanzen ohne Gießeintrag stehen im
+     Abschnitt „Noch nicht erfasst“ und gehören nicht in den Alarmzähler. */
+  const faellig = document.querySelectorAll('#faellig .due.over, #faellig .due.soon').length
     + document.querySelectorAll('#stichtage .stich-row').length;
   const offen = alle.flatMap(aufgabenVon).filter(t=>!t.done).length
     + (S.wish||[]).filter(w=>!w.done).length;
@@ -6755,12 +7993,8 @@ $('#btn-dok-paste').onclick = ()=>{
       teile.push('Befund in die Notizen');
     }
     if(d.schritte){
-      const liste = S.added[dokPflanze] = S.added[dokPflanze] || [];
-      d.schritte.split(/[;·]|\s\u2013\s/).map(x=>x.trim()).filter(x=>x.length>3).forEach(t=>{
-        if(!liste.some(x=>x.text===t))
-          liste.push({id:'d'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), text:t});
-      });
-      sichern(); teile.push('Maßnahmen als Aufgaben');
+      const n = massnahmenZuAufgaben(dokPflanze, d.schritte.split(/[;·]|\s\u2013\s/), 'doktor');
+      if(n) teile.push(n + (n === 1 ? ' Aufgabe angelegt' : ' Aufgaben angelegt'));
     }
     render();
   } else {
@@ -6872,6 +8106,7 @@ suchHinweisZeigen();
 let subPflanze = null;
 let subZiel = 'standard';
 let subTopf = 18;
+let subForm = 'kultur';
 
 function vorrat(){ if(!S.vorrat) S.vorrat = []; return S.vorrat; }
 
@@ -6939,9 +8174,9 @@ function subErgebnis(){
     <div class="sub-erg ${b.stufe}">
       <div class="sub-kopf"><span class="sub-note">${esc(b.text)}</span>
         <span class="sub-fuer">für ${esc(ziel.name)}</span></div>
-      <table class="sub-tab"><thead><tr><th>Teile</th><th>Zutat</th><th>bei ${subTopf} cm Topf</th></tr></thead>
+      <table class="sub-tab"><thead><tr><th>Teile</th><th>Zutat</th><th>bei ${subTopf} cm ${TOPFFORMEN[subForm].name}</th></tr></thead>
         <tbody>${zeilen}</tbody></table>
-      <p class="sub-menge">Ein Topf mit ${subTopf} cm Durchmesser fasst etwa ${liter.toFixed(1).replace('.',',')} Liter.
+      <p class="sub-menge">Ein ${TOPFFORMEN[subForm].name} mit ${subTopf} cm Durchmesser fasst etwa ${liter.toFixed(1).replace('.',',')} Liter Substrat.
         Teile sind Volumen, nicht Gewicht — ein Messbecher oder ein Blumentopf als Maß reicht.</p>
       <div class="sb-balken">
         ${balken('Wasserspeicher', beste.werte.wasser, ziel.wasser)}
@@ -6986,7 +8221,7 @@ function optimumHTML(v){
       <div class="sub-kopf"><span class="sub-note">Referenzmischung</span>
         <span class="sub-fuer">für ${esc(ziel.name)}</span></div>
       <p class="sub-rezept">${esc(r.text)}</p>
-      <table class="sub-tab"><thead><tr><th>Teile</th><th>Zutat</th><th>bei ${subTopf} cm Topf</th></tr></thead>
+      <table class="sub-tab"><thead><tr><th>Teile</th><th>Zutat</th><th>bei ${subTopf} cm ${TOPFFORMEN[subForm].name}</th></tr></thead>
         <tbody>${zeilen}</tbody></table>
       <div class="sb-balken">
         ${balken('Wasserspeicher', r.werte.wasser, ziel.wasser)}
@@ -7064,8 +8299,59 @@ $('#sub-pflanze').onchange = ()=>{
 $('#sub-ziel').onchange = ()=>{ subZiel = $('#sub-ziel').value; subErgebnis(); };
 $('#sub-topf').addEventListener('input', ()=>{
   subTopf = Math.max(5, Math.min(80, parseInt($('#sub-topf').value,10) || 18));
+  topfZeichnen();
   subErgebnis();
 });
+
+/* ══════════════════ Topfform wählen ══════════════════ */
+function topfKarussellZeichnen(){
+  const box = document.getElementById('topf-karussell'); if(!box) return;
+  box.innerHTML = Object.keys(TOPFFORMEN).map(k=>{
+    const f = TOPFFORMEN[k];
+    return `<button class="topf-form" role="radio" data-topfform="${k}"
+      aria-checked="${k === subForm}">${topfIcon(k)}<b>${esc(f.name)}</b><i>${esc(f.kurz)}</i></button>`;
+  }).join('');
+}
+
+function topfZeichnen(){
+  const f = TOPFFORMEN[subForm] || TOPFFORMEN.kultur;
+  const liter = topfVolumen(subTopf, subForm);
+  const hoehe = Math.round(subTopf * f.hFaktor);
+  document.querySelectorAll('[data-topfform]').forEach(b=>
+    b.setAttribute('aria-checked', String(b.dataset.topfform === subForm)));
+  const hin = document.getElementById('topf-hinweis');
+  if(hin) hin.textContent = f.text;
+  const wert = document.getElementById('topf-wert');
+  if(wert) wert.textContent = subTopf + ' cm';
+  const sl = document.getElementById('topf-slider');
+  if(sl && parseInt(sl.value,10) !== subTopf) sl.value = subTopf;
+  const feld = document.getElementById('sub-topf');
+  if(feld && parseInt(feld.value,10) !== subTopf) feld.value = subTopf;
+  const erg = document.getElementById('topf-ergebnis');
+  if(erg){
+    const zahl = liter < 1
+      ? Math.round(liter * 1000) + ' ml'
+      : liter.toFixed(liter < 10 ? 1 : 0).replace('.', ',') + ' Liter';
+    erg.innerHTML = `Du brauchst rund <b>${zahl}</b> Substrat.
+      <span>${f.name}, ${subTopf} cm oben, etwa ${hoehe} cm hoch — gerechnet als
+      ${f.eckig ? 'Pyramidenstumpf' : 'Kegelstumpf'}, abzüglich Gießrand.</span>`;
+  }
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-topfform]'); if(!b) return;
+  subForm = b.dataset.topfform;
+  topfZeichnen(); subErgebnis();
+});
+
+const _slider = document.getElementById('topf-slider');
+if(_slider) _slider.addEventListener('input', ()=>{
+  subTopf = parseInt(_slider.value, 10) || 18;
+  topfZeichnen(); subErgebnis();
+});
+
+topfKarussellZeichnen();
+topfZeichnen();
 
 subAufbau();
 subErgebnis();
@@ -7131,8 +8417,7 @@ function ablegerAnlegen(mutterId, methodeId){
   const m = V_METHODEN[methodeId];
   if(!mutter || !m) return null;
   const b = (typeof bibVon === 'function') ? bibVon(mutter) : null;
-  const nr = 100 + (S.eigene||[]).length;
-  const id = 'E-' + nr;
+  const id = neueId();
   const heute = new Date().toLocaleDateString('de-DE');
   const p = {
     id, eigen:true,
