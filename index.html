@@ -237,24 +237,6 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 /* ---- Fällig ---- */
 .faellig{border-top:1px solid var(--line);padding:24px 0 4px}
 .faellig h2{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);letter-spacing:-.01em;margin:0 0 12px}
-/* Raster statt Flex-Umbruch: sonst richtet sich jede Karte nach der Länge
-   ihres Namens und die Liste franst am rechten Rand aus. */
-.due-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-@media(min-width:640px){.due-list{grid-template-columns:1fr 1fr}}
-.due{
-  display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:3px;cursor:pointer;
-  border:1px solid var(--line);background:var(--sand);color:inherit;font:inherit;text-align:left;
-  width:100%;min-width:0
-}
-.due>span:last-child{min-width:0;flex:1 1 auto}
-.due-name{display:block;overflow-wrap:anywhere}
-.due:hover{border-color:var(--ink)}
-.due:focus-visible{outline:2px solid var(--water);outline-offset:2px}
-.due.over{border-left:3px solid var(--terra)}
-.due.soon{border-left:3px solid #B08A3A}
-.due-name{font-family:var(--f-display);font-weight:600;font-size:var(--t-l)}
-.due-when{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);display:block;margin-top:1px}
-.due.over .due-when{color:var(--terra)}
 .allgut{color:var(--moss);font-style:italic;margin:0}
 .warn-grund{display:block;margin-top:4px;font-size:var(--t-s);opacity:.85}
 .modus-hinweis{font-size:var(--t-s);color:var(--peat);line-height:1.5;
@@ -308,11 +290,6 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
   font-family:var(--f-body);font-size:var(--t-s);color:var(--peat)}
 .sich-hinweis span{flex:1 1 220px;min-width:0}
 .sich-hinweis button{font-size:var(--t-s)}
-.erst-block{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
-.erst-titel{font-family:var(--f-display);font-weight:600;font-size:var(--t-l);margin:0 0 4px}
-.erst-sub{font-family:var(--f-body);font-size:var(--t-s);color:var(--peat);margin:0 0 12px}
-.erst-block .due{opacity:.72}
-.erst-block .due:hover{opacity:1}
 
 /* ---- Gießtracker ---- */
 .tracker{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0 4px}
@@ -522,7 +499,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .ans-aus{display:none!important}
 body{padding-bottom:76px}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;
-  grid-template-columns:repeat(6,1fr);gap:0;background:var(--paper);
+  grid-template-columns:repeat(4,1fr);gap:0;background:var(--paper);
   border-top:1px solid var(--line);box-shadow:0 -2px 14px rgba(30,26,20,.07);
   padding-bottom:env(safe-area-inset-bottom)}
 .tabs button{position:relative;font:inherit;font-size:var(--t-xs);letter-spacing:.03em;
@@ -532,24 +509,62 @@ body{padding-bottom:76px}
 .tab-i{width:20px;height:20px;border-radius:4px;border:1.6px solid currentColor;position:relative}
 .tabs button:nth-child(1) .tab-i{border-radius:50%}
 .tabs button:nth-child(2) .tab-i{border-radius:2px;box-shadow:inset 0 0 0 1.6px transparent,4px 4px 0 -1.6px currentColor}
+/* 3 = Werkzeuge (Kreuz aus drei Strichen), 4 = Mehr (gepunktet) */
 .tabs button:nth-child(3) .tab-i{border-radius:50%}
 .tabs button:nth-child(3) .tab-i::after{content:'';position:absolute;left:50%;top:4px;bottom:4px;width:1.6px;margin-left:-.8px;background:currentColor;box-shadow:-5px 5px 0 -.8px currentColor,5px 5px 0 -.8px currentColor}
-.tabs button:nth-child(4) .tab-i::after{content:'';position:absolute;inset:3px 3px auto 3px;height:1.6px;background:currentColor}
-.tabs button:nth-child(5) .tab-i{border-radius:2px}
-.tabs button:nth-child(5) .tab-i::after{content:'';position:absolute;inset:auto 2px 2px 2px;height:6px;background:currentColor;opacity:.5}
-.tabs button:nth-child(6) .tab-i{border-radius:50%;border-style:dotted}
+.tabs button:nth-child(4) .tab-i{border-radius:50%;border-style:dotted}
 .tabs.flach .tab-z{display:none}
 .tabs button.on .tab-i{background:color-mix(in srgb, currentColor 14%, transparent)}
 .tab-z{position:absolute;top:4px;left:calc(50% + 7px);min-width:16px;height:16px;
   border-radius:8px;background:var(--terra);color:#fff;font-size:var(--t-xs);line-height:16px;
   padding:0 4px;font-variant-numeric:tabular-nums}
 @media(min-width:760px){
-  .tabs{position:sticky;top:0;bottom:auto;grid-template-columns:repeat(6,auto);
+  .tabs{position:sticky;top:0;bottom:auto;grid-template-columns:repeat(4,auto);
     justify-content:center;gap:4px;border-top:0;border-bottom:1px solid var(--line);
     box-shadow:0 2px 14px rgba(30,26,20,.05)}
   .tabs button{flex-direction:row;font-size:var(--t-s);padding:11px 16px}
   body{padding-bottom:0}
 }
+
+/* ── Werkzeuge: drei Akkordion-Blöcke, immer nur einer offen ── */
+.wz{padding-top:0!important;border-top:0!important}
+.wz + .wz{margin-top:0}
+.wz-kopfzeile{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line)}
+.wz:first-of-type .wz-kopfzeile{border-top:0}
+.wz-kopf{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;
+  font:inherit;font-family:var(--f-display);font-size:var(--t-xl);color:var(--ink);
+  background:none;border:0;padding:16px 2px;cursor:pointer;min-height:56px}
+.wz-kopf .wz-t{flex:1;min-width:0}
+.wz-kopf .wz-p{font-size:1.1rem;color:var(--ink-2);transition:transform .18s ease}
+.wz.auf .wz-kopf .wz-p{transform:rotate(90deg)}
+.wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
+  background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
+  line-height:1;cursor:pointer}
+.wz-i[aria-expanded="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.wz-hilfe{margin:0 0 var(--a-3);padding:12px 14px;border-left:3px solid var(--moss);
+  background:color-mix(in srgb, var(--moss) 7%, transparent);
+  font-size:var(--t-m);line-height:1.6;color:var(--ink-2)}
+.wz-hilfe[hidden]{display:none}
+.wz-in[hidden]{display:none}
+.wz-h2{display:none}
+
+/* ── Grundriss: Schritt 1 Raumliste, Schritt 2 Editor ── */
+.gr-karten{display:grid;gap:var(--a-2);margin-bottom:var(--a-3)}
+.gr-karte{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
+  border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:4px;
+  padding:13px 15px;background:var(--paper);min-height:60px}
+.gr-karte b{display:block;font-family:var(--f-display);font-size:var(--t-l);margin-bottom:3px}
+.gr-karte span{font-size:var(--t-m);color:var(--ink-2)}
+.gr-zurueck{display:flex;align-items:center;gap:10px;margin-bottom:var(--a-3)}
+.gr-zurueck button{font:inherit;font-size:var(--t-m);background:none;border:1px solid var(--line);
+  border-radius:3px;padding:8px 13px;cursor:pointer;color:var(--ink)}
+.gr-zurueck b{font-family:var(--f-display);font-size:var(--t-l);min-width:0;overflow-wrap:anywhere}
+.gr-quer{margin:0 0 var(--a-2);font-size:var(--t-m);color:var(--ink-2);font-style:italic}
+/* Sechs Tabs passen nebeneinander nicht aufs Handy — sie dürfen umbrechen,
+   und jeder bleibt breit genug, um ihn sicher zu treffen. */
+.gr-tabs{flex-wrap:wrap}
+.gr-tabs button{flex:1 1 auto;min-width:88px;min-height:42px}
+@media(orientation:landscape){.gr-quer{display:none}}
 
 /* Kopfbereich kompakt, seit es Reiter gibt */
 header.top{padding:26px 0 14px}
@@ -579,7 +594,6 @@ header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 .gm-start-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .gm-start-txt b{font-size:var(--t-l);font-weight:600}
 .gm-start-txt i{font-style:normal;font-size:var(--t-s);opacity:.82;overflow-wrap:anywhere}
-.gm-start-pfeil{font-size:1.5rem;line-height:1;opacity:.75}
 .gm-start.leer{background:var(--sand);color:var(--ink-2);box-shadow:none;border:1px solid var(--line)}
 .gm-start.leer .gm-start-i::before{background:var(--ink-2)}
 .kibox{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
@@ -886,9 +900,22 @@ body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
 .vmed p{margin:0 0 4px;font-size:var(--t-m);line-height:1.55}
 .vmed-tipp{color:var(--ink-2)}
 
-.faellig-sec.leerstart>h2,.leerstart #faellig,.leerstart #stichtage,
-.leerstart #btn-giessmodus,.leerstart #btn-rundgang{display:none}
+.faellig-sec.leerstart>h2,.leerstart #heute-status,.leerstart #stichtage,
+.leerstart #raumknoepfe,.leerstart .heute-start{display:none}
 .leerstart h2{display:none}
+/* Heute: eine Zeile Lage statt einer Liste, darunter die beiden
+   Startknöpfe gleichwertig nebeneinander. */
+.heute-lage{margin:0 0 var(--a-3);font-size:var(--t-md);line-height:1.6;color:var(--ink-2)}
+.heute-lage b{color:var(--ink);font-variant-numeric:tabular-nums}
+.heute-lage b.hs-warn{color:var(--terra)}
+.heute-lage b.hs-grau{color:var(--ink-2)}
+.heute-lage.ruhig{color:var(--ink-2);font-style:italic}
+.heute-start{display:grid;grid-template-columns:1fr 1fr;gap:var(--a-2);margin-bottom:var(--a-3)}
+.heute-start .gm-start{margin:0;width:100%}
+.heute-start .gm-start-txt{min-width:0}
+.heute-start .gm-start-txt i{display:block;overflow-wrap:anywhere}
+@media(max-width:380px){.heute-start{grid-template-columns:1fr}}
+
 .start{border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:4px;padding:var(--a-4);background:var(--paper)}
 .start h3{margin:0 0 var(--a-2);font-size:var(--t-xl);font-family:var(--f-display)}
 .start p{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
@@ -3906,18 +3933,19 @@ function papierkorbRender(){
     <div id="erststart" hidden></div>
     <h2>Heute dran</h2>
     <div id="sicher-erinnerung"></div>
-    <button id="btn-giessmodus" class="gm-start">
-      <span class="gm-start-i" aria-hidden="true"></span>
-      <span class="gm-start-txt"><b>Gießmodus starten</b><i id="gm-start-sub">Eine Pflanze nach der anderen</i></span>
-      <span class="gm-start-pfeil" aria-hidden="true">›</span>
-    </button>
-    <div id="faellig"></div>
+    <div id="heute-status"></div>
+    <div class="heute-start">
+      <button id="btn-giessmodus" class="gm-start">
+        <span class="gm-start-i" aria-hidden="true"></span>
+        <span class="gm-start-txt"><b>Gießmodus</b><i id="gm-start-sub">Eine Pflanze nach der anderen</i></span>
+      </button>
+      <button id="btn-rundgang" class="gm-start rg-start">
+        <span class="gm-start-i rg-i" aria-hidden="true"></span>
+        <span class="gm-start-txt"><b>Rundgang</b><i id="rg-start-sub">Sammlung auf den Stand bringen</i></span>
+      </button>
+    </div>
+    <div id="raumknoepfe"></div>
     <div id="stichtage"></div>
-    <button id="btn-rundgang" class="gm-start rg-start">
-      <span class="gm-start-i rg-i" aria-hidden="true"></span>
-      <span class="gm-start-txt"><b>Rundgang starten</b><i id="rg-start-sub">Sammlung auf den Stand bringen</i></span>
-      <span class="gm-start-pfeil" aria-hidden="true">›</span>
-    </button>
   </section>
 
   <section data-ans="sammlung" class="scale-sec" id="scale-sec">
@@ -3944,7 +3972,6 @@ function papierkorbRender(){
     <div class="such-zeile"><input class="search" id="q" type="search" placeholder="Suchen: Name, Art, Symptom, Standort …" aria-label="Sammlung durchsuchen" autocomplete="off"><button class="ctrl-auf" id="btn-ctrl-auf" type="button" aria-label="Filter ein- und ausblenden">Filter</button></div>
     <div class="ctrl-row"><span class="ctrl-lab">Gruppieren</span><span id="gruppen"></span></div>
     <div class="ctrl-row"><span class="ctrl-lab">Filter</span><span id="filters"></span></div>
-    <div class="ctrl-row"><span class="ctrl-lab">Ansicht</span><span id="ansichtsart"></span></div>
     <button id="btn-anlegen-kurz" class="kurzweg">+ Neue Pflanze anlegen</button>
   </section>
   <div data-ans="sammlung" id="ctrl-platz" aria-hidden="true"></div>
@@ -4057,14 +4084,21 @@ function papierkorbRender(){
     <div id="alltodo"></div>
   </section>
 
-  <section data-ans="heute" class="plan" id="wunsch-sec">
+  <section data-ans="sammlung" class="plan" id="wunsch-sec">
     <h2>Wunschliste</h2>
     <p class="sub">Pflanzen und Material, die noch fehlen. Abgehakt heißt: besorgt.</p>
     <div id="wunsch"></div>
   </section>
 
-  <section data-ans="doktor" class="plan" id="doktor-sec">
-    <h2>Pflanzendoktor</h2>
+  <section data-ans="werkzeuge" class="plan wz" id="doktor-sec" data-wz="doktor">
+    <h2 class="wz-h2">Pflanzendoktor</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="doktor" aria-expanded="false" aria-controls="wz-in-doktor">
+        <span class="wz-t">Pflanzendoktor</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="doktor" aria-expanded="false" aria-label="Wozu ist der Pflanzendoktor da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-doktor" hidden>
+      <p class="wz-hilfe" hidden>Schritt für Schritt zur wahrscheinlichsten Ursache. Am schnellsten mit Foto und einer KI — die App rechnet aber auch ohne, dann über deine Angaben.</p>
     <ol class="dok-schritte" id="dok-fortschritt"></ol>
 
     <div class="dok-stufe" id="dok-s1">
@@ -4130,11 +4164,18 @@ function papierkorbRender(){
         <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button></div>
       </div>
     </div>
+    </div>
   </section>
 
-  <section data-ans="substrat" class="plan" id="substrat-sec">
-    <h2>Substrat mischen</h2>
-    <p class="sub">Hak an, was du zu Hause hast. Die App rechnet daraus die beste mögliche Mischung für die gewählte Pflanze — und sagt, wo sie am Ziel vorbeischrammt.</p>
+  <section data-ans="werkzeuge" class="plan wz" id="substrat-sec" data-wz="substrat">
+    <h2 class="wz-h2">Substrat mischen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="substrat" aria-expanded="false" aria-controls="wz-in-substrat">
+        <span class="wz-t">Substrat mischen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="substrat" aria-expanded="false" aria-label="Wozu ist der Substratrechner da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-substrat" hidden>
+      <p class="wz-hilfe" hidden>Hak an, was du zu Hause hast. Die App rechnet daraus die beste mögliche Mischung für die gewählte Pflanze — und sagt, wo sie am Ziel vorbeischrammt.</p>
 
     <div class="fgrid">
       <label><span class="lab">Für welche Pflanze?</span><select id="sub-pflanze"></select></label>
@@ -4160,19 +4201,39 @@ function papierkorbRender(){
     <h3>Mischung</h3>
     <div id="sub-mischung"></div>
     <div id="sub-warnungen"></div>
+    </div>
   </section>
 
-  <section data-ans="grundriss" class="plan" id="zonen-sec">
-    <h2>Räume und Grundriss</h2>
-    <p class="sub">Wände, Fenster und Türen auf die Außenkanten setzen, den Raum auf dem Kompass drehen. Alles Weitere rechnet die App.</p>
+  <section data-ans="werkzeuge" class="plan wz" id="zonen-sec" data-wz="grundriss">
+    <h2 class="wz-h2">Räume und Grundriss</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="grundriss" aria-expanded="false" aria-controls="wz-in-grundriss">
+        <span class="wz-t">Räume und Grundriss</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="grundriss" aria-expanded="false" aria-label="Wozu ist der Grundriss da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-grundriss" hidden>
+      <p class="wz-hilfe" hidden>Erst den Raum ausmessen, dann Wände, Fenster und Türen auf die Außenkanten setzen und den Raum auf dem Kompass drehen. Daraus rechnet die App, wie viel Sonne an welcher Stelle ankommt — und welche Pflanze dort falsch steht.</p>
 
-    <div class="raumleiste">
+    <!-- Schritt 1: nur die Räume, keine Zeichenfläche -->
+    <div id="gr-liste">
+      <div class="gr-karten" id="gr-karten"></div>
+      <div class="tools"><button id="btn-raum-neu" class="haupt">Neuer Raum</button></div>
+    </div>
+
+    <!-- Schritt 2: Editor für genau einen Raum -->
+    <div id="gr-editor" hidden>
+    <p class="gr-quer">Quer halten gibt deutlich mehr Platz.</p>
+    <div class="gr-zurueck">
+      <button id="btn-gr-zurueck">‹ Räume</button>
+      <b id="gr-titel"></b>
+    </div>
+    <div class="raumleiste" hidden>
       <select id="raum-wahl"></select>
       <button id="btn-raum-auf">Raum einrichten</button>
     </div>
     <div class="fgrid raumgrid" id="raum-einrichten">
-      <label class="fspan"><span class="lab">Räume</span>
-        <span class="tools"><button id="btn-raum-neu">Neuer Raum</button><button id="btn-raum-weg" class="loeschen">Diesen Raum löschen</button></span></label>
+      <label class="fspan"><span class="lab">Dieser Raum</span>
+        <span class="tools"><button id="btn-raum-weg" class="loeschen">Diesen Raum löschen</button></span></label>
       <label><span class="lab">Name</span><input id="r-name"></label>
       <label><span class="lab">Drehung auf dem Kompass</span>
         <input type="range" id="r-drehung" min="0" max="345" step="15">
@@ -4181,26 +4242,30 @@ function papierkorbRender(){
       <label class="fspan"><button id="btn-raum-groesse">Rastergröße ändern</button></label>
     </div>
 
-    <div class="pleiste">
+    <div class="pleiste gr-tabs">
       <button data-pmodus="pflanzen">Pflanzen</button>
       <button data-pmodus="moebel">Möbel</button>
-      <button data-pmodus="kacheln">Grundriss</button>
+      <button data-pmodus="kacheln">Fläche</button>
       <button data-pmodus="kanten">Wände</button>
+      <button data-pmodus="licht">Licht</button>
+      <button data-pmodus="raum">Raum</button>
     </div>
     <p class="modus-hinweis" id="modus-hinweis"></p>
     <div class="pleiste" id="kanten-leiste" hidden></div>
     <div class="pleiste" id="moebel-leiste" hidden></div>
 
-    <div class="pleiste">
-      <button data-plicht="stunden">Sonnenstunden</button>
-      <button data-plicht="moment">Einzelner Moment</button>
-      <button data-plicht="hell">Grundhelligkeit</button>
-      <button id="btn-p-sommer">Sommer</button>
-      <button id="btn-p-winter">Winter</button>
-      <button id="btn-p-jetzt">Jetzt</button>
+    <div id="licht-panel" hidden>
+      <div class="pleiste">
+        <button data-plicht="stunden">Sonnenstunden</button>
+        <button data-plicht="moment">Einzelner Moment</button>
+        <button data-plicht="hell">Grundhelligkeit</button>
+        <button id="btn-p-sommer">Sommer</button>
+        <button id="btn-p-winter">Winter</button>
+        <button id="btn-p-jetzt">Jetzt</button>
+      </div>
+      <label class="zslider"><span class="lab">Monat</span><input type="range" id="p-monat" min="1" max="12" step="1"></label>
+      <label class="zslider" id="p-zeit-wrap" hidden><span class="lab">Uhrzeit</span><input type="range" id="p-zeit" min="0" max="1439" step="10"></label>
     </div>
-    <label class="zslider"><span class="lab">Monat</span><input type="range" id="p-monat" min="1" max="12" step="1"></label>
-    <label class="zslider" id="p-zeit-wrap" hidden><span class="lab">Uhrzeit</span><input type="range" id="p-zeit" min="0" max="1439" step="10"></label>
     <p id="p-info"></p>
 
     <div class="tools"><button id="btn-vollbild">Vollbild öffnen</button></div>
@@ -4258,6 +4323,8 @@ function papierkorbRender(){
     <div id="p-frei"></div>
     <h3 style="margin-top:22px">Was nicht zusammenpasst</h3>
     <div id="p-warnungen"></div>
+    </div>
+    </div>
   </section>
 
   <section data-ans="mehr" class="plan" id="weg-sec" hidden>
@@ -4408,9 +4475,7 @@ function papierkorbRender(){
 <nav class="tabs" id="tabs">
   <button data-ans-go="heute"><span class="tab-i"></span>Heute</button>
   <button data-ans-go="sammlung"><span class="tab-i"></span>Sammlung</button>
-  <button data-ans-go="doktor"><span class="tab-i"></span>Doktor</button>
-  <button data-ans-go="substrat"><span class="tab-i"></span>Substrat</button>
-  <button data-ans-go="grundriss"><span class="tab-i"></span>Grundriss</button>
+  <button data-ans-go="werkzeuge"><span class="tab-i"></span>Werkzeuge</button>
   <button data-ans-go="mehr"><span class="tab-i"></span>Mehr</button>
 </nav>
 
@@ -4796,37 +4861,28 @@ function giessen(id){
    und liefen in den roten Zähler — beim ersten Öffnen sah die ganze
    Sammlung nach Alarm aus. Jetzt stehen sie in einem eigenen, ruhigen
    Abschnitt darunter. */
-function karteHTML(p, st, wann){
-  return `<button class="due ${st.stand}" data-go="${p.id}">
-    <span class="ico wet" aria-hidden="true">${SVG.giessen}</span>
-    <span><span class="due-name">${esc(nice(p))}</span><span class="due-when">${esc(wann)}</span></span></button>`;
+/* Statt jede fällige Pflanze einzeln aufzulisten nur noch die Lage in
+   einem Satz. Die Liste stand doppelt: einmal hier, einmal im Gießmodus,
+   der sie ohnehin nacheinander durchgeht. Gießpausen sind in giessStatus
+   als eigener Stand 'stopp' abgebildet und fallen darum nicht in 'over'. */
+function heuteZahlen(){
+  const alle = allePflanzen().map(p=>giessStatus(p));
+  return {
+    ueber:     alle.filter(st=>st.stand === 'over').length,
+    heute:     alle.filter(st=>st.stand === 'soon' && st.rest === 0).length,
+    unbekannt: alle.filter(st=>st.stand === 'unbekannt').length,
+    pause:     alle.filter(st=>st.stand === 'stopp').length
+  };
 }
-function faelligHTML(){
-  const alle = allePflanzen().map(p=>({p, st:giessStatus(p)}));
-  const dran = alle.filter(x=>x.st.stand==='over' || x.st.stand==='soon')
-    .sort((a,b)=>(a.st.rest??99)-(b.st.rest??99));
-  const neu = alle.filter(x=>x.st.stand==='unbekannt');
-
-  let raus = '';
-  if(dran.length){
-    raus += `<div class="due-list">${dran.map(({p,st})=>karteHTML(p, st,
-      st.stand==='over' ? `überfällig, ${-st.rest} ${-st.rest===1?'Tag':'Tage'}`
-      : st.rest===0 ? 'heute dran' : st.rest===1 ? 'morgen dran' : `in ${st.rest} Tagen`)).join('')}</div>`;
-    if(typeof raumKnoepfeHTML === 'function') raus += raumKnoepfeHTML();
-  } else {
-    raus += `<p class="allgut">Alles versorgt. Nichts fällig.</p>`;
-  }
-
-  if(neu.length){
-    raus += `<div class="erst-block">
-      <h3 class="erst-titel">Noch nicht erfasst</h3>
-      <p class="erst-sub">${neu.length === 1
-        ? 'Eine Pflanze hat noch keinen Gießeintrag. Sobald du sie einmal gießt, rechnet die App mit.'
-        : neu.length + ' Pflanzen haben noch keinen Gießeintrag. Sobald du sie einmal gießt, rechnet die App mit.'}</p>
-      <div class="due-list">${neu.map(({p,st})=>karteHTML(p, st, 'noch nie eingetragen')).join('')}</div>
-    </div>`;
-  }
-  return raus;
+function heuteStatusHTML(){
+  const z = heuteZahlen();
+  const teile = [];
+  if(z.ueber)     teile.push(`<b class="hs-warn">${z.ueber}</b> überfällig`);
+  if(z.heute)     teile.push(`<b>${z.heute}</b> heute fällig`);
+  if(z.unbekannt) teile.push(`<b class="hs-grau">${z.unbekannt}</b> ohne Eintrag`);
+  if(!teile.length)
+    return `<p class="heute-lage ruhig">Nichts fällig${z.pause ? ' — ' + z.pause + (z.pause===1?' Pflanze steht in der Gießpause':' Pflanzen stehen in der Gießpause') : '.'}</p>`;
+  return `<p class="heute-lage">${teile.join(' · ')}</p>`;
 }
 
 function trackerHTML(p){
@@ -5179,6 +5235,7 @@ function schnellLeiste(p){
       <button class="sb sb-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute gegossen ✓':'Gegossen'}</button>
       <button class="sb" data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
       <button class="sb" data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
+      <button class="sb" data-do="grundriss-fuer" data-p="${p.id}">Im Raum</button>
       <button class="sb" data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
       <button class="sb" data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
       <button class="sb" data-do="karte-zu-oben" data-p="${p.id}">Zuklappen</button>
@@ -5380,7 +5437,8 @@ function render(){
   });
   document.querySelectorAll('.foto-add').forEach(l=>l.onclick=e=>e.stopPropagation());
 
-  $('#faellig').innerHTML = faelligHTML();
+  $('#heute-status').innerHTML = heuteStatusHTML();
+  $('#raumknoepfe').innerHTML = (typeof raumKnoepfeHTML === 'function') ? raumKnoepfeHTML() : '';
   $('#stichtage').innerHTML = stichtageHTML();
   meldeRender();
   if(typeof papierkorbRender === 'function') papierkorbRender();
@@ -5538,15 +5596,18 @@ function sicherungGemerkt(){
   if(typeof sicherungHinweis === 'function') sicherungHinweis();
 }
 
-/* Sanfter Streifen über der Sammlung, wenn seit über zwei Wochen keine
-   Sicherung mehr heruntergeladen wurde und tatsächlich Daten da sind. */
+/* Sanfter Streifen auf der Heute-Seite, wenn seit über fünf Tagen keine
+   Sicherung mehr heruntergeladen wurde und tatsächlich Daten da sind.
+   Fünf statt vierzehn Tage: der Browserspeicher kann jederzeit und ohne
+   Vorwarnung geleert werden, zwei Wochen Verlust wären zu viel. */
+const SICHER_TAGE = 5;
 function sicherungFaellig(){
   const daten = (S.eigene||[]).length
     + Object.keys(S.water||{}).length
     + Object.keys(S.fotos||{}).length;
   if(daten < 3) return 0;
   if(!S.letzteSicherung) return 999;
-  return tageSeit(S.letzteSicherung) >= 14 ? tageSeit(S.letzteSicherung) : 0;
+  return tageSeit(S.letzteSicherung) >= SICHER_TAGE ? tageSeit(S.letzteSicherung) : 0;
 }
 function sicherungHinweis(){
   const alt = document.getElementById('sich-hinweis');
@@ -5561,8 +5622,11 @@ function sicherungHinweis(){
     Der Browserspeicher kann jederzeit geleert werden — dann ist alles weg.</span>
     <button id="sich-jetzt">Jetzt sichern</button>
     <button id="sich-spaeter" class="linkbtn">Später</button>`;
-  const ziel = document.querySelector('.wrap');
-  if(ziel) ziel.insertBefore(el, ziel.firstChild);
+  /* Gehört an den dafür vorgesehenen Platz auf der Heute-Seite, nicht
+     ganz nach oben über alles — dort stand er auch in der Sammlung im Weg. */
+  const ziel = document.getElementById('sicher-erinnerung')
+    || document.querySelector('.wrap');
+  if(ziel) ziel.appendChild(el);
   document.getElementById('sich-jetzt').onclick = ()=>{
     const b = document.getElementById('btn-download'); if(b) b.click();
   };
@@ -5595,10 +5659,11 @@ $('#import-file').onchange = ()=>{
       /* Beim Einlesen einer Sicherung sind die Fotos vollständig da —
          die Sperre darf das Schreiben nicht mehr verhindern. */
       FOTOS_BEREIT = true;
-      if(!S.ansichtsart) S.ansichtsart = 'fokus';
-      S.einzeln = (S.ansichtsart === 'fokus');
-      document.body.classList.toggle('liste', S.ansichtsart !== 'karten');
-      if(typeof ansichtsartLeiste === 'function') ansichtsartLeiste();
+      /* Hier stand der Rest einer entfernten Umschaltung zwischen Karten-
+         und Listendarstellung: sie setzte beim Laden einer Sicherung die
+         Klasse body.liste, obwohl es keinen Schalter mehr gibt, sie wieder
+         loszuwerden — nach einem Import sah die Sammlung anders aus als
+         vorher, bis man die Seite neu lud. */
       sichern();
       /* Bricht die Anzeige aus irgendeinem Grund ab, sind die Daten trotzdem
          schon geschrieben. Dann lieber neu laden als halb gezeichnet dastehen. */
@@ -6504,9 +6569,53 @@ function grundrissSVG(){
 }
 
 /* ══════════════════ Bedienung des Grundrisses ══════════════════ */
+/* Schritt 1 „liste“ zeigt nur die Räume, Schritt 2 „editor“ genau einen.
+   Vorher lag beides auf einer Seite: Raumverwaltung, Zeichenfläche,
+   Lichtsimulation und Warnungen untereinander — auf dem Handy hat man
+   dabei ständig am falschen Ort getippt. */
+let grStufe = 'liste';
+function grListeHTML(){
+  return raeume().map(r=>{
+    const n = pflanzenIm(r.id).length;
+    const mass = (r.echtB && r.echtT)
+      ? (r.echtB/100).toFixed(2).replace('.',',') + ' × ' + (r.echtT/100).toFixed(2).replace('.',',') + ' m'
+      : (r.sp*KACHEL/100).toFixed(1).replace('.',',') + ' × ' + (r.re*KACHEL/100).toFixed(1).replace('.',',') + ' m';
+    return `<button class="gr-karte" data-raum-auf="${r.id}">
+      <b>${esc(r.name)}</b>
+      <span>${esc(mass)} · ${r.dach ? 'geschlossen' : 'offener Himmel'} · ${n} ${n===1?'Pflanze':'Pflanzen'}</span>
+    </button>`;
+  }).join('');
+}
+function grStufeZeichnen(){
+  const liste = document.getElementById('gr-liste');
+  const ed = document.getElementById('gr-editor');
+  if(!liste || !ed) return;
+  const imEditor = grStufe === 'editor';
+  liste.hidden = imEditor;
+  ed.hidden = !imEditor;
+  if(!imEditor) liste.querySelector('#gr-karten').innerHTML = grListeHTML();
+  const t = document.getElementById('gr-titel');
+  const r = raum();
+  if(t && r) t.textContent = r.name;
+}
+function grOeffnen(raumId){
+  if(raumId) S.raumAktiv = raumId;
+  grStufe = 'editor';
+  pKarte = null; pGewaehlt = null;
+  sichern(); planRender();
+}
+document.addEventListener('click', e=>{
+  const k = e.target.closest('[data-raum-auf]');
+  if(k){ grOeffnen(k.dataset.raumAuf); return; }
+  if(e.target.closest('#btn-gr-zurueck')){
+    grStufe = 'liste'; pKarte = null; pGewaehlt = null; planRender();
+  }
+});
+
 function planRender(){
   if(!document.getElementById('plan-flaeche')) return;
   const r = raum(); if(!r) return;
+  grStufeZeichnen();
   $('#plan-flaeche').innerHTML = grundrissSVG();
   $('#raum-wahl').innerHTML = raeume().map(x=>
     `<option value="${x.id}"${x.id===S.raumAktiv?' selected':''}>${esc(x.name)}</option>`).join('');
@@ -6515,10 +6624,15 @@ function planRender(){
   $('#p-zeit-wrap').hidden = pLicht !== 'moment';
   $('#kanten-leiste').hidden = pModus !== 'kanten';
   $('#moebel-leiste').hidden = pModus !== 'moebel';
+  /* Licht und Raumeinstellungen sind eigene Tabs, keine Blöcke, die
+     ständig mitlaufen — sonst scrollt man an der Zeichenfläche vorbei. */
+  $('#licht-panel').hidden = pModus !== 'licht';
+  $('#raum-einrichten').hidden = pModus !== 'raum';
+  $('#p-frei').hidden = pModus !== 'pflanzen';
   $('#p-info').innerHTML = planInfo();
   $('#p-frei').innerHTML = freiHTML();
   $('#p-warnungen').innerHTML = planWarnungen();
-  $('#p-karte').innerHTML = pKarte ? karteHTML(pKarte) : '';
+  $('#p-karte').innerHTML = pKarte ? planKarteHTML(pKarte) : '';
   $('#p-karte').hidden = !pKarte;
   $('#r-drehung').value = r.drehung;
   $('#r-name').value = r.name;
@@ -6531,8 +6645,10 @@ function planInfo(){
     pflanzen:'Marke antippen öffnet die Karte, ziehen verschiebt sie. Auf ein Möbelstück gezogen, steht die Pflanze darauf.',
     moebel:'Möbel aus der Leiste antippen setzt es in die Mitte. Ziehen verschiebt, langes Tippen löscht.',
     kacheln:'Kacheln antippen schaltet Bodenfläche an und aus. So entstehen Erker und L-Formen.',
-    kanten:'Erst die Art wählen, dann die Wandstücke antippen.'
-  }[pModus];
+    kanten:'Erst die Art wählen, dann die Wandstücke antippen.',
+    licht:'Nur ansehen — auf der Fläche lässt sich in diesem Tab nichts verschieben.',
+    raum:'Einstellungen für den ganzen Raum.'
+  }[pModus] || '';
   let licht = '';
   if(pLicht === 'moment'){
     const s = sonnenstand(new Date(new Date().getFullYear(), pMonat-1, 15), pZeit/60, balkonOrt());
@@ -6552,7 +6668,11 @@ function planInfo(){
     } · ${r.dach?'geschlossen':'offener Himmel'}</span>`;
 }
 
-function karteHTML(p){
+/* Hieß früher ebenfalls karteHTML — genau wie die Kartenfunktion der
+   Fällig-Liste weiter oben. Zwei gleichnamige Funktionen in derselben
+   Datei: die zweite überschreibt die erste stillschweigend. Die Liste ist
+   inzwischen weg, der Name jetzt eindeutig. */
+function planKarteHTML(p){
   const r = raum(), o = pflanzenOrt(p.id);
   const u = o ? platzUrteil(r, o.x, o.y, pMonat) : null;
   const st = giessStatus(p);
@@ -6789,6 +6909,8 @@ const MODUS_HINWEISE = {
   pflanzen: 'Eine Pflanze antippen und in den Raum setzen. Nochmal antippen zeigt ihren Steckbrief.',
   moebel:   'Tippen setzt ein Möbelstück. Ein zweites Tippen öffnet Maße, Höhe und die Frage, ob Tiere drankommen.',
   kacheln:  'Tippen legt Bodenfläche an oder nimmt sie weg. So schneidest du Erker und Nischen zurecht.',
+  licht:    'Zeigt nur an, verändert nichts. Monat und Uhrzeit schieben, der Grundriss färbt sich mit.',
+  raum:     'Name, Drehung auf dem Kompass, offener Himmel und Rastergröße — hier wird nicht gezeichnet.',
   kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. So bekommst du ein 130 cm breites Fenster genau hin: drei Kacheln setzen, bei einer davon 30 eintragen.'
 };
 function modusHinweisZeichnen(){
@@ -6884,20 +7006,6 @@ $('#btn-mb-zu').onclick = ()=>{ $('#moebel-bearb').classList.remove('on'); pGewa
    einrichten" — Räume anlegen, löschen und vermessen war damit praktisch
    unauffindbar. Jetzt steht sie offen, und wer sie wegklappt, bekommt
    das beim nächsten Mal wieder so. */
-function raumBoxZeichnen(){
-  const box = $('#raum-einrichten'), knopf = $('#btn-raum-auf');
-  if(!box || !knopf) return;
-  const zu = S.acc && S.acc.raumbox === 0;
-  box.hidden = zu;
-  knopf.textContent = zu ? 'Räume verwalten' : 'Weniger anzeigen';
-  knopf.setAttribute('aria-expanded', String(!zu));
-}
-$('#btn-raum-auf').onclick = ()=>{
-  S.acc = S.acc || {};
-  S.acc.raumbox = (S.acc.raumbox === 0) ? 1 : 0;
-  sichern(); raumBoxZeichnen();
-};
-raumBoxZeichnen();
 $('#raum-wahl').onchange = ()=>{ S.raumAktiv = $('#raum-wahl').value; pKarte = null; sichern(); planRender(); };
 /* ══════════════════ Raummaße ══════════════════
    Nach Kacheln zu fragen ist unnatürlich — niemand misst seinen Raum in
@@ -6939,7 +7047,8 @@ function masseAbfragen(vorgabeB, vorgabeT){
   return {sp, re, echtB: Math.round(b * 100), echtT: Math.round(t * 100)};
 }
 
-$('#btn-raum-neu').onclick = ()=>{
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#btn-raum-neu')) return;
   const name = prompt('Wie soll der Raum heißen?', 'Wohnzimmer');
   if(!name) return;
   const m = masseAbfragen(3, 2.5);
@@ -6948,15 +7057,16 @@ $('#btn-raum-neu').onclick = ()=>{
   r.echtB = m.echtB; r.echtT = m.echtT;
   const h = prompt('Wie hoch sind die Wände in Zentimetern?\n\nÜblich sind 240 bis 260.', '250');
   if(h){ const hh = parseInt(String(h).replace(/\D/g,''),10); if(hh > 100 && hh < 500) r.deckeH = hh; }
-  S.raeume.push(r); S.raumAktiv = r.id; sichern(); planAufbau(); planRender();
-};
+  S.raeume.push(r); S.raumAktiv = r.id; grStufe = 'editor';
+  sichern(); planAufbau(); planRender();
+});
 $('#btn-raum-weg').onclick = ()=>{
   if(S.raeume.length < 2){ alert('Der letzte Raum kann nicht gelöscht werden.'); return; }
   const r = raum();
   if(!confirm('Raum „'+r.name+'“ löschen? Die Pflanzen darin werden wieder frei.')) return;
   pflanzenIm(r.id).forEach(p=>pflanzeEntfernen(p.id));
   S.raeume = S.raeume.filter(x=>x.id!==r.id);
-  S.raumAktiv = S.raeume[0].id; sichern(); planRender();
+  S.raumAktiv = S.raeume[0].id; grStufe = 'liste'; sichern(); planRender();
 };
 $('#r-name').onchange = ()=>{ raum().name = $('#r-name').value.trim() || raum().name; sichern(); planRender(); };
 $('#r-drehung').addEventListener('input', ()=>{ raum().drehung = parseInt($('#r-drehung').value,10); planRender(); });
@@ -7191,8 +7301,8 @@ function gmZeichnen(){
   const st = giessStatus(p);
   const z = zustandVon(p);
   const kl = KLASSEN[p.klasse] || {};
-  const foto = (S.fotos[p.id] && S.fotos[p.id][0]) ||
-    (typeof BILDER !== 'undefined' && BILDER[p.id] ? BILDER[p.id][0] : null);
+  const fotoListe = fotosVon(p.id);
+  const foto = fotoListe.length ? fotoListe[0].src : null;
   const stopp = stoppRest(p);
   const lage = st.stand === 'stopp' ? 'Gießpause'
     : st.stand === 'unbekannt' ? 'Noch nie eingetragen'
@@ -7267,8 +7377,8 @@ function gmKnopfAktualisieren(){
   if(!sub || !btn) return;
   btn.classList.toggle('leer', n === 0);
   sub.textContent = n === 0
-    ? 'Gerade ist nichts fällig'
-    : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'} — eine nach der anderen`;
+    ? 'nichts fällig'
+    : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'}`;
 }
 const _renderVorherGm = render;
 render = function(){ _renderVorherGm(); gmKnopfAktualisieren(); };
@@ -7427,24 +7537,26 @@ document.addEventListener('click', e=>{
 });
 
 /* ══════════════════ Ansichten und Navigation ══════════════════ */
-const ANSICHTEN = ['heute','sammlung','doktor','substrat','grundriss','mehr'];
+const ANSICHTEN = ['heute','sammlung','werkzeuge','mehr'];
+/* Doktor, Substrat und Grundriss sind keine eigenen Reiter mehr, sondern
+   Blöcke im Reiter „Werkzeuge“. Damit die vielen vorhandenen Aufrufe
+   ansichtZeigen('doktor') und die Verknüpfung ?start=doktor weiter
+   funktionieren, werden die alten Namen hier übersetzt. */
+const WERKZEUGE = ['doktor','substrat','grundriss'];
 let ANS_ALLE = false;   // alles untereinander statt in Reitern
 const ANSICHT_KOPF = {
   heute:    ['Was heute<br>zu tun ist',
              'Fällige Pflanzen, anstehende Nachfragen und offene Aufgaben — alles, was jetzt Aufmerksamkeit braucht.'],
   sammlung: ['Die ganze<br>Sammlung',
              'Alle Pflanzen mit Steckbrief, Fotos und Gießstand. Suchen, filtern, bearbeiten, neue anlegen — dazu Feuchte-Skala, Gießplan und Stammbaum.'],
-  grundriss:['Wo steht<br>was',
-             'Räume im Grundriss, Möbel mit ihrer Höhe, Pflanzen als verschiebbare Marken. Die App rechnet den Sonnenlauf für jeden Tag im Jahr.'],
-  substrat: ['Die richtige<br>Mischung',
-             'Zielprofil je Pflanzengruppe, dazu dein Vorrat — daraus die beste Mischung in Teilen, mit Mengen für deinen Topf.'],
-  doktor:   ['Was der Pflanze<br>fehlt',
-             'Schritt für Schritt zur wahrscheinlichsten Ursache. Am schnellsten mit Foto und einer KI — die App rechnet aber auch ohne, dann über deine Angaben.'],
+  werkzeuge:['Drei Werkzeuge',
+             'Pflanzendoktor, Substratrechner und Grundriss. Einen Block antippen klappt ihn auf — die anderen schließen sich.'],
   mehr:     ['Sichern und<br>einstellen',
              'Zuerst die Sicherung — sie liegt gleich oben. Darunter Rückmeldungen, der Rhythmus des Rundgangs und die Darstellung.']
 };
 
 function ansichtZeigen(name, merken){
+  if(WERKZEUGE.includes(name)){ werkzeugOeffnen(name); name = 'werkzeuge'; }
   if(!ANSICHTEN.includes(name)) name = 'heute';
   S.ansicht = name;
   if(merken !== false) sichern();
@@ -7468,26 +7580,75 @@ function ansichtZeigen(name, merken){
   }
   const kopf = ANSICHT_KOPF[name];
   if(kopf){ $('#kopf-titel').innerHTML = kopf[0]; $('#kopf-sub').textContent = kopf[1]; }
-  if(name === 'grundriss' && typeof planRender === 'function') planRender();
+  if(name === 'werkzeuge'){
+    werkzeugZeichnen();
+    if(S.wzOffen === 'grundriss' && typeof planRender === 'function') planRender();
+  }
   zaehlerAktualisieren();
 }
+
+/* ── Werkzeuge: immer nur ein Block offen ─────────────────────
+   Untereinander waren die drei Werkzeuge eine sehr lange Seite, auf der
+   man den Anfang des nächsten nie gefunden hat. Ein Block offen, die
+   anderen als Zeile — die Wahl bleibt sichtbar, der Rest ist ruhig. */
+function werkzeugZeichnen(){
+  document.querySelectorAll('[data-wz]').forEach(sec=>{
+    const auf = sec.dataset.wz === S.wzOffen;
+    sec.classList.toggle('auf', auf);
+    const box = sec.querySelector('.wz-in');
+    if(box) box.hidden = !auf;
+    const kopf = sec.querySelector('.wz-kopf');
+    if(kopf) kopf.setAttribute('aria-expanded', String(auf));
+  });
+}
+function werkzeugOeffnen(key, springen){
+  S.wzOffen = (WERKZEUGE.includes(key) ? key : 'doktor');
+  sichern();
+  werkzeugZeichnen();
+  if(key === 'grundriss' && typeof planRender === 'function') planRender();
+  if(springen){
+    const sec = document.querySelector(`[data-wz="${S.wzOffen}"]`);
+    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+document.addEventListener('click', e=>{
+  const kopf = e.target.closest('[data-wz-go]');
+  if(kopf){
+    const key = kopf.dataset.wzGo;
+    /* Ein offener Block lässt sich auch wieder zuklappen — dann steht
+       die Auswahl der drei Werkzeuge wieder ganz für sich da. */
+    if(S.wzOffen === key){ S.wzOffen = null; sichern(); werkzeugZeichnen(); }
+    else werkzeugOeffnen(key, true);
+    return;
+  }
+  const info = e.target.closest('[data-wz-info]');
+  if(info){
+    const sec = info.closest('[data-wz]');
+    const hilfe = sec && sec.querySelector('.wz-hilfe');
+    if(!hilfe) return;
+    /* Der Block muss dafür offen sein, sonst tippt man ins Leere. */
+    if(S.wzOffen !== sec.dataset.wz) werkzeugOeffnen(sec.dataset.wz);
+    hilfe.hidden = !hilfe.hidden;
+    info.setAttribute('aria-expanded', String(!hilfe.hidden));
+  }
+});
 
 /* Kleine Zahl an den Reitern: was wartet gerade auf mich? */
 function zaehlerAktualisieren(){
   const alle = allePflanzen();
   /* Nur was wirklich dran ist. Pflanzen ohne Gießeintrag stehen im
      Abschnitt „Noch nicht erfasst“ und gehören nicht in den Alarmzähler. */
-  const faellig = document.querySelectorAll('#faellig .due.over, #faellig .due.soon').length
+  /* Früher aus dem HTML gezählt (#faellig .due.over). Die Liste gibt es
+     nicht mehr — jetzt aus den Daten gerechnet, das ist ohnehin richtiger. */
+  const z = heuteZahlen();
+  const faellig = z.ueber + z.heute
     + document.querySelectorAll('#stichtage .stich-row').length;
-  const offen = alle.flatMap(aufgabenVon).filter(t=>!t.done).length
-    + (S.wish||[]).filter(w=>!w.done).length;
+  const offen = alle.flatMap(aufgabenVon).filter(t=>!t.done).length;
   setzeZahl('heute', faellig + offen);
-  let konflikte = 0;
-  if(typeof raum === 'function' && document.getElementById('p-warnungen'))
-    konflikte = document.querySelectorAll('#p-warnungen .alert').length;
-  setzeZahl('grundriss', konflikte);
-  setzeZahl('doktor', 0);
-  setzeZahl('substrat', 0);
+  setzeZahl('sammlung', (S.wish||[]).filter(w=>!w.done).length);
+  /* Am Reiter „Werkzeuge“ steht bewusst keine Zahl: Konflikte im Grundriss
+     sind Hinweise zum Nachdenken, keine Aufgaben, die abgearbeitet werden. */
+  setzeZahl('werkzeuge', 0);
 }
 function setzeZahl(ansicht, n){
   const b = document.querySelector(`[data-ans-go="${ansicht}"]`); if(!b) return;
@@ -7901,6 +8062,31 @@ document.addEventListener('click', e=>{
     zustandSetzen(dokPflanze, d.zustand);
     render();
     dokKiHinweis('Zustand gesetzt. Die Gießempfehlung ist damit angepasst.', 'ok');
+    return;
+  }
+  /* Von der Pflanzenkarte in den Grundriss: den Raum öffnen, in dem die
+     Pflanze steht, und ihre Karte gleich aufschlagen. Steht sie nirgends,
+     bleibt es bei der Raumliste — dann ist erst ein Platz zu wählen. */
+  if(btn.dataset.do === 'grundriss-fuer'){
+    e.stopPropagation();
+    const id = btn.dataset.p;
+    const o = (typeof pflanzenOrt === 'function') ? pflanzenOrt(id) : null;
+    if(o && o.raum){
+      S.raumAktiv = o.raum;
+      if(typeof grStufe !== 'undefined') grStufe = 'editor';
+      pModus = 'pflanzen';
+      pKarte = allePflanzen().find(x=>x.id === id) || null;
+    } else {
+      if(typeof grStufe !== 'undefined') grStufe = 'liste';
+      pKarte = null;
+    }
+    sichern();
+    ansichtZeigen('grundriss');
+    if(typeof planRender === 'function') planRender();
+    const sec = document.getElementById('zonen-sec');
+    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+    if(!(o && o.raum))
+      setTimeout(()=>alert('Diese Pflanze hat noch keinen Platz. Raum öffnen, im Tab „Pflanzen“ unten antippen und dann in den Grundriss tippen.'), 350);
     return;
   }
   if(btn.dataset.do === 'doktor-fuer'){
@@ -8585,8 +8771,8 @@ function rgZeichnen(){
   const e = rgEinst();
   const p = rgListe[rgIndex];
   const seit = tageSeitGesehen(p.id);
-  const foto = (S.fotos[p.id] && S.fotos[p.id][0]) ||
-    (typeof BILDER !== 'undefined' && BILDER[p.id] ? BILDER[p.id][0] : null);
+  const fotoListe = fotosVon(p.id);
+  const foto = fotoListe.length ? fotoListe[0].src : null;
   const heute = ereignisse(p.id).filter(x=>x.datum === iso(HEUTE));
   const z = zustandVon(p);
   const wo = typeof gmStandort === 'function' ? gmStandort(p) : (p.standort || '');
@@ -8687,11 +8873,10 @@ function rgKnopf(){
   const btn = document.getElementById('btn-rundgang'); if(!btn) return;
   const sub = document.getElementById('rg-start-sub');
   const n = rundgangListe().length;
-  const e = rgEinst();
   btn.classList.toggle('leer', n === 0);
   if(sub) sub.textContent = n === 0
-    ? 'Alles frisch angesehen'
-    : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'} · ${STUFEN[e.stufe].name}`;
+    ? 'alles angesehen'
+    : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'}`;
 }
 
 function rgEinstellungenAufbau(){
