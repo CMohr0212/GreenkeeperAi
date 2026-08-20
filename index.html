@@ -566,6 +566,133 @@ body{padding-bottom:76px}
 .gr-tabs button{flex:1 1 auto;min-width:88px;min-height:42px}
 @media(orientation:landscape){.gr-quer{display:none}}
 
+/* ══════════════════ Urlaubszettel ══════════════════ */
+.wichtig-hin{margin:0 0 var(--a-2);padding:9px 12px;border-left:3px solid var(--terra);
+  background:color-mix(in srgb, var(--terra) 8%, transparent);font-size:var(--t-m);line-height:1.55}
+.wichtig-hin b{display:block;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--terra);margin-bottom:2px}
+
+.url-schritte{list-style:none;margin:var(--a-3) 0 0;padding:0;counter-reset:us}
+.url-schritte>li{padding:0 0 var(--a-3);margin:0 0 var(--a-3);border-bottom:1px solid var(--line)}
+.url-schritte>li:last-child{border-bottom:0;margin-bottom:0}
+.url-nr{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 10px}
+.ubox{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px;cursor:pointer}
+.ubox input{flex:0 0 auto;width:20px;height:20px;margin:2px 0 0}
+.ubox span{flex:1;min-width:0}
+.ubox b{display:block;font-size:var(--t-md);font-weight:600}
+.ubox i{display:block;font-style:normal;font-size:var(--t-s);color:var(--ink-2);line-height:1.5;margin-top:2px}
+
+.url-lage{margin:var(--a-3) 0;font-size:var(--t-md);line-height:1.6;color:var(--ink-2)}
+.url-lage b{color:var(--ink);font-variant-numeric:tabular-nums}
+.url-lage.leer{font-style:italic}
+.url-mini{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;padding:0;list-style:none}
+.url-mini li{font-size:var(--t-s);color:var(--peat);background:var(--sand);
+  border:1px solid var(--line);border-radius:3px;padding:3px 8px}
+
+#urlaub-blatt{position:fixed;inset:0;z-index:70;overflow-y:auto;
+  background:#fff;color:#111;-webkit-overflow-scrolling:touch}
+#urlaub-blatt[hidden]{display:none}
+.ub-leiste{position:sticky;top:0;z-index:2;display:flex;gap:10px;justify-content:space-between;
+  padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--line)}
+#ub-inhalt{max-width:760px;margin:0 auto;padding:20px 16px 10px;
+  font-family:var(--f-body);font-size:15px;line-height:1.55;color:#000}
+/* Der Zettel wird immer schwarzweiß gesetzt: er landet auf fremden
+   Druckern, und ein Graustufenbild bleibt dort lesbar, wo ein blasses
+   Farbfoto zu Matsch wird. */
+#ub-inhalt img{filter:grayscale(1) contrast(1.1)}
+
+#ub-inhalt h1{font-family:var(--f-display);font-size:1.6rem;margin:0 0 4px}
+#ub-inhalt h2{font-family:var(--f-display);font-size:1.15rem;margin:24px 0 8px;
+  padding-bottom:5px;border-bottom:1.5px solid #000;break-after:avoid;page-break-after:avoid}
+#ub-inhalt h3{font-family:var(--f-display);font-size:1rem;margin:16px 0 6px;
+  break-after:avoid;page-break-after:avoid}
+.ub-zeit{font-family:var(--f-data);font-size:.85rem;letter-spacing:.06em;
+  text-transform:uppercase;color:#444;margin:0 0 3px}
+.ub-intro{margin:0 0 14px}
+.ub-hinweis{font-size:.88rem;color:#333;margin:0 0 10px}
+
+/* Blankofeld: wird von Hand oder im PDF-Bearbeiter ausgefüllt */
+.ub-kontakt{margin:0 0 14px;padding:10px 13px;border:1.5px solid #000;border-radius:3px}
+.ub-kontakt p{margin:0 0 7px;font-size:.95rem}
+.ub-kontakt p:last-child{margin-bottom:0}
+.ub-kontakt-t{font-family:var(--f-data);font-size:.72rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#444}
+.ub-linie{display:inline-block;min-width:150px;border-bottom:1px solid #000;
+  height:1.15em;vertical-align:baseline}
+
+.ub-regeln{margin:0 0 6px;padding-left:20px;font-size:.9rem}
+.ub-regeln li{margin-bottom:3px}
+.ub-vor{margin:14px 0 0;padding:11px 13px;border:1.5px solid #000;border-radius:3px;font-size:.95rem}
+
+/* Raum: Überschrift, dann die Zuordnung der Nummern, dann der Plan */
+.ub-raum{margin:0 0 20px;break-inside:avoid;page-break-inside:avoid}
+.ub-legende{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:3px 14px;margin:0 0 9px;padding:0;list-style:none;font-size:.9rem}
+.ub-legende li{display:flex;gap:7px;align-items:baseline}
+.ub-lnr{flex:0 0 auto;min-width:19px;height:19px;border:1.5px solid #000;border-radius:50%;
+  font-size:.72rem;font-weight:700;text-align:center;line-height:17px}
+.ub-plan{display:block;width:100%;max-height:340px;height:auto}
+
+/* Ein Tag = eine Zeile mit Kästchen zum Abhaken */
+.ub-tag{margin:0 0 13px;break-inside:avoid;page-break-inside:avoid}
+.ub-tag-kopf{font-family:var(--f-data);font-size:.8rem;letter-spacing:.08em;
+  text-transform:uppercase;color:#444;margin:0 0 4px}
+.ub-zeile{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px dotted #999}
+.ub-box{flex:0 0 auto;width:19px;height:19px;border:1.5px solid #000;border-radius:2px}
+.ub-box.gestrichelt{border-style:dashed}
+.ub-nr{flex:0 0 auto;min-width:22px;height:22px;border:1.5px solid #000;border-radius:50%;
+  font-size:.75rem;font-weight:700;text-align:center;line-height:19px}
+.ub-zeile>span:last-child{flex:1;min-width:0}
+.ub-zeile i{display:block;font-style:normal;font-size:.8rem;color:#444}
+.ub-stop{opacity:.85}
+
+/* Steckbrief je Pflanze */
+.ub-karte{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid #ccc;
+  break-inside:avoid;page-break-inside:avoid}
+.ub-karte img{width:84px;height:84px;flex:0 0 84px;object-fit:cover;
+  border:1px solid #999;border-radius:3px;background:#f2f2f2}
+.ub-kein-bild{width:84px;height:84px;flex:0 0 84px;border:1px dashed #999;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#666;text-align:center}
+.ub-karte-in{flex:1;min-width:0}
+.ub-karte b{display:block;font-family:var(--f-display);font-size:1.05rem}
+.ub-knr{display:inline-block;min-width:21px;height:21px;margin-right:6px;
+  border:1.5px solid #000;border-radius:50%;font-size:.75rem;text-align:center;line-height:18px}
+.ub-art{font-style:italic;color:#444;font-size:.88rem}
+.ub-karte dl{margin:5px 0 0;font-size:.88rem}
+.ub-karte dt{font-family:var(--f-data);font-size:.72rem;letter-spacing:.06em;
+  text-transform:uppercase;color:#555;margin-top:4px}
+.ub-karte dd{margin:0}
+.ub-achtung{margin:5px 0 0;padding:5px 8px;border-left:3px solid #000;background:#f0f0f0;font-size:.85rem}
+.ub-zuletzt{margin:7px 0 0;font-size:.85rem;color:#333}
+
+/* Nummernstreifen zum Ausschneiden */
+.ub-streifen-seite{break-before:page;page-break-before:always}
+.ub-streifen{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:0}
+.ub-schild{display:flex;align-items:center;gap:9px;padding:9px 10px;
+  border:1px dashed #666;margin:-0.5px 0 0 -0.5px;break-inside:avoid;page-break-inside:avoid}
+.ub-snr{flex:0 0 auto;width:28px;height:28px;border:2px solid #000;border-radius:50%;
+  font-size:.95rem;font-weight:700;text-align:center;line-height:25px}
+.ub-sname{flex:1;min-width:0;font-size:.85rem;overflow-wrap:anywhere}
+
+.ub-fuss{max-width:760px;margin:0 auto;padding:10px 16px 60px;
+  font-size:.78rem;color:#444;border-top:1px solid #999}
+
+@media print{
+  body>*{display:none!important}
+  body>#urlaub-blatt{display:block!important;position:static;overflow:visible;background:#fff}
+  .ub-leiste{display:none!important}
+  #ub-inhalt{max-width:none;margin:0;padding:0;font-size:10.5pt}
+  .ub-karte img,.ub-kein-bild{width:62px;height:62px;flex-basis:62px}
+  .ub-plan{max-height:none}
+  /* Die Fußzeile soll auf jedem Blatt stehen, nicht nur am Ende.
+     position:fixed wird im Druck je Seite wiederholt. */
+  .ub-fuss{position:fixed;left:0;right:0;bottom:0;margin:0;padding:3mm 0 0;
+    border-top:.4pt solid #666;font-size:7.5pt;background:#fff}
+  #ub-inhalt{padding-bottom:12mm}
+  @page{margin:14mm 14mm 18mm}
+}
+
 /* Kopfbereich kompakt, seit es Reiter gibt */
 header.top{padding:26px 0 14px}
 header.top h1{font-size:clamp(1.75rem,6.4vw,2.9rem);margin:0 0 9px}
@@ -2121,6 +2248,8 @@ ZUSTAND: einer von: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausge
 BEFUND: ein bis zwei Sätze, woran du den Zustand erkennst
 LICHT: voll, hell oder indirekt
 GIESSEN: ein Satz, wie oft und wie viel bei genau diesem Zustand
+GIESSART: genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau
+WICHTIG: eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß, etwa besondere Wasserqualität, Substrat oder Standortgrenze — oder das Wort keine
 KATZEN: giftig oder unbedenklich, mit kurzer Begründung
 MASSNAHMEN: die zwei bis drei wichtigsten Schritte, mit Semikolon getrennt`;
 
@@ -2177,6 +2306,8 @@ const ANTWORT_SCHLUESSEL = [
   ['befund',  ['befund','begründung','begruendung','beobachtung','diagnose','analyse']],
   ['licht',   ['licht','lichtbedarf','standort','light']],
   ['giessen', ['giessen','gießen','wasser','wasserbedarf','bewässerung','bewaesserung','watering']],
+  ['giessart',['giessart','gießart','giessweise','gießweise','art des giessens','wassergabe','watering style']],
+  ['wichtig', ['wichtig','besonderheit','besonderheiten','hinweis','hinweise','achtung','kritisch','special']],
   ['katzen',  ['katzen','katze','giftigkeit','giftig','toxizität','toxizitaet','haustiere','pets']],
   ['schritte',['massnahmen','maßnahmen','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
@@ -3723,7 +3854,47 @@ document.addEventListener('click', e=>{
    neue Fassung der Datei die Stammdaten weiter aktualisieren kann.
    ══════════════════════════════════════════════════════════════ */
 
-const AENDERBAR = ['name','art','botanisch','standort','typ','klasse','sonne','giftig','notiz','frostMin'];
+
+/* ══════════════════ Gießart ══════════════════
+   Die Gießklasse (S/A/B/C) sagt, WIE OFT gegossen wird. Sie beantwortet
+   aber nicht die Frage, an der eine Urlaubsvertretung scheitert: wie
+   VIEL und auf welche Weise. Das ist eine zweite Achse — darum ein
+   eigenes Feld. Es lässt sich im Steckbrief umstellen; solange nichts
+   gesetzt ist, wird aus Klasse und Typ ein Vorschlag abgeleitet, damit
+   niemand 245 Bibliothekspflanzen von Hand pflegen muss.
+   ═══════════════════════════════════════════════════════════════ */
+const GIESSARTEN = {
+  schluck: {name:'Schluck',
+    kurz:'Kleine Menge, nur die Erde anfeuchten. Kein Wasser im Untersetzer.'},
+  durch:   {name:'Durchdringend',
+    kurz:'Gießen, bis unten Wasser austritt. Nach 15 Minuten den Untersetzer ausleeren.'},
+  tauchen: {name:'Tauchen',
+    kurz:'Topf 10 Minuten in einen Eimer Wasser stellen, danach gut abtropfen lassen.'},
+  unten:   {name:'Von unten',
+    kurz:'Wasser nur in den Untersetzer. Nichts auf Blätter oder Blattherz gießen.'},
+  anstau:  {name:'Anstau',
+    kurz:'Untersetzer dauerhaft 1–2 cm gefüllt halten. Nie ganz austrocknen lassen.'}
+};
+const GIESSART_STANDARD = 'durch';
+
+/* Vorschlag aus dem, was die App ohnehin weiß. */
+function giessartRaten(p){
+  const typ = String(p.typ || '').toLowerCase();
+  const kl  = p.klasse;
+  if(kl === 'S' || /karnivore|sumpf/.test(typ))      return 'anstau';
+  if(/orchidee/.test(typ))                            return 'tauchen';
+  if(/usambara|alpenveilchen|cyclamen/.test(String(p.art||'').toLowerCase())) return 'unten';
+  if(kl === 'C' || /sukkulente|kaktus|palmfarn/.test(typ)) return 'schluck';
+  return GIESSART_STANDARD;
+}
+function giessartVon(p){
+  const g = p.giessart;
+  return (g && GIESSARTEN[g]) ? g : giessartRaten(p);
+}
+function giessartName(p){ return GIESSARTEN[giessartVon(p)].name; }
+function giessartText(p){ return GIESSARTEN[giessartVon(p)].kurz; }
+
+const AENDERBAR = ['name','art','botanisch','standort','typ','klasse','sonne','giftig','notiz','frostMin','giessart','wichtig'];
 
 function aenderungen(id){ return (S.edits||{})[id] || null; }
 function aenderungSetzen(id, felder){
@@ -3763,6 +3934,12 @@ function bearbeitenHTML(p){
         <option value="unbekannt"${gift==='unbekannt'?' selected':''}>ungeprüft</option>
         <option value="nein"${gift==='nein'?' selected':''}>unbedenklich</option>
         <option value="ja"${gift==='ja'?' selected':''}>giftig</option></select></label>
+      <label><span class="lab">Gießart</span><select data-e="giessart" data-p="${p.id}">
+        ${Object.keys(GIESSARTEN).map(k=>`<option value="${k}"${giessartVon(p)===k?' selected':''}>${esc(GIESSARTEN[k].name)}</option>`).join('')}</select>
+        <span class="fhint">${esc(giessartText(p))}</span></label>
+      <label class="fspan"><span class="lab">Wichtig zu wissen</span>
+        <textarea data-e="wichtig" data-p="${p.id}" rows="2" placeholder="z. B. nur destilliertes oder Regenwasser, Leitungswasser tötet sie">${esc(p.wichtig||'')}</textarea>
+        <span class="fhint">Pflegehinweise, die über Leben und Tod entscheiden und die man nicht von selbst weiß. Erscheinen auf der Karte und werden auf den Urlaubszettel übernommen.</span></label>
       <label class="fspan"><span class="lab">Notiz</span><textarea data-e="notiz" data-p="${p.id}" rows="3">${esc(p.notiz||'')}</textarea></label>
     </div>
     <div class="tools">
@@ -4047,6 +4224,17 @@ function papierkorbRender(){
           <option value="ja">Giftig</option>
           <option value="nein">Unbedenklich</option>
         </select></label>
+        <label><span class="lab">Gießart</span><select id="f-giessart">
+          <option value="">automatisch aus Klasse und Typ</option>
+          <option value="durch">Durchdringend — bis unten Wasser austritt</option>
+          <option value="schluck">Schluck — nur die Erde anfeuchten</option>
+          <option value="tauchen">Tauchen — 10 Minuten ins Wasserbad</option>
+          <option value="unten">Von unten — nur in den Untersetzer</option>
+          <option value="anstau">Anstau — Untersetzer dauerhaft gefüllt</option>
+        </select></label>
+        <label class="fspan"><span class="lab">Wichtig zu wissen</span>
+          <textarea id="f-wichtig" rows="2" placeholder="z. B. nur destilliertes oder Regenwasser, Leitungswasser tötet sie"></textarea>
+          <span class="fhint">Pflegehinweise, die über Leben und Tod entscheiden.</span></label>
         <label class="fspan"><span class="lab">Notizen</span><textarea id="f-notiz" placeholder="Topf, Substrat, seit wann, Zustand …"></textarea></label>
         <label class="fspan"><span class="lab">Fotos</span><input type="file" id="f-fotos" accept="image/*" multiple></label>
       </div>
@@ -4350,6 +4538,58 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan" id="urlaub-sec">
+    <h2>Urlaubszettel</h2>
+    <p class="sub">Wer während deiner Abwesenheit gießt, bekommt einen Zettel mit Raumplan, Nummern, Bildern und Terminen — nur die Pflanzen, die wirklich drankommen.</p>
+
+    <ol class="url-schritte">
+      <li>
+        <p class="url-nr">Schritt 1 — Zeitraum</p>
+        <div class="fgrid">
+          <label><span class="lab">Weg ab</span><input type="date" id="url-von"></label>
+          <label><span class="lab">Zurück am</span><input type="date" id="url-bis"></label>
+          <label class="fspan"><span class="lab">Wer gießt? (steht oben auf dem Zettel)</span>
+            <input id="url-wer" placeholder="z. B. Anna von nebenan" autocomplete="off"></label>
+        </div>
+        <div id="url-vorschau"></div>
+      </li>
+
+      <li>
+        <p class="url-nr">Schritt 2 — Sicherheitspuffer</p>
+        <label class="fspan"><span class="lab">Termine vorziehen</span>
+          <select id="url-puffer">
+            <option value="0">Genau am errechneten Tag</option>
+            <option value="1" selected>Einen Tag früher</option>
+            <option value="2">Zwei Tage früher</option>
+          </select>
+          <span class="fhint">Eine Vertretung kommt selten auf den Tag genau. Einen Tag zu früh schadet weniger als drei zu spät.</span></label>
+      </li>
+
+      <li>
+        <p class="url-nr">Schritt 3 — Was soll mit auf den Zettel</p>
+        <label class="ubox"><input type="checkbox" id="url-nummern" checked>
+          <span><b>Nummernstreifen zum Ausschneiden</b><i>Eine Extraseite mit Nummer und Name zum Ankleben an die Töpfe.</i></span></label>
+        <label class="ubox"><input type="checkbox" id="url-ohneplan">
+          <span><b>Ohne Raumplan drucken</b><i>Spart Seiten. Ohne Plan gibt es keine Nummern — der Nummernstreifen entfällt dann mit.</i></span></label>
+        <label class="ubox"><input type="checkbox" id="url-ohnebilder">
+          <span><b>Ohne Bilder drucken</b><i>Deutlich weniger Farbe und Papier, dafür schwerer zu erkennen.</i></span></label>
+      </li>
+
+      <li>
+        <p class="url-nr">Schritt 4 — Ausgeben</p>
+        <p class="fhint">Der Zettel wird immer in Schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt.</p>
+        <div class="tools">
+          <button id="btn-url-druck" class="haupt">Drucken / als PDF sichern</button>
+          <button id="btn-url-blatt">Erst ansehen</button>
+        </div>
+        <div class="tools" style="margin-top:6px">
+          <button id="btn-url-text">Kurzfassung als Nachricht kopieren</button>
+        </div>
+        <p class="kihinweis" id="url-meldung" hidden></p>
+      </li>
+    </ol>
+  </section>
+
   <section data-ans="mehr" class="plan">
     <h2>Sicherung</h2>
     <p class="sub" id="storage-state"></p>
@@ -4470,6 +4710,15 @@ function papierkorbRender(){
   </div>
   <div class="gm-mitte"><div id="rg-inhalt"></div></div>
   <div class="gm-fuss" id="rg-knoepfe"></div>
+</div>
+
+<div id="urlaub-blatt" hidden>
+  <div class="ub-leiste">
+    <button id="btn-ub-zu">‹ Zurück</button>
+    <button id="btn-ub-druck" class="haupt">Drucken</button>
+  </div>
+  <div id="ub-inhalt"></div>
+  <p class="ub-fuss"><span id="ub-fuss-txt"></span></p>
 </div>
 
 <nav class="tabs" id="tabs">
@@ -5247,7 +5496,9 @@ function schnellLeiste(p){
 function giessAbschnitt(p){
   const K = KLASSEN[p.klasse];
   return trackerHTML(p)
-    + `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd></dl>`
+    + (p.wichtig ? `<p class="wichtig-hin"><b>Wichtig</b> ${esc(p.wichtig)}</p>` : '')
+    + `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd>
+       <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd></dl>`
     + (p.giesstipp ? `<p><em>${esc(p.giesstipp)}</em></p>` : '');
 }
 
@@ -6194,6 +6445,21 @@ $('#btn-paste-los').onclick = ()=>{
     $('#f-name').value = d.art || treffer.de;
     uebernommen.push('Name vorgeschlagen');
   }
+  /* Gießart und Besonderheit wandern direkt in die neuen Felder, damit
+     sie später ohne Nacharbeit auf dem Urlaubszettel stehen. */
+  if(d.giessart){
+    const g = norm(d.giessart);
+    const treffer3 = /anstau|staun|dauerhaft nass/.test(g) ? 'anstau'
+      : /tauch|wasserbad|eintauch/.test(g) ? 'tauchen'
+      : /unten|untersetz/.test(g) ? 'unten'
+      : /schluck|sparsam|wenig|klein/.test(g) ? 'schluck'
+      : /durchdring|durchtrank|reichlich|kraftig/.test(g) ? 'durch' : null;
+    if(treffer3){ $('#f-giessart').value = treffer3; uebernommen.push('Gießart gesetzt'); }
+  }
+  if(d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))){
+    $('#f-wichtig').value = d.wichtig;
+    uebernommen.push('Wichtiger Hinweis übernommen');
+  }
   const zcode = zustandRaten(d.zustand);
   if(zcode && $('#f-zustand').querySelector(`option[value="${zcode}"]`)){
     $('#f-zustand').value = zcode; zustandHinweis(); uebernommen.push('Zustand gesetzt');
@@ -6243,7 +6509,9 @@ $('#btn-neu-save').onclick = async ()=>{
     intervall: KLASSE_IV[kl] || [8,12],
     bib: a ? a.bot : null,
     eltern:null, linie:null, seit:'selbst angelegt',
-    notiz: $('#f-notiz').value.trim(), todo:[], log:[]
+    notiz: $('#f-notiz').value.trim(), todo:[], log:[],
+    giessart: $('#f-giessart').value || '',
+    wichtig: $('#f-wichtig').value.trim()
   };
   S.eigene.push(p);
   const zc = $('#f-zustand').value;
@@ -7632,6 +7900,482 @@ document.addEventListener('click', e=>{
     info.setAttribute('aria-expanded', String(!hilfe.hidden));
   }
 });
+
+
+/* ══════════════════ Urlaubszettel ══════════════════
+   Für die Vertretung zählt nur eine Frage: was muss ich wann gießen?
+   Darum stehen hier ausschließlich Pflanzen, die im Zeitraum wirklich
+   drankommen — plus zwei Ausnahmen, die man kennen muss: Pflanzen in
+   der Gießpause (die dürfen gerade nicht) und Pflanzen ohne Eintrag
+   (bei denen die App nicht rechnen kann).
+
+   Die Reihenfolge folgt dem Raumplan: Raum für Raum, darin von links
+   nach rechts. Daraus entsteht die Nummer, die eine Pflanze überall
+   trägt — auf dem Plan, im Tagesplan, auf ihrer Kachel und auf dem
+   Klebestreifen am Topf. Wer die Nummer sucht, muss keinen Namen lesen.
+   ═══════════════════════════════════════════════════════════════ */
+
+const UB_WOCHENTAG = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+function ubDatum(d){
+  const x = (typeof d === 'string') ? new Date(d + 'T12:00:00') : d;
+  return `${UB_WOCHENTAG[x.getDay()]} ${x.getDate()}.${x.getMonth()+1}.`;
+}
+function ubTagPlus(isoStr, n){
+  const d = new Date(isoStr + 'T12:00:00');
+  d.setDate(d.getDate() + n);
+  return iso(d);
+}
+
+function ubBild(p){
+  const f = (typeof fotosVon === 'function') ? fotosVon(p.id) : [];
+  return f.length ? f[0].src : null;
+}
+
+/* Standort in Worten — für alles, was nicht auf dem Plan steht. */
+function ubStandort(p){
+  const teile = [];
+  const o = (typeof pflanzenOrt === 'function') ? pflanzenOrt(p.id) : null;
+  if(o && o.raum){
+    const r = raeume().find(x => x.id === o.raum);
+    if(r) teile.push(r.name);
+  }
+  if(p.standort && p.standort !== 'nicht in der Sammlung' && p.standort !== 'Ohne Angabe')
+    teile.push(p.standort);
+  return teile.join(' · ') || 'kein Standort hinterlegt';
+}
+
+/* Laufweg: Räume in der Reihenfolge der Raumliste, darin nach x von
+   links nach rechts, bei gleichem x von oben nach unten. Pflanzen ohne
+   eingezeichneten Platz lassen sich nicht einordnen und hängen sich
+   hinten an. */
+function ubReihenfolge(){
+  const raus = [];
+  raeume().forEach(r => {
+    pflanzenIm(r.id)
+      .map(p => ({p, o: pflanzenOrt(p.id), raum: r}))
+      .sort((a, b) => (a.o.x - b.o.x) || (a.o.y - b.o.y))
+      .forEach(x => raus.push(x));
+  });
+  const drin = new Set(raus.map(x => x.p.id));
+  allePflanzen().forEach(p => { if(!drin.has(p.id)) raus.push({p, o: null, raum: null}); });
+  raus.forEach((x, i) => x.nr = i + 1);
+  return raus;
+}
+
+/* Alle Gießtermine im Zeitraum.
+   Ist eine Pflanze schon vor der Abreise dran, gilt der Abreisetag als
+   Gießtag — Chris macht das selbst. Ab da wird neu gerechnet, damit die
+   Vertretung keinen Termin erbt, der ihr nicht gehört. */
+function ubPlan(vonISO, bisISO, puffer){
+  const von = new Date(vonISO + 'T00:00:00');
+  const bis = new Date(bisISO + 'T23:59:59');
+  const vor = Math.max(0, Number(puffer) || 0);
+  const folge = ubReihenfolge();
+  const giessen = [], pause = [], unsicher = [], vorAbreise = [];
+
+  folge.forEach(eintrag => {
+    const p = eintrag.p;
+    const st = giessStatus(p);
+
+    if(st.stand === 'stopp'){
+      pause.push(Object.assign({}, eintrag, {rest: (typeof stoppRest === 'function') ? stoppRest(p) : 0}));
+      return;
+    }
+    if(st.stand === 'unbekannt'){ unsicher.push(Object.assign({}, eintrag, {tage: []})); return; }
+
+    const iv = Math.max(1, st.iv);
+    let d = new Date(st.letzte + 'T12:00:00');
+    d.setDate(d.getDate() + iv);
+
+    /* Vor der Abreise fällig: Fälligkeit auf den Abreisetag setzen und
+       von dort weiterrechnen. */
+    let selbst = false;
+    if(d < von){
+      selbst = true;
+      d = new Date(vonISO + 'T12:00:00');
+      d.setDate(d.getDate() + iv);
+    }
+
+    const tage = [];
+    let schutz = 0;
+    while(d <= bis && schutz++ < 500){
+      const t = ubTagPlus(iso(d), -vor);
+      if(t >= vonISO) tage.push(t);
+      d.setDate(d.getDate() + iv);
+    }
+
+    if(selbst) vorAbreise.push(Object.assign({}, eintrag, {tag: vonISO}));
+    if(tage.length) giessen.push(Object.assign({}, eintrag, {tage, iv}));
+  });
+
+  /* Nach Tagen bündeln — innerhalb eines Tages bleibt der Laufweg. */
+  const nachTag = {};
+  giessen.forEach(e => e.tage.forEach(t => (nachTag[t] = nachTag[t] || []).push(e)));
+  const tage = Object.keys(nachTag).sort()
+    .map(t => ({tag: t, eintraege: nachTag[t].sort((a, b) => a.nr - b.nr)}));
+
+  /* Räume, in denen tatsächlich etwas zu tun ist. */
+  const aktiv = new Set();
+  giessen.concat(unsicher).forEach(e => { if(e.raum) aktiv.add(e.raum.id); });
+  const raeumeAufZettel = raeume().filter(r => aktiv.has(r.id));
+
+  return {giessen, pause, unsicher, vorAbreise, tage, raeume: raeumeAufZettel,
+          von: vonISO, bis: bisISO, puffer: vor};
+}
+
+function ubOptionen(){
+  const an = id => { const el = document.getElementById(id); return !!(el && el.checked); };
+  const ohnePlan = an('url-ohneplan');
+  return {
+    puffer: Number((document.getElementById('url-puffer') || {}).value || 0),
+    wer: ((document.getElementById('url-wer') || {}).value || '').trim(),
+    ohnePlan,
+    ohneBilder: an('url-ohnebilder'),
+    /* Ohne Plan gibt es keine Nummern, also auch keinen Streifen. */
+    nummern: an('url-nummern') && !ohnePlan
+  };
+}
+
+function ubZeitraum(){
+  const v = document.getElementById('url-von'), b = document.getElementById('url-bis');
+  if(!v || !b || !v.value || !b.value) return null;
+  if(b.value < v.value) return {fehler: 'Das Rückkehrdatum liegt vor der Abreise.'};
+  return {von: v.value, bis: b.value};
+}
+
+function ubVorschau(){
+  const box = document.getElementById('url-vorschau');
+  if(!box) return;
+  const z = ubZeitraum();
+  if(!z){ box.innerHTML = '<p class="url-lage leer">Zeitraum eintragen, dann rechnet die App.</p>'; return; }
+  if(z.fehler){ box.innerHTML = `<p class="url-lage leer">${esc(z.fehler)}</p>`; return; }
+
+  const o = ubOptionen();
+  const plan = ubPlan(z.von, z.bis, o.puffer);
+  const n = plan.giessen.length;
+  if(!n && !plan.unsicher.length){
+    box.innerHTML = `<p class="url-lage leer">In diesem Zeitraum ist nichts fällig. Wenn du magst, gieße vor der Abreise einmal durch — dann muss niemand kommen.</p>`;
+    return;
+  }
+  const zeilen = [`<b>${n}</b> ${n === 1 ? 'Pflanze' : 'Pflanzen'} an <b>${plan.tage.length}</b> ${plan.tage.length === 1 ? 'Tag' : 'Tagen'}`];
+  if(plan.unsicher.length)  zeilen.push(`<b>${plan.unsicher.length}</b> ohne Gießeintrag`);
+  if(plan.pause.length)     zeilen.push(`<b>${plan.pause.length}</b> in der Gießpause`);
+  if(plan.vorAbreise.length)zeilen.push(`<b>${plan.vorAbreise.length}</b> vor der Abreise durch dich`);
+
+  box.innerHTML = `<p class="url-lage">${zeilen.join(' · ')}</p>
+    <ul class="url-mini">${plan.giessen.slice(0, 12).map(e =>
+      `<li>${e.raum ? e.nr + ' · ' : ''}${esc(nice(e.p))}</li>`).join('')}${
+      plan.giessen.length > 12 ? `<li>+ ${plan.giessen.length - 12} weitere</li>` : ''}</ul>`;
+}
+
+/* ── Raumplan in Schwarzweiß ──────────────────────────────────
+   Nicht der Plan aus der App: dort tragen die Kacheln Lichtfarben, die
+   auf Papier zu grauem Matsch werden und nichts erklären. Hier bleibt
+   nur die Geometrie — Umriss, Wände, Möbel als Kontur, Pflanzen als
+   nummerierte Kreise. Alles in cm, wie im Rest der Raumrechnung. */
+function ubRaumSVG(r, nummern){
+  const W = r.sp * KACHEL, H = r.re * KACHEL, rand = 26;
+  let g = `<svg class="ub-plan" viewBox="${-rand} ${-rand} ${W + rand*2} ${H + rand*2}"
+    preserveAspectRatio="xMidYMid meet" role="img" aria-label="Grundriss ${esc(r.name)}">`;
+
+  for(let y = 0; y < r.re; y++) for(let x = 0; x < r.sp; x++){
+    if(!kachelAn(r, x, y)) continue;
+    g += `<rect x="${x*KACHEL}" y="${y*KACHEL}" width="${KACHEL}" height="${KACHEL}"
+      fill="#fff" stroke="#ccc" stroke-width="1"/>`;
+  }
+
+  aussenKanten(r).forEach(k => {
+    const px = k.x*KACHEL, py = k.y*KACHEL;
+    const c = {o:[px,py,px+KACHEL,py], r:[px+KACHEL,py,px+KACHEL,py+KACHEL],
+               u:[px,py+KACHEL,px+KACHEL,py+KACHEL], l:[px,py,px,py+KACHEL]}[k.k];
+    let breite = 7, dash = '';
+    if(k.art === 'fenster' || k.art === 'bodenfenster'){ breite = 7; dash = ' stroke-dasharray="1 0"'; }
+    else if(k.art === 'tuer'){ breite = 5; dash = ' stroke-dasharray="14 9"'; }
+    else if(k.art === 'bruestung'){ breite = 4; dash = ' stroke-dasharray="4 5"'; }
+    else if(k.art === 'offen'){ breite = 2; dash = ' stroke-dasharray="3 7"'; }
+    g += `<line x1="${c[0]}" y1="${c[1]}" x2="${c[2]}" y2="${c[3]}"
+      stroke="#000" stroke-width="${breite}" stroke-linecap="square"${dash}/>`;
+    /* Fenster bekommen zusätzlich eine helle Innenlinie — sonst sind sie
+       auf Papier nicht von einer Wand zu unterscheiden. */
+    if(k.art === 'fenster' || k.art === 'bodenfenster')
+      g += `<line x1="${c[0]}" y1="${c[1]}" x2="${c[2]}" y2="${c[3]}"
+        stroke="#fff" stroke-width="2.5" stroke-linecap="butt"/>`;
+  });
+
+  (r.moebel || []).forEach(m => {
+    g += `<rect x="${m.x}" y="${m.y}" width="${m.b}" height="${m.t}" rx="4"
+      fill="none" stroke="#999" stroke-width="2" stroke-dasharray="7 5"/>
+      <text x="${m.x + 5}" y="${m.y + 17}" font-size="15" fill="#777">${esc(m.name || '')}</text>`;
+  });
+
+  nummern.forEach(e => {
+    if(!e.o) return;
+    g += `<g transform="translate(${e.o.x},${e.o.y})">
+      <circle r="20" fill="#fff" stroke="#000" stroke-width="3"/>
+      <text y="7" font-size="22" font-weight="700" text-anchor="middle" fill="#000">${e.nr}</text>
+    </g>`;
+  });
+
+  const a = (-r.drehung) * GRAD;
+  g += `<g transform="translate(${W + 4},${-12})">
+    <circle r="17" fill="#fff" stroke="#000" stroke-width="1.5"/>
+    <line x1="${(-Math.sin(a)*11).toFixed(1)}" y1="${(Math.cos(a)*11).toFixed(1)}"
+          x2="${(Math.sin(a)*12).toFixed(1)}" y2="${(-Math.cos(a)*12).toFixed(1)}"
+          stroke="#000" stroke-width="3"/>
+    <text x="${(Math.sin(a)*26).toFixed(1)}" y="${(-Math.cos(a)*26+5).toFixed(1)}"
+      font-size="15" font-weight="700" text-anchor="middle">N</text></g>`;
+  return g + '</svg>';
+}
+
+/* ── Das Blatt ───────────────────────────────────────────── */
+function ubBlattHTML(plan, o){
+  const alle = plan.giessen.concat(plan.unsicher);
+  let h = `<div class="ub-seite">
+    <p class="ub-zeit">${esc(ubDatum(plan.von))} bis ${esc(ubDatum(plan.bis))}</p>
+    <h1>${o.wer ? 'Für ' + esc(o.wer) : 'Gießplan'}</h1>
+    <p class="ub-intro">Vielen Dank fürs Gießen! Jede Pflanze hat eine Nummer${
+      o.ohnePlan ? '' : ' — dieselbe steht auf dem Raumplan und am Topf'}.
+      Unten steht Tag für Tag, was drankommt. Bitte abhaken.</p>
+
+    <div class="ub-kontakt">
+      <p class="ub-kontakt-t">Bei Fragen</p>
+      <p>Erreichbar unter <span class="ub-linie"></span></p>
+      <p>Zweitkontakt <span class="ub-linie"></span></p>
+      <p>Schlüssel / Zugang <span class="ub-linie"></span></p>
+    </div>
+
+    <ul class="ub-regeln">
+      <li>Einen Termin verpasst? Am nächsten Tag nachholen — kein Drama.</li>
+      <li>Bitte nicht düngen und nichts umstellen.</li>
+      <li>Im Zweifel lieber einmal weniger gießen als einmal zu viel.</li>
+    </ul>`;
+
+  if(plan.vorAbreise.length)
+    h += `<p class="ub-vor"><b>Am ${esc(ubDatum(plan.von))} noch selbst gegossen, nicht von dir:</b> ${
+      plan.vorAbreise.map(e => (e.raum ? e.nr + ' ' : '') + esc(nice(e.p))).join(', ')}.
+      Die Termine unten rechnen ab da weiter.</p>`;
+
+  /* Räume mit Legende und Plan */
+  if(!o.ohnePlan && plan.raeume.length){
+    h += `<h2>Wo steht was</h2>`;
+    h += plan.raeume.map(r => {
+      const drin = alle.filter(e => e.raum && e.raum.id === r.id).sort((a, b) => a.nr - b.nr);
+      return `<div class="ub-raum">
+        <h3>${esc(r.name)}</h3>
+        <ol class="ub-legende">${drin.map(e =>
+          `<li><span class="ub-lnr">${e.nr}</span>${esc(nice(e.p))}</li>`).join('')}</ol>
+        ${ubRaumSVG(r, drin)}
+      </div>`;
+    }).join('');
+  }
+
+  const ohnePlatz = alle.filter(e => !e.raum);
+  if(ohnePlatz.length)
+    h += `<p class="ub-hinweis"><b>Nicht auf dem Plan:</b> ${
+      ohnePlatz.map(e => esc(nice(e.p)) + ' (' + esc(ubStandort(e.p)) + ')').join(', ')}.</p>`;
+
+  /* Tagesplan */
+  h += `<h2>Wann was</h2>`;
+  h += plan.tage.length
+    ? plan.tage.map(t => `<div class="ub-tag">
+        <p class="ub-tag-kopf">${esc(ubDatum(t.tag))}</p>
+        ${t.eintraege.map(e => `<div class="ub-zeile">
+          <span class="ub-box" aria-hidden="true"></span>
+          <span class="ub-nr">${e.raum ? e.nr : '–'}</span>
+          <span><b>${esc(nice(e.p))}</b> — ${esc(ubStandort(e.p))}<i>${esc(giessartName(e.p))}</i></span>
+        </div>`).join('')}
+      </div>`).join('')
+    : `<p>In diesem Zeitraum ist nichts fällig.</p>`;
+
+  if(plan.unsicher.length){
+    h += `<h3>Bitte mit dem Finger prüfen</h3>
+      <p class="ub-hinweis">Für diese Pflanzen kennt die App keinen Gießverlauf und kann keinen Tag nennen.
+        Faustregel: Finger zwei Zentimeter in die Erde — fühlt es sich trocken an, gießen.</p>
+      ${plan.unsicher.map(e => `<div class="ub-zeile">
+        <span class="ub-box" aria-hidden="true"></span>
+        <span class="ub-nr">${e.raum ? e.nr : '–'}</span>
+        <span><b>${esc(nice(e.p))}</b> — ${esc(ubStandort(e.p))}</span></div>`).join('')}`;
+  }
+
+  if(plan.pause.length){
+    h += `<h3>Diese bitte nicht gießen</h3>
+      <p class="ub-hinweis">Sie erholen sich gerade und stehen absichtlich trocken.
+        Auch wenn die Erde staubtrocken aussieht: bitte stehen lassen.</p>
+      ${plan.pause.map(e => `<div class="ub-zeile ub-stop">
+        <span class="ub-box gestrichelt" aria-hidden="true"></span>
+        <span class="ub-nr">${e.raum ? e.nr : '–'}</span>
+        <span><b>${esc(nice(e.p))}</b> — ${esc(ubStandort(e.p))}${
+          e.rest ? ` · noch ${e.rest} ${e.rest === 1 ? 'Tag' : 'Tage'}` : ''}</span></div>`).join('')}`;
+  }
+
+  /* Steckbriefe */
+  if(alle.length){
+    h += `<h2>Wer ist wer</h2>`;
+    h += alle.map(e => {
+      const p = e.p, bild = o.ohneBilder ? null : ubBild(p);
+      const extra = [];
+      if(p.wichtig) extra.push('Wichtig: ' + p.wichtig);
+      if(p.giesstipp) extra.push(p.giesstipp);
+      if(p.giftig === true) extra.push('Giftig — von Kindern und Tieren fernhalten.');
+      return `<div class="ub-karte">
+        ${bild ? `<img src="${esc(bild)}" alt="">`
+               : `<div class="ub-kein-bild">${e.raum ? 'Nr. ' + e.nr : 'kein Bild'}</div>`}
+        <div class="ub-karte-in">
+          <b>${e.raum ? `<span class="ub-knr">${e.nr}</span>` : ''}${esc(nice(p))}</b>
+          ${p.art && p.art !== nice(p) ? `<span class="ub-art">${esc(p.art)}</span>` : ''}
+          <dl>
+            <dt>Standort</dt><dd>${esc(ubStandort(p))}</dd>
+            <dt>Wie gießen</dt><dd><b>${esc(giessartName(p))}</b> — ${esc(giessartText(p))}</dd>
+            <dt>Wann</dt><dd>${e.tage && e.tage.length
+              ? esc(e.tage.map(ubDatum).join(' · ')) : 'nach Fingerprobe'}</dd>
+          </dl>
+          ${extra.map(x => `<p class="ub-achtung">${esc(x)}</p>`).join('')}
+          <p class="ub-zuletzt">Zuletzt tatsächlich gegossen am <span class="ub-linie"></span></p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  h += `</div>`;
+
+  /* Nummernstreifen auf eigener Seite */
+  if(o.nummern){
+    const mitNr = alle.filter(e => e.raum).sort((a, b) => a.nr - b.nr);
+    if(mitNr.length)
+      h += `<div class="ub-seite ub-streifen-seite">
+        <h2>Nummern zum Ausschneiden</h2>
+        <p class="ub-hinweis">Ausschneiden und an den jeweiligen Topf kleben.
+          Dann stimmt die Zuordnung am Regal und nicht nur auf dem Papier.</p>
+        <div class="ub-streifen">${mitNr.map(e =>
+          `<div class="ub-schild"><span class="ub-snr">${e.nr}</span><span class="ub-sname">${esc(nice(e.p))}</span></div>`).join('')}</div>
+      </div>`;
+  }
+  return h;
+}
+
+function ubBlattBauen(){
+  const z = ubZeitraum();
+  const meld = document.getElementById('url-meldung');
+  if(!z || z.fehler){
+    if(meld){ meld.hidden = false; meld.className = 'kihinweis warn';
+      meld.textContent = z ? z.fehler : 'Bitte erst Abreise und Rückkehr eintragen.'; }
+    return null;
+  }
+  const o = ubOptionen();
+  const plan = ubPlan(z.von, z.bis, o.puffer);
+  document.getElementById('ub-inhalt').innerHTML = ubBlattHTML(plan, o);
+  document.getElementById('ub-fuss-txt').textContent =
+    `Gießplan ${ubDatum(plan.von)} bis ${ubDatum(plan.bis)} · erstellt am ${ubDatum(iso(HEUTE))}`;
+  return plan;
+}
+function ubBlattOeffnen(){
+  if(!ubBlattBauen()) return;
+  document.getElementById('urlaub-blatt').hidden = false;
+  document.body.style.overflow = 'hidden';
+  window.scrollTo(0, 0);
+}
+function ubBlattZu(){
+  const b = document.getElementById('urlaub-blatt');
+  if(b) b.hidden = true;
+  document.body.style.overflow = '';
+}
+function ubDrucken(hinweis){
+  if(!ubBlattBauen()) return;
+  const b = document.getElementById('urlaub-blatt');
+  b.hidden = false;
+  document.body.style.overflow = 'hidden';
+  const meld = document.getElementById('url-meldung');
+  if(hinweis && meld){ meld.hidden = false; meld.className = 'kihinweis'; meld.textContent = hinweis; }
+  setTimeout(() => window.print(), 120);
+}
+
+/* ── Kurzfassung als Nachricht ───────────────────────────── */
+function ubTextBauen(plan, o){
+  const z = [];
+  z.push(o.wer ? `Hallo ${o.wer}, danke fürs Gießen!` : 'Gießplan');
+  z.push(`Zeitraum: ${ubDatum(plan.von)} bis ${ubDatum(plan.bis)}`);
+  z.push('');
+  if(!plan.tage.length){
+    z.push('In diesem Zeitraum ist nichts fällig.');
+  } else {
+    z.push('WANN WAS');
+    plan.tage.forEach(t => {
+      z.push(`${ubDatum(t.tag)}:`);
+      t.eintraege.forEach(e => z.push(`  [ ] ${e.raum ? e.nr + ' ' : ''}${nice(e.p)} — ${ubStandort(e.p)} (${giessartName(e.p)})`));
+    });
+  }
+  if(plan.unsicher.length){
+    z.push('');
+    z.push('MIT DEM FINGER PRÜFEN (kein Gießverlauf hinterlegt)');
+    plan.unsicher.forEach(e => z.push(`  [ ] ${e.raum ? e.nr + ' ' : ''}${nice(e.p)} — ${ubStandort(e.p)}`));
+  }
+  if(plan.pause.length){
+    z.push('');
+    z.push('BITTE NICHT GIESSEN');
+    plan.pause.forEach(e => z.push(`  - ${nice(e.p)} — ${ubStandort(e.p)}`));
+  }
+  const arten = {};
+  plan.giessen.forEach(e => { const g = giessartVon(e.p); (arten[g] = arten[g] || []).push(nice(e.p)); });
+  if(Object.keys(arten).length){
+    z.push('');
+    z.push('WIE GIESSEN');
+    Object.keys(arten).forEach(g => {
+      z.push(`  ${GIESSARTEN[g].name}: ${GIESSARTEN[g].kurz}`);
+      z.push(`    (${arten[g].join(', ')})`);
+    });
+  }
+  const beson = plan.giessen.concat(plan.unsicher).filter(e => e.p.wichtig);
+  if(beson.length){
+    z.push('');
+    z.push('WICHTIG');
+    beson.forEach(e => z.push(`  ${nice(e.p)}: ${e.p.wichtig}`));
+  }
+  z.push('');
+  z.push('Termin verpasst? Am nächsten Tag nachholen, kein Drama.');
+  z.push('Bitte nicht düngen und nichts umstellen.');
+  return z.join('\n');
+}
+function ubTextKopieren(){
+  const z = ubZeitraum();
+  const meld = document.getElementById('url-meldung');
+  const sag = (t, art) => { if(meld){ meld.hidden = false; meld.className = 'kihinweis ' + art; meld.textContent = t; } };
+  if(!z || z.fehler){ sag(z ? z.fehler : 'Bitte erst Abreise und Rückkehr eintragen.', 'warn'); return; }
+  const o = ubOptionen();
+  const ok = inZwischenablage(ubTextBauen(ubPlan(z.von, z.bis, o.puffer), o));
+  sag(ok ? 'Kurzfassung kopiert — jetzt in Signal, WhatsApp oder Mail einfügen. Raumplan, Bilder und Nummernstreifen gibt es nur auf dem gedruckten Zettel.'
+         : 'Kopieren hat nicht geklappt. Öffne stattdessen den Zettel.', ok ? 'ok' : 'warn');
+}
+
+/* ── Verdrahtung ─────────────────────────────────────────── */
+function ubAufbau(){
+  const v = document.getElementById('url-von'), b = document.getElementById('url-bis');
+  if(!v || !b) return;
+  if(!v.value){ v.value = iso(HEUTE); b.value = ubTagPlus(iso(HEUTE), 7); }
+  ubVorschau();
+}
+document.addEventListener('input', e => {
+  if(e.target.closest('#url-von, #url-bis, #url-puffer')) ubVorschau();
+});
+document.addEventListener('change', e => {
+  /* Ohne Plan keine Nummern — der Streifen wird sichtbar mit abgeschaltet,
+     damit niemand ein leeres Blatt erwartet. */
+  if(e.target.closest('#url-ohneplan')){
+    const n = document.getElementById('url-nummern');
+    if(n){ n.disabled = e.target.checked; if(e.target.checked) n.checked = false; }
+  }
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('#btn-url-blatt')) return ubBlattOeffnen();
+  if(e.target.closest('#btn-url-druck'))
+    return ubDrucken('Für eine PDF-Datei im Druckfenster als Ziel „Als PDF sichern“ wählen. Am iPhone: Teilen, Drucken, dann die Vorschau aufziehen.');
+  if(e.target.closest('#btn-url-text')) return ubTextKopieren();
+  if(e.target.closest('#btn-ub-zu'))    return ubBlattZu();
+  if(e.target.closest('#btn-ub-druck')) return window.print();
+});
+document.addEventListener('keydown', e => {
+  const b = document.getElementById('urlaub-blatt');
+  if(e.key === 'Escape' && b && !b.hidden) ubBlattZu();
+});
+ubAufbau();
 
 /* Kleine Zahl an den Reitern: was wartet gerade auf mich? */
 function zaehlerAktualisieren(){
