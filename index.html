@@ -883,6 +883,31 @@ body.gm-offen{overflow:hidden}
 .acc-in>ul,.acc-in>ol{margin:0;padding-left:20px}
 .acc-in .verlauf:first-child,.acc-in .wachstum:first-child{border-top:0;margin-top:0;padding-top:0}
 
+/* ── Warnungen und Karten-Reiter ─────────────────────────── */
+.warnbox{border:1px solid var(--terra);border-left-width:4px;border-radius:4px;
+  background:rgba(180,80,40,.07);padding:10px 12px;margin:0 0 12px}
+.warnbox p{margin:0 0 6px;font-size:var(--t-m);line-height:1.45;color:var(--terra);font-weight:600;overflow-wrap:anywhere}
+.warnbox p:last-child{margin-bottom:0}
+.ktabs{display:flex;gap:4px;margin:0 0 12px;border-bottom:1px solid var(--line);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.ktabs::-webkit-scrollbar{display:none}
+.ktab{font:inherit;font-size:var(--t-m);font-family:var(--f-display);font-weight:600;
+  padding:9px 13px;border:1px solid var(--line);border-bottom:0;border-radius:4px 4px 0 0;
+  background:var(--sand);color:var(--peat);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+.ktab[aria-selected="true"]{background:var(--paper);color:var(--ink);border-bottom:1px solid var(--paper)}
+.ktab-pane[hidden]{display:none}
+.lagebox{display:grid;gap:10px;margin-bottom:12px}
+.lagebox label{display:block}
+.lagebox select{width:100%;font:inherit;font-size:var(--t-m);padding:9px 10px;
+  border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+.lage-jetzt{font-size:var(--t-m);color:var(--peat);margin:0 0 10px;line-height:1.45}
+.lage-tier{font-size:var(--t-m);line-height:1.45;margin:0 0 10px}
+.lage-tier.warn{color:var(--terra);font-weight:600}
+.card-lage{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  color:var(--peat);display:block;margin-top:2px;overflow-wrap:anywhere}
+.filter-sel{font:inherit;font-size:var(--t-m);padding:7px 9px;border:1px solid var(--line);
+  border-radius:3px;background:var(--paper);color:var(--ink);margin:0 6px 6px 0;max-width:47%}
+
 /* ── Kompakte Listenansicht ──────────────────────────────── */
 body.liste .card{margin-bottom:0;border-radius:0;border-top:0}
 body.liste .group-body>.card:first-child,body.liste #out>.card:first-child{border-top:1px solid var(--line)}
@@ -1239,7 +1264,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
    NEUE PFLANZE AUFNEHMEN
    Einen Block unten in PFLANZEN kopieren, Inhalte austauschen,
    anhängen. Fotos kommen in BILDER am Ende der Datei.
-   Felder: id name art botanisch familie klasse giftig standort typ
+   Felder: id name art botanisch familie klasse giftig raum stellplatz typ
            seit stamm merkmale herkunft folge bedingungen pflege
            probleme katzentext beob todo giesstipp log
    Optional: winterruhe:true  ·  hinweis:"..."
@@ -2434,7 +2459,7 @@ function pflanzeAusWahl(wert){
     return {id:wert, nurBib:true, name:a.de, art:a.de, botanisch:a.bot, familie:a.fam,
             klasse:a.klasse, sonne:a.licht, typ:a.typ, bib:a.bot,
             giftig: a.giftig===1 ? true : (a.giftig===0 ? false : 'unbekannt'),
-            frostMin:a.frost, duenger:a.duenger, standort:'nicht in der Sammlung',
+            frostMin:a.frost, duenger:a.duenger, raum:'', stellplatz:'',
             intervall:(typeof KLASSE_IV!=='undefined'&&KLASSE_IV[a.klasse])||[8,12],
             todo:[], log:[], notiz:''};
   }
@@ -2629,6 +2654,8 @@ function lichtName(stunden){
 function lichtPasst(bedarf, stunden){
   if(bedarf === 'voll') return stunden >= 5 ? 'gut' : (stunden >= 3 ? 'knapp' : 'zu dunkel');
   if(bedarf === 'hell') return stunden >= 2.5 ? (stunden > 7 ? 'viel' : 'gut') : 'zu dunkel';
+  /* Schattenpflanzen: direkte Sonne ist der Schaden, Dunkelheit nicht */
+  if(bedarf === 'schatten') return stunden > 2 ? 'zu viel' : 'gut';
   return stunden > 5 ? 'zu viel' : (stunden >= 0.5 ? 'gut' : 'knapp');
 }
 
@@ -2863,6 +2890,15 @@ function pflanzenOrt(id){ return (S.orte||{})[id] || null; }
 function pflanzeSetzen(id, raumId, x, y){
   if(!S.orte) S.orte = {};
   S.orte[id] = {raum:raumId, x:Math.round(x), y:Math.round(y)};
+  /* Wer im Grundriss stellt, soll das nicht noch einmal in der Karte
+     eintragen müssen: Raum und Stellplatz wandern automatisch mit. */
+  if(typeof aenderungSetzen === 'function'){
+    const r = (S.raeume || []).find(x2=>x2.id === raumId);
+    const m = r ? hoeheAn(r, Math.round(x), Math.round(y)) : null;
+    const felder = {raum: raumId};
+    if(m && m.name) felder.stellplatz = m.name;
+    aenderungSetzen(id, felder);
+  }
   sichern();
 }
 function pflanzeEntfernen(id){ if(S.orte) delete S.orte[id]; sichern(); }
@@ -2874,6 +2910,69 @@ function pflanzenOhneOrt(){
     const o = pflanzenOrt(p.id);
     return !o || !raeume().some(r=>r.id===o.raum);
   });
+}
+
+/* ══════════ Raum und Stellplatz an der Pflanze ══════════
+   Die Pflanze merkt sich nur zwei Angaben: raum (die Kennung eines
+   Raums aus dem Grundriss) und stellplatz (ein Text). Räume dürfen
+   auch ohne Grundriss entstehen — sie tauchen dort dann als noch
+   nicht eingerichtet auf. Nichts davon ist Pflicht. */
+const STELLPLATZ_STD = ['Boden','Fensterbank','Regal','Tisch','Hängend'];
+/* Wie hoch die Standardplätze ungefähr liegen — für die Tierfrage */
+const STELLPLATZ_HOEHE = {'Boden':'boden','Tisch':'niedrig','Fensterbank':'mittel',
+  'Regal':'mittel','Hängend':'hoch'};
+
+function raumListe(){ return S.raeume || []; }
+function raumNameVon(id){ const r = raumListe().find(x=>x.id===id); return r ? r.name : ''; }
+
+function raumAnlegen(name){
+  const n = (name || '').trim();
+  if(!n) return null;
+  const da = raumListe().find(r=>r.name.toLowerCase() === n.toLowerCase());
+  if(da) return da.id;                     /* keine Duplikate */
+  const r = neuerRaum(n, 4, 3, 90, false);
+  r.roh = true;                            /* im Grundriss noch ohne Werte */
+  S.raeume = raumListe();
+  S.raeume.push(r);
+  sichern();
+  return r.id;
+}
+
+function stellplaetzeFuer(raumId){
+  const r = raumListe().find(x=>x.id === raumId);
+  const aus = STELLPLATZ_STD.slice();
+  if(r){
+    (r.moebel || []).forEach(m=>{ if(m.name && !aus.includes(m.name)) aus.push(m.name); });
+    (r.plaetze || []).forEach(n=>{ if(n && !aus.includes(n)) aus.push(n); });
+  }
+  return aus;
+}
+
+function stellplatzAnlegen(raumId, name){
+  const n = (name || '').trim();
+  if(!n) return '';
+  const r = raumListe().find(x=>x.id === raumId);
+  if(r && !stellplaetzeFuer(raumId).includes(n)){
+    r.plaetze = r.plaetze || [];
+    r.plaetze.push(n);
+    sichern();
+  }
+  return n;
+}
+
+/* „Küche, Fensterbank“ — leer, wenn nichts gesetzt ist */
+function lageVon(p){
+  const rn = raumNameVon(p.raum);
+  const sp = p.stellplatz || '';
+  if(rn && sp) return rn + ', ' + sp;
+  return rn || sp || '';
+}
+
+/* Alle Stellplätze, die irgendeine Pflanze tatsächlich benutzt */
+function benutzteStellplaetze(){
+  const raus = [];
+  allePflanzen().forEach(p=>{ if(p.stellplatz && !raus.includes(p.stellplatz)) raus.push(p.stellplatz); });
+  return raus.sort((a,b)=>a.localeCompare(b,'de'));
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3906,7 +4005,7 @@ function giessartVon(p){
 function giessartName(p){ return GIESSARTEN[giessartVon(p)].name; }
 function giessartText(p){ return GIESSARTEN[giessartVon(p)].kurz; }
 
-const AENDERBAR = ['name','art','botanisch','standort','typ','klasse','sonne','giftig','notiz','frostMin','giessart','wichtig'];
+const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','notiz','frostMin','giessart','wichtig','raum','stellplatz'];
 
 function aenderungen(id){ return (S.edits||{})[id] || null; }
 function aenderungSetzen(id, felder){
@@ -3936,7 +4035,6 @@ function bearbeitenHTML(p){
       <label><span class="lab">Name</span><input data-e="name" data-p="${p.id}" value="${esc(p.name==='Name offen'?'':p.name||'')}" placeholder="z. B. Rudi"></label>
       <label><span class="lab">Art</span><input data-e="art" data-p="${p.id}" value="${esc(p.art||'')}"></label>
       <label><span class="lab">Botanisch</span><input data-e="botanisch" data-p="${p.id}" value="${esc(p.botanisch||'')}"></label>
-      <label><span class="lab">Standort</span><input data-e="standort" data-p="${p.id}" value="${esc(p.standort||'')}"></label>
       <label><span class="lab">Typ</span><input data-e="typ" data-p="${p.id}" value="${esc(p.typ||'')}"></label>
       <label><span class="lab">Gießklasse</span><select data-e="klasse" data-p="${p.id}">
         ${Object.keys(KLASSEN).map(k=>`<option value="${k}"${p.klasse===k?' selected':''}>${k} — ${esc(KLASSEN[k].name)}</option>`).join('')}</select></label>
@@ -4226,7 +4324,8 @@ function papierkorbRender(){
         <label><span class="lab">Botanisch (falls bekannt)</span><input id="f-bot" placeholder="z. B. Epipremnum aureum"></label>
         <label class="fspan"><span class="lab">Zustand</span><select id="f-zustand"></select>
           <span class="fhint" id="f-zustand-hint"></span></label>
-        <label><span class="lab">Standort</span><input id="f-standort" placeholder="z. B. Innen, Regal"></label>
+        <label><span class="lab">Raum</span><select id="f-raum"></select></label>
+        <label><span class="lab">Stellplatz</span><select id="f-stellplatz"></select></label>
         <label><span class="lab">Gießklasse</span><select id="f-klasse">
           <option value="B">B — Normal, obere 2–3 cm antrocknen</option>
           <option value="A">A — Durstig, gleichmäßig feucht</option>
@@ -4237,6 +4336,7 @@ function papierkorbRender(){
           <option value="indirekt">Hell, keine direkte Sonne</option>
           <option value="hell">Hell, verträgt etwas Sonne</option>
           <option value="voll">Volle Sonne</option>
+          <option value="schatten">Schatten, kommt mit wenig Licht aus</option>
         </select></label>
         <label><span class="lab">Typ</span><input id="f-typ" placeholder="z. B. Kletterpflanze"></label>
         <label><span class="lab">Katzen</span><select id="f-giftig">
@@ -4713,8 +4813,12 @@ function papierkorbRender(){
     </div>
     <div class="tools">
       <button id="btn-ru-mail" class="haupt">Als E-Mail öffnen</button>
+      <button id="btn-ru-github">Auf GitHub melden</button>
       <button id="btn-ru-kopie">Text kopieren</button>
     </div>
+    <p class="fhint">Die Mail geht an die Adresse oben. „Auf GitHub melden“ öffnet stattdessen
+      das Repository — dort ist die Meldung öffentlich sichtbar und braucht ein GitHub-Konto.
+      Der Text liegt vorher in der Zwischenablage, du fügst ihn dort nur noch ein.</p>
     <div class="pastebox" id="ru-box" hidden><textarea id="ru-fertig" readonly></textarea></div>
     <p class="kihinweis" id="ru-hinweis"></p>
     </div>
@@ -4766,6 +4870,7 @@ function papierkorbRender(){
       <div class="tools">
         <button id="btn-melde-kopie" class="haupt">Text kopieren</button>
         <button id="btn-melde-mail">Als E-Mail öffnen</button>
+        <button id="btn-melde-github">Auf GitHub melden</button>
       </div>
     </div>
     </div>
@@ -4825,6 +4930,13 @@ const hatBilder = typeof BILDER !== 'undefined';
 
 /* ══════════════════ Zustand ══════════════════ */
 const KEY = 'pflanzenglossar-start';
+
+/* Wohin Rückmeldungen gehen. Beides ist vorbelegt, damit niemand erst
+   etwas eintragen muss — die Mailadresse lässt sich unter „Mehr“
+   trotzdem überschreiben, falls die App jemand anderes weiterpflegt. */
+const MELDE_MAIL = 'greenkeeperai@gmail.com';
+const REPO_URL   = 'https://github.com/cmohr0212/GreenkeeperAi';
+const ISSUE_URL  = REPO_URL + '/issues/new';
 let SPEICHER_OK = true;
 /* Eine einzige Stelle für alle Grundwerte. Vorher standen zwei
    unterschiedliche Listen im Code — beim Start wurden andere Felder
@@ -5049,12 +5161,14 @@ const SVG = {
   frost:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v20M3.4 7l17.2 10M20.6 7 3.4 17"/><path d="M9.4 4.3 12 6.9l2.6-2.6M9.4 19.7 12 17.1l2.6 2.6"/></svg>',
   duenger:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c0-6 3.6-9.6 9-10-.4 5.4-4 9-9 10z"/><path d="M12 21c0-5-3-8-7.5-8.5C4.9 17 7.6 20.3 12 21z"/><path d="M12 21v-4.5"/></svg>',
   zustand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.2M12 16.2h.01"/></svg>',
+  schatten:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.3 8.3 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z"/></svg>',
   giessen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h9v7a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-7z"/><path d="M12 12.5 20 8v8l-8-3"/><path d="M5 10V8a2.5 2.5 0 0 1 5 0v2"/></svg>'
 };
 const SONNE = {
   voll:{ico:SVG.sonneVoll, text:'Volle Sonne', lang:'Braucht direkte Sonne, mindestens 6 Stunden.'},
   hell:{ico:SVG.sonneHell, text:'Hell', lang:'Hell, verträgt Morgen- oder Abendsonne, keine pralle Mittagssonne.'},
-  indirekt:{ico:SVG.sonneIndir, text:'Hell indirekt', lang:'Hell, aber keine direkte Sonne auf die Blätter.'}
+  indirekt:{ico:SVG.sonneIndir, text:'Hell indirekt', lang:'Hell, aber keine direkte Sonne auf die Blätter.'},
+  schatten:{ico:SVG.schatten, text:'Schatten', lang:'Kommt mit wenig Licht aus: Nordfenster, Raumtiefe, Ecke ohne Sonne. Direkte Sonne verbrennt die Blätter.'}
 };
 const DUENGER = {
   nie:{n:0, text:'Nie düngen', lang:'Düngen schadet oder tötet. Gilt für Karnivoren.'},
@@ -5480,7 +5594,8 @@ function taskBlockHTML(tasks, scope, mitPflanze, addPlant){
 }
 
 /* ══════════════════ Steuerung ══════════════════ */
-let gruppierung = 'standort', filterKlasse = null, filterKatze = null;
+let gruppierung = 'raum', filterKlasse = null, filterKatze = null;
+let filterRaum = null, filterPlatz = null;
 const offen = new Set(), zu = new Set();
 
 /* Aus dem Blick gescrollte Karten klappen sich zu. Damit dabei nichts
@@ -5515,7 +5630,8 @@ function zaehler(){
 }
 
 (function(){
-  const G = {standort:'Standort', klasse:'Gießklasse', typ:'Typ', keine:'Keine'};
+  const G = {raum:'Raum', stellplatz:'Stellplatz', licht:'Lichtbedarf',
+             klasse:'Gießklasse', typ:'Typ', keine:'Keine'};
   $('#gruppen').innerHTML = Object.entries(G).map(([k,v])=>
     `<button class="chip" data-g="${k}" aria-pressed="${k===gruppierung}">${v}</button>`).join(' ');
   $('#gruppen').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
@@ -5524,7 +5640,8 @@ function zaehler(){
     render();
   });
   const f = $('#filters');
-  f.innerHTML = Object.keys(KLASSEN).map(k=>`<button class="chip" data-k="${k}" aria-pressed="false">${k} · ${esc(KLASSEN[k].name)}</button>`).join(' ')
+  f.innerHTML = `<span id="lage-filter"></span>`
+    + Object.keys(KLASSEN).map(k=>`<button class="chip" data-k="${k}" aria-pressed="false">${k} · ${esc(KLASSEN[k].name)}</button>`).join(' ')
     + ` <button class="chip" data-cat="safe" aria-pressed="false">Katzensicher</button>`
     + ` <button class="chip" data-cat="tox" aria-pressed="false">Giftig</button>`;
   f.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
@@ -5535,6 +5652,39 @@ function zaehler(){
     render();
   });
 })();
+
+/* Die beiden Lage-Filter werden nur dann neu aufgebaut, wenn sich die
+   Auswahl wirklich geändert hat — sonst klappt am Handy bei jedem
+   Tastendruck in der Suche die offene Liste wieder zu. */
+let lageFilterStand = '';
+function lageFilterZeichnen(){
+  const box = document.getElementById('lage-filter'); if(!box) return;
+  const raeumeL = raumListe();
+  const plaetze = benutzteStellplaetze();
+  /* „__ohne“ ist eine gültige Wahl, auch wenn es kein Raum ist */
+  if(filterRaum && filterRaum !== '__ohne' && !raeumeL.some(r=>r.id===filterRaum)) filterRaum = null;
+  if(filterPlatz && filterPlatz !== '__ohne' && !plaetze.includes(filterPlatz)) filterPlatz = null;
+
+  const stand = raeumeL.map(r=>r.id+':'+r.name).join('|') + '#' + plaetze.join('|')
+    + '#' + (filterRaum||'') + '#' + (filterPlatz||'');
+  if(stand === lageFilterStand) return;
+  lageFilterStand = stand;
+
+  if(!raeumeL.length && !plaetze.length){ box.innerHTML = ''; return; }
+  box.innerHTML =
+    `<select class="filter-sel" id="filter-raum" aria-label="Nach Raum filtern">
+      <option value="">Alle Räume</option>
+      ${raeumeL.map(r=>`<option value="${r.id}"${filterRaum===r.id?' selected':''}>${esc(r.name)}</option>`).join('')}
+      <option value="__ohne"${filterRaum==='__ohne'?' selected':''}>Ohne Raum</option>
+    </select>`
+    + `<select class="filter-sel" id="filter-platz" aria-label="Nach Stellplatz filtern">
+      <option value="">Alle Stellplätze</option>
+      ${plaetze.map(n=>`<option value="${esc(n)}"${filterPlatz===n?' selected':''}>${esc(n)}</option>`).join('')}
+      <option value="__ohne"${filterPlatz==='__ohne'?' selected':''}>Ohne Stellplatz</option>
+    </select>`;
+  box.querySelector('#filter-raum').onchange = e=>{ filterRaum = e.target.value || null; render(); };
+  box.querySelector('#filter-platz').onchange = e=>{ filterPlatz = e.target.value || null; render(); };
+}
 
 /* ══════════════════ Karte ══════════════════ */
 /* Welche Abschnitte offen sind, merkt sich die App abschnittsweise —
@@ -5577,11 +5727,137 @@ function schnellLeiste(p){
 function giessAbschnitt(p){
   const K = KLASSEN[p.klasse];
   return trackerHTML(p)
-    + (p.wichtig ? `<p class="wichtig-hin"><b>Wichtig</b> ${esc(p.wichtig)}</p>` : '')
     + `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd>
        <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd></dl>`
     + (p.giesstipp ? `<p><em>${esc(p.giesstipp)}</em></p>` : '');
 }
+
+/* ── Warnungen ───────────────────────────────────────────────
+   Das, was man wissen muss, bevor man irgendetwas tut. Steht ganz
+   oben in der Karte, über den Reitern, und ist nie weggeklappt. */
+function warnungenHTML(p){
+  const w = [];
+
+  if(p.klasse === 'S')
+    w.push('<b>Kein Leitungswasser.</b> Nur Regen- oder destilliertes Wasser. Kalk und Salze bringen Karnivoren um.');
+
+  const tiere = (typeof meineTiere === 'function') ? meineTiere() : [];
+  const betroffen = [];
+  tiere.forEach(t=>{
+    const g = giftFuer(p, t);
+    if(g.stufe && g.stufe !== 'keine' && g.stufe !== 'unklar')
+      betroffen.push((TIERARTEN[t] ? TIERARTEN[t].name : t));
+  });
+  if(betroffen.length)
+    w.push('<b>Giftig für ' + esc(betroffen.join(', ')) + '.</b> Nicht in Reichweite stellen.');
+  else if(!tiere.length && p.giftig === true)
+    w.push('<b>Giftig für Katzen.</b> Nicht in Reichweite stellen.');
+
+  const z = zustandVon(p);
+  if(z.code === 'schaedlinge')
+    w.push('<b>Quarantäne aktiv.</b> Getrennt von den anderen Pflanzen halten, bis zwei Kontrollen im Wochenabstand sauber bleiben.');
+
+  if(p.wichtig) w.push('<b>Wichtig.</b> ' + esc(p.wichtig));
+
+  if(!w.length) return '';
+  return `<div class="warnbox">${w.map(x=>`<p>⚠ ${x}</p>`).join('')}</div>`;
+}
+
+/* ── Abteil „Lage“ ──────────────────────────────────────────
+   Raum und Stellplatz, beide direkt in der Karte änderbar. */
+function lagePaneHTML(p){
+  const liste = raumListe();
+  const rOpt = ['<option value="">— kein Raum —</option>']
+    .concat(liste.map(r=>`<option value="${r.id}"${p.raum===r.id?' selected':''}>${esc(r.name)}${r.roh?' · nicht eingerichtet':''}</option>`))
+    .concat(['<option value="__neu">+ Neuen Raum anlegen …</option>']).join('');
+
+  const plaetze = stellplaetzeFuer(p.raum);
+  const sOpt = ['<option value="">— kein Stellplatz —</option>']
+    .concat(plaetze.map(n=>`<option value="${esc(n)}"${p.stellplatz===n?' selected':''}>${esc(n)}</option>`))
+    .concat(p.stellplatz && !plaetze.includes(p.stellplatz)
+      ? [`<option value="${esc(p.stellplatz)}" selected>${esc(p.stellplatz)}</option>`] : [])
+    .concat(['<option value="__neu">+ Neuen Stellplatz anlegen …</option>']).join('');
+
+  /* Kommen die Tiere da hin? */
+  let tierZeile = '';
+  const tiere = (typeof meineTiere === 'function') ? meineTiere() : [];
+  if(tiere.length && p.stellplatz){
+    const stufe = STELLPLATZ_HOEHE[p.stellplatz] || 'boden';
+    const dran = tiere.filter(t=>erreichbarFuer(stufe, t))
+      .map(t=>TIERARTEN[t] ? TIERARTEN[t].name : t);
+    const gift = tiere.some(t=>{
+      const g = giftFuer(p, t);
+      return g.stufe && g.stufe !== 'keine' && g.stufe !== 'unklar';
+    });
+    tierZeile = dran.length
+      ? `<p class="lage-tier${gift?' warn':''}">${esc(ERREICHBARKEIT[stufe].name)}: ${esc(dran.join(', '))} ${dran.length===1?'kommt':'kommen'} dran.${gift?' Diese Pflanze ist giftig — höher stellen oder sichern.':''}</p>`
+      : `<p class="lage-tier">${esc(ERREICHBARKEIT[stufe].name)}: für deine Tiere nicht erreichbar.</p>`;
+  }
+
+  const o = pflanzenOrt(p.id);
+  const imPlan = (o && liste.some(r=>r.id===o.raum))
+    ? `<p class="lage-jetzt">Im Grundriss eingezeichnet in „${esc(raumNameVon(o.raum))}“. <button class="linkbtn" data-do="grundriss-fuer" data-p="${p.id}">Dort ansehen</button></p>`
+    : `<p class="lage-jetzt">Noch nicht im Grundriss eingezeichnet — das ist freiwillig. <button class="linkbtn" data-do="grundriss-fuer" data-p="${p.id}">Jetzt einzeichnen</button></p>`;
+
+  return `<div class="lagebox">
+      <label><span class="lab">Raum</span>
+        <select data-lage="raum" data-p="${p.id}">${rOpt}</select></label>
+      <label><span class="lab">Stellplatz</span>
+        <select data-lage="platz" data-p="${p.id}">${sOpt}</select></label>
+    </div>
+    ${tierZeile}${imPlan}`;
+}
+
+/* ── Reiter ─────────────────────────────────────────────────
+   Welcher Reiter offen ist, merkt sich die App wie die Abschnitte:
+   einmal auf „Pflege“ gestellt, ist er überall auf „Pflege“. */
+function kartenReiter(id, reiter){
+  const nutzbar = reiter.filter(r=>r.inhalt && String(r.inhalt).trim());
+  if(!nutzbar.length) return '';
+  const aktiv = (S.kartenTab && nutzbar.some(r=>r.key===S.kartenTab)) ? S.kartenTab : nutzbar[0].key;
+  return `<div class="ktabs" role="tablist">${nutzbar.map(r=>
+      `<button class="ktab" type="button" role="tab" data-ktab="${r.key}" data-p="${id}" aria-selected="${r.key===aktiv}">${esc(r.titel)}</button>`).join('')}</div>
+    ${nutzbar.map(r=>`<div class="ktab-pane" data-kpane="${r.key}" data-p="${id}"${r.key===aktiv?'':' hidden'}>${r.inhalt}</div>`).join('')}`;
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-ktab]'); if(!b) return;
+  e.stopPropagation();
+  const key = b.dataset.ktab;
+  S.kartenTab = key; sichern();
+  const karte = b.closest('.card'); if(!karte) return;
+  karte.querySelectorAll('[data-ktab]').forEach(x=>
+    x.setAttribute('aria-selected', String(x.dataset.ktab === key)));
+  karte.querySelectorAll('[data-kpane]').forEach(x=>{ x.hidden = x.dataset.kpane !== key; });
+});
+
+/* Raum und Stellplatz direkt in der Karte ändern */
+document.addEventListener('change', e=>{
+  const sel = e.target.closest('[data-lage]'); if(!sel) return;
+  e.stopPropagation();
+  const id = sel.dataset.p;
+  const p = allePflanzen().find(x=>x.id===id); if(!p) return;
+  let v = sel.value;
+
+  if(sel.dataset.lage === 'raum'){
+    if(v === '__neu'){
+      const name = prompt('Wie soll der Raum heißen?', '');
+      const neu = raumAnlegen(name);
+      if(!neu){ render(); return; }
+      v = neu;
+    }
+    /* Raum gewechselt: der alte Stellplatz gehörte zum alten Raum */
+    aenderungSetzen(id, v === p.raum ? {raum:v} : {raum:v, stellplatz:''});
+  } else {
+    if(v === '__neu'){
+      if(!p.raum){ alert('Erst einen Raum wählen — Stellplätze gehören immer zu einem Raum.'); render(); return; }
+      v = stellplatzAnlegen(p.raum, prompt('Wie heißt der Stellplatz?', ''));
+      if(!v){ render(); return; }
+    }
+    aenderungSetzen(id, {stellplatz:v});
+  }
+  render();
+});
 
 function cardHTML(p){
   const K = KLASSEN[p.klasse];
@@ -5595,12 +5871,19 @@ function cardHTML(p){
   if(p.eigen){
     detail = `<div class="detail">
       ${schnellLeiste(p)}
-      <div class="alert info"><strong>Kurzeintrag.</strong> Diese Pflanze hast du selbst angelegt. Über „Bearbeiten“ kannst du alle Angaben jederzeit ändern.</div>
-      ${acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))}
-      ${acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')}
-      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
-      ${acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')}
-      ${acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')}
+      ${warnungenHTML(p)}
+      ${kartenReiter(p.id, [
+        {key:'allgemein', titel:'Allgemein', inhalt:
+          `<div class="alert info"><strong>Kurzeintrag.</strong> Diese Pflanze hast du selbst angelegt. Über „Bearbeiten“ kannst du alle Angaben jederzeit ändern.</div>`
+          + acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
+          + acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')
+          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')},
+        {key:'pflege', titel:'Pflege', inhalt:
+          acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))},
+        {key:'lage', titel:'Lage', inhalt: lagePaneHTML(p)},
+        {key:'geschichte', titel:'Geschichte', inhalt:
+          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')}
+      ])}
     </div>`;
   } else {
     const spec = Object.entries(p.stamm).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
@@ -5616,18 +5899,26 @@ function cardHTML(p){
 
     detail = `<div class="detail">
       ${schnellLeiste(p)}
-      ${hinweis}${winter}
-      ${acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))}
-      ${acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')}
-      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
-      ${acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')}
-      ${acc('katzen', 'Katzen', `<div class="alert ${p.giftig?'':'safe'}"><strong>${p.giftig?'Nicht in Katzenreichweite.':'Unbedenklich.'}</strong> ${esc(p.katzentext)}</div>`, p.giftig?'giftig':'sicher')}
-      ${acc('pflege', 'Pflege', `<ul>${p.pflege.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)}
-      ${acc('probleme', 'Wenn etwas nicht stimmt', probs, `${p.probleme.length}`)}
-      ${acc('steckbrief', 'Steckbrief', steckbrief)}
-      ${acc('herkunft', 'Herkunft', herkunft)}
-      ${acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)}
-      ${acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')}
+      ${warnungenHTML(p)}
+      ${kartenReiter(p.id, [
+        {key:'allgemein', titel:'Allgemein', inhalt:
+          hinweis
+          + acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
+          + acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')
+          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')
+          + acc('steckbrief', 'Steckbrief', steckbrief)},
+        {key:'pflege', titel:'Pflege', inhalt:
+          winter
+          + acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
+          + acc('pflege', 'Pflege', `<ul>${p.pflege.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
+          + acc('probleme', 'Wenn etwas nicht stimmt', probs, `${p.probleme.length}`)
+          + acc('katzen', 'Katzen', `<div class="alert ${p.giftig?'':'safe'}"><strong>${p.giftig?'Nicht in Katzenreichweite.':'Unbedenklich.'}</strong> ${esc(p.katzentext)}</div>`, p.giftig?'giftig':'sicher')},
+        {key:'lage', titel:'Lage', inhalt: lagePaneHTML(p)},
+        {key:'geschichte', titel:'Geschichte', inhalt:
+          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
+          + acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
+          + acc('herkunft', 'Herkunft', herkunft)}
+      ])}
     </div>`;
   }
 
@@ -5638,6 +5929,7 @@ function cardHTML(p){
         <span class="card-id">${p.id}${st.stand==='over'?' · überfällig':''}</span>
         <span class="card-name">${esc(nice(p))}</span>
         <span class="card-bot">${esc(p.art)}${p.botanisch?` · <i>${esc(p.botanisch)}</i>`:''}</span>
+        ${lageVon(p)?`<span class="card-lage">${esc(lageVon(p))}</span>`:''}
         ${iconRow(p)}${zustandBadge(p)}
         <span class="bar"><span style="width:${K.feuchte}%"></span></span>
       </span>
@@ -5698,13 +5990,17 @@ function render(){
   zaehler();
   const alle = allePflanzen();
   const q = $('#q').value.trim().toLowerCase();
+  lageFilterZeichnen();
+  if(typeof formLageZeichnen === 'function') formLageZeichnen();
   const list = alle.filter(p=>{
     if(filterKlasse && p.klasse!==filterKlasse) return false;
     if(filterKatze==='safe' && p.giftig!==false) return false;
     if(filterKatze==='tox' && p.giftig!==true) return false;
+    if(filterRaum === '__ohne' ? !!p.raum : (filterRaum && p.raum !== filterRaum)) return false;
+    if(filterPlatz === '__ohne' ? !!p.stellplatz : (filterPlatz && p.stellplatz !== filterPlatz)) return false;
     if(!q) return true;
-    const felder = ['id','name','art','botanisch','familie','standort','typ','merkmale','herkunft','folge','katzentext','notiz'];
-    let hay = felder.map(f=>p[f]||'').join(' ');
+    const felder = ['id','name','art','botanisch','familie','typ','merkmale','herkunft','folge','katzentext','notiz'];
+    let hay = felder.map(f=>p[f]||'').join(' ') + ' ' + lageVon(p);
     ['bedingungen','pflege','probleme','beob','todo'].forEach(f=>{ if(p[f]) hay += ' '+JSON.stringify(p[f]); });
     return hay.toLowerCase().includes(q);
   });
@@ -5713,7 +6009,11 @@ function render(){
   if(gruppierung==='keine' || q){
     html = `<div class="grid">${list.map(cardHTML).join('')}</div>`;
   } else {
-    const key = p => gruppierung==='klasse' ? p.klasse+' · '+KLASSEN[p.klasse].name : (p[gruppierung]||'Ohne Angabe');
+    const key = p => gruppierung==='klasse' ? p.klasse+' · '+KLASSEN[p.klasse].name
+      : gruppierung==='raum' ? (raumNameVon(p.raum) || 'Ohne Raum')
+      : gruppierung==='stellplatz' ? (p.stellplatz || 'Ohne Stellplatz')
+      : gruppierung==='licht' ? (SONNE[p.sonne] ? SONNE[p.sonne].text : 'Licht offen')
+      : (p[gruppierung]||'Ohne Angabe');
     const order = gruppierung==='klasse' ? ['S','A','B','C'] : null;
     const gruppen = {};
     list.forEach(p=>{ (gruppen[key(p)] = gruppen[key(p)]||[]).push(p); });
@@ -6564,6 +6864,56 @@ $('#btn-paste-los').onclick = ()=>{
   meld.textContent = uebernommen.join(' · ') + `. ${gelesen} Angaben gelesen — bitte kurz kontrollieren, dann anlegen.`;
 };
 
+/* ── Raum und Stellplatz im Anlegeformular ───────────────── */
+/* Dieselben Listen wie in der Karte. Beides ist freiwillig — wer
+   nichts wählt, bekommt eine Pflanze ohne Lage. */
+let formLageStand = '';
+function formLageZeichnen(wunschRaum, wunschPlatz){
+  const rs = document.getElementById('f-raum'), ss = document.getElementById('f-stellplatz');
+  if(!rs || !ss) return;
+  const raumId = wunschRaum != null ? wunschRaum
+    : ((rs.value && rs.value !== '__neu') ? rs.value : '');
+  const alt = wunschPlatz != null ? wunschPlatz
+    : ((ss.value && ss.value !== '__neu') ? ss.value : '');
+  const plaetze = stellplaetzeFuer(raumId);
+  const stand = raumListe().map(r=>r.id+':'+r.name).join('|') + '#' + plaetze.join('|')
+    + '#' + raumId + '#' + alt;
+  if(stand === formLageStand) return;
+  formLageStand = stand;
+
+  rs.innerHTML = ['<option value="">— kein Raum —</option>']
+    .concat(raumListe().map(r=>`<option value="${r.id}"${raumId===r.id?' selected':''}>${esc(r.name)}${r.roh?' · nicht eingerichtet':''}</option>`))
+    .concat(['<option value="__neu">+ Neuen Raum anlegen …</option>']).join('');
+  ss.innerHTML = ['<option value="">— kein Stellplatz —</option>']
+    .concat(plaetze.map(n=>`<option value="${esc(n)}"${alt===n?' selected':''}>${esc(n)}</option>`))
+    .concat(['<option value="__neu">+ Neuen Stellplatz anlegen …</option>']).join('');
+}
+
+document.addEventListener('change', e=>{
+  const el = e.target;
+  if(el.id === 'f-raum'){
+    formLageStand = '';
+    /* Raumwechsel: der alte Stellplatz gehörte zum alten Raum */
+    if(el.value === '__neu')
+      formLageZeichnen(raumAnlegen(prompt('Wie soll der Raum heißen?','')) || '', '');
+    else
+      formLageZeichnen(el.value, '');
+    return;
+  }
+  if(el.id === 'f-stellplatz' && el.value === '__neu'){
+    const rid = document.getElementById('f-raum').value;
+    formLageStand = '';
+    if(!rid){
+      alert('Erst einen Raum wählen — Stellplätze gehören immer zu einem Raum.');
+      formLageZeichnen(null, '');
+      return;
+    }
+    formLageZeichnen(null, stellplatzAnlegen(rid, prompt('Wie heißt der Stellplatz?','')) || '');
+  }
+});
+
+formLageZeichnen();
+
 /* ── Anlegen ─────────────────────────────────────────────── */
 /* Zuletzt eingelesene KI-Antwort, damit ihre Maßnahmen beim Anlegen
    direkt zu Aufgaben werden. */
@@ -6582,7 +6932,8 @@ $('#btn-neu-save').onclick = async ()=>{
     botanisch: $('#f-bot').value.trim() || (a ? a.bot : ''),
     familie: a ? a.fam : '', klasse: kl,
     giftig: gift==='ja' ? true : (gift==='nein' ? false : 'unbekannt'),
-    standort: $('#f-standort').value.trim() || 'Ohne Angabe',
+    raum: $('#f-raum').value || '',
+    stellplatz: $('#f-stellplatz').value || '',
     typ: $('#f-typ').value.trim() || (a ? a.typ : 'Ohne Angabe'),
     sonne: $('#f-sonne').value,
     frostMin: a ? a.frost : null,
@@ -6597,7 +6948,7 @@ $('#btn-neu-save').onclick = async ()=>{
   S.eigene.push(p);
   const zc = $('#f-zustand').value;
   if(zc && zc !== 'gesund') zustandSetzen(id, zc);
-  if(!a) neueArtMerken({art: art, bot: $('#f-bot').value.trim(), notiz: $('#f-standort').value.trim()});
+  if(!a) neueArtMerken({art: art, bot: $('#f-bot').value.trim(), notiz: lageVon(p)});
   const files = $('#f-fotos').files;
   sichern();
   /* Hat die KI Maßnahmen mitgeliefert, werden sie jetzt zu Aufgaben —
@@ -6610,7 +6961,8 @@ $('#btn-neu-save').onclick = async ()=>{
   }
   letzteKiAntwort = null;
   if(files && files.length) await fotosHinzu(id, Array.from(files));
-  ['f-name','f-art','f-bot','f-standort','f-typ','f-notiz','f-paste'].forEach(x=>{ if($('#'+x)) $('#'+x).value=''; });
+  ['f-name','f-art','f-bot','f-typ','f-notiz','f-paste'].forEach(x=>{ if($('#'+x)) $('#'+x).value=''; });
+  formLageZeichnen();
   $('#f-fotos').value = '';
   gewaehlteArt = null; artManuell = false;
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
@@ -6674,7 +7026,13 @@ $('#btn-melde-kopie').onclick = ()=>{
 };
 $('#btn-melde-mail').onclick = ()=>{
   const betreff = 'Neue Arten für die Pflanzen-Bibliothek';
-  window.location.href = 'mailto:?subject=' + encodeURIComponent(betreff) + '&body=' + encodeURIComponent(meldeText());
+  const an = (S.meldeMail || MELDE_MAIL);
+  window.location.href = 'mailto:' + encodeURIComponent(an) +
+    '?subject=' + encodeURIComponent(betreff) + '&body=' + encodeURIComponent(meldeText());
+};
+$('#btn-melde-github').onclick = ()=>{
+  if(typeof inZwischenablage === 'function') inZwischenablage(meldeText());
+  window.open(ISSUE_URL, '_blank', 'noopener');
 };
 $('#btn-melden-weg').onclick = ()=>{
   if(!confirm('Die Liste der gemeldeten Arten wirklich leeren?')) return;
@@ -6931,7 +7289,8 @@ function grListeHTML(){
       : (r.sp*KACHEL/100).toFixed(1).replace('.',',') + ' × ' + (r.re*KACHEL/100).toFixed(1).replace('.',',') + ' m';
     return `<button class="gr-karte" data-raum-auf="${r.id}">
       <b>${esc(r.name)}</b>
-      <span>${esc(mass)} · ${r.dach ? 'geschlossen' : 'offener Himmel'} · ${n} ${n===1?'Pflanze':'Pflanzen'}</span>
+      <span>${r.roh ? 'Noch nicht eingerichtet — Größe, Fenster und Himmelsrichtung fehlen. '
+                    : ''}${esc(mass)} · ${r.dach ? 'geschlossen' : 'offener Himmel'} · ${n} ${n===1?'Pflanze':'Pflanzen'}</span>
     </button>`;
   }).join('');
 }
@@ -7270,6 +7629,8 @@ function modusHinweisZeichnen(){
 /* ── Tippen im Grundriss ─────────────────────────────────── */
 function planTipp(ev){
   const r = raum(); if(!r) return;
+  /* Sobald hier gezeichnet wird, gilt der Raum als eingerichtet */
+  if(r.roh){ delete r.roh; sichern(); }
   if(pModus === 'kacheln'){
     const k = ev.target.closest('[data-kx]'); if(!k) return;
     const key = k.dataset.kx+','+k.dataset.ky;
@@ -7314,6 +7675,7 @@ document.addEventListener('click', e=>{
   if(mn){
     const art = MOEBEL_ARTEN[mn.dataset.mneu];
     r.moebel = r.moebel || [];
+    if(r.roh) delete r.roh;
     r.moebel.push({id:'m'+Date.now().toString(36), typ:mn.dataset.mneu, name:art.name,
       b:art.b, t:art.t, h:art.h, katze:art.katze,
       x:Math.max(0, r.sp*KACHEL/2 - art.b/2), y:Math.max(0, r.re*KACHEL/2 - art.t/2)});
@@ -7687,7 +8049,7 @@ function gmStandort(p){
       return r.name + (m ? ' · auf ' + m.name : ' · auf dem Boden');
     }
   }
-  return p.standort || 'Ohne Standortangabe';
+  return lageVon(p) || 'Ohne Standortangabe';
 }
 
 function gmZeichnenEnde(){
@@ -8064,8 +8426,7 @@ function ubStandort(p){
     const r = raeume().find(x => x.id === o.raum);
     if(r) teile.push(r.name);
   }
-  if(p.standort && p.standort !== 'nicht in der Sammlung' && p.standort !== 'Ohne Angabe')
-    teile.push(p.standort);
+  if(p.stellplatz) teile.push(p.stellplatz);
   return teile.join(' · ') || 'kein Standort hinterlegt';
 }
 
@@ -8732,20 +9093,35 @@ function rueckText(){
   return zeilen.join('\n');
 }
 if($('#ru-mail')){
-  $('#ru-mail').value = S.meldeMail || '';
-  $('#ru-mail').onchange = ()=>{ S.meldeMail = $('#ru-mail').value.trim(); sichern(); };
+  $('#ru-mail').value = S.meldeMail || MELDE_MAIL;
+  $('#ru-mail').onchange = ()=>{
+    const v = $('#ru-mail').value.trim();
+    /* Leer heißt: zurück auf die Standardadresse, nicht „ohne Empfänger“ */
+    if(!v){ $('#ru-mail').value = MELDE_MAIL; delete S.meldeMail; }
+    else S.meldeMail = v;
+    sichern();
+  };
 }
 if($('#btn-ru-mail')) $('#btn-ru-mail').onclick = ()=>{
   const t = rueckText();
-  const an = ($('#ru-mail').value || '').trim();
+  const an = ($('#ru-mail').value || '').trim() || MELDE_MAIL;
   const betreff = 'Pflanzenglossar — ' +
     ({fehler:'Fehlermeldung', art:'Fehlende Art', wunsch:'Wunsch', sonst:'Rückmeldung'}[$('#ru-art').value] || 'Rückmeldung');
   window.location.href = 'mailto:' + encodeURIComponent(an) +
     '?subject=' + encodeURIComponent(betreff) + '&body=' + encodeURIComponent(t);
   $('#ru-hinweis').className = 'kihinweis ok';
-  $('#ru-hinweis').textContent = an
-    ? 'Das E-Mail-Programm sollte sich öffnen.'
-    : 'Kein Empfänger eingetragen — die Mail öffnet sich ohne Adresse.';
+  $('#ru-hinweis').textContent = 'Das E-Mail-Programm sollte sich öffnen — Empfänger ' + an + '.';
+};
+if($('#btn-ru-github')) $('#btn-ru-github').onclick = ()=>{
+  const t = rueckText();
+  $('#ru-fertig').value = t;
+  $('#ru-box').hidden = false;
+  const ok = typeof inZwischenablage === 'function' ? inZwischenablage(t) : false;
+  $('#ru-hinweis').className = 'kihinweis' + (ok ? ' ok' : ' warn');
+  $('#ru-hinweis').textContent = ok
+    ? 'Text kopiert. GitHub öffnet sich — dort einfügen und abschicken.'
+    : 'Kopieren hat nicht geklappt. Der Text steht unten zum Markieren, GitHub öffnet sich trotzdem.';
+  window.open(ISSUE_URL, '_blank', 'noopener');
 };
 if($('#btn-ru-kopie')) $('#btn-ru-kopie').onclick = ()=>{
   const t = rueckText();
@@ -8868,7 +9244,8 @@ function dokPromptBauen(){
   const zeilen = [DOKTOR_PROMPT_KOPF, ''];
   if(p){
     zeilen.push('Es handelt sich um: ' + p.art + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.');
-    if(p.standort) zeilen.push('Standort: ' + p.standort + '.');
+    if(lageVon(p)) zeilen.push('Steht: ' + lageVon(p) + '.');
+    if(SONNE[p.sonne]) zeilen.push('Lichtbedarf: ' + SONNE[p.sonne].text + '.');
     const st = giessStatus(p);
     if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + st.iv + ' Tage.');
     zeilen.push('');
@@ -9480,7 +9857,7 @@ function ablegerAnlegen(mutterId, methodeId){
     art: mutter.art, botanisch: mutter.botanisch || (b ? b.bot : ''),
     familie: mutter.familie || (b ? b.fam : ''),
     klasse: mutter.klasse, giftig: mutter.giftig,
-    standort:'Anzucht', typ: mutter.typ, sonne: mutter.sonne,
+    raum: mutter.raum || '', stellplatz: mutter.stellplatz || '', typ: mutter.typ, sonne: mutter.sonne,
     frostMin: mutter.frostMin, duenger: mutter.duenger,
     /* Das Intervall der Mutterpflanze ist genauer als der Klassenwert;
        der Zustand „Steckling“ verkürzt es zusätzlich. */
@@ -9644,7 +10021,7 @@ function rgZeichnen(){
   const foto = fotoListe.length ? fotoListe[0].src : null;
   const heute = ereignisse(p.id).filter(x=>x.datum === iso(HEUTE));
   const z = zustandVon(p);
-  const wo = typeof gmStandort === 'function' ? gmStandort(p) : (p.standort || '');
+  const wo = typeof gmStandort === 'function' ? gmStandort(p) : lageVon(p);
 
   $('#rg-inhalt').innerHTML = `
     <p class="gm-zaehler">${rgIndex+1} von ${rgListe.length} · ${esc(STUFEN[e.stufe].name)}</p>
