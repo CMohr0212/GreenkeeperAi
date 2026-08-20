@@ -277,6 +277,18 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .wk-klein{font-size:var(--t-s);color:var(--peat);margin:16px 0 0}
 .wk-warnung{border-left:3px solid #B08A3A;background:var(--sand);padding:14px 16px;
   border-radius:3px;line-height:1.55;margin:0 0 24px}
+
+/* Angebot, die App einzurichten — im letzten Startschritt und als
+   schmales Band auf „Heute“, solange sie noch im Browser läuft. */
+.wk-install{border:1px solid var(--line);border-radius:3px;padding:14px 16px;margin:0 0 24px}
+.wk-install .wk-klein{margin:0}
+.wk-install-knopf{display:block;width:100%;margin-top:12px;flex:none}
+.inst-band{border:1px solid var(--line);border-left:3px solid var(--moss);border-radius:3px;
+  padding:12px 14px;margin:0 0 var(--a-3);background:color-mix(in srgb, var(--moss) 6%, transparent)}
+.inst-band[hidden]{display:none}
+.inst-band b{display:block;font-family:var(--f-display);font-size:var(--t-l);margin-bottom:3px}
+.inst-band p{margin:0;font-size:var(--t-m);line-height:1.55;color:var(--ink-2)}
+.inst-band .tools{margin-top:10px}
 .raum-batch{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .raum-batch-lab{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
   text-transform:uppercase;color:var(--peat);margin:0 0 8px}
@@ -526,17 +538,17 @@ body{padding-bottom:76px}
   body{padding-bottom:0}
 }
 
-/* ── Werkzeuge: drei Akkordion-Blöcke, immer nur einer offen ── */
-.wz{padding-top:0!important;border-top:0!important}
-.wz + .wz{margin-top:0}
+/* ── Werkzeuge und Mehr: Akkordion-Blöcke, immer nur einer offen ── */
+.wz,.mh{padding-top:0!important;border-top:0!important}
+.wz + .wz,.mh + .mh{margin-top:0}
 .wz-kopfzeile{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line)}
-.wz:first-of-type .wz-kopfzeile{border-top:0}
+.wz:first-of-type .wz-kopfzeile,.mh-erste .wz-kopfzeile{border-top:0}
 .wz-kopf{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;
   font:inherit;font-family:var(--f-display);font-size:var(--t-xl);color:var(--ink);
   background:none;border:0;padding:16px 2px;cursor:pointer;min-height:56px}
 .wz-kopf .wz-t{flex:1;min-width:0}
 .wz-kopf .wz-p{font-size:1.1rem;color:var(--ink-2);transition:transform .18s ease}
-.wz.auf .wz-kopf .wz-p{transform:rotate(90deg)}
+.wz.auf .wz-kopf .wz-p,.mh.auf .wz-kopf .wz-p{transform:rotate(90deg)}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
   line-height:1;cursor:pointer}
@@ -4091,6 +4103,13 @@ function papierkorbRender(){
       <p class="wk-warnung">Alles liegt nur in diesem Browser. Wird er aufgeräumt oder das
         Gerät gewechselt, ist alles weg. Lade regelmäßig eine Sicherung herunter — unter
         „Mehr“, ganz oben. Die App erinnert dich alle zwei Wochen daran.</p>
+
+      <div class="wk-install" id="wk-install" hidden>
+        <p class="wk-frage">Gleich als App einrichten?</p>
+        <p class="wk-klein" id="wk-install-text"></p>
+        <button class="wk-gross wk-install-knopf" id="btn-wk-install" hidden>Jetzt installieren</button>
+      </div>
+
       <div class="wk-knoepfe">
         <button class="wk-haupt" data-wkfertig="1">Erste Pflanze anlegen</button>
         <button class="wk-neben" data-wkfertig="0">Erstmal umsehen</button>
@@ -4108,6 +4127,7 @@ function papierkorbRender(){
 
   <section data-ans="heute" class="faellig" id="faellig-sec">
     <div id="erststart" hidden></div>
+    <div id="install-band" class="inst-band" hidden></div>
     <h2>Heute dran</h2>
     <div id="sicher-erinnerung"></div>
     <div id="heute-status"></div>
@@ -4515,32 +4535,37 @@ function papierkorbRender(){
     </div>
   </section>
 
-  <section data-ans="mehr" class="plan" id="weg-sec" hidden>
-    <h2>Aus der Sammlung genommen</h2>
-    <p class="sub">Diese mitgelieferten Pflanzen hast du ausgeblendet. Gelöscht sind sie nicht — du kannst sie jederzeit zurückholen.</p>
-    <div id="weg-liste"></div>
-  </section>
-
-  <section data-ans="mehr" class="plan" id="melde-sec" hidden>
-    <h2>Nicht in der Bibliothek</h2>
-    <p class="sub">Diese Arten hast du von Hand angelegt, weil die Bibliothek sie nicht kennt. Mit dem Knopf baust du daraus eine fertige Nachricht — abschicken oder in den Chat kopieren, dann kommen sie mit vollständigen Pflegedaten in die nächste Fassung.</p>
-    <div id="melde-liste"></div>
+  <section data-ans="mehr" class="plan mh mh-erste" id="sicher-sec" data-mh="sicherung">
+    <h2 class="wz-h2">Sicherung</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="sicherung" aria-expanded="false" aria-controls="mh-in-sicherung">
+        <span class="wz-t">Sicherung</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="sicherung" aria-expanded="false" aria-label="Wozu ist die Sicherung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-sicherung" hidden>
+      <p class="wz-hilfe" hidden>Alle Daten liegen ausschließlich auf diesem Gerät — nichts davon liegt auf einem fremden Rechner. Eine Sicherung ist eine einzige Datei mit allem darin: Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Lade sie ab und zu herunter und lege sie irgendwo ab, wo du sie wiederfindest. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. „Alles zurücksetzen“ löscht den gesamten Bestand und lässt sich nicht rückgängig machen.</p>
+    <p class="sub" id="storage-state"></p>
+    <p class="sub" id="storage-size"></p>
     <div class="tools">
-      <button id="btn-melden" class="haupt">Nachricht erzeugen</button>
-      <button id="btn-melden-weg" class="loeschen">Liste leeren</button>
+      <button id="btn-download" class="haupt">Sicherung herunterladen</button>
+      <button id="btn-import">Sicherung laden</button>
+      <button id="btn-export">Als Text anzeigen</button>
+      <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
     </div>
-    <div class="pastebox" id="melde-box" hidden>
-      <textarea id="melde-text" readonly></textarea>
-      <div class="tools">
-        <button id="btn-melde-kopie" class="haupt">Text kopieren</button>
-        <button id="btn-melde-mail">Als E-Mail öffnen</button>
-      </div>
+    <input type="file" id="import-file" accept="application/json,.json" hidden>
+    <textarea id="exportbox" hidden readonly aria-label="Sicherung als Text"></textarea>
     </div>
   </section>
 
-  <section data-ans="mehr" class="plan" id="urlaub-sec">
-    <h2>Urlaubszettel</h2>
-    <p class="sub">Wer während deiner Abwesenheit gießt, bekommt einen Zettel mit Raumplan, Nummern, Bildern und Terminen — nur die Pflanzen, die wirklich drankommen.</p>
+  <section data-ans="mehr" class="plan mh" id="urlaub-sec" data-mh="urlaub">
+    <h2 class="wz-h2">Urlaubszettel</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="urlaub" aria-expanded="false" aria-controls="mh-in-urlaub">
+        <span class="wz-t">Urlaubszettel</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="urlaub" aria-expanded="false" aria-label="Wozu ist der Urlaubszettel da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-urlaub" hidden>
+      <p class="wz-hilfe" hidden>Wer während deiner Abwesenheit gießt, bekommt einen Zettel mit Raumplan, Nummern, Bildern und Terminen — darauf stehen nur die Pflanzen, die im Zeitraum wirklich drankommen. Pflanzen in der Gießpause und Pflanzen ohne Eintrag werden getrennt aufgeführt, damit die Vertretung weiß, warum sie fehlen. Der Zettel wird immer in Schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt.</p>
 
     <ol class="url-schritte">
       <li>
@@ -4577,7 +4602,6 @@ function papierkorbRender(){
 
       <li>
         <p class="url-nr">Schritt 4 — Ausgeben</p>
-        <p class="fhint">Der Zettel wird immer in Schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt.</p>
         <div class="tools">
           <button id="btn-url-druck" class="haupt">Drucken / als PDF sichern</button>
           <button id="btn-url-blatt">Erst ansehen</button>
@@ -4588,41 +4612,39 @@ function papierkorbRender(){
         <p class="kihinweis" id="url-meldung" hidden></p>
       </li>
     </ol>
-  </section>
-
-  <section data-ans="mehr" class="plan">
-    <h2>Sicherung</h2>
-    <p class="sub" id="storage-state"></p>
-    <p class="sub" id="storage-size"></p>
-    <div class="tools">
-      <button id="btn-download" class="haupt">Sicherung herunterladen</button>
-      <button id="btn-import">Sicherung laden</button>
-      <button id="btn-export">Als Text anzeigen</button>
-      <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
     </div>
-    <input type="file" id="import-file" accept="application/json,.json" hidden>
-    <textarea id="exportbox" hidden readonly aria-label="Sicherung als Text"></textarea>
   </section>
 
-  <section data-ans="mehr" class="plan" id="tier-sec">
-    <h2>Haustiere</h2>
-    <p class="lead">Ob die App vor giftigen Pflanzen in Reichweite warnen soll — und vor welchen Tieren.</p>
+  <section data-ans="mehr" class="plan mh" id="tier-sec" data-mh="tiere">
+    <h2 class="wz-h2">Haustiere</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="tiere" aria-expanded="false" aria-controls="mh-in-tiere">
+        <span class="wz-t">Haustiere</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="tiere" aria-expanded="false" aria-label="Wozu ist die Haustier-Einstellung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-tiere" hidden>
+      <p class="wz-hilfe" hidden>Hier legst du fest, ob die App vor giftigen Pflanzen in Reichweite warnen soll — und vor welchen Tieren. Wo eine Pflanze steht, bestimmst du im Grundriss am Möbelstück; dort gibt es das Feld „Für Tiere erreichbar“. Die Angaben stammen aus der Giftpflanzenliste der ASPCA sowie aus Fachlisten für Nager und Ziervögel. Für Hund und Katze ist die Datenlage gut, bei Nagern und Vögeln lückenhaft — was sich nicht belegen ließ, wird als „ungeprüft“ ausgewiesen und nicht als unbedenklich. Im Zweifel gilt: außer Reichweite stellen.</p>
     <div class="ctrl-row"><span class="ctrl-lab">Hast du Haustiere?</span>
       <span class="tier-wahl" id="tier-anaus">
         <button class="chip" data-tieraktiv="1" aria-pressed="false">Ja</button>
         <button class="chip" data-tieraktiv="0" aria-pressed="false">Nein</button>
       </span></div>
     <div id="tier-arten-block" hidden>
-      <p class="hint">Mehrere möglich. Jede Pflanze wird für jedes gewählte Tier einzeln geprüft.</p>
+      <p class="hint">Mehrere möglich.</p>
       <div class="tier-wahl" id="tier-arten"></div>
-      <p class="hint">Wo eine Pflanze steht, legst du im Grundriss am Möbelstück fest — dort gibt es das Feld „Für Tiere erreichbar“.</p>
     </div>
-    <p class="hint">Die Angaben stammen aus der Giftpflanzenliste der ASPCA sowie aus Fachlisten für Nager und Ziervögel. Für Hund und Katze ist die Datenlage gut, bei Nagern und Vögeln lückenhaft — was sich nicht belegen ließ, wird als „ungeprüft“ ausgewiesen und nicht als unbedenklich. Im Zweifel gilt: außer Reichweite stellen.</p>
+    </div>
   </section>
 
-  <section data-ans="mehr" class="plan" id="rg-einst">
-    <h2>Rundgang</h2>
-    <p class="sub">Wie tief soll der Durchgang gehen, wie oft, und wer kommt dran.</p>
+  <section data-ans="mehr" class="plan mh" id="rg-einst" data-mh="rundgang">
+    <h2 class="wz-h2">Rundgang</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="rundgang" aria-expanded="false" aria-controls="mh-in-rundgang">
+        <span class="wz-t">Rundgang</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="rundgang" aria-expanded="false" aria-label="Wozu sind die Rundgang-Einstellungen da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-rundgang" hidden>
+      <p class="wz-hilfe" hidden>Der Rundgang geht die Sammlung der Reihe nach durch, damit nichts monatelang unbeachtet bleibt. Hier stellst du ein, wie tief er gehen soll, wie oft er fällig wird und wer drankommt. „Blick“ dauert zwei Minuten, „Rundgang“ nimmt Blattzahl und Ereignisse mit auf, „Bestandsaufnahme“ zusätzlich ein Foto. Weiter unten wählst du, welche Knöpfe dabei überhaupt erscheinen — je weniger, desto schneller geht es.</p>
     <div class="fgrid">
       <label class="fspan"><span class="lab">Tiefe</span><select id="rg-stufe">
         <option value="blick">Blick — drei Knöpfe, zwei Minuten</option>
@@ -4648,19 +4670,33 @@ function papierkorbRender(){
         <span class="lab" style="display:inline">Im Winter größere Abstände</span></label>
     </div>
     <h3>Welche Knöpfe erscheinen</h3>
-    <p class="sub">Nur was du wirklich nutzt — im Rundgang und auf der Karte.</p>
     <div class="sym-liste" id="rg-knoepfe-wahl"></div>
+    </div>
   </section>
 
-  <section data-ans="mehr" class="plan" id="install-sec" hidden>
-    <h2>Als App installieren</h2>
-    <p class="install-hin" id="install-text"></p>
-    <div class="tools"><button id="btn-installieren" class="haupt" hidden>Jetzt installieren</button></div>
+  <section data-ans="mehr" class="plan mh" id="ansicht-sec" data-mh="ansicht">
+    <h2 class="wz-h2">Ansicht</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="ansicht" aria-expanded="false" aria-controls="mh-in-ansicht">
+        <span class="wz-t">Ansicht</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="ansicht" aria-expanded="false" aria-label="Wozu ist die Ansicht-Einstellung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-ansicht" hidden>
+      <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht.</p>
+    <label class="fspan check">
+      <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
+    </div>
   </section>
 
-  <section data-ans="mehr" class="plan" id="rueck-sec">
-    <h2>Rückmeldung</h2>
-    <p class="sub">Etwas fehlt, etwas stimmt nicht, eine Art gehört in die Bibliothek? Schreib es auf — die App baut daraus eine fertige Nachricht samt Angaben zu deiner Fassung.</p>
+  <section data-ans="mehr" class="plan mh" id="rueck-sec" data-mh="rueck">
+    <h2 class="wz-h2">Rückmeldung</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="rueck" aria-expanded="false" aria-controls="mh-in-rueck">
+        <span class="wz-t">Rückmeldung</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="rueck" aria-expanded="false" aria-label="Wozu ist die Rückmeldung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-rueck" hidden>
+      <p class="wz-hilfe" hidden>Etwas fehlt, etwas stimmt nicht, eine Art gehört in die Bibliothek? Schreib es hier auf — die App baut daraus eine fertige Nachricht samt Angaben zu deiner Fassung. Du kannst sie als E-Mail öffnen oder den Text kopieren und irgendwo einfügen. Die technischen Angaben helfen beim Nachstellen und enthalten keine Pflanzendaten.</p>
     <div class="fgrid">
       <label class="fspan"><span class="lab">Worum geht es</span><select id="ru-art">
         <option value="fehler">Etwas funktioniert nicht</option>
@@ -4673,7 +4709,7 @@ function papierkorbRender(){
       <label class="fspan"><span class="lab">Empfänger</span><input id="ru-mail" type="email" placeholder="name@beispiel.de">
         <span class="fhint">Wird gemerkt. Leer lassen, wenn du den Text lieber nur kopieren willst.</span></label>
       <label class="fspan check"><input type="checkbox" id="ru-technik" checked>
-        <span class="lab" style="display:inline">Technische Angaben anhängen — hilft beim Nachstellen</span></label>
+        <span class="lab" style="display:inline">Technische Angaben anhängen</span></label>
     </div>
     <div class="tools">
       <button id="btn-ru-mail" class="haupt">Als E-Mail öffnen</button>
@@ -4681,13 +4717,58 @@ function papierkorbRender(){
     </div>
     <div class="pastebox" id="ru-box" hidden><textarea id="ru-fertig" readonly></textarea></div>
     <p class="kihinweis" id="ru-hinweis"></p>
+    </div>
   </section>
 
-  <section data-ans="mehr" class="plan">
-    <h2>Ansicht</h2>
-    <label class="fspan check" style="margin-bottom:6px">
-      <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
-    <p class="sub">Statt der Reiter unten läuft dann wieder alles untereinander. Am großen Bildschirm oft angenehmer.</p>
+  <section data-ans="mehr" class="plan mh" id="install-sec" data-mh="install" hidden>
+    <h2 class="wz-h2">Als App installieren</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="install" aria-expanded="false" aria-controls="mh-in-install">
+        <span class="wz-t">Als App installieren</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="install" aria-expanded="false" aria-label="Wozu ist die Installation da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-install" hidden>
+      <p class="wz-hilfe" hidden>Installiert liegt die App als eigenes Symbol auf dem Startbildschirm, startet ohne Browserleiste und funktioniert auch ohne Netz. Die Daten bleiben dieselben — es ist kein zweiter Bestand, sondern derselbe.</p>
+    <p class="install-hin" id="install-text"></p>
+    <div class="tools"><button id="btn-installieren" class="haupt" hidden>Jetzt installieren</button></div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="weg-sec" data-mh="weg" hidden>
+    <h2 class="wz-h2">Aus der Sammlung genommen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="weg" aria-expanded="false" aria-controls="mh-in-weg">
+        <span class="wz-t">Aus der Sammlung genommen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="weg" aria-expanded="false" aria-label="Was steht hier?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-weg" hidden>
+      <p class="wz-hilfe" hidden>Diese mitgelieferten Pflanzen hast du ausgeblendet. Gelöscht sind sie nicht — du kannst sie jederzeit zurückholen. Der Block erscheint nur, solange etwas darin liegt.</p>
+    <div id="weg-liste"></div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="melde-sec" data-mh="melde" hidden>
+    <h2 class="wz-h2">Nicht in der Bibliothek</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="melde" aria-expanded="false" aria-controls="mh-in-melde">
+        <span class="wz-t">Nicht in der Bibliothek</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="melde" aria-expanded="false" aria-label="Was steht hier?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-melde" hidden>
+      <p class="wz-hilfe" hidden>Diese Arten hast du von Hand angelegt, weil die Bibliothek sie nicht kennt. Mit dem Knopf baust du daraus eine fertige Nachricht — abschicken oder in den Chat kopieren, dann kommen sie mit vollständigen Pflegedaten in die nächste Fassung. Der Block erscheint nur, solange etwas darin liegt.</p>
+    <div id="melde-liste"></div>
+    <div class="tools">
+      <button id="btn-melden" class="haupt">Nachricht erzeugen</button>
+      <button id="btn-melden-weg" class="loeschen">Liste leeren</button>
+    </div>
+    <div class="pastebox" id="melde-box" hidden>
+      <textarea id="melde-text" readonly></textarea>
+      <div class="tools">
+        <button id="btn-melde-kopie" class="haupt">Text kopieren</button>
+        <button id="btn-melde-mail">Als E-Mail öffnen</button>
+      </div>
+    </div>
+    </div>
   </section>
 
 
@@ -7852,6 +7933,7 @@ function ansichtZeigen(name, merken){
     werkzeugZeichnen();
     if(S.wzOffen === 'grundriss' && typeof planRender === 'function') planRender();
   }
+  if(name === 'mehr') mehrZeichnen();
   zaehlerAktualisieren();
 }
 
@@ -7896,6 +7978,49 @@ document.addEventListener('click', e=>{
     if(!hilfe) return;
     /* Der Block muss dafür offen sein, sonst tippt man ins Leere. */
     if(S.wzOffen !== sec.dataset.wz) werkzeugOeffnen(sec.dataset.wz);
+    hilfe.hidden = !hilfe.hidden;
+    info.setAttribute('aria-expanded', String(!hilfe.hidden));
+  }
+});
+
+/* ── Mehr: dasselbe Muster wie bei den Werkzeugen ─────────────
+   Bewusst eine eigene Funktion statt einer gemeinsamen: die beiden
+   Seiten merken sich getrennt, was offen war, und die Werkzeuge-Logik
+   bleibt unangetastet. */
+const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','rueck','install','weg','melde'];
+function mehrZeichnen(){
+  document.querySelectorAll('[data-mh]').forEach(sec=>{
+    const auf = sec.dataset.mh === S.mehrOffen;
+    sec.classList.toggle('auf', auf);
+    const box = sec.querySelector('.wz-in');
+    if(box) box.hidden = !auf;
+    const kopf = sec.querySelector('.wz-kopf');
+    if(kopf) kopf.setAttribute('aria-expanded', String(auf));
+  });
+}
+function mehrOeffnen(key, springen){
+  S.mehrOffen = (MEHR_BLOECKE.includes(key) ? key : 'sicherung');
+  sichern();
+  mehrZeichnen();
+  if(springen){
+    const sec = document.querySelector(`[data-mh="${S.mehrOffen}"]`);
+    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+document.addEventListener('click', e=>{
+  const kopf = e.target.closest('[data-mh-go]');
+  if(kopf){
+    const key = kopf.dataset.mhGo;
+    if(S.mehrOffen === key){ S.mehrOffen = null; sichern(); mehrZeichnen(); }
+    else mehrOeffnen(key, true);
+    return;
+  }
+  const info = e.target.closest('[data-mh-info]');
+  if(info){
+    const sec = info.closest('[data-mh]');
+    const hilfe = sec && sec.querySelector('.wz-hilfe');
+    if(!hilfe) return;
+    if(S.mehrOffen !== sec.dataset.mh) mehrOeffnen(sec.dataset.mh);
     hilfe.hidden = !hilfe.hidden;
     info.setAttribute('aria-expanded', String(!hilfe.hidden));
   }
@@ -9740,20 +9865,21 @@ window.addEventListener('beforeinstallprompt', e=>{
   if(k){ k.hidden = false; }
   const box = document.getElementById('install-sec');
   if(box) box.hidden = false;
+  if(typeof installAngebot === 'function') installAngebot();
 });
 window.addEventListener('appinstalled', ()=>{
   installEreignis = null;
   const box = document.getElementById('install-sec');
   if(box) box.hidden = true;
   S.installiert = true; sichern();
+  if(typeof installAngebot === 'function') installAngebot();
 });
 
 function installStatus(){
   const box = document.getElementById('install-sec'); if(!box) return;
   const text = document.getElementById('install-text');
   const knopf = document.getElementById('btn-installieren');
-  const eigenstaendig = window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true;
+  const eigenstaendig = eigenstaendigGestartet();
 
   if(eigenstaendig){
     box.hidden = false;
@@ -9774,15 +9900,82 @@ function installStatus(){
   if(knopf) knopf.hidden = !installEreignis;
 }
 
-const knopfInstall = document.getElementById('btn-installieren');
-if(knopfInstall) knopfInstall.onclick = async ()=>{
+/* ── Angebot, die App einzurichten ────────────────────────────
+   Sichtbar nur, solange sie wirklich noch im Browser läuft: nicht
+   eigenständig gestartet, nicht aus dem Download-Ordner geöffnet und
+   nicht bereits installiert. Zwei Orte, weil die Startseite nur ein
+   einziges Mal erscheint — wer sie überspringt, hätte den Knopf sonst
+   nie gesehen. Das Band auf „Heute“ lässt sich wegtippen. */
+function eigenstaendigGestartet(){
+  try{
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  }catch(e){}
+  return window.navigator.standalone === true;
+}
+function installMoeglich(){
+  return IM_NETZ && !eigenstaendigGestartet() && !S.installiert;
+}
+/* Ohne beforeinstallprompt (vor allem Safari) gibt es keinen Knopf,
+   den die App selbst auslösen könnte — dann bleibt nur der Weg über
+   das Browsermenü, und der ist je nach Gerät ein anderer. */
+function installWeg(){
+  const ua = navigator.userAgent || '';
+  if(/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1))
+    return 'In Safari unten auf das Teilen-Symbol tippen, dann „Zum Home-Bildschirm“.';
+  return 'Im Menü deines Browsers auf „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“.';
+}
+function installAngebot(){
+  const zeigen = installMoeglich();
+
+  const wk = document.getElementById('wk-install');
+  if(wk){
+    wk.hidden = !zeigen;
+    const t = document.getElementById('wk-install-text');
+    const k = document.getElementById('btn-wk-install');
+    if(t) t.textContent = installEreignis
+      ? 'Eigenes Symbol auf dem Startbildschirm, kein Browserrahmen, läuft auch ohne Netz. Die Daten bleiben dieselben.'
+      : installWeg();
+    if(k) k.hidden = !installEreignis;
+  }
+
+  const band = document.getElementById('install-band');
+  if(band){
+    band.hidden = !zeigen || S.installBandWeg === true;
+    if(!band.hidden){
+      band.innerHTML = `<b>Auf den Startbildschirm legen</b>
+        <p>${esc(installEreignis
+          ? 'Eigenes Symbol, kein Browserrahmen, läuft auch ohne Netz. Die Daten bleiben dieselben.'
+          : installWeg())}</p>
+        <div class="tools">
+          ${installEreignis ? '<button data-do="install-jetzt" class="haupt">Jetzt installieren</button>' : ''}
+          <button data-do="install-band-weg">Nicht mehr anzeigen</button>
+        </div>`;
+    }
+  }
+}
+async function installFragen(){
   if(!installEreignis) return;
   installEreignis.prompt();
   try{ await installEreignis.userChoice; }catch(e){}
   installEreignis = null;
   installStatus();
-};
+  installAngebot();
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do]');
+  if(!b) return;
+  if(b.dataset.do === 'install-jetzt'){ installFragen(); return; }
+  if(b.dataset.do === 'install-band-weg'){
+    S.installBandWeg = true; sichern(); installAngebot();
+  }
+});
+
+const knopfInstall = document.getElementById('btn-installieren');
+if(knopfInstall) knopfInstall.onclick = installFragen;
+const knopfWkInstall = document.getElementById('btn-wk-install');
+if(knopfWkInstall) knopfWkInstall.onclick = installFragen;
 installStatus();
+installAngebot();
 
 </script>
 </body>
