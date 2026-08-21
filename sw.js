@@ -5,7 +5,7 @@
    nächsten Öffnen die neue Fassung.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'pflanzenglossar-v4';
+const VERSION = 'greenkeeperai-v5';
 const DATEIEN = [
   './',
   './index.html',

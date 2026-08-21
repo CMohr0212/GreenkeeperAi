@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pflanzensammlung</title>
+<title>GreenkeeperAi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -553,16 +553,16 @@ body{padding-bottom:76px}
 }
 
 /* ── Werkzeuge und Mehr: Akkordion-Blöcke, immer nur einer offen ── */
-.wz,.mh{padding-top:0!important;border-top:0!important}
-.wz + .wz,.mh + .mh{margin-top:0}
+.wz,.mh,.sm{padding-top:0!important;border-top:0!important}
+.wz + .wz,.mh + .mh,.sm + .sm{margin-top:0}
 .wz-kopfzeile{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line)}
-.wz:first-of-type .wz-kopfzeile,.mh-erste .wz-kopfzeile{border-top:0}
+.wz:first-of-type .wz-kopfzeile,.mh-erste .wz-kopfzeile,.sm-erste .wz-kopfzeile{border-top:0}
 .wz-kopf{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-align:left;
   font:inherit;font-family:var(--f-display);font-size:var(--t-xl);color:var(--ink);
   background:none;border:0;padding:16px 2px;cursor:pointer;min-height:56px}
 .wz-kopf .wz-t{flex:1;min-width:0}
 .wz-kopf .wz-p{font-size:1.1rem;color:var(--ink-2);transition:transform .18s ease}
-.wz.auf .wz-kopf .wz-p,.mh.auf .wz-kopf .wz-p{transform:rotate(90deg)}
+.wz.auf .wz-kopf .wz-p,.mh.auf .wz-kopf .wz-p,.sm.auf .wz-kopf .wz-p{transform:rotate(90deg)}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
   line-height:1;cursor:pointer}
@@ -573,6 +573,64 @@ body{padding-bottom:76px}
 .wz-hilfe[hidden]{display:none}
 .wz-in[hidden]{display:none}
 .wz-h2{display:none}
+
+
+/* ── Feste Überschrift mit i-Knopf (Heute, Anlegen) ── */
+.sm-kopf-fest{display:flex;align-items:center;gap:10px}
+.sm-kopf-fest h2{flex:1;min-width:0;margin:0}
+.scale-head{padding-right:6px}
+.scale-i{margin-left:8px;vertical-align:middle}
+
+/* ── Schwebender Knopf: neue Pflanze ── */
+#fab-neu{position:fixed;right:18px;z-index:45;width:58px;height:58px;border-radius:50%;
+  bottom:calc(env(safe-area-inset-bottom) + 74px);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);
+  box-shadow:0 4px 16px rgba(30,26,20,.22);cursor:pointer;padding:0}
+#fab-neu svg{width:30px;height:30px}
+#fab-neu:active{transform:scale(.94)}
+#fab-neu[hidden]{display:none}
+body.gm-offen #fab-neu{display:none}
+
+/* ── Wegwahl beim Anlegen ── */
+.neu-wahl{margin-bottom:var(--a-3)}
+.dok-weg.on{border-color:var(--moss);background:color-mix(in srgb, var(--moss) 10%, transparent)}
+
+/* ── Doktor: Foto und Feldabgleich ── */
+.dok-foto{display:block;margin:var(--a-3) 0 0;padding:14px;text-align:center;cursor:pointer;
+  border:1.5px dashed var(--line);border-radius:4px;font-size:var(--t-m);color:var(--ink-2)}
+.abgleich{margin-top:var(--a-3);border-left:3px solid var(--moss);padding:12px 14px;
+  background:color-mix(in srgb, var(--moss) 7%, transparent)}
+.abgleich h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
+.ab-zeile{display:flex;align-items:baseline;gap:8px;padding:6px 0;border-top:1px solid var(--line);
+  font-size:var(--t-m)}
+.ab-zeile:first-of-type{border-top:0}
+.ab-feld{flex:0 0 auto;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--peat)}
+.ab-wert{flex:1;min-width:0}
+.ab-alt{color:var(--peat);text-decoration:line-through}
+.ab-weg{flex:0 0 auto;background:none;border:0;font:inherit;font-size:var(--t-l);
+  color:var(--peat);cursor:pointer;line-height:1;padding:0 4px}
+.dok-unsicher{margin-top:var(--a-3);border-left:3px solid var(--terra);padding:12px 14px;
+  background:color-mix(in srgb, var(--terra) 8%, transparent);font-size:var(--t-m)}
+
+/* ── Foto: Profilbild und Dreipunktmenü ── */
+.gal figure{position:relative}
+.gal figure.ist-profil img{outline:2.5px solid var(--moss);outline-offset:-2.5px}
+.foto-punkte{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;
+  border:0;background:rgba(20,18,14,.6);color:#fff;font-size:14px;line-height:1;
+  cursor:pointer;padding:0;letter-spacing:1px}
+.foto-menu{position:absolute;top:34px;right:5px;z-index:5;min-width:170px;
+  background:var(--paper);border:1px solid var(--ink);border-radius:4px;
+  box-shadow:0 4px 14px rgba(30,26,20,.2);overflow:hidden}
+.foto-menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  font:inherit;font-size:var(--t-m);background:none;border:0;padding:10px 12px;cursor:pointer;color:var(--ink)}
+.foto-menu button + button{border-top:1px solid var(--line)}
+.foto-kaest{flex:0 0 auto;width:15px;height:15px;border:1.5px solid var(--ink);border-radius:2px;
+  display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
+.foto-profil-marke{position:absolute;bottom:5px;left:5px;font-family:var(--f-data);
+  font-size:var(--t-mono);letter-spacing:.08em;text-transform:uppercase;
+  background:var(--moss);color:#fff;padding:2px 6px;border-radius:2px}
 
 /* ── Grundriss: Schritt 1 Raumliste, Schritt 2 Editor ── */
 .gr-karten{display:grid;gap:var(--a-2);margin-bottom:var(--a-3)}
@@ -1288,7 +1346,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Pflanzen">
+<meta name="apple-mobile-web-app-title" content="GreenkeeperAi">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" href="./icon-192.png" sizes="192x192">
 </head>
@@ -2321,13 +2379,17 @@ Antworte in genau diesem Format. Wichtig: reiner Text, keine Sternchen, keine Au
 
 ART: deutscher Name der Art
 BOTANISCH: wissenschaftlicher Name, Gattung und Art
+TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rosettenpflanze, Kaktus, Kraut, Strauch, Palme
 SICHERHEIT: hoch, mittel oder niedrig
+FEHLT: nur wenn SICHERHEIT nicht hoch ist — was du auf dem Foto nicht erkennen kannst und welche zusätzliche Aufnahme die Bestimmung sicher machen würde, etwa Blattunterseite, Stängelansatz, ganze Pflanze von der Seite, Blüte in Nahaufnahme. Sonst das Wort keine
 VERWECHSLUNG: ähnliche Arten, mit Komma getrennt
 ZUSTAND: einer von: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung
 BEFUND: ein bis zwei Sätze, woran du den Zustand erkennst
 LICHT: voll, hell oder indirekt
+GIESSKLASSE: genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau
 GIESSEN: ein Satz, wie oft und wie viel bei genau diesem Zustand
 GIESSART: genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau
+FROST: die niedrigste Temperatur in Grad Celsius, die die Art verträgt — oder das Wort winterhart
 WICHTIG: eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß, etwa besondere Wasserqualität, Substrat oder Standortgrenze — oder das Wort keine
 KATZEN: giftig oder unbedenklich, mit kurzer Begründung
 MASSNAHMEN: die zwei bis drei wichtigsten Schritte, mit Semikolon getrennt`;
@@ -2380,6 +2442,10 @@ const ANTWORT_SCHLUESSEL = [
   ['art',     ['art','deutscher name','name','deutsch','pflanze','pflanzenname','common name','german name']],
   ['bot',     ['botanisch','botanischer name','wissenschaftlich','wissenschaftlicher name','lateinisch','lateinischer name','gattung und art','botanical name','scientific name','species']],
   ['sicher',  ['sicherheit','sicherheit der bestimmung','confidence','gewissheit']],
+  ['fehlt',   ['fehlt','fehlende angaben','was fehlt','unklar','zusatzfoto','weiteres foto','missing']],
+  ['typ',     ['typ','wuchsform','wuchs','form','habitus','growth form','type']],
+  ['klasse',  ['giessklasse','gießklasse','wasserbedarf klasse','klasse','bedarf','watering class']],
+  ['frost',   ['frost','frosthaerte','frosthärte','winterhart','kaelte','kälte','minimaltemperatur','hardiness']],
   ['verw',    ['verwechslung','verwechslungsgefahr','ähnliche arten','aehnliche arten','similar']],
   ['zustand', ['zustand','status','befinden','condition','gesundheit','gesundheitszustand']],
   ['befund',  ['befund','begründung','begruendung','beobachtung','diagnose','analyse']],
@@ -4263,7 +4329,7 @@ function papierkorbRender(){
   <div class="wk-blatt">
     <div class="wk-schritt" data-wk="1">
       <p class="wk-nr">Willkommen</p>
-      <h1 class="wk-titel">Greenkeeper</h1>
+      <h1 class="wk-titel">GreenkeeperAi</h1>
       <p class="wk-lead">Ein Notizbuch für deine Pflanzen. Alles bleibt auf diesem Gerät —
         kein Konto, keine Anmeldung, keine Daten irgendwo draußen.</p>
       <ul class="wk-liste">
@@ -4364,8 +4430,9 @@ function papierkorbRender(){
       <h2 class="scale-title">Feuchte-Skala</h2>
       <span class="scale-note"><span id="scale-zustand">Zuklappen</span> <span class="caret">▾</span></span>
     </button>
+    <button class="wz-i scale-i" id="scale-i" aria-expanded="false" aria-label="Wozu ist die Feuchte-Skala da?">i</button>
     <div id="scale-body">
-    <p class="scale-hint">Jede Pflanze sitzt irgendwo zwischen dauernassem Moor und
+    <p class="scale-hint" id="scale-hilfe" hidden>Jede Pflanze sitzt irgendwo zwischen dauernassem Moor und
       staubtrockener Savanne. Einen Punkt antippen öffnet die Pflanze.</p>
     <div class="scale">
       <div class="scale-track"></div>
@@ -4383,7 +4450,6 @@ function papierkorbRender(){
     <div class="such-zeile"><input class="search" id="q" type="search" placeholder="Suchen: Name, Art, Symptom, Standort …" aria-label="Sammlung durchsuchen" autocomplete="off"><button class="ctrl-auf" id="btn-ctrl-auf" type="button" aria-label="Filter ein- und ausblenden">Filter</button></div>
     <div class="ctrl-row"><span class="ctrl-lab">Gruppieren</span><span id="gruppen"></span></div>
     <div class="ctrl-row"><span class="ctrl-lab">Filter</span><span id="filters"></span></div>
-    <button id="btn-anlegen-kurz" class="kurzweg">+ Neue Pflanze anlegen</button>
   </section>
   <div data-ans="sammlung" id="ctrl-platz" aria-hidden="true"></div>
 
@@ -4394,20 +4460,31 @@ function papierkorbRender(){
   </div>
 
   <section data-ans="sammlung" class="plan" id="anlegen-sec">
-    <h2>Pflanze hinzufügen</h2>
-    <p class="sub">Erst die Art suchen, dann kommen Gießklasse, Licht und die Katzenfrage von allein.</p>
-    <div class="tools"><button id="btn-neu">Formular öffnen</button></div>
+    <div class="sm-kopf-fest">
+      <h2>Pflanze hinzufügen</h2>
+      <button class="wz-i" id="anlegen-i" aria-expanded="false" aria-label="Wie lege ich eine Pflanze an?">i</button>
+    </div>
+    <p class="wz-hilfe" id="anlegen-hilfe" hidden>Zwei Wege führen zum Ziel. Kennst du die Art, such sie in der Bibliothek — deutscher, botanischer oder englischer Name, Tippfehler macht die Suche selbst gerade. Dann kommen Gießklasse, Licht, Dünger und die Katzenfrage von allein. Weißt du nicht, was es ist, lass die Art von einer KI bestimmen: Die App baut die Frage fertig zusammen, du hängst nur dein Foto an und kopierst die Antwort zurück.</p>
     <div class="formwrap" id="form-neu">
-      <div class="bibbox">
-        <p class="bibhint">Erst die Art suchen — deutscher, botanischer oder englischer Name. Tippfehler macht die Suche selbst gerade. Aus der Bibliothek kommen dann Gießklasse, Licht, Dünger und die Katzenfrage von allein.</p>
+      <div class="dok-wahl neu-wahl">
+        <button class="dok-weg" data-neuweg="bib">
+          <b>Art in der Bibliothek suchen</b>
+          <i>Wenn du weißt, was es ist. Über 400 Arten mit fertigen Pflegedaten.</i>
+        </button>
+        <button class="dok-weg" data-neuweg="ki">
+          <b>Von einer KI bestimmen lassen</b>
+          <i>Wenn du es nicht weißt. Foto anhängen, Antwort zurückkopieren.</i>
+        </button>
+      </div>
+      <div class="bibbox" id="neu-bibbox" hidden>
         <div class="bibfeld">
           <input id="f-art" placeholder="z. B. Efeutute, Epipremnum, Pothos" autocomplete="off" spellcheck="false">
           <button id="btn-bib" type="button">Alle ansehen</button>
         </div>
         <div class="biblist" id="bib-liste" hidden></div>
         <div class="bibpick" id="bib-gewaehlt" hidden></div>
-        <div class="kibox">
-          <p class="bibhint"><b>Nicht sicher, welche Art das ist?</b> Lass sie von einer KI bestimmen. Der fertige Prompt steht unten — Foto anhängen musst du dort selbst.</p>
+        </div>
+        <div class="kibox" id="neu-kibox" hidden>
           <div class="kizeile">
             <select id="ki-dienst" aria-label="Welcher Dienst">
               <option value="gemini">Gemini</option>
@@ -4429,12 +4506,11 @@ function papierkorbRender(){
           </div>
         </div>
         <div class="pastebox" id="paste-box" hidden>
-          <p class="bibhint">Die komplette Antwort von Gemini hier hereinkopieren. Die App verteilt sie auf die Felder — du kontrollierst nur noch.</p>
           <textarea id="f-paste" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
           <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
           <p class="pastemeld" id="paste-meld" hidden></p>
+          <div id="neu-unsicher"></div>
         </div>
-      </div>
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="f-name" placeholder="z. B. Rudi"></label>
         <label><span class="lab">Botanisch (falls bekannt)</span><input id="f-bot" placeholder="z. B. Epipremnum aureum"></label>
@@ -4474,44 +4550,75 @@ function papierkorbRender(){
         <label class="fspan"><span class="lab">Notizen</span><textarea id="f-notiz" placeholder="Topf, Substrat, seit wann, Zustand …"></textarea></label>
         <label class="fspan"><span class="lab">Fotos</span><input type="file" id="f-fotos" accept="image/*" multiple></label>
       </div>
-      <div class="tools"><button id="btn-neu-save" class="haupt">Pflanze anlegen</button><button id="btn-neu-cancel">Abbrechen</button></div>
+      <div class="tools"><button id="btn-neu-save" class="haupt">Pflanze anlegen</button><button id="btn-neu-leeren">Formular leeren</button><button id="btn-neu-cancel">Abbrechen</button></div>
     </div>
   </section>
 
-  <section data-ans="sammlung" class="plan" id="vermehr-sec">
-    <h2>Vermehren</h2>
-    <p class="sub">Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
+  <section data-ans="sammlung" class="plan sm sm-erste" id="vermehr-sec" data-sm="vermehren">
+    <h2 class="wz-h2">Vermehren</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-sm-go="vermehren" aria-expanded="false" aria-controls="sm-in-vermehren">
+        <span class="wz-t">Vermehren</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-sm-info="vermehren" aria-expanded="false" aria-label="Wozu ist „Vermehren“ da?">i</button>
+    </div>
+    <div class="wz-in" id="sm-in-vermehren" hidden>
+      <p class="wz-hilfe" hidden>Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
     <label class="fspan" style="display:block;margin-bottom:14px"><span class="lab">Welche Pflanze?</span>
       <select id="ver-pflanze"></select></label>
     <div class="alert info" id="ver-meldung" hidden></div>
     <div id="ver-inhalt"></div>
+    </div>
   </section>
 
-  <section data-ans="sammlung" class="plan">
-    <h2>Stammbaum</h2>
-    <p class="sub">Wer von wem abstammt. Ableger und Teilungen behalten die Eigenschaften der Mutterpflanze.</p>
+  <section data-ans="sammlung" class="plan sm" data-sm="stammbaum">
+    <h2 class="wz-h2">Stammbaum</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-sm-go="stammbaum" aria-expanded="false" aria-controls="sm-in-stammbaum">
+        <span class="wz-t">Stammbaum</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-sm-info="stammbaum" aria-expanded="false" aria-label="Wozu ist der Stammbaum da?">i</button>
+    </div>
+    <div class="wz-in" id="sm-in-stammbaum" hidden>
+      <p class="wz-hilfe" hidden>Wer von wem abstammt. Ableger und Teilungen behalten die Eigenschaften der Mutterpflanze.</p>
     <div class="tree" id="tree"></div>
+    </div>
   </section>
 
-  <section data-ans="sammlung" class="plan">
-    <h2>Gießplan</h2>
-    <p class="sub">Die Intervalle sind Richtwerte. Entscheidend ist die Fingerprobe — außer bei Klasse S, dort gilt das Anstauprinzip.</p>
+  <section data-ans="sammlung" class="plan sm" data-sm="giessplan">
+    <h2 class="wz-h2">Gießplan</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-sm-go="giessplan" aria-expanded="false" aria-controls="sm-in-giessplan">
+        <span class="wz-t">Gießplan</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-sm-info="giessplan" aria-expanded="false" aria-label="Wozu ist der Gießplan da?">i</button>
+    </div>
+    <div class="wz-in" id="sm-in-giessplan" hidden>
+      <p class="wz-hilfe" hidden>Die Intervalle sind Richtwerte. Entscheidend ist die Fingerprobe — außer bei Klasse S, dort gilt das Anstauprinzip.</p>
     <h4>Klassen</h4>
     <div class="t-scroll"><table class="plan-t"><thead><tr><th>Klasse</th><th>Prinzip</th><th>Sommer</th><th>Winter</th></tr></thead><tbody id="klassen"></tbody></table></div>
     <h4>Jahreszeiten-Alarme</h4>
     <div class="t-scroll"><table class="plan-t"><thead><tr><th>Zeitpunkt</th><th>Was passieren muss</th><th>Betrifft</th></tr></thead><tbody id="alarme"></tbody></table></div>
+    </div>
   </section>
 
   <section data-ans="heute" class="plan" id="todo-sec">
-    <h2>Alle offenen Punkte</h2>
-    <p class="sub">Gesammelt aus allen Steckbriefen. Abhaken, bearbeiten und ergänzen geht hier genauso wie in der einzelnen Pflanze.</p>
+    <div class="sm-kopf-fest">
+      <h2>Alle offenen Punkte</h2>
+      <button class="wz-i" id="todo-i" aria-expanded="false" aria-label="Was steht hier?">i</button>
+    </div>
+    <p class="wz-hilfe" id="todo-hilfe" hidden>Gesammelt aus allen Steckbriefen. „Jetzt“ steht oben, darunter alles, was in den nächsten sieben Tagen dran ist. Abhaken, bearbeiten und ergänzen geht hier genauso wie in der einzelnen Pflanze.</p>
     <div id="alltodo"></div>
   </section>
 
-  <section data-ans="sammlung" class="plan" id="wunsch-sec">
-    <h2>Wunschliste</h2>
-    <p class="sub">Pflanzen und Material, die noch fehlen. Abgehakt heißt: besorgt.</p>
+  <section data-ans="sammlung" class="plan sm" id="wunsch-sec" data-sm="wunsch">
+    <h2 class="wz-h2">Wunschliste</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-sm-go="wunsch" aria-expanded="false" aria-controls="sm-in-wunsch">
+        <span class="wz-t">Wunschliste</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-sm-info="wunsch" aria-expanded="false" aria-label="Wozu ist die Wunschliste da?">i</button>
+    </div>
+    <div class="wz-in" id="sm-in-wunsch" hidden>
+      <p class="wz-hilfe" hidden>Pflanzen und Material, die noch fehlen. Abgehakt heißt: besorgt.</p>
     <div id="wunsch"></div>
+    </div>
   </section>
 
   <section data-ans="werkzeuge" class="plan wz" id="doktor-sec" data-wz="doktor">
@@ -4522,7 +4629,7 @@ function papierkorbRender(){
       <button class="wz-i" data-wz-info="doktor" aria-expanded="false" aria-label="Wozu ist der Pflanzendoktor da?">i</button>
     </div>
     <div class="wz-in" id="wz-in-doktor" hidden>
-      <p class="wz-hilfe" hidden>Schritt für Schritt zur wahrscheinlichsten Ursache. Am schnellsten mit Foto und einer KI — die App rechnet aber auch ohne, dann über deine Angaben.</p>
+      <p class="wz-hilfe" hidden>Schritt für Schritt zur wahrscheinlichsten Ursache. Am schnellsten mit Foto und einer KI — die App rechnet aber auch ohne, dann über deine Angaben. Die App sieht dein Bild nicht, eine KI schon: Dienst wählen, öffnen, Foto anhängen, abschicken, Antwort zurück ins Feld. Zustand, Befund und Maßnahmen wandern dann in die gewählte Pflanze; fehlende oder veraltete Angaben im Steckbrief bietet die App dir danach zum Übernehmen an.</p>
     <ol class="dok-schritte" id="dok-fortschritt"></ol>
 
     <div class="dok-stufe" id="dok-s1">
@@ -4566,7 +4673,6 @@ function papierkorbRender(){
 
     <div class="kibox dok-stufe" id="dok-ki-zeile" hidden>
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
-      <p class="bibhint">Die App sieht dein Bild nicht — eine KI schon. Dienst wählen, öffnen, Foto anhängen, abschicken. Die Antwort kommt hier zurück ins Feld.</p>
       <div class="kizeile">
         <select id="dok-dienst" aria-label="Welcher Dienst">
           <option value="gemini">Gemini</option>
@@ -4582,11 +4688,16 @@ function papierkorbRender(){
         <textarea id="dok-ki-text" readonly></textarea>
         <div class="tools"><button id="btn-dok-kopie" class="haupt" type="button">Frage kopieren</button></div>
       </details>
+      <label class="dok-foto" id="dok-foto-feld">
+        <input type="file" accept="image/*" id="dok-datei" hidden>
+        <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
+      </label>
       <div class="pastebox" id="dok-paste-box" hidden>
-        <p class="bibhint">Antwort hier hereinkopieren. Zustand, Befund und Maßnahmen wandern dann in die gewählte Pflanze.</p>
         <textarea id="dok-paste" placeholder="ZUSTAND: …&#10;BEFUND: …&#10;MASSNAHMEN: …"></textarea>
         <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button></div>
       </div>
+      <div id="dok-abgleich-hinweis"></div>
+      <div id="dok-abgleich"></div>
     </div>
     </div>
   </section>
@@ -4937,9 +5048,6 @@ function papierkorbRender(){
       <button id="btn-ru-github">Auf GitHub melden</button>
       <button id="btn-ru-kopie">Text kopieren</button>
     </div>
-    <p class="fhint">Die Mail geht an die Adresse oben. „Auf GitHub melden“ öffnet stattdessen
-      das Repository — dort ist die Meldung öffentlich sichtbar und braucht ein GitHub-Konto.
-      Der Text liegt vorher in der Zwischenablage, du fügst ihn dort nur noch ein.</p>
     <div class="pastebox" id="ru-box" hidden><textarea id="ru-fertig" readonly></textarea></div>
     <p class="kihinweis" id="ru-hinweis"></p>
     </div>
@@ -5048,7 +5156,31 @@ function papierkorbRender(){
   <button data-ans-go="mehr"><span class="tab-i"></span>Mehr</button>
 </nav>
 
+
+<button id="fab-neu" type="button" aria-label="Neue Pflanze anlegen" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 21.5v-11"/>
+    <path d="M9.2 21.5h5.6"/>
+    <path d="M12 12.4C12 7.6 9.6 4.6 5.3 4.1c-.4 5 1.9 8.3 6.7 8.3z"/>
+    <path d="M12 16.2c0-3.6 2.2-5.8 5.7-6.1-.1 3.7-2.1 6.1-5.7 6.1z"/>
+    <circle cx="18.6" cy="5.4" r="4.1" fill="var(--moss)" stroke="none"/>
+    <path d="M18.6 3.5v3.8M16.7 5.4h3.8" stroke="#fff" stroke-width="1.7"/>
+  </svg>
+</button>
+
 <div id="lightbox"><img alt=""></div>
+
+<div id="foto-modal" class="modal" hidden>
+  <div class="modal-box">
+    <h3>Foto löschen?</h3>
+    <p>Das Bild verschwindet aus der Galerie dieser Pflanze. Rückgängig geht das nicht.</p>
+    <div class="tools">
+      <button id="foto-loeschen" class="haupt">Löschen</button>
+      <button id="foto-behalten">Behalten</button>
+    </div>
+  </div>
+</div>
 
 <div id="gift-modal" class="modal" hidden>
   <div class="modal-box">
@@ -5091,8 +5223,35 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '1.3.1';
+const FASSUNG = '1.4';
 const PATCHNOTES = [
+  {
+    nr: '1.4', datum: '2026-08-21', titel: 'Anlegen, Pflanzendoktor und Fotos',
+    neu: [
+      'Neue Pflanzen legst du über den runden Knopf unten rechts an. Er ist in der Sammlung immer erreichbar, egal wie weit du gescrollt hast — die alten Knöpfe im Fließtext sind dafür weggefallen.',
+      'Das Anlegen-Formular fragt jetzt zuerst, wie du vorgehen willst: Art in der Bibliothek suchen oder von einer KI bestimmen lassen. Nur der gewählte Weg wird angezeigt.',
+      'Knopf „Formular leeren“: setzt alle Felder auf Anfang zurück, wenn die eingefügte Antwort zur falschen Pflanze gehörte oder die Bestimmung daneben lag.',
+      'Der Pflanzendoktor nimmt Fotos direkt entgegen — sie landen in der Galerie der gewählten Pflanze.',
+      'Nach einer KI-Antwort gleicht der Doktor den Steckbrief ab und zeigt nur, was fehlt oder abweicht: Botanisch, Wuchsform, Gießklasse, Licht, Katzen, wichtiger Hinweis, Frostgrenze. Einzelne Zeilen lassen sich verwerfen, der Rest wandert auf einen Knopfdruck in die Karte.',
+      'Sagt die KI, dass sie sich nicht sicher ist, steht jetzt da, was sie auf dem Foto nicht erkennen kann und welche zweite Aufnahme die Bestimmung sicher machen würde.',
+      'Fotos haben ein Dreipunktmenü: eines als Profilbild festlegen oder das Bild löschen. Vor dem Löschen wird gefragt.',
+      'Die Aufgabenliste unter „Heute“ trennt jetzt „Jetzt“ von „Diese Woche“.'
+    ],
+    besser: [
+      'Ohne Spitznamen zeigt die Karte „Botanischer Name (deutscher Name)“ statt der internen Kennung. Das Namensfeld bleibt frei und ist wieder das, wofür es gedacht war: für Spitznamen.',
+      'Die Frage an die KI fragt zusätzlich nach Wuchsform, Gießklasse und Frostgrenze — bei Arten außerhalb der Bibliothek blieben diese Felder bisher leer.',
+      'Vermehren, Stammbaum, Gießplan und Wunschliste sind in der Sammlung zu aufklappbaren Blöcken geworden, wie schon bei Werkzeuge und Mehr. Die Feuchte-Skala und die Kartenliste bleiben wie sie waren.',
+      'Erklärtexte stehen überall hinter dem i-Knopf statt dauerhaft im Weg — auch bei der Feuchte-Skala, beim Anlegen und bei den offenen Punkten.',
+      'Das Profilbild gilt jetzt überall gleich: auf der Kachel, im Gießmodus, im Rundgang und auf dem Urlaubszettel. Fotos aus dem Pflanzendoktor werden nie von selbst zum Profilbild, weil sie meist Schäden zeigen.',
+      'Die App heißt überall GreenkeeperAi — auch auf dem Startbildschirm, wo bisher „Pflanzen“ stand.'
+    ],
+    behoben: [
+      'Eine Lichtangabe „hell, indirekt“ wurde als volle Sonne gelesen, weil „indirekt“ das Wort „direkt“ enthält. Außerdem kannte die Übernahme beim Anlegen die Stufe „Schatten“ nicht und machte daraus „hell indirekt“.',
+      'Der Kasten „Kurzeintrag — diese Pflanze hast du selbst angelegt“ ist verschwunden. Am Ende sind alle Pflanzen selbst angelegt, der Hinweis sagte nichts aus.',
+      'Der Knopf „Im Raum“ in der Karte ist weggefallen — das Abteil „Lage“ macht dasselbe.',
+      'Doppelte Erklärungen entfernt: der Installationstext stand in drei Fassungen da, der Hinweis unter den Rückmelde-Knöpfen wiederholte den i-Text, und das 130-cm-Fensterbeispiel stand zweimal im Grundriss.'
+    ]
+  },
   {
     nr: '1.3.1', datum: '2026-08-21', titel: 'Fehlerbehebungen',
     neu: [],
@@ -5178,10 +5337,10 @@ const WUNSCH_START = [
   {id:'w2', text:'Grobe Pinienrinde für Aroideen und Orchideen', done:false}
 ];
 const LEERSTAND = () => ({
-  tasks:{}, added:{}, deleted:{}, wish:null, water:{}, fotos:{}, fotosWeg:{},
+  tasks:{}, added:{}, deleted:{}, wish:null, water:{}, fotos:{}, fotosWeg:{}, profil:{},
   eigene:[], zustand:{}, neueArten:[], blatt:{}, edits:{}, vorrat:[], weg:{},
   ereignisse:{}, gesehen:{}, orte:{}, acc:{giessen:1, aufgaben:1},
-  balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'',
+  balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'', sammlungOffen:null,
   letzteSicherung:null, startGesehen:null, grundrissWunsch:null,
   /* Tierhaltung: aktiv sagt, ob überhaupt Warnungen kommen sollen. */
   tiere:{aktiv:null, arten:['katze']},
@@ -5208,7 +5367,7 @@ function grundwerteErgaenzen(){
   if(S.grundrissWunsch === undefined) S.grundrissWunsch = null;
   /* Ebenso alle Sammlungen, die als Liste erwartet werden. */
   ['eigene','neueArten','vorrat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k] = []; });
-  ['tasks','added','deleted','water','fotos','fotosWeg','zustand','blatt','edits',
+  ['tasks','added','deleted','water','fotos','fotosWeg','profil','zustand','blatt','edits',
    'weg','ereignisse','gesehen','orte'].forEach(k=>{
     if(!S[k] || typeof S[k] !== 'object' || Array.isArray(S[k])) S[k] = {};
   });
@@ -5390,7 +5549,14 @@ function pflanzeHeilen(p){
     klasse: KLASSEN[p.klasse] ? p.klasse : 'B'
   });
 }
-const nice = p => (!p.name || p.name==='Name offen') ? p.art+' ('+p.id+')' : p.name;
+/* Ohne Spitznamen wird der botanische Name gezeigt, der deutsche in
+   Klammern dahinter. Die interne Kennung sagt niemandem etwas. */
+const nice = p => {
+  if(p.name && p.name !== 'Name offen') return p.name;
+  const bot = (p.botanisch || '').trim(), de = (p.art || '').trim();
+  if(bot && de && bot.toLowerCase() !== de.toLowerCase()) return bot + ' (' + de + ')';
+  return bot || de || p.id;
+};
 const kurz = p => (!p.name || p.name==='Name offen') ? p.id : p.name;
 
 /* ══════════════════ Icons ══════════════════ */
@@ -5606,9 +5772,29 @@ function trackerHTML(p){
 function fotosVon(id){
   const basis = (hatBilder && BILDER[id] ? BILDER[id] : []).map((src,i)=>({key:'b'+i, src, datum:null}));
   const weg = S.fotosWeg[id]||[];
-  const eigene = (S.fotos[id]||[]).map(f=>({key:f.key, src:f.src, datum:f.datum}));
+  const eigene = (S.fotos[id]||[]).map(f=>({key:f.key, src:f.src, datum:f.datum, quelle:f.quelle||null}));
   return basis.filter(f=>!weg.includes(f.key)).concat(eigene);
 }
+/* Welches Bild steht auf der Kachel? Von Hand gewählt schlägt alles.
+   Sonst das neueste Foto — aber nie eines aus dem Pflanzendoktor, das
+   zeigt in aller Regel Schäden oder Schädlinge. */
+function profilFoto(id){
+  const fs = fotosVon(id);
+  if(!fs.length) return null;
+  const gewaehlt = S.profil && S.profil[id];
+  if(gewaehlt){
+    const t = fs.find(f=>f.key === gewaehlt);
+    if(t) return t;
+  }
+  const schoen = fs.filter(f=>f.quelle !== 'doktor');
+  const liste = schoen.length ? schoen : fs;
+  return liste[liste.length - 1];
+}
+function istProfil(id, key){
+  const t = profilFoto(id);
+  return !!t && t.key === key;
+}
+
 function bildVerkleinern(file, maxPx, q){
   return new Promise((res, rej)=>{
     const fr = new FileReader();
@@ -5630,7 +5816,7 @@ function bildVerkleinern(file, maxPx, q){
     fr.readAsDataURL(file);
   });
 }
-async function fotosHinzu(id, files){
+async function fotosHinzu(id, files, quelle){
   /* Im großen Bildspeicher ist Platz für deutlich bessere Bilder.
      Ohne ihn bleibt es bei der sparsamen Fassung von früher. */
   const kante = FOTO_GROSS ? 1400 : 620;
@@ -5638,19 +5824,31 @@ async function fotosHinzu(id, files){
   for(const f of files){
     try{
       const src = await bildVerkleinern(f, kante, guete);
-      (S.fotos[id] = S.fotos[id]||[]).push({key:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), src, datum:iso(HEUTE)});
+      (S.fotos[id] = S.fotos[id]||[]).push({key:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), src, datum:iso(HEUTE), quelle:quelle||null});
     }catch(e){ console.warn('Foto konnte nicht gelesen werden', e); }
   }
   sichern();
   render();
 }
+let fotoMenuOffen = null;   /* "pflanzenId|fotoKey" des offenen Menüs */
 function galerieHTML(p){
   const fs = fotosVon(p.id);
-  const bilder = fs.map(f=>`<figure>
+  const bilder = fs.map(f=>{
+    const ist = istProfil(p.id, f.key);
+    const marke = fotoMenuOffen === p.id + '|' + f.key;
+    return `<figure class="${ist?'ist-profil':''}">
       <img src="${f.src}" alt="${esc(nice(p))}">
       ${f.datum?`<figcaption>${new Date(f.datum+'T12:00:00').toLocaleDateString('de-DE')}</figcaption>`:'<figcaption>08.08.2026</figcaption>'}
-      <button class="foto-del" data-do="fotoweg" data-p="${p.id}" data-k="${f.key}" title="Foto entfernen">×</button>
-    </figure>`).join('');
+      ${ist?'<span class="foto-profil-marke">Profil</span>':''}
+      <button class="foto-punkte" data-do="foto-menu" data-p="${p.id}" data-k="${f.key}"
+        aria-label="Was mit diesem Foto tun?" aria-expanded="${marke}">•••</button>
+      ${marke?`<div class="foto-menu">
+        <button data-do="foto-profil" data-p="${p.id}" data-k="${f.key}">
+          <span class="foto-kaest">${ist?'✓':''}</span> Profilbild</button>
+        <button data-do="fotoweg" data-p="${p.id}" data-k="${f.key}">Löschen</button>
+      </div>`:''}
+    </figure>`;
+  }).join('');
   const add = `<label class="foto-add">+ Foto<br>hinzufügen
       <input type="file" accept="image/*" multiple data-foto="${p.id}"></label>`;
   return `<div class="gal">${bilder}${add}</div>`;
@@ -5808,13 +6006,23 @@ function taskBlockHTML(tasks, scope, mitPflanze, addPlant){
   const auf = offeneDone.has(scope);
   let h;
   if(scope === 'global'){
-    const nah = offenT.filter(t=>WANN[wannVon(t)].rang <= 1);
+    /* Drei Stufen statt zwei: was jetzt dran ist, steht oben und offen.
+       „Diese Woche“ sammelt alles, was in den nächsten sieben Tagen
+       anfällt — ohne das, was heute schon in „Jetzt“ steht. */
+    const jetzt = offenT.filter(t=>WANN[wannVon(t)].rang === 0);
+    const woche = offenT.filter(t=>WANN[wannVon(t)].rang === 1);
     const spaeter = offenT.filter(t=>WANN[wannVon(t)].rang > 1);
-    nah.sort((a,b)=>WANN[wannVon(a)].rang - WANN[wannVon(b)].rang);
     const aufSp = offeneDone.has('spaeter');
-    h = nah.length
-      ? taskGruppenHTML(nah)
-      : `<p style="color:var(--peat);font-style:italic;margin:4px 0 8px">Diese Woche ist nichts offen.</p>`;
+    const aufWo = offeneDone.has('woche');
+    h = jetzt.length
+      ? taskGruppenHTML(jetzt)
+      : `<p style="color:var(--peat);font-style:italic;margin:4px 0 8px">Jetzt ist nichts offen.</p>`;
+    if(woche.length){
+      h += `<div class="done-wrap${aufWo?'':' closed'}" data-scope="woche">
+        <button class="done-head" data-do="fold-woche" aria-expanded="${aufWo}">
+          <span class="caret">▾</span> Diese Woche (${woche.length})</button>
+        ${taskGruppenHTML(woche)}</div>`;
+    }
     if(spaeter.length){
       h += `<div class="done-wrap${aufSp?'':' closed'}" data-scope="spaeter">
         <button class="done-head" data-do="fold-spaeter" aria-expanded="${aufSp}">
@@ -5968,7 +6176,6 @@ function schnellLeiste(p){
       <button class="sb sb-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute gegossen ✓':'Gegossen'}</button>
       <button class="sb" data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
       <button class="sb" data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
-      <button class="sb" data-do="grundriss-fuer" data-p="${p.id}">Im Raum</button>
       <button class="sb" data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
       <button class="sb" data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
       <button class="sb" data-do="karte-zu-oben" data-p="${p.id}">Zuklappen</button>
@@ -6130,7 +6337,8 @@ document.addEventListener('change', e=>{
 function cardHTML(p){
   const K = KLASSEN[p.klasse];
   const fs = fotosVon(p.id);
-  const thumb = fs[0] ? `<span class="thumb" style="background-image:url('${fs[0].src}')" aria-hidden="true"></span>` : '';
+  const pf = profilFoto(p.id);
+  const thumb = pf ? `<span class="thumb" style="background-image:url('${pf.src}')" aria-hidden="true"></span>` : '';
   const auf = offen.has(p.id);
   const st = giessStatus(p);
   const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
@@ -6148,8 +6356,7 @@ function cardHTML(p){
       ${warnungenHTML(p)}
       ${kartenReiter(p.id, [
         {key:'allgemein', titel:'Allgemein', inhalt:
-          `<div class="alert info"><strong>Kurzeintrag.</strong> Diese Pflanze hast du selbst angelegt. Über „Bearbeiten“ kannst du alle Angaben jederzeit ändern.</div>`
-          + acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
+          acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
           + acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')
           + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')},
         {key:'pflege', titel:'Pflege', inhalt:
@@ -6368,12 +6575,29 @@ document.addEventListener('click', e=>{
 
   if(a==='giessen'){ giessen(btn.dataset.p); render(); return; }
 
-  if(a==='fotoweg'){
+  if(a==='foto-menu'){
+    e.stopPropagation();
+    const marke = btn.dataset.p + '|' + btn.dataset.k;
+    fotoMenuOffen = (fotoMenuOffen === marke) ? null : marke;
+    render(); return;
+  }
+
+  if(a==='foto-profil'){
     e.stopPropagation();
     const id = btn.dataset.p, k = btn.dataset.k;
-    if(k.charAt(0)==='u'){ S.fotos[id] = (S.fotos[id]||[]).filter(f=>f.key!==k); }
-    else { (S.fotosWeg[id] = S.fotosWeg[id]||[]).push(k); }
+    /* Ein zweites Antippen nimmt die Wahl zurück — dann entscheidet
+       wieder das neueste Foto, das nicht aus dem Doktor stammt. */
+    if(S.profil[id] === k) delete S.profil[id]; else S.profil[id] = k;
+    fotoMenuOffen = null;
     sichern(); render(); return;
+  }
+
+  if(a==='fotoweg'){
+    e.stopPropagation();
+    fotoLoeschZiel = {id: btn.dataset.p, k: btn.dataset.k};
+    fotoMenuOffen = null;
+    $('#foto-modal').hidden = false;
+    return;
   }
 
   if(a==='pflanze-weg'){
@@ -6412,6 +6636,10 @@ document.addEventListener('click', e=>{
   }
   if(a==='fold-spaeter'){
     if(offeneDone.has('spaeter')) offeneDone.delete('spaeter'); else offeneDone.add('spaeter');
+    render(); return;
+  }
+  if(a==='fold-woche'){
+    if(offeneDone.has('woche')) offeneDone.delete('woche'); else offeneDone.add('woche');
     render(); return;
   }
   if(a==='tg-auf'){
@@ -6467,11 +6695,74 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ══════════════════ Pflanze anlegen ══════════════════ */
-$('#btn-neu').onclick = ()=>{
-  const f = $('#form-neu'); f.classList.toggle('on');
-  if(f.classList.contains('on')) f.scrollIntoView({behavior:'smooth', block:'nearest'});
+$('#btn-neu-cancel').onclick = ()=>{
+  $('#form-neu').classList.remove('on');
+  neuWegSetzen(null);
+  fabZeichnen();
 };
-$('#btn-neu-cancel').onclick = ()=>$('#form-neu').classList.remove('on');
+
+/* ── Alles auf Anfang ──────────────────────────────────────
+   Wird nach dem Anlegen von selbst aufgerufen und lässt sich über
+   „Formular leeren“ auch von Hand auslösen — nützlich, wenn die
+   eingefügte Antwort zur falschen Pflanze gehörte. */
+function formularLeeren(){
+  ['f-name','f-art','f-bot','f-typ','f-notiz','f-paste','f-wichtig'].forEach(x=>{
+    if($('#'+x)) $('#'+x).value = '';
+  });
+  ['f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz'].forEach(x=>{
+    const el = $('#'+x); if(el) el.selectedIndex = 0;
+  });
+  if($('#f-fotos')) $('#f-fotos').value = '';
+  if(typeof formLageZeichnen === 'function') formLageZeichnen();
+  gewaehlteArt = null; artManuell = false; letzteKiAntwort = null;
+  $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
+  $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
+  const uns = $('#neu-unsicher'); if(uns) uns.innerHTML = '';
+  zustandListe(null);
+  if(typeof zustandHinweis === 'function') zustandHinweis();
+  neuWegSetzen(null);
+}
+$('#btn-neu-leeren').onclick = ()=>{
+  formularLeeren();
+  const meld = $('#paste-meld');
+  meld.hidden = false; meld.className = 'pastemeld';
+  meld.textContent = 'Formular geleert. Du kannst von vorn anfangen.';
+};
+
+/* Welcher der beiden Wege ist gewählt? null heißt: noch keiner. */
+let neuWeg = null;
+function neuWegSetzen(weg){
+  neuWeg = weg;
+  const bib = document.getElementById('neu-bibbox');
+  const ki  = document.getElementById('neu-kibox');
+  if(bib) bib.hidden = weg !== 'bib';
+  if(ki)  ki.hidden  = weg !== 'ki';
+  document.querySelectorAll('[data-neuweg]').forEach(b=>
+    b.classList.toggle('on', b.dataset.neuweg === weg));
+}
+document.addEventListener('click', e=>{
+  const w = e.target.closest('[data-neuweg]');
+  if(!w) return;
+  e.preventDefault();
+  neuWegSetzen(neuWeg === w.dataset.neuweg ? null : w.dataset.neuweg);
+  if(neuWeg === 'bib') setTimeout(()=>$('#f-art').focus(), 120);
+});
+
+/* Der schwebende Knopf ist der einzige Weg ins Formular. Er steht nur
+   auf der Sammlung und verschwindet, solange das Formular offen ist. */
+function fabZeichnen(){
+  const fab = document.getElementById('fab-neu'); if(!fab) return;
+  const sammlung = document.body.dataset.ansicht === 'sammlung';
+  fab.hidden = !sammlung || $('#form-neu').classList.contains('on');
+}
+const fabKnopf = document.getElementById('fab-neu');
+if(fabKnopf) fabKnopf.onclick = ()=>{
+  $('#form-neu').classList.add('on');
+  neuWegSetzen(null);
+  fabZeichnen();
+  const sec = document.getElementById('anlegen-sec');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+};
 /* Die frühere, einfachere Fassung des Anlegen-Knopfes stand hier. Sie wurde
    später durch die Version mit Bibliothekssuche ersetzt, die weiter unten
    folgt und diese hier ohnehin überschrieben hat. */
@@ -7117,6 +7408,22 @@ $('#neu-alle').onclick = ()=>{
 fassungPruefen();
 $('#gift-modal').addEventListener('click', e=>{ if(e.target.id==='gift-modal') $('#gift-modal').hidden = true; });
 
+/* ── Foto löschen: erst fragen, dann handeln ────────────── */
+let fotoLoeschZiel = null;
+function fotoLoeschEnde(){ fotoLoeschZiel = null; $('#foto-modal').hidden = true; }
+$('#foto-behalten').onclick = ()=>{ fotoLoeschEnde(); render(); };
+$('#foto-modal').addEventListener('click', e=>{ if(e.target.id==='foto-modal'){ fotoLoeschEnde(); render(); } });
+$('#foto-loeschen').onclick = ()=>{
+  if(!fotoLoeschZiel){ fotoLoeschEnde(); return; }
+  const {id, k} = fotoLoeschZiel;
+  if(k.charAt(0)==='u'){ S.fotos[id] = (S.fotos[id]||[]).filter(f=>f.key!==k); }
+  else { (S.fotosWeg[id] = S.fotosWeg[id]||[]).push(k); }
+  /* War es das Profilbild, entscheidet wieder die Automatik. */
+  if(S.profil[id] === k) delete S.profil[id];
+  fotoLoeschEnde();
+  sichern(); render();
+};
+
 /* ── Suche im Feld ───────────────────────────────────────── */
 let suchTimer = null;
 $('#f-art').addEventListener('input', ()=>{
@@ -7226,24 +7533,14 @@ $('#btn-paste-los').onclick = ()=>{
     if(d.bot) $('#f-bot').value = d.bot;
     artManuell = true;
     uebernommen.push('Art übernommen, aber nicht in der Bibliothek gefunden');
-    if(d.licht){
-      const l = norm(d.licht);
-      const treffer2 = /voll|prall|direkt.*sonn|sonnig/.test(l) ? 'voll'
-        : /indirekt|halbschatt|schatt|diffus/.test(l) ? 'indirekt'
-        : /hell/.test(l) ? 'hell' : null;
-      if(treffer2) $('#f-sonne').value = treffer2;
-    }
-    if(d.katzen){
-      const k = norm(d.katzen);
-      if(/unbedenklich|ungiftig|nicht giftig|sicher/.test(k)) $('#f-giftig').value = 'nein';
-      else if(/giftig|toxisch/.test(k)) $('#f-giftig').value = 'ja';
-    }
+    const licht = lichtRaten(d.licht);
+    if(licht) $('#f-sonne').value = licht;
+    const gift = giftRaten(d.katzen);
+    if(gift === true) $('#f-giftig').value = 'ja';
+    else if(gift === false) $('#f-giftig').value = 'nein';
   }
-  /* Der deutsche Artname wandert ins Namensfeld, solange dort nichts steht */
-  if(!$('#f-name').value.trim() && (d.art || (treffer && treffer.de))){
-    $('#f-name').value = d.art || treffer.de;
-    uebernommen.push('Name vorgeschlagen');
-  }
+  /* Das Namensfeld ist für Spitznamen da und bleibt frei. Ohne Eintrag
+     zeigt die Karte ohnehin „Botanisch (deutscher Name)“. */
   /* Gießart und Besonderheit wandern direkt in die neuen Felder, damit
      sie später ohne Nacharbeit auf dem Urlaubszettel stehen. */
   if(d.giessart){
@@ -7255,6 +7552,11 @@ $('#btn-paste-los').onclick = ()=>{
       : /durchdring|durchtrank|reichlich|kraftig/.test(g) ? 'durch' : null;
     if(treffer3){ $('#f-giessart').value = treffer3; uebernommen.push('Gießart gesetzt'); }
   }
+  if(d.typ && !$('#f-typ').value.trim()){
+    $('#f-typ').value = d.typ; uebernommen.push('Wuchsform übernommen');
+  }
+  const kcode = klasseRaten(d.klasse);
+  if(kcode && !treffer){ $('#f-klasse').value = kcode; uebernommen.push('Gießklasse gesetzt'); }
   if(d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))){
     $('#f-wichtig').value = d.wichtig;
     uebernommen.push('Wichtiger Hinweis übernommen');
@@ -7270,7 +7572,7 @@ $('#btn-paste-los').onclick = ()=>{
   if(d.befund) notiz.push('Befund: ' + d.befund);
   if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
   if(d.schritte) notiz.push('Schritte: ' + d.schritte);
-  if(d.sicher) notiz.push('Sicherheit der Bestimmung: ' + d.sicher);
+  if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
   if(d.verw) notiz.push('Könnte verwechselt sein mit: ' + d.verw);
   if(notiz.length){
     const alt = $('#f-notiz').value.trim();
@@ -7280,7 +7582,35 @@ $('#btn-paste-los').onclick = ()=>{
   meld.className = 'pastemeld';
   const gelesen = Object.keys(d).length;
   meld.textContent = uebernommen.join(' · ') + `. ${gelesen} Angaben gelesen — bitte kurz kontrollieren, dann anlegen.`;
+  unsicherZeigen('#neu-unsicher', d);
 };
+
+/* ── Wenn sich die KI nicht sicher ist ─────────────────────
+   Statt die Bestimmung stillschweigend zu übernehmen, wird gesagt,
+   woran es hakt und welches zweite Foto weiterhelfen würde. */
+function unsicherZeigen(wohin, d){
+  const el = document.querySelector(wohin); if(!el) return;
+  const stufe = norm(d.sicher || '');
+  const knapp = stufe && !/hoch|high|sicher/.test(stufe);
+  const fehlt = d.fehlt && !/^keine?$|^nichts$|^-$/.test(norm(d.fehlt)) ? d.fehlt : '';
+  if(!knapp && !fehlt){ el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="dok-unsicher">
+    <b>Die Bestimmung ist noch nicht eindeutig.</b>
+    ${fehlt ? ' ' + esc(fehlt) : ' Ein zweites Foto aus einem anderen Winkel würde helfen.'}
+    <br>Mach die Aufnahme, häng sie an dieselbe Unterhaltung an und kopiere die neue Antwort hier herein.</div>`;
+}
+
+/* Alltagswörter der KI auf die vier Gießklassen abbilden. */
+function klasseRaten(text){
+  if(!text) return null;
+  const t = norm(text);
+  if(/^[abcs]$/i.test(String(text).trim())) return String(text).trim().toUpperCase();
+  if(/anstau|karniv|moor|dauernass/.test(t)) return 'S';
+  if(/kakt|sukkul|durchtrock|sparsam|trocken/.test(t)) return 'C';
+  if(/durstig|feucht|viel wasser|hoch/.test(t)) return 'A';
+  if(/normal|mittel|standard/.test(t)) return 'B';
+  return null;
+}
 
 /* ── Raum und Stellplatz im Anlegeformular ───────────────── */
 /* Dieselben Listen wie in der Karte. Beides ist freiwillig — wer
@@ -7379,13 +7709,7 @@ $('#btn-neu-save').onclick = async ()=>{
   }
   letzteKiAntwort = null;
   if(files && files.length) await fotosHinzu(id, Array.from(files));
-  ['f-name','f-art','f-bot','f-typ','f-notiz','f-paste'].forEach(x=>{ if($('#'+x)) $('#'+x).value=''; });
-  formLageZeichnen();
-  $('#f-fotos').value = '';
-  gewaehlteArt = null; artManuell = false;
-  $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
-  $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
-  zustandListe(null);
+  formularLeeren();
   $('#form-neu').classList.remove('on');
   render();
   if(kiAufgaben){
@@ -7461,13 +7785,7 @@ zustandListe(null);
 meldeRender();
 
 
-/* Schnellzugriff aus der Sammlung heraus */
-const kurzweg = document.getElementById('btn-anlegen-kurz');
-if(kurzweg) kurzweg.onclick = ()=>{
-  $('#form-neu').classList.add('on');
-  document.getElementById('anlegen-sec').scrollIntoView({behavior:'smooth', block:'start'});
-  setTimeout(()=>$('#f-art').focus(), 420);
-};
+fabZeichnen();
 
 </script>
 <script>
@@ -8015,8 +8333,7 @@ function kantenMassFragen(r, id){
   const roh = prompt(
     art.name + ' — genaue Maße\n\n'
     + 'Breite in cm (höchstens ' + KACHEL + ', eine Kachel), dann Unterkante, dann Oberkante.\n'
-    + 'Mit Komma trennen. Leer lassen setzt zurück auf die Standardwerte.\n\n'
-    + 'Beispiel für ein 130 cm breites Fenster: drei Kacheln setzen und bei einer davon 30 eintragen.',
+    + 'Mit Komma trennen. Leer lassen setzt zurück auf die Standardwerte.',
     m.b + ', ' + m.sockel + ', ' + m.oben);
   if(roh === null) return;
   if(!roh.trim()){ kantenMassSetzen(r, id, {}); planRender(); return; }
@@ -8430,8 +8747,8 @@ function gmZeichnen(){
   const st = giessStatus(p);
   const z = zustandVon(p);
   const kl = KLASSEN[p.klasse] || {};
-  const fotoListe = fotosVon(p.id);
-  const foto = fotoListe.length ? fotoListe[0].src : null;
+  const pfoto = profilFoto(p.id);
+  const foto = pfoto ? pfoto.src : null;
   const stopp = stoppRest(p);
   const lage = st.stand === 'stopp' ? 'Gießpause'
     : st.stand === 'unbekannt' ? 'Noch nie eingetragen'
@@ -8714,8 +9031,65 @@ function ansichtZeigen(name, merken){
     if(S.wzOffen === 'grundriss' && typeof planRender === 'function') planRender();
   }
   if(name === 'mehr') mehrZeichnen();
+  if(name === 'sammlung') sammlungZeichnen();
+  document.body.dataset.ansicht = name;
+  if(typeof fabZeichnen === 'function') fabZeichnen();
   zaehlerAktualisieren();
 }
+
+/* ── Sammlung: dasselbe Akkordeon-Muster wie Werkzeuge und Mehr ──
+   Bewusst wieder eine eigene Funktion mit eigenem Merker, damit sich
+   die drei Seiten nicht gegenseitig zuklappen. Die Feuchte-Skala und
+   die Kartenliste bleiben außen vor — die gehören immer sichtbar. */
+const SAMMEL_BLOECKE = ['vermehren','stammbaum','giessplan','wunsch'];
+function sammlungZeichnen(){
+  document.querySelectorAll('[data-sm]').forEach(sec=>{
+    const auf = sec.dataset.sm === S.sammlungOffen;
+    sec.classList.toggle('auf', auf);
+    const box = sec.querySelector('.wz-in');
+    if(box) box.hidden = !auf;
+    const kopf = sec.querySelector('.wz-kopf');
+    if(kopf) kopf.setAttribute('aria-expanded', String(auf));
+  });
+}
+function sammlungOeffnen(key, springen){
+  S.sammlungOffen = SAMMEL_BLOECKE.includes(key) ? key : null;
+  sichern();
+  sammlungZeichnen();
+  if(springen && S.sammlungOffen){
+    const sec = document.querySelector(`[data-sm="${S.sammlungOffen}"]`);
+    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+document.addEventListener('click', e=>{
+  const kopf = e.target.closest('[data-sm-go]');
+  if(kopf){
+    const key = kopf.dataset.smGo;
+    if(S.sammlungOffen === key) sammlungOeffnen(null);
+    else sammlungOeffnen(key, true);
+    return;
+  }
+  const info = e.target.closest('[data-sm-info]');
+  if(info){
+    const sec = info.closest('[data-sm]');
+    const hilfe = sec && sec.querySelector('.wz-hilfe');
+    if(!hilfe) return;
+    if(S.sammlungOffen !== sec.dataset.sm) sammlungOeffnen(sec.dataset.sm);
+    hilfe.hidden = !hilfe.hidden;
+    info.setAttribute('aria-expanded', String(!hilfe.hidden));
+  }
+});
+
+/* Feste Überschriften mit i-Knopf: Heute, Anlegen, Feuchte-Skala */
+[['todo-i','todo-hilfe'], ['anlegen-i','anlegen-hilfe'], ['scale-i','scale-hilfe']].forEach(([kn, hi])=>{
+  const k = document.getElementById(kn), h = document.getElementById(hi);
+  if(!k || !h) return;
+  k.onclick = ev=>{
+    ev.stopPropagation();
+    h.hidden = !h.hidden;
+    k.setAttribute('aria-expanded', String(!h.hidden));
+  };
+});
 
 /* ── Werkzeuge: immer nur ein Block offen ─────────────────────
    Untereinander waren die drei Werkzeuge eine sehr lange Seite, auf der
@@ -8832,8 +9206,8 @@ function ubTagPlus(isoStr, n){
 }
 
 function ubBild(p){
-  const f = (typeof fotosVon === 'function') ? fotosVon(p.id) : [];
-  return f.length ? f[0].src : null;
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  return f ? f.src : null;
 }
 
 /* Standort in Worten — für alles, was nicht auf dem Plan steht. */
@@ -9730,10 +10104,16 @@ function dokPromptBauen(){
   zeilen.push('');
   zeilen.push('ART: deutscher Name der Art, falls du sie am Foto erkennst');
   zeilen.push('BOTANISCH: wissenschaftlicher Name');
+  zeilen.push('TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rosettenpflanze, Kaktus, Kraut');
+  zeilen.push('SICHERHEIT: hoch, mittel oder niedrig');
+  zeilen.push('FEHLT: nur wenn SICHERHEIT nicht hoch ist — was du auf dem Foto nicht erkennen kannst und welche zusätzliche Aufnahme weiterhelfen würde. Sonst das Wort keine');
   zeilen.push('ZUSTAND: einer von: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung');
   zeilen.push('BEFUND: zwei bis drei Sätze, was du siehst und was die wahrscheinlichste Ursache ist');
   zeilen.push('GIESSEN: wie oft und wie viel bei genau diesem Zustand');
   zeilen.push('LICHT: voll, hell oder indirekt');
+  zeilen.push('GIESSKLASSE: genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau');
+  zeilen.push('FROST: die niedrigste Temperatur in Grad Celsius, die die Art verträgt — oder das Wort winterhart');
+  zeilen.push('WICHTIG: eine kurze Anweisung, deren Missachtung genau diese Art umbringt — oder das Wort keine');
   zeilen.push('KATZEN: giftig oder unbedenklich');
   zeilen.push('MASSNAHMEN: die drei wichtigsten Schritte, mit Semikolon getrennt');
   return zeilen.join('\n');
@@ -9761,6 +10141,21 @@ document.addEventListener('click', e=>{
     dokAufbau(); dokErgebnis(); return;
   }
   const btn = e.target.closest('[data-do]'); if(!btn) return;
+  if(btn.dataset.do === 'ab-weg'){
+    dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
+    dokAbgleichZeichnen(); return;
+  }
+  if(btn.dataset.do === 'ab-alle'){
+    if(!dokPflanze || !dokVorschlaege.length) return;
+    const felder = {};
+    dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
+    aenderungSetzen(dokPflanze, felder);
+    const anzahl = dokVorschlaege.length;
+    dokVorschlaege = [];
+    dokAbgleichZeichnen();
+    dokKiHinweis(anzahl + (anzahl === 1 ? ' Angabe' : ' Angaben') + ' in die Karte übernommen.', 'ok');
+    render(); return;
+  }
   if(btn.dataset.do === 'dok-tasks'){
     const d = DIAGNOSEN.find(x=>x.id===btn.dataset.d);
     if(!d || !dokPflanze) return;
@@ -9879,6 +10274,93 @@ if(dokDetails) dokDetails.addEventListener('toggle', ()=>{
 $('#dok-dienst').value = S.kiDienst || 'gemini';
 $('#dok-dienst').onchange = ()=>{ S.kiDienst = $('#dok-dienst').value; sichern(); };
 
+/* ── Steckbrief gegen die KI-Antwort halten ────────────────
+   Gezeigt wird ausschließlich, was in der Karte fehlt oder von der
+   Antwort abweicht. Steht alles schon richtig drin, erscheint gar
+   nichts — das hält die Rückmeldung kurz. */
+let dokVorschlaege = [];
+const AB_FELDER = [
+  {feld:'botanisch', name:'Botanisch', lies:d=>d.bot,
+   ist:p=>p.botanisch || '', zeig:v=>v},
+  {feld:'typ', name:'Wuchsform', lies:d=>d.typ,
+   ist:p=>p.typ || '', zeig:v=>v},
+  {feld:'klasse', name:'Gießklasse', lies:d=>klasseRaten(d.klasse),
+   ist:p=>p.klasse || '', zeig:v=>v + ' — ' + ((KLASSEN[v]||{}).kurz || '')},
+  {feld:'sonne', name:'Licht', lies:d=>lichtRaten(d.licht),
+   ist:p=>p.sonne || '', zeig:v=>(SONNE[v]||{}).text || v},
+  {feld:'giftig', name:'Katzen', lies:d=>giftRaten(d.katzen),
+   ist:p=>p.giftig === true ? true : (p.giftig === false ? false : ''),
+   zeig:v=>v === true ? 'Giftig' : 'Unbedenklich'},
+  {feld:'wichtig', name:'Wichtig', lies:d=>
+     (d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))) ? d.wichtig : null,
+   ist:p=>p.wichtig || '', zeig:v=>v},
+  {feld:'frostMin', name:'Frost', lies:d=>frostRaten(d.frost),
+   ist:p=>p.frostMin != null ? p.frostMin : '', zeig:v=>v + ' °C'}
+];
+function lichtRaten(t){
+  if(!t) return null; const x = norm(t);
+  /* „indirekt“ enthält „direkt“ — der Fall muss zuerst weg, sonst
+     landet jede indirekte Angabe in der vollen Sonne. */
+  if(/indirekt|diffus|keine direkte/.test(x)) return 'indirekt';
+  if(/schatt/.test(x)) return 'schatten';
+  if(/voll|prall|direkt|sonnig/.test(x)) return 'voll';
+  if(/hell/.test(x)) return 'hell';
+  return null;
+}
+function giftRaten(t){
+  if(!t) return null; const x = norm(t);
+  if(/unbedenklich|ungiftig|nicht giftig|sicher/.test(x)) return false;
+  if(/giftig|toxisch/.test(x)) return true;
+  return null;
+}
+function frostRaten(t){
+  if(!t) return null;
+  if(/winterhart/.test(norm(t))) return null;
+  const m = String(t).match(/-?\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+function dokAbgleichZeigen(d){
+  const ziel = $('#dok-abgleich'); if(!ziel) return;
+  dokVorschlaege = [];
+  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
+  if(!p){ ziel.innerHTML = ''; return; }
+  AB_FELDER.forEach(f=>{
+    const neu = f.lies(d);
+    if(neu === null || neu === undefined || neu === '') return;
+    const alt = f.ist(p);
+    if(String(alt) === String(neu)) return;
+    dokVorschlaege.push({feld:f.feld, name:f.name, wert:neu,
+      altText: alt === '' ? '' : f.zeig(alt), neuText: f.zeig(neu)});
+  });
+  dokAbgleichZeichnen();
+}
+function dokAbgleichZeichnen(){
+  const ziel = $('#dok-abgleich'); if(!ziel) return;
+  if(!dokVorschlaege.length){ ziel.innerHTML = ''; return; }
+  ziel.innerHTML = `<div class="abgleich">
+    <h4>Das steht noch nicht so in der Karte</h4>
+    ${dokVorschlaege.map((v,i)=>`<div class="ab-zeile">
+      <span class="ab-feld">${esc(v.name)}</span>
+      <span class="ab-wert">${v.altText?`<span class="ab-alt">${esc(v.altText)}</span> → `:''}${esc(v.neuText)}</span>
+      <button class="ab-weg" data-do="ab-weg" data-i="${i}" aria-label="Diese Zeile verwerfen">×</button>
+    </div>`).join('')}
+    <div class="tools"><button class="haupt" data-do="ab-alle">Alles übernehmen</button></div>
+  </div>`;
+}
+
+/* Fotos aus dem Doktor zeigen meist Schäden. Sie landen in der
+   Galerie, werden aber nicht von selbst zum Profilbild. */
+const dokDatei = document.getElementById('dok-datei');
+if(dokDatei) dokDatei.onchange = async ()=>{
+  if(!dokDatei.files || !dokDatei.files.length) return;
+  if(!dokPflanze){ dokKiHinweis('Wähle oben zuerst eine Pflanze aus.', 'warn'); dokDatei.value = ''; return; }
+  await fotosHinzu(dokPflanze, Array.from(dokDatei.files), 'doktor');
+  const t = document.getElementById('dok-foto-txt');
+  if(t) t.textContent = 'Foto hinzugefügt ✓ — noch eines?';
+  dokDatei.value = '';
+};
+
 $('#btn-dok-paste').onclick = ()=>{
   const d = geminiLesen($('#dok-paste').value);
   if(!Object.keys(d).length){
@@ -9902,10 +10384,12 @@ $('#btn-dok-paste').onclick = ()=>{
       const n = massnahmenZuAufgaben(dokPflanze, d.schritte.split(/[;·]|\s\u2013\s/), 'doktor');
       if(n) teile.push(n + (n === 1 ? ' Aufgabe angelegt' : ' Aufgaben angelegt'));
     }
+    dokAbgleichZeigen(d);
     render();
   } else {
     teile.push('Keine Pflanze gewählt — die Antwort steht nur hier');
   }
+  unsicherZeigen('#dok-abgleich-hinweis', d);
   dokKiHinweis(teile.join(' · ') + '.', 'ok');
 };
 
@@ -10516,8 +11000,8 @@ function rgZeichnen(){
   const e = rgEinst();
   const p = rgListe[rgIndex];
   const seit = tageSeitGesehen(p.id);
-  const fotoListe = fotosVon(p.id);
-  const foto = fotoListe.length ? fotoListe[0].src : null;
+  const pfoto = profilFoto(p.id);
+  const foto = pfoto ? pfoto.src : null;
   const heute = ereignisse(p.id).filter(x=>x.datum === iso(HEUTE));
   const z = zustandVon(p);
   const wo = typeof gmStandort === 'function' ? gmStandort(p) : lageVon(p);
@@ -10800,6 +11284,7 @@ function installWeg(){
     return 'In Safari unten auf das Teilen-Symbol tippen, dann „Zum Home-Bildschirm“.';
   return 'Im Menü deines Browsers auf „App installieren“ beziehungsweise „Zum Startbildschirm hinzufügen“.';
 }
+const INSTALL_NUTZEN = 'Eigenes Symbol auf dem Startbildschirm, kein Browserrahmen, läuft auch ohne Netz. Die Daten bleiben dieselben.';
 function installAngebot(){
   const zeigen = installMoeglich();
 
@@ -10809,8 +11294,7 @@ function installAngebot(){
     const t = document.getElementById('wk-install-text');
     const k = document.getElementById('btn-wk-install');
     if(t) t.textContent = installEreignis
-      ? 'Eigenes Symbol auf dem Startbildschirm, kein Browserrahmen, läuft auch ohne Netz. Die Daten bleiben dieselben.'
-      : installWeg();
+      ? INSTALL_NUTZEN : installWeg();
     if(k) k.hidden = !installEreignis;
   }
 
@@ -10819,9 +11303,7 @@ function installAngebot(){
     band.hidden = !zeigen || S.installBandWeg === true;
     if(!band.hidden){
       band.innerHTML = `<b>Auf den Startbildschirm legen</b>
-        <p>${esc(installEreignis
-          ? 'Eigenes Symbol, kein Browserrahmen, läuft auch ohne Netz. Die Daten bleiben dieselben.'
-          : installWeg())}</p>
+        <p>${esc(installEreignis ? INSTALL_NUTZEN : installWeg())}</p>
         <div class="tools">
           ${installEreignis ? '<button data-do="install-jetzt" class="haupt">Jetzt installieren</button>' : ''}
           <button data-do="install-band-weg">Nicht mehr anzeigen</button>

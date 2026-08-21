@@ -1,6 +1,6 @@
 {
-  "name": "Pflanzenglossar",
-  "short_name": "Pflanzen",
+  "name": "GreenkeeperAi",
+  "short_name": "Greenkeeper",
   "description": "Pflege, Standort und Substrat für Zimmer- und Balkonpflanzen. Läuft offline, alle Daten bleiben auf dem Gerät.",
   "lang": "de",
   "dir": "ltr",
