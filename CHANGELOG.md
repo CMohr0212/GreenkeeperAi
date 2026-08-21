@@ -4,6 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 1.3.1 — 21. August 2026
+**Fehlerbehebungen**
+
+### Besser
+- Sicherungen heißen jetzt auf beiden Wegen gleich — auch beim Teilen ersetzt eine neue Sicherung die vorherige, statt sich zu stapeln.
+
+### Behoben
+- Der einfache Modus hat den Grundriss und den Blattzähler nicht ausgeblendet. Beides verschwindet jetzt tatsächlich.
+- Eine unvollständige Pflanze aus einer älteren Sicherung konnte die gesamte Anzeige stilllegen — die App zeigte dann gar nichts mehr, obwohl alle anderen Pflanzen in Ordnung waren.
+- Dasselbe konnte ein Gießverlauf im alten Format auslösen. Beide Fälle werden jetzt abgefangen.
+- Der Bereich „Was sich geändert hat" ließ sich nicht aufklappen und sprang stattdessen zur Sicherung.
+
+---
+
 ## 1.3 — 21. August 2026
 **Sicherung, einfacher Modus und Warnungen**
 

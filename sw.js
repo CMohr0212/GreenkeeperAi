@@ -5,7 +5,7 @@
    nächsten Öffnen die neue Fassung.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'pflanzenglossar-v3';
+const VERSION = 'pflanzenglossar-v4';
 const DATEIEN = [
   './',
   './index.html',
