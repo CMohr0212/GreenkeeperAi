@@ -425,6 +425,20 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .modal-box{background:var(--paper);border:1px solid var(--terra);border-radius:5px;padding:20px;max-width:420px;width:100%}
 .modal-box h3{margin:0 0 9px;font-size:var(--t-xl);color:var(--terra)}
 .modal-box p{margin:0 0 14px;font-size:var(--t-md);line-height:1.6}
+.neu-box{max-width:460px;max-height:80vh;display:flex;flex-direction:column}
+.neu-box #neu-inhalt{overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:6px}
+
+/* Änderungsliste — je Fassung ein Block, darin Neu/Besser/Behoben. */
+.pn-eintrag{padding:0 0 14px;margin:0 0 14px;border-bottom:1px solid var(--line)}
+.pn-eintrag:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.pn-kopf{margin:0 0 2px;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--peat)}
+.pn-titel{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
+.pn-art{margin:9px 0 3px;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--peat)}
+.pn-liste{margin:0;padding-left:19px;font-size:var(--t-m);line-height:1.55}
+.pn-liste li{margin:0 0 5px}
+.pn-liste li:last-child{margin-bottom:0}
 #melde-liste{font-size:var(--t-m);line-height:1.7;margin-bottom:11px}
 #melde-liste .mrow,#weg-liste .mrow{border-bottom:1px solid var(--line);padding:8px 0;overflow-wrap:anywhere;font-size:var(--t-m);line-height:1.6}
 #weg-liste .mrow:last-child{border-bottom:0}
@@ -888,6 +902,17 @@ body.gm-offen{overflow:hidden}
   background:rgba(180,80,40,.07);padding:10px 12px;margin:0 0 12px}
 .warnbox p{margin:0 0 6px;font-size:var(--t-m);line-height:1.45;color:var(--terra);font-weight:600;overflow-wrap:anywhere}
 .warnbox p:last-child{margin-bottom:0}
+
+/* Ungeprüft ist nicht dasselbe wie unbedenklich: eigener, gelber Kasten,
+   damit niemand aus fehlender Angabe auf Sicherheit schließt. */
+.warnbox.unklar{border-color:#B08A3A;background:rgba(176,138,58,.09)}
+.warnbox.unklar p{color:#7A5E1E}
+.warnbox.unklar .pruef{display:inline-block;margin-top:4px;font-weight:600;
+  font-size:var(--t-s);color:#7A5E1E;text-decoration:underline}
+
+/* Einfacher Modus: alles ausblenden, was Einsteiger nur bremst. */
+body.einfach .nur-experte{display:none!important}
+body.einfach #grundriss-sec{display:none!important}
 .ktabs{display:flex;gap:4px;margin:0 0 12px;border-bottom:1px solid var(--line);
   overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .ktabs::-webkit-scrollbar{display:none}
@@ -943,6 +968,13 @@ body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
 .sub-fehlt{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
   color:var(--terra);border:1px solid var(--terra);border-radius:2px;padding:1px 4px;white-space:nowrap}
 .sub-kaufen{margin:10px 0 0;font-size:var(--t-m);line-height:1.6}
+.sub-ersatz{margin:8px 0 0;padding:9px 12px;list-style:none;border-radius:4px;
+  background:rgba(120,140,110,.10);font-size:var(--t-m);line-height:1.55}
+.sub-ersatz li{margin:0 0 5px}
+.sub-ersatz li:last-child{margin-bottom:0}
+.sub-ersatz-kopf{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--peat)}
+.sub-wunsch{margin-top:8px}
 .sub-kaufen.ok{color:var(--moss)}
 .sub-erg.gut{border-left-color:var(--moss)}
 .sub-erg.ok{border-left-color:var(--peat)}
@@ -1401,6 +1433,14 @@ function giftFuer(p, tier){
             quelle:'feld'};
   }
   return {stufe:'unklar', grund:'Für diese Art liegt keine geprüfte Angabe vor.', quelle:'leer'};
+}
+
+/* Für ungeprüfte Angaben: fertiger Suchlink, damit man in einem Klick
+   selbst nachsehen kann, statt sich auf eine Lücke zu verlassen. */
+function giftPruefLink(p, tier){
+  const name = (p.botanisch || p.art || p.name || '').trim();
+  const t = TIERARTEN[tier] ? TIERARTEN[tier].mehrzahl : '';
+  return 'https://www.google.com/search?q=' + encodeURIComponent(name + ' giftig ' + t);
 }
 
 /* Welche Tiere hält der Nutzer? */
@@ -2354,7 +2394,33 @@ const SCHLUESSEL_KARTE = (()=>{
   return m;
 })();
 
+/* Manche Modelle antworten trotz klarer Ansage in JSON, oft noch in
+   ```json-Zäune verpackt. Statt den Nutzer zum Nachbessern zu zwingen,
+   wird das hier vorweg versucht — die Schlüssel sind dieselben. */
+function jsonLesen(txt){
+  const roh = String(txt || '');
+  const anfang = roh.indexOf('{'), ende = roh.lastIndexOf('}');
+  if(anfang < 0 || ende <= anfang) return null;
+  let obj;
+  try{ obj = JSON.parse(roh.slice(anfang, ende + 1)); }
+  catch(e){ return null; }
+  if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
+  const raus = {};
+  Object.keys(obj).forEach(k=>{
+    const feld = SCHLUESSEL_KARTE[norm(k)];
+    if(!feld) return;
+    let wert = obj[k];
+    if(Array.isArray(wert)) wert = wert.join('; ');
+    if(wert === null || typeof wert === 'object') return;
+    wert = String(wert).replace(/\s+/g,' ').trim();
+    if(wert) raus[feld] = wert;
+  });
+  return Object.keys(raus).length ? raus : null;
+}
+
 function geminiLesen(txt){
+  const alsJson = jsonLesen(txt);
+  if(alsJson) return alsJson;
   const raus = {};
   let letztes = null;
   String(txt||'').split(/\r?\n/).forEach(roh=>{
@@ -3288,6 +3354,54 @@ const ZUTATEN = [
 ];
 const ZUTAT = {}; ZUTATEN.forEach(z=>ZUTAT[z.id]=z);
 
+/* Was tut es auch, wenn die eigentliche Zutat fehlt. Reihenfolge ist die
+   Empfehlung: das erste Mittel kommt dem Original am nächsten. Nichts
+   davon muss gekauft werden, wenn man ohnehin schon etwas davon hat. */
+const ERSATZ = {
+  perlit:     [['bims','Gleiche Luftwirkung, dazu schwerer und formstabil — schwimmt beim Gießen nicht auf.'],
+               ['kies','Öffnet die Poren genauso, speichert aber kein Wasser. Selbst gesammelter Kies muss gewaschen und auf Kalk geprüft sein.'],
+               ['blaehton','Blähton grob zerschlagen tut denselben Dienst.']],
+  bims:       [['perlit','Gleiche Luftwirkung, nur leichter und staubiger.'],
+               ['lava','Praktisch derselbe Stoff, nur schwerer — gut bei kopflastigen Pflanzen.'],
+               ['kies','Öffnet die Poren, speichert aber nichts.']],
+  lava:       [['bims','Fast identisch, nur leichter.'],
+               ['kies','Beschwert ebenso, hält den Topf standfest.']],
+  kies:       [['bims','Speichert zusätzlich etwas Wasser, sonst gleichwertig.'],
+               ['sand','Nur grob gewaschener Quarzsand 1–2 mm, kein feiner Spielsand.']],
+  kokoschips: [['rinde','Gleiche grobe Struktur, säuert leicht an.'],
+               ['blaehton','Hält die Kanäle offen, speichert aber weniger.']],
+  rinde:      [['kokoschips','Ähnlich grob, ohne die leichte Säuerung.'],
+               ['rindenhumus','Feiner, dafür gut als Basisanteil.']],
+  kokoshum:   [['pflanzerde','Weniger strukturstabil, dafür überall da.'],
+               ['rindenhumus','Guter Torf- und Kokosersatz im Basisanteil.']],
+  seramis:    [['bims','Etwas weniger Wasserspeicher, sonst gleichwertig und viel billiger.'],
+               ['vermiculit','Speichert mehr, wird in Dauerkultur aber schnell weich.']],
+  kohle:      [['zeolith','Puffert ebenfalls, ohne den pH-Wert zu heben.']],
+  wurmhumus:  [['pflanzerde','Bringt Nährstoffe mit, aber kein Bodenleben — dann nach vier Wochen düngen.']],
+  sphagnum:   [['weisstorf','Speichert ähnlich viel, ist aber deutlich dichter.'],
+               ['kokoshum','Weniger sauer, für Karnivoren ungeeignet.']],
+  vermiculit: [['seramis','Speichert ähnlich, bleibt aber formstabil.'],
+               ['kokoshum','Speichert gut, bringt aber keine Struktur.']],
+  zeolith:    [['kohle','Ähnlicher Puffer, hebt aber den pH-Wert.']],
+  blaehton:   [['bims','Grobe Struktur, dazu etwas Wasserspeicher.'],
+               ['kies','Öffnet die Poren genauso.']]
+};
+
+/* „Du hast kein Perlit? Nimm stattdessen …“ — aber nur, was der Nutzer
+   laut Vorrat wirklich schon dahat. Sonst wäre es ein zweiter Einkauf. */
+function ersatzHTML(fehlendeIds, vorrat){
+  const zeilen = [];
+  fehlendeIds.forEach(id=>{
+    const liste = (ERSATZ[id] || []).filter(([e])=>vorrat.includes(e));
+    if(!liste.length) return;
+    const [eid, grund] = liste[0];
+    zeilen.push(`<li><b>Kein ${esc(ZUTAT[id].name)}?</b> Nimm ${esc(ZUTAT[eid].name)} — ${esc(grund)}</li>`);
+  });
+  return zeilen.length
+    ? `<ul class="sub-ersatz"><li class="sub-ersatz-kopf">Das hast du schon und tut es auch:</li>${zeilen.join('')}</ul>`
+    : '';
+}
+
 /* Zutaten, die niemals zu einer Pflanzengruppe passen */
 const VERBOTEN = {
   karnivore: ['pflanzerde','anzuchterde','wurmhumus','gartenerde','moorbeeterde','rindenhumus',
@@ -4044,7 +4158,7 @@ function bearbeitenHTML(p){
         <option value="unbekannt"${gift==='unbekannt'?' selected':''}>ungeprüft</option>
         <option value="nein"${gift==='nein'?' selected':''}>unbedenklich</option>
         <option value="ja"${gift==='ja'?' selected':''}>giftig</option></select></label>
-      <label><span class="lab">Gießart</span><select data-e="giessart" data-p="${p.id}">
+      <label class="nur-experte"><span class="lab">Gießart</span><select data-e="giessart" data-p="${p.id}">
         ${Object.keys(GIESSARTEN).map(k=>`<option value="${k}"${giessartVon(p)===k?' selected':''}>${esc(GIESSARTEN[k].name)}</option>`).join('')}</select>
         <span class="fhint">${esc(giessartText(p))}</span></label>
       <label class="fspan"><span class="lab">Wichtig zu wissen</span>
@@ -4344,7 +4458,7 @@ function papierkorbRender(){
           <option value="ja">Giftig</option>
           <option value="nein">Unbedenklich</option>
         </select></label>
-        <label><span class="lab">Gießart</span><select id="f-giessart">
+        <label class="nur-experte"><span class="lab">Gießart</span><select id="f-giessart">
           <option value="">automatisch aus Klasse und Typ</option>
           <option value="durch">Durchdringend — bis unten Wasser austritt</option>
           <option value="schluck">Schluck — nur die Erde anfeuchten</option>
@@ -4648,6 +4762,7 @@ function papierkorbRender(){
     <p class="sub" id="storage-size"></p>
     <div class="tools">
       <button id="btn-download" class="haupt">Sicherung herunterladen</button>
+      <button id="btn-teilen" hidden>Sicherung teilen</button>
       <button id="btn-import">Sicherung laden</button>
       <button id="btn-export">Als Text anzeigen</button>
       <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
@@ -4708,6 +4823,7 @@ function papierkorbRender(){
         </div>
         <div class="tools" style="margin-top:6px">
           <button id="btn-url-text">Kurzfassung als Nachricht kopieren</button>
+          <button id="btn-url-teilen" hidden>Kurzfassung teilen</button>
         </div>
         <p class="kihinweis" id="url-meldung" hidden></p>
       </li>
@@ -4782,9 +4898,12 @@ function papierkorbRender(){
       <button class="wz-i" data-mh-info="ansicht" aria-expanded="false" aria-label="Wozu ist die Ansicht-Einstellung da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-ansicht" hidden>
-      <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht.</p>
+      <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht. Der einfache Modus blendet alles aus, was man am Anfang nicht braucht — der Grundriss, die Gießart-Auswahl und der Blattzähler verschwinden, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren: sobald du den Haken wieder wegnimmst, ist alles unverändert da.</p>
     <label class="fspan check">
       <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
+    <label class="fspan check">
+      <input type="checkbox" id="ans-einfach"> <span class="lab" style="display:inline">Einfacher Modus</span></label>
+    <p class="fhint" id="einfach-text"></p>
     </div>
   </section>
 
@@ -4876,6 +4995,19 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan mh" id="patch-sec" data-mh="patch">
+    <h2 class="wz-h2">Was sich geändert hat</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="patch" aria-expanded="false" aria-controls="mh-in-patch">
+        <span class="wz-t">Was sich geändert hat</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="patch" aria-expanded="false" aria-label="Was steht hier?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-patch" hidden>
+      <p class="wz-hilfe" hidden>Hier steht, was in jeder Fassung dazugekommen ist, besser geworden ist oder repariert wurde — nur die Funktionen, nicht die Technik dahinter. Nach einem Update zeigt die App den obersten Eintrag einmal von selbst; hier lassen sich auch die älteren nachlesen.</p>
+    <div id="patch-liste"></div>
+    </div>
+  </section>
+
 
 
 </div>
@@ -4923,6 +5055,17 @@ function papierkorbRender(){
     <div class="tools"><button id="gift-ok">Verstanden</button></div>
   </div>
 </div>
+
+<div id="neu-modal" class="modal" hidden>
+  <div class="modal-box neu-box">
+    <h3 id="neu-titel">Was ist neu</h3>
+    <div id="neu-inhalt"></div>
+    <div class="tools">
+      <button id="neu-ok" class="haupt">Verstanden</button>
+      <button id="neu-alle" class="linkbtn">Alle Änderungen</button>
+    </div>
+  </div>
+</div>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -4937,6 +5080,75 @@ const KEY = 'pflanzenglossar-start';
 const MELDE_MAIL = 'greenkeeperai@gmail.com';
 const REPO_URL   = 'https://github.com/cmohr0212/GreenkeeperAi';
 const ISSUE_URL  = REPO_URL + '/issues/new';
+
+/* ══════════════════ Fassung und Änderungen ══════════════════
+   Beim Veröffentlichen einer neuen Fassung: oben einen Eintrag in
+   PATCHNOTES ergänzen und FASSUNG auf dessen Nummer setzen. Beim
+   ersten Öffnen nach dem Update zeigt die App den obersten Eintrag
+   einmalig an; unter „Mehr“ steht die ganze Liste zum Nachlesen.
+
+   Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
+   frühen Uploads liegen ohne Beschreibung im Verlauf. */
+const FASSUNG = '1.3';
+const PATCHNOTES = [
+  {
+    nr: '1.3', datum: '2026-08-21', titel: 'Sicherung, einfacher Modus und Warnungen',
+    neu: [
+      'Einfacher Modus unter Mehr → Ansicht: blendet Grundriss, Gießart und Blattzähler aus, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren.',
+      'Sicherung teilen: schickt die Sicherungsdatei in einem Schritt an WhatsApp, Drive, iCloud oder eine Mail an dich selbst.',
+      'Urlaubszettel: die Kurzfassung lässt sich jetzt direkt teilen, statt sie erst zu kopieren.',
+      'Substrat: fehlende Bestandteile wandern auf Knopfdruck in die Wunschliste.'
+    ],
+    besser: [
+      'Sicherungen überschreiben sich jetzt gegenseitig, statt sich als fünfzig einzelne Dateien im Download-Ordner zu stapeln.',
+      'Die App bittet den Browser einmalig, die Daten dauerhaft zu behalten — dann darf er sie bei Platzmangel nicht mehr ungefragt löschen.',
+      'Substrat: fehlt eine Zutat, schlägt die App vor, was du stattdessen schon im Vorrat hast — kein Perlit, dafür Bims.',
+      'Das Einlesen einer KI-Antwort versteht jetzt auch JSON, nicht mehr nur das Zeilenformat.'
+    ],
+    behoben: [
+      'Ungeprüfte Tierarten wurden bisher stillschweigend übersprungen und sahen dadurch aus wie „unbedenklich“. Sie stehen jetzt in einem eigenen gelben Kasten mit Suchlink zum Selbstprüfen.'
+    ]
+  },
+  {
+    nr: '1.2', datum: '2026-08-20', titel: 'Karten in Reiter, Räume statt Standort',
+    neu: [
+      'Die Pflanzenkarte ist in vier Reiter geteilt: Allgemein, Pflege, Lage und Geschichte.',
+      'Raum und Stellplatz als getrennte Angaben — danach lässt sich filtern und gruppieren.',
+      'Quarantäne: befallene Pflanzen lassen sich markieren und fallen auf der Karte sofort ins Auge.',
+      'Rückmeldung mit vorbereiteter Mail und Knopf zum Melden auf GitHub.'
+    ],
+    besser: [
+      'Warnungen stehen jetzt immer ganz oben auf der Karte, nicht mehr irgendwo dazwischen.',
+      '„Schatten“ ist als Lichtangabe dazugekommen.'
+    ],
+    behoben: [
+      'Das alte Standort-Feld ist überall entfernt — es stand in Konkurrenz zu Raum und Stellplatz und führte zu widersprüchlichen Angaben.'
+    ]
+  },
+  {
+    nr: '1.1', datum: '2026-08-19', titel: 'Werkzeuge und Fotospeicher',
+    neu: [
+      'Werkzeugseite mit aufklappbaren Bereichen statt einer langen Liste.',
+      'Urlaubszettel zum Ausdrucken.',
+      'Substratrechner mit Vorratsverwaltung.'
+    ],
+    besser: [
+      'Fotos liegen jetzt im großen Browserspeicher statt im kleinen — vorher war nach etwa fünfzig Bildern Schluss.'
+    ],
+    behoben: []
+  },
+  {
+    nr: '1.0', datum: '2026-08-18', titel: 'Erste Fassung',
+    neu: [
+      'Pflanzenverwaltung mit Gießplan, Fotos und Notizen.',
+      'Gießmodus und Rundgang.',
+      'Pflanzendoktor und Giftigkeitshinweise für Haustiere.',
+      'Läuft offline, alle Daten bleiben auf dem Gerät.'
+    ],
+    besser: [],
+    behoben: []
+  }
+];
 let SPEICHER_OK = true;
 /* Eine einzige Stelle für alle Grundwerte. Vorher standen zwei
    unterschiedliche Listen im Code — beim Start wurden andere Felder
@@ -5742,10 +5954,11 @@ function warnungenHTML(p){
     w.push('<b>Kein Leitungswasser.</b> Nur Regen- oder destilliertes Wasser. Kalk und Salze bringen Karnivoren um.');
 
   const tiere = (typeof meineTiere === 'function') ? meineTiere() : [];
-  const betroffen = [];
+  const betroffen = [], ungeprueft = [];
   tiere.forEach(t=>{
     const g = giftFuer(p, t);
-    if(g.stufe && g.stufe !== 'keine' && g.stufe !== 'unklar')
+    if(g.stufe === 'unklar'){ ungeprueft.push(t); return; }
+    if(g.stufe && g.stufe !== 'keine')
       betroffen.push((TIERARTEN[t] ? TIERARTEN[t].name : t));
   });
   if(betroffen.length)
@@ -5759,8 +5972,22 @@ function warnungenHTML(p){
 
   if(p.wichtig) w.push('<b>Wichtig.</b> ' + esc(p.wichtig));
 
-  if(!w.length) return '';
-  return `<div class="warnbox">${w.map(x=>`<p>⚠ ${x}</p>`).join('')}</div>`;
+  /* Fehlende Daten sind kein Freibrief. Was für eine Tierart nicht belegt
+     ist, wird ausdrücklich als „potenziell giftig“ ausgewiesen — mit
+     Suchlink, damit man es in einem Klick selbst nachschlagen kann. */
+  let unklarBox = '';
+  if(ungeprueft.length){
+    const namen = ungeprueft.map(t=>TIERARTEN[t] ? TIERARTEN[t].mehrzahl : t);
+    unklarBox = `<div class="warnbox unklar">
+      <p>⚠ <b>Potenziell giftig für ${esc(namen.join(', '))} — ungeprüft.</b>
+      Zu dieser Art liegt keine belegte Angabe vor. Bis das geklärt ist:
+      wie giftig behandeln und außer Reichweite stellen.</p>
+      <p>${ungeprueft.map(t=>`<a class="pruef" href="${giftPruefLink(p, t)}" target="_blank" rel="noopener">Selbst prüfen: ${esc(TIERARTEN[t] ? TIERARTEN[t].mehrzahl : t)}</a>`).join(' · ')}</p>
+    </div>`;
+  }
+
+  if(!w.length) return unklarBox;
+  return `<div class="warnbox">${w.map(x=>`<p>⚠ ${x}</p>`).join('')}</div>` + unklarBox;
 }
 
 /* ── Abteil „Lage“ ──────────────────────────────────────────
@@ -6253,6 +6480,7 @@ function sicherungHinweis(){
       : 'Von diesen Daten gibt es noch keine Sicherung.'}
     Der Browserspeicher kann jederzeit geleert werden — dann ist alles weg.</span>
     <button id="sich-jetzt">Jetzt sichern</button>
+    ${teilenMoeglich() ? '<button id="sich-teilen">Teilen</button>' : ''}
     <button id="sich-spaeter" class="linkbtn">Später</button>`;
   /* Gehört an den dafür vorgesehenen Platz auf der Heute-Seite, nicht
      ganz nach oben über alles — dort stand er auch in der Sammlung im Weg. */
@@ -6262,21 +6490,101 @@ function sicherungHinweis(){
   document.getElementById('sich-jetzt').onclick = ()=>{
     const b = document.getElementById('btn-download'); if(b) b.click();
   };
+  const st = document.getElementById('sich-teilen');
+  if(st) st.onclick = ()=>sicherungTeilen(st);
   document.getElementById('sich-spaeter').onclick = ()=>{
     /* Nur für diese Sitzung wegklicken, nicht dauerhaft abschalten. */
     el.remove();
   };
 }
 
-$('#btn-download').onclick = ()=>{
+$('#btn-download').onclick = async ()=>{
   const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+  
+  /* Neuere Browser (Chrome >= 86, Android >= 2022): Datei-Speicher-Dialog
+     mit Option, einen Ordner auszuwählen. Dann landen alle Downloads dort
+     und überschreiben sich gegenseitig statt sich zu häufen. */
+  if(window.showSaveFilePicker){
+    try{
+      const handle = await showSaveFilePicker({
+        suggestedName: 'pflanzen-sicherung.json',
+        types: [{description:'JSON-Sicherung', accept:{'application/json':['.json']}}]
+      });
+      const writer = await handle.createWritable();
+      await writer.write(blob);
+      await writer.close();
+      sicherungGemerkt();
+      return;
+    }catch(e){
+      if(e.name === 'AbortError') return;
+      /* Dialog abgebrochen oder Schreibfehler — Fallback auf Download */
+    }
+  }
+  
+  /* Fallback: normaler Download mit festem Namen (ohne Datum, damit
+     jeder Download den vorherigen überschreiben kann). */
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'pflanzen-sicherung-' + iso(HEUTE) + '.json';
+  a.download = 'pflanzen-sicherung.json';
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
   sicherungGemerkt();
 };
+
+/* ── Sicherung teilen ────────────────────────────────────────
+   Auf dem Handy ist „Herunterladen“ oft eine Sackgasse: die Datei
+   landet im Download-Ordner und wird beim nächsten Aufräumen mit
+   gelöscht. Über das Teilen-Fenster geht sie in einem Schritt nach
+   WhatsApp, Drive, iCloud oder in eine Mail an sich selbst.
+   Muss direkt im Klick laufen — das Teilen-Fenster öffnet sonst nicht. */
+function sicherungDatei(){
+  return new File(
+    [JSON.stringify(S, null, 2)],
+    'pflanzen-sicherung-' + iso(HEUTE) + '.json',
+    {type:'application/json'}
+  );
+}
+function teilenMoeglich(){
+  if(!navigator.share || !navigator.canShare || typeof File === 'undefined') return false;
+  try{ return navigator.canShare({files:[sicherungDatei()]}); }
+  catch(e){ return false; }
+}
+async function sicherungTeilen(knopf){
+  const alt = knopf ? knopf.textContent : '';
+  try{
+    await navigator.share({
+      files: [sicherungDatei()],
+      title: 'Pflanzen-Sicherung',
+      text: 'Sicherung vom ' + new Date().toLocaleDateString('de-DE')
+    });
+    sicherungGemerkt();
+    if(knopf){ knopf.textContent = 'Geteilt'; setTimeout(()=>knopf.textContent = alt, 2200); }
+  }catch(e){
+    /* Abbrechen im Teilen-Fenster ist kein Fehler und braucht keine Meldung. */
+    if(e && e.name === 'AbortError') return;
+    if(knopf){ knopf.textContent = 'Hat nicht geklappt'; setTimeout(()=>knopf.textContent = alt, 2200); }
+  }
+}
+if(teilenMoeglich()){
+  const bt = $('#btn-teilen');
+  if(bt){ bt.hidden = false; bt.onclick = ()=>sicherungTeilen(bt); }
+}
+
+/* ── Speicher gegen Aufräumen sichern ────────────────────────
+   Ohne diese Zusage darf der Browser die Daten bei Platzmangel ohne
+   Rückfrage wegwerfen. Nur einmal fragen: eine Ablehnung bleibt eine
+   Ablehnung, und wiederholtes Nachhaken nervt nur. */
+async function speicherFesthalten(){
+  if(!navigator.storage || !navigator.storage.persist) return;
+  try{
+    if(await navigator.storage.persisted()){ S.speicherFest = true; return; }
+    if(S.speicherGefragt) return;
+    S.speicherGefragt = true;
+    S.speicherFest = await navigator.storage.persist();
+    sichern();
+  }catch(e){}
+}
+speicherFesthalten();
 $('#btn-import').onclick = ()=>$('#import-file').click();
 $('#import-file').onchange = ()=>{
   const f = $('#import-file').files[0]; if(!f) return;
@@ -6697,6 +7005,68 @@ function giftWarnen(name){
   $('#gift-modal').hidden = false;
 }
 $('#gift-ok').onclick = ()=>{ $('#gift-modal').hidden = true; };
+
+/* ══════════════════ Was sich geändert hat ══════════════════ */
+
+function patchEintragHTML(e, kopf){
+  const block = (titel, punkte) => punkte && punkte.length
+    ? `<p class="pn-art">${titel}</p><ul class="pn-liste">${punkte.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`
+    : '';
+  const datum = e.datum
+    ? new Date(e.datum + 'T12:00:00').toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'})
+    : '';
+  return `<div class="pn-eintrag">
+    ${kopf === false ? '' : `<p class="pn-kopf"><b>Fassung ${esc(e.nr)}</b>${datum ? ' · ' + esc(datum) : ''}</p>`}
+    ${e.titel ? `<p class="pn-titel">${esc(e.titel)}</p>` : ''}
+    ${block('Neu', e.neu)}
+    ${block('Besser', e.besser)}
+    ${block('Behoben', e.behoben)}
+  </div>`;
+}
+
+function patchListe(){
+  const ziel = document.getElementById('patch-liste');
+  if(ziel) ziel.innerHTML = PATCHNOTES.map(e=>patchEintragHTML(e)).join('');
+}
+patchListe();
+
+/* Nach einem Update einmalig zeigen, was dazugekommen ist. Wer die App
+   gerade erst installiert hat, bekommt das Fenster nicht — für ihn ist
+   nichts „neu“, und eine Änderungsliste als erster Eindruck hilft nicht. */
+function neuFensterZeigen(eintrag){
+  const modal = document.getElementById('neu-modal');
+  if(!modal) return;
+  document.getElementById('neu-titel').textContent = 'Neu in Fassung ' + eintrag.nr;
+  document.getElementById('neu-inhalt').innerHTML = patchEintragHTML(eintrag, false);
+  modal.hidden = false;
+}
+
+function fassungPruefen(){
+  if(S.fassungGesehen === FASSUNG) return;
+  const erstinstallation = !S.fassungGesehen && !(S.eigene && S.eigene.length)
+    && !(S.added && Object.keys(S.added).length)
+    && !(S.water && Object.keys(S.water).length);
+  S.fassungGesehen = FASSUNG;
+  sichern();
+  if(erstinstallation) return;
+  const eintrag = PATCHNOTES.find(e=>e.nr === FASSUNG) || PATCHNOTES[0];
+  if(eintrag) neuFensterZeigen(eintrag);
+}
+
+$('#neu-ok').onclick = ()=>{ $('#neu-modal').hidden = true; };
+$('#neu-alle').onclick = ()=>{
+  $('#neu-modal').hidden = true;
+  S.mehrOffen = 'patch'; sichern();
+  ansichtZeigen('mehr');
+  const sec = document.querySelector('[data-mh="patch"]');
+  const inn = document.getElementById('mh-in-patch');
+  const kopf = document.querySelector('[data-mh-go="patch"]');
+  if(inn) inn.hidden = false;
+  if(kopf) kopf.setAttribute('aria-expanded', 'true');
+  if(sec) setTimeout(()=>sec.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+};
+
+fassungPruefen();
 $('#gift-modal').addEventListener('click', e=>{ if(e.target.id==='gift-modal') $('#gift-modal').hidden = true; });
 
 /* ── Suche im Feld ───────────────────────────────────────── */
@@ -6787,7 +7157,7 @@ $('#btn-paste-los').onclick = ()=>{
   const meld = $('#paste-meld'); meld.hidden = false;
   if(!d.art && !d.bot){
     meld.className = 'pastemeld warn';
-    meld.textContent = 'Aus dem Text ließ sich nichts herauslesen. Bitte die ganze Antwort hereinkopieren, mit den Zeilen ART:, BOTANISCH: und so weiter.';
+    meld.textContent = 'Aus dem Text ließ sich nichts herauslesen. Bitte die ganze Antwort hereinkopieren — mit den Zeilen ART:, BOTANISCH: und so weiter. JSON mit denselben Schlüsseln geht auch.';
     return;
   }
   const uebernommen = [];
@@ -8831,11 +9201,34 @@ function ubTextKopieren(){
          : 'Kopieren hat nicht geklappt. Öffne stattdessen den Zettel.', ok ? 'ok' : 'warn');
 }
 
+/* Statt Kopieren und selbst weiterreichen: einmal tippen, das
+   Teilen-Fenster des Handys übernimmt den Rest. Muss direkt aus dem
+   Klick heraus laufen, sonst blockiert der Browser das Fenster. */
+async function ubTextTeilen(knopf){
+  const z = ubZeitraum();
+  const meld = document.getElementById('url-meldung');
+  const sag = (t, art) => { if(meld){ meld.hidden = false; meld.className = 'kihinweis ' + art; meld.textContent = t; } };
+  if(!z || z.fehler){ sag(z ? z.fehler : 'Bitte erst Abreise und Rückkehr eintragen.', 'warn'); return; }
+  const o = ubOptionen();
+  const text = ubTextBauen(ubPlan(z.von, z.bis, o.puffer), o);
+  try{
+    await navigator.share({title:'Gießplan', text});
+    sag('Kurzfassung verschickt. Raumplan, Bilder und Nummernstreifen gibt es weiterhin nur auf dem gedruckten Zettel.', 'ok');
+  }catch(e){
+    if(e && e.name === 'AbortError') return;
+    const ok = inZwischenablage(text);
+    sag(ok ? 'Teilen ging nicht — der Text liegt jetzt in der Zwischenablage.'
+           : 'Teilen und Kopieren haben nicht geklappt. Öffne stattdessen den Zettel.', ok ? 'ok' : 'warn');
+  }
+}
+
 /* ── Verdrahtung ─────────────────────────────────────────── */
 function ubAufbau(){
   const v = document.getElementById('url-von'), b = document.getElementById('url-bis');
   if(!v || !b) return;
   if(!v.value){ v.value = iso(HEUTE); b.value = ubTagPlus(iso(HEUTE), 7); }
+  const t = document.getElementById('btn-url-teilen');
+  if(t && navigator.share) t.hidden = false;
   ubVorschau();
 }
 document.addEventListener('input', e => {
@@ -8854,6 +9247,7 @@ document.addEventListener('click', e => {
   if(e.target.closest('#btn-url-druck'))
     return ubDrucken('Für eine PDF-Datei im Druckfenster als Ziel „Als PDF sichern“ wählen. Am iPhone: Teilen, Drucken, dann die Vorschau aufziehen.');
   if(e.target.closest('#btn-url-text')) return ubTextKopieren();
+  if(e.target.closest('#btn-url-teilen')) return ubTextTeilen(e.target.closest('#btn-url-teilen'));
   if(e.target.closest('#btn-ub-zu'))    return ubBlattZu();
   if(e.target.closest('#btn-ub-druck')) return window.print();
 });
@@ -8922,6 +9316,38 @@ if(schalter){
   schalter.checked = !!S.ansichtAlles;
   schalter.onchange = ()=>alleAnsichten(schalter.checked);
 }
+
+/* ── Einfacher Modus ─────────────────────────────────────────
+   Blendet nur aus, löscht nichts. Alles bleibt gespeichert und ist
+   nach dem Abschalten unverändert wieder da. Die Gießart wird intern
+   weiter gebraucht — sie wird nicht abgeschaltet, nur nicht mehr
+   abgefragt und bleibt auf dem, was die App ohnehin raten würde. */
+function einfachSetzen(an){
+  S.einfach = !!an;
+  document.body.classList.toggle('einfach', !!an);
+  if(an){
+    /* Der Rundgang bekommt die kürzeste Stufe: drei Knöpfe, kein
+       Blattzähler, kein Foto. */
+    S.rundgang = S.rundgang || {};
+    S.rundgang.stufe = 'blick';
+    const rs = document.getElementById('rg-stufe');
+    if(rs){ rs.value = 'blick'; rs.dispatchEvent(new Event('change', {bubbles:true})); }
+    /* Steht der Nutzer gerade im ausgeblendeten Grundriss, bringt ihn
+       das sonst auf eine leere Seite. */
+    if(S.ansicht === 'grundriss') ansichtZeigen('heute', false);
+  }
+  const txt = document.getElementById('einfach-text');
+  if(txt) txt.textContent = an
+    ? 'Grundriss, Gießart und Blattzähler sind ausgeblendet, der Rundgang läuft mit drei Knöpfen. Deine Daten bleiben vollständig erhalten.'
+    : 'Blendet Grundriss, Gießart-Auswahl und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Jederzeit umschaltbar, es geht nichts verloren.';
+  sichern();
+}
+const schalterEinfach = document.getElementById('ans-einfach');
+if(schalterEinfach){
+  schalterEinfach.checked = !!S.einfach;
+  schalterEinfach.onchange = ()=>einfachSetzen(schalterEinfach.checked);
+}
+einfachSetzen(!!S.einfach);
 if(S.ansichtAlles) ANS_ALLE = true;
 ansichtZeigen(S.ansicht || 'heute', false);
 
@@ -9646,7 +10072,9 @@ function optimumHTML(v){
   const fehlt = fehlendFuer(subZiel, v);
   const kauf = fehlt.length
     ? `<p class="sub-kaufen"><b>Dafür fehlt dir:</b> ${fehlt.map(id=>esc(ZUTAT[id].name)).join(', ')}.
-       ${fehlt.map(id=>esc(ZUTAT[id].text)).join(' ')}</p>`
+       ${fehlt.map(id=>esc(ZUTAT[id].text)).join(' ')}</p>
+       ${ersatzHTML(fehlt, v)}
+       <div class="tools sub-wunsch"><button data-do="wunsch-zutat" data-ids="${esc(fehlt.join(','))}">Fehlende auf die Wunschliste</button></div>`
     : '<p class="sub-kaufen ok"><b>Das hast du alles.</b> Du kannst direkt nach diesem Rezept mischen.</p>';
   return `<h4 class="sub-titel">So wäre es optimal</h4>
     <div class="sub-erg optimal">
@@ -9695,6 +10123,8 @@ function zukaufHTML(v){
     <p><b>Ein Zukauf würde am meisten bringen: ${esc(z.zutat.name)}.</b> ${esc(z.zutat.text)}</p>
     <p class="sub-kauf-erg">Damit käme die Mischung auf „${esc(b.text)}“:
       ${Object.keys(z.mischung.teile).map(id=>`${z.mischung.teile[id]} × ${esc(ZUTAT[id].name)}`).join(' · ')}</p>
+    ${ersatzHTML([z.zutat.id], v)}
+    <div class="tools sub-wunsch"><button data-do="wunsch-zutat" data-ids="${esc(z.zutat.id)}">Auf die Wunschliste</button></div>
   </div>`;
 }
 
@@ -9718,6 +10148,27 @@ document.addEventListener('click', e=>{
     window.scrollTo({top:0, behavior:'smooth'});
   }
   if(b.dataset.do === 'sub-leeren'){ S.vorrat = []; sichern(); subAufbau(); subErgebnis(); }
+  /* Fehlende Bestandteile in die vorhandene Wunschliste schieben —
+     dieselbe Liste, die auch Pflanzenwünsche aufnimmt. Doppelte
+     Einträge werden übersprungen, sonst steht Bims dreimal drin. */
+  if(b.dataset.do === 'wunsch-zutat'){
+    const ids = (b.dataset.ids || '').split(',').filter(Boolean);
+    S.wish = S.wish || [];
+    let neu = 0;
+    ids.forEach(id=>{
+      if(!ZUTAT[id]) return;
+      const text = ZUTAT[id].name + ' (Substrat)';
+      if(S.wish.some(w=>w.text === text)) return;
+      S.wish.push({id:'w'+Date.now().toString(36)+neu, text, done:false});
+      neu++;
+    });
+    sichern();
+    if(typeof render === 'function') render();
+    b.textContent = neu
+      ? (neu === 1 ? 'Auf der Wunschliste' : neu + ' auf der Wunschliste')
+      : 'Steht schon auf der Wunschliste';
+    b.disabled = true;
+  }
 });
 
 $('#sub-pflanze').onchange = ()=>{
