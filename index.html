@@ -7056,14 +7056,10 @@ function fassungPruefen(){
 $('#neu-ok').onclick = ()=>{ $('#neu-modal').hidden = true; };
 $('#neu-alle').onclick = ()=>{
   $('#neu-modal').hidden = true;
-  S.mehrOffen = 'patch'; sichern();
   ansichtZeigen('mehr');
-  const sec = document.querySelector('[data-mh="patch"]');
-  const inn = document.getElementById('mh-in-patch');
-  const kopf = document.querySelector('[data-mh-go="patch"]');
-  if(inn) inn.hidden = false;
-  if(kopf) kopf.setAttribute('aria-expanded', 'true');
-  if(sec) setTimeout(()=>sec.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+  /* Erst nach dem Ansichtswechsel öffnen und springen — vorher steht
+     die Sektion noch auf display:none und scrollIntoView läuft ins Leere. */
+  setTimeout(()=>mehrOeffnen('patch', true), 60);
 };
 
 fassungPruefen();
@@ -8719,7 +8715,7 @@ document.addEventListener('click', e=>{
    Bewusst eine eigene Funktion statt einer gemeinsamen: die beiden
    Seiten merken sich getrennt, was offen war, und die Werkzeuge-Logik
    bleibt unangetastet. */
-const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','rueck','install','weg','melde'];
+const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','rueck','install','weg','melde','patch'];
 function mehrZeichnen(){
   document.querySelectorAll('[data-mh]').forEach(sec=>{
     const auf = sec.dataset.mh === S.mehrOffen;
