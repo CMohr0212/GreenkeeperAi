@@ -4,6 +4,25 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 1.9 — 22. August 2026
+**Erklärungen beim ersten Mal**
+
+### Neu
+- Die App erklärt sich jetzt selbst — aber nicht am Stück, sondern dort, wo man gerade steht. Beim ersten Öffnen eines Bereichs legt sich eine kurze Erklärung über die Seite: der Rest verblasst, ein Pfeil zeigt auf das, worum es geht. Danach kommt sie von allein nicht wieder.
+- Der Willkommensblock endet nicht mehr im leeren Formular, sondern führt Schritt für Schritt durch das Anlegen der ersten Pflanze. Dabei ist immer nur der Knopf antippbar, um den es gerade geht — man kann sich nicht verlaufen. Wegtippen geht in jedem Schritt.
+- Erklärungen für die Sammlung, die Pflanzenkarte und den Heute-Reiter. Weitere Bereiche folgen in der nächsten Fassung.
+- Innerhalb einer Erklärung lässt sich zurückblättern. Ein versehentlich weggetippter Schritt ist damit nicht verloren — man muss nicht das ganze Kapitel wiederholen.
+- Neuer Abschnitt „Erklärungen“ unter „Mehr“: alle Kapitel einzeln noch einmal ansehen, alle zurücksetzen oder ganz abschalten.
+
+### Besser
+- Wer die App schon benutzt, bekommt nach diesem Update keine einzige Erklärung vorgesetzt. Alle Kapitel gelten für bestehende Sammlungen als gesehen und stehen unter „Mehr“ bereit, falls man doch hineinschauen will.
+- Springt man von einer Pflanzenkarte aus in ein Werkzeug, erscheint die Erklärung trotzdem. Wer auf diesem Weg zum ersten Mal irgendwo landet, braucht sie eher mehr als weniger — und ist mit einem Tipp wieder draussen.
+
+### Behoben
+- Fehlt ein Element, auf das eine Erklärung zeigen wollte — etwa der Teilen-Knopf auf einem Gerät ohne Teilen-Funktion —, wird der Schritt still übersprungen, statt ins Leere zu zeigen.
+
+---
+
 ## 1.8 — 22. August 2026
 **Gattungstabelle**
 

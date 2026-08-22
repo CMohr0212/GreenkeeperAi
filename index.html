@@ -1376,6 +1376,47 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #update-streifen button.haupt{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
 @media(min-width:760px){#update-streifen{bottom:var(--a-4);left:auto;right:var(--a-4);max-width:420px}}
 #install-sec .install-hin{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
+
+/* ── Tutorial ─────────────────────────────────────────────
+   Vier Blenden legen sich um das Ziel herum, statt ein Loch in
+   eine einzige Flaeche zu schneiden. Nur so bleibt der Knopf
+   darunter wirklich antippbar: ein box-shadow-Loch sieht zwar
+   richtig aus, schluckt die Beruehrung aber trotzdem. Das
+   Deckelchen ueber dem Loch kommt nur bei den Erklaerschritten
+   dazu, wo nichts angetippt werden soll. */
+#tour[hidden]{display:none}
+#tour{position:fixed;inset:0;z-index:150;pointer-events:none}
+.tour-bl{position:fixed;background:rgba(20,22,20,.58);pointer-events:auto}
+#tour-deckel{position:fixed;background:none;pointer-events:auto;display:none}
+#tour.zu #tour-deckel{display:block}
+#tour-ring{position:fixed;border:2px solid var(--paper);border-radius:6px;
+  box-shadow:0 0 0 3px rgba(47,95,112,.6);pointer-events:none}
+#tour-ring[hidden]{display:none}
+#tour-pfeil{position:fixed;width:0;height:0;pointer-events:none;
+  border-left:9px solid transparent;border-right:9px solid transparent}
+#tour-pfeil[hidden]{display:none}
+#tour-pfeil.hoch{border-bottom:11px solid var(--ink)}
+#tour-pfeil.runter{border-top:11px solid var(--ink)}
+#tour-karte{position:fixed;left:50%;transform:translateX(-50%);
+  width:min(460px,calc(100vw - 28px));background:var(--paper);
+  border:1px solid var(--ink);border-radius:5px;pointer-events:auto;
+  padding:var(--a-4) var(--a-4) var(--a-3);box-shadow:0 10px 30px rgba(20,18,14,.34)}
+#tour-nr{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--peat);margin:0 0 6px;padding-right:22px}
+#tour-titel{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);
+  margin:0 0 6px;padding-right:22px}
+#tour-text{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
+#tour-fuss{display:flex;gap:var(--a-2);align-items:center;flex-wrap:wrap}
+#tour-fuss button{font:inherit;font-size:var(--t-s);padding:9px 14px;border-radius:3px;
+  border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+#tour-fuss button.haupt{background:var(--water);border-color:var(--water);color:#fff;font-weight:600}
+#tour-fuss button[disabled]{opacity:.32;cursor:default}
+#tour-fuss button[hidden]{display:none}
+#tour-skip{margin-left:auto;border:0!important;background:none!important;
+  color:var(--peat)!important;text-decoration:underline;padding:9px 2px!important}
+#tour-zu{position:absolute;top:5px;right:7px;border:0;background:none;color:var(--peat);
+  font-size:21px;line-height:1;padding:4px 7px;cursor:pointer}
+#tour-liste .mrow:first-child{border-top:0}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#f7f4ec">
@@ -5016,9 +5057,31 @@ function papierkorbRender(){
       </div>
 
       <div class="wk-knoepfe">
-        <button class="wk-haupt" data-wkfertig="1">Erste Pflanze anlegen</button>
-        <button class="wk-neben" data-wkfertig="0">Erstmal umsehen</button>
+        <button class="wk-haupt" data-wkfertig="1">Schritt für Schritt einrichten</button>
+        <button class="wk-neben" data-wkfertig="0">Erstmal allein umsehen</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tutorial: legt sich ueber die Seite, laesst genau ein Element frei. -->
+<div id="tour" hidden>
+  <div class="tour-bl" data-b="o"></div>
+  <div class="tour-bl" data-b="r"></div>
+  <div class="tour-bl" data-b="u"></div>
+  <div class="tour-bl" data-b="l"></div>
+  <div id="tour-deckel"></div>
+  <div id="tour-ring" hidden></div>
+  <div id="tour-pfeil" hidden></div>
+  <div id="tour-karte" role="dialog" aria-live="polite">
+    <button id="tour-zu" type="button" aria-label="Erklaerung schliessen">&times;</button>
+    <p id="tour-nr"></p>
+    <h3 id="tour-titel"></h3>
+    <p id="tour-text"></p>
+    <div id="tour-fuss">
+      <button id="tour-zurueck" type="button">&lsaquo; Zurück</button>
+      <button id="tour-weiter" type="button" class="haupt">Weiter &rsaquo;</button>
+      <button id="tour-skip" type="button">Überspringen</button>
     </div>
   </div>
 </div>
@@ -5630,6 +5693,25 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan mh" id="tour-sec" data-mh="tour">
+    <h2 class="wz-h2">Erklärungen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="tour" aria-expanded="false" aria-controls="mh-in-tour">
+        <span class="wz-t">Erklärungen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="tour" aria-expanded="false" aria-label="Wozu sind die Erklärungen da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-tour" hidden>
+      <p class="wz-hilfe" hidden>Beim ersten Öffnen eines Bereichs legt sich eine kurze Erklärung über die Seite: der Rest verblasst, ein Pfeil zeigt auf das, worum es gerade geht. Jede Erklärung lässt sich mit „Überspringen“ oder dem × sofort schließen und mit „Zurück“ noch einmal durchblättern — ein versehentlich weggetippter Schritt ist also nicht verloren. Von allein kommt eine Erklärung kein zweites Mal. Hier stehen alle Kapitel zum erneuten Ansehen.</p>
+      <div id="tour-liste"></div>
+      <div class="tools">
+        <button id="btn-tour-alle">Alle Erklärungen zurücksetzen</button>
+      </div>
+      <label class="fspan check">
+        <input type="checkbox" id="tour-aus"> <span class="lab" style="display:inline">Erklärungen abschalten</span></label>
+      <p class="fhint" id="tour-aus-text"></p>
+    </div>
+  </section>
+
   <section data-ans="mehr" class="plan mh" id="rueck-sec" data-mh="rueck">
     <h2 class="wz-h2">Rückmeldung</h2>
     <div class="wz-kopfzeile">
@@ -5833,8 +5915,25 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '1.8';
+const FASSUNG = '1.9';
 const PATCHNOTES = [
+  {
+    nr: '1.9', datum: '2026-08-22', titel: 'Erklärungen beim ersten Mal',
+    neu: [
+      'Die App erklärt sich jetzt selbst — aber nicht am Stück, sondern dort, wo man gerade steht. Beim ersten Öffnen eines Bereichs legt sich eine kurze Erklärung über die Seite: der Rest verblasst, ein Pfeil zeigt auf das, worum es geht. Danach kommt sie von allein nicht wieder.',
+      'Der Willkommensblock endet nicht mehr im leeren Formular, sondern führt Schritt für Schritt durch das Anlegen der ersten Pflanze. Dabei ist immer nur der Knopf antippbar, um den es gerade geht — man kann sich nicht verlaufen. Wegtippen geht in jedem Schritt.',
+      'Erklärungen für die Sammlung, die Pflanzenkarte und den Heute-Reiter. Weitere Bereiche folgen in der nächsten Fassung.',
+      'Innerhalb einer Erklärung lässt sich zurückblättern. Ein versehentlich weggetippter Schritt ist damit nicht verloren — man muss nicht das ganze Kapitel wiederholen.',
+      'Neuer Abschnitt „Erklärungen“ unter „Mehr“: alle Kapitel einzeln noch einmal ansehen, alle zurücksetzen oder ganz abschalten.'
+    ],
+    besser: [
+      'Wer die App schon benutzt, bekommt nach diesem Update keine einzige Erklärung vorgesetzt. Alle Kapitel gelten für bestehende Sammlungen als gesehen und stehen unter „Mehr“ bereit, falls man doch hineinschauen will.',
+      'Springt man von einer Pflanzenkarte aus in ein Werkzeug, erscheint die Erklärung trotzdem. Wer auf diesem Weg zum ersten Mal irgendwo landet, braucht sie eher mehr als weniger — und ist mit einem Tipp wieder draussen.'
+    ],
+    behoben: [
+      'Fehlt ein Element, auf das eine Erklärung zeigen wollte — etwa der Teilen-Knopf auf einem Gerät ohne Teilen-Funktion —, wird der Schritt still übersprungen, statt ins Leere zu zeigen.'
+    ]
+  },
   {
     nr: '1.8', datum: '2026-08-22', titel: 'Gattungstabelle',
     neu: [
@@ -6038,6 +6137,9 @@ const LEERSTAND = () => ({
   ereignisse:{}, gesehen:{}, orte:{}, acc:{giessen:1, aufgaben:1},
   balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'', sammlungOffen:null,
   letzteSicherung:null, startGesehen:null, grundrissWunsch:null,
+  /* Erklärungen: aus schaltet alles ab, kapitel merkt sich die
+     gesehenen, einricht den Stand der Ersteinrichtung. */
+  tutorial:{aus:false, kapitel:{}, einricht:0},
   /* Tierhaltung: aktiv sagt, ob überhaupt Warnungen kommen sollen. */
   tiere:{aktiv:null, arten:['katze']},
   feuchtRueck:{}   /* Rückmeldungen „noch feucht“ je Pflanze */
@@ -6060,6 +6162,11 @@ function grundwerteErgaenzen(){
   if(!Array.isArray(S.tiere.arten)) S.tiere.arten = ['katze'];
   if(!S.feuchtRueck || typeof S.feuchtRueck !== 'object') S.feuchtRueck = {};
   if(S.startGesehen === undefined) S.startGesehen = null;
+  if(!S.tutorial || typeof S.tutorial !== 'object' || Array.isArray(S.tutorial))
+    S.tutorial = {aus:false, kapitel:{}, einricht:0};
+  if(!S.tutorial.kapitel || typeof S.tutorial.kapitel !== 'object'
+     || Array.isArray(S.tutorial.kapitel)) S.tutorial.kapitel = {};
+  if(typeof S.tutorial.einricht !== 'number') S.tutorial.einricht = 0;
   if(S.grundrissWunsch === undefined) S.grundrissWunsch = null;
   /* Ebenso alle Sammlungen, die als Liste erwartet werden. */
   ['eigene','neueArten','vorrat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k] = []; });
@@ -8062,7 +8169,7 @@ function wkArtenZeichnen(){
     `<button data-wkart="${k}" aria-pressed="${gewaehlt.includes(k)}">${esc(TIERARTEN[k].name)}</button>`).join('');
 }
 
-function wkFertig(zurSammlung){
+function wkFertig(mitTutorial){
   S.startGesehen = iso(HEUTE);
   if(S.tiere && S.tiere.aktiv === null) S.tiere.aktiv = false;
   sichern();
@@ -8071,10 +8178,13 @@ function wkFertig(zurSammlung){
   document.body.style.overflow = '';
   tierEinstellungZeichnen();
   render();
-  if(zurSammlung){
-    ansichtZeigen('sammlung');
-    const f = document.getElementById('form-neu');
-    if(f){ f.classList.add('on'); f.scrollIntoView({behavior:'smooth', block:'center'}); }
+  /* Frueher sprang der Knopf direkt ins offene Formular. Jetzt geht es
+     auf „Heute“, wo die Willkommenskarte steht — von dort fuehrt das
+     Tutorial Schritt fuer Schritt weiter. Wer es nicht will, bleibt
+     einfach auf der Karte stehen; der Knopf dort holt es spaeter. */
+  if(typeof ansichtZeigen === 'function') ansichtZeigen('heute');
+  if(mitTutorial && typeof tourStart === 'function' && typeof tourNoetig === 'function'){
+    if(tourNoetig('einricht')) setTimeout(()=>tourStart('einricht'), 300);
   }
 }
 
@@ -10030,7 +10140,7 @@ document.addEventListener('click', e=>{
    Bewusst eine eigene Funktion statt einer gemeinsamen: die beiden
    Seiten merken sich getrennt, was offen war, und die Werkzeuge-Logik
    bleibt unangetastet. */
-const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','rueck','install','weg','melde','patch'];
+const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','tour','rueck','install','weg','melde','patch'];
 function mehrZeichnen(){
   document.querySelectorAll('[data-mh]').forEach(sec=>{
     const auf = sec.dataset.mh === S.mehrOffen;
@@ -10815,6 +10925,8 @@ function erststartZeigen(){
       <button class="haupt" data-do="start-anlegen">Erste Pflanze anlegen</button>
       <button data-do="start-import">Sicherung laden</button>
     </div>
+    ${(typeof tourNoetig === 'function' && tourNoetig('einricht'))
+      ? '<p class="start-fuss"><button class="linkbtn" data-do="start-tour">Lieber Schritt f\u00fcr Schritt f\u00fchren lassen</button></p>' : ''}
     <ol class="start-weg">
       <li><b>Anlegen</b> — Art suchen, Name vergeben, fertig.</li>
       <li><b>Grundriss</b> — Raum zeichnen und die Pflanze hineinstellen, dann kennt die App ihr Licht.</li>
@@ -10832,6 +10944,10 @@ document.addEventListener('click', e=>{
     if(f) f.classList.add('on');
     if(typeof fabZeichnen === 'function') fabZeichnen();
     setTimeout(()=>{ const q = document.getElementById('f-art'); if(q){ q.scrollIntoView({block:'center'}); q.focus(); } }, 200);
+  }
+  if(b.dataset.do === 'start-tour'){
+    if(typeof tourStart === 'function') tourStart('einricht');
+    return;
   }
   if(b.dataset.do === 'start-import'){
     ansichtZeigen('mehr');
@@ -12248,6 +12364,540 @@ const knopfWkInstall = document.getElementById('btn-wk-install');
 if(knopfWkInstall) knopfWkInstall.onclick = installFragen;
 installStatus();
 installAngebot();
+
+</script>
+<script>
+
+/* ══════════════════ Tutorial ══════════════════
+   Kein langer Rundgang durch die ganze App, sondern viele kurze
+   Kapitel, die dort anspringen, wo sie hingehoeren: beim ersten
+   Betreten eines Reiters, beim ersten Aufklappen einer Karte.
+
+   Zwei Arten von Schritt:
+   • Sperrschritt — der Rest der Seite verblasst, genau ein Element
+     bleibt antippbar, der Nutzer handelt selbst und die Tour geht
+     durch seine Handlung weiter. Nur für die Ersteinrichtung.
+   • Erklärschritt — gleiche Optik, aber mit Weiter und Zurück;
+     das Ziel ist dabei mit einem unsichtbaren Deckel abgedeckt,
+     damit unterwegs nichts versehentlich ausgelöst wird.
+
+   Zurück geht immer. Bei den Sperrschritten blättert es nur im
+   Text: ein bereits erledigter Schritt wird noch einmal gezeigt,
+   aber nicht noch einmal verlangt — sonst würde die Tour beim
+   Zurückgehen sofort wieder nach vorn springen. */
+
+let tourLauf = null;      /* {key, i, max, schritte, modus, stand, danach} */
+let tourTakt = null;
+
+const TOUR_KAPITEL = {
+
+  einricht: {
+    name: 'Einrichtung',
+    modus: 'sperre',
+    danach: ()=>{ if(tourNoetig('sammlung')) tourStart('sammlung'); },
+    schritte: ()=>[
+      { ziel: ()=>document.querySelector('#erststart [data-do="start-anlegen"]'),
+        titel: 'Die erste Pflanze',
+        text: 'Fast alles in der App hängt daran, dass mindestens eine Pflanze angelegt ist. Tipp auf den Knopf — der Rest der Seite ist so lange abgedunkelt.',
+        fertig: ()=>{ const f = document.getElementById('form-neu');
+                      return !!(f && f.classList.contains('on')); } },
+
+      { ziel: ()=>document.querySelector('#form-neu .neu-wahl'),
+        titel: 'Zwei Wege',
+        text: 'Weißt du, was es ist, such die Art in der Bibliothek — dann sind Gießklasse, Licht, Dünger und Giftigkeit sofort ausgefüllt. Weißt du es nicht, lass eine KI ans Foto. Beide Wege enden im selben Formular.',
+        fertig: ()=>{ const b = document.getElementById('neu-bibbox');
+                      const k = document.getElementById('neu-kibox');
+                      return !!((b && !b.hidden) || (k && !k.hidden)); } },
+
+      { ziel: ()=>{ const b = document.getElementById('neu-bibbox');
+                    if(b && !b.hidden) return document.getElementById('f-art');
+                    const k = document.getElementById('neu-kibox');
+                    return (k && !k.hidden) ? k : null; },
+        titel: ()=>{ const b = document.getElementById('neu-bibbox');
+                     return (b && !b.hidden) ? 'Art suchen' : 'Die KI fragen'; },
+        text: ()=>{ const b = document.getElementById('neu-bibbox');
+                    return (b && !b.hidden)
+                      ? 'Die ersten Buchstaben genügen, deutscher oder botanischer Name. Aus der Liste einen Treffer wählen — damit sind die Pflegedaten gesetzt.'
+                      : 'Prompt kopieren, im Chatdienst zusammen mit einem Foto einfügen, die Antwort zurück in „Antwort einfügen“. Die App liest die Felder selbst heraus.'; },
+        weiter: true,
+        fertig: ()=>{ const g = document.getElementById('bib-gewaehlt');
+                      return !!(g && !g.hidden); } },
+
+      { ziel: ()=>document.getElementById('f-name'),
+        titel: 'Ein Name',
+        text: 'Der Name steht auf der Karte, im Gießmodus und auf dem Urlaubszettel. Er darf ruhig albern sein — er soll dir helfen, die Pflanze im Raum wiederzuerkennen.',
+        weiter: true },
+
+      { ziel: ()=>document.querySelector('#form-neu .fgrid'),
+        titel: 'Der Rest steht schon da',
+        text: 'Gießklasse, Licht und Giftigkeit kommen aus der Bibliothek und lassen sich hier überschreiben. Raum und Stellplatz kannst du jetzt setzen oder später auf der Karte — daraus rechnet die App das Licht am Platz und warnt, wenn ein Tier drankommt.',
+        weiter: true },
+
+      { ziel: ()=>document.getElementById('f-fotos'),
+        titel: 'Fotos sind freiwillig',
+        text: 'Das erste Bild wird das Profilbild. Fotos liegen im großen Speicher des Browsers, nicht im kleinen — es passen also viele hinein.',
+        weiter: true },
+
+      { ziel: ()=>document.getElementById('btn-neu-save'),
+        titel: 'Anlegen',
+        text: 'Danach steht sie in der Sammlung, und die App fängt an, für sie mitzuzählen.',
+        fertig: ()=>{ try{ return allePflanzen().length > (tourLauf ? tourLauf.stand : 0); }
+                      catch(e){ return false; } } }
+    ]
+  },
+
+  sammlung: {
+    name: 'Die Sammlung',
+    danach: ()=>{ if(document.querySelector('#out .card.open') && tourNoetig('karte'))
+                    tourStart('karte'); },
+    schritte: ()=>[
+      { vor: ()=>ansichtZeigen('sammlung'),
+        ziel: ()=>document.querySelector('#out .card'),
+        titel: 'Eine Karte je Pflanze',
+        text: 'Der Balken unter dem Namen zeigt, wie feucht das Substrat gerade sein sollte. Die Zeichen daneben stehen für Zustand, Giftigkeit und offene Aufgaben — die Zeichenerklärung ganz oben löst sie auf. Ein Tipp klappt die Karte auf.',
+        warte: 260 },
+
+      { ziel: ()=>document.querySelector('section.controls .such-zeile'),
+        titel: 'Suchen und filtern',
+        text: 'Die Suche geht über Name, Art, Standort und Symptom zugleich. Hinter „Filter“ liegen Gießklasse, Giftigkeit und Raum.' },
+
+      { ziel: ()=>document.getElementById('fab-neu'),
+        titel: 'Weitere Pflanzen',
+        text: 'Der runde Knopf ist der einzige Weg zum Anlegen und steht immer an derselben Stelle.' },
+
+      { ziel: ()=>document.querySelector('[data-sm="vermehren"]'),
+        titel: 'Vier Blöcke am Fuß der Seite',
+        text: 'Vermehren mit den Methoden zur jeweiligen Art, Stammbaum für Ableger und ihre Eltern, Gießplan als Übersicht über alle Termine, Wunschliste für alles, was noch fehlt. Immer nur einer offen, damit die Seite kurz bleibt.' }
+    ]
+  },
+
+  karte: {
+    name: 'Die Pflanzenkarte',
+    schritte: ()=>[
+      { ziel: ()=>document.querySelector('#out .card.open .schnell'),
+        titel: 'Der Schnellzugriff',
+        text: 'Ganz oben in der Karte steht, wie es ums Gießen bestellt ist, darunter die Knöpfe, die du am häufigsten brauchst — gießen, Aufgabe anlegen, Ereignis eintragen.' },
+
+      { ziel: ()=>document.querySelector('#out .card.open .ktabs'),
+        titel: 'Vier Reiter',
+        text: 'Allgemein für Fotos und Aufgaben, Pflege für die Angaben zur Art, Lage für Raum und Stellplatz samt Tierwarnung, Geschichte für Zustand und Verlauf. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
+
+      { ziel: ()=>document.querySelector('#out .card.open .acc'),
+        titel: 'Abschnitte klappen auf',
+        text: 'Was du hier aufklappst, ist auch bei der nächsten Pflanze aufgeklappt. So siehst du überall dasselbe, ohne jedes Mal zu suchen.' },
+
+      { ziel: ()=>document.querySelector('#out .card.open .card-btn'),
+        titel: 'Wieder zuklappen',
+        text: 'Ein Tipp auf den Kopf der Karte schließt sie. Es ist immer nur eine Karte gleichzeitig offen.' }
+    ]
+  },
+
+  heute: {
+    name: 'Heute',
+    schritte: ()=>[
+      { vor: ()=>ansichtZeigen('heute'),
+        ziel: ()=>document.getElementById('heute-status'),
+        titel: 'Was heute dran ist',
+        text: 'Aus der Gießklasse jeder Pflanze entsteht ein Rhythmus; Standort und Jahreszeit ziehen davon Tage ab oder legen welche drauf. Was daraus für heute folgt, steht hier.',
+        warte: 260 },
+
+      { ziel: ()=>document.getElementById('btn-giessmodus'),
+        titel: 'Gießmodus',
+        text: 'Führt dich Pflanze für Pflanze durch alles, was fällig ist — mit Bild, Gießart und Menge. Danach ist der Stand aller Pflanzen aktuell.' },
+
+      { ziel: ()=>document.getElementById('btn-rundgang'),
+        titel: 'Rundgang',
+        text: 'Geht die ganze Sammlung der Reihe nach durch, nicht nur das Fällige. Drei Tiefen von kurzem Blick bis Bestandsaufnahme mit Foto, einstellbar unter „Mehr“.' },
+
+      { ziel: ()=>document.getElementById('stichtage'),
+        titel: 'Stichtage',
+        text: 'Dünger, Umtopfen und ablaufende Zustände stehen als Termine hier. Einzelne lassen sich in den Kalender des Geräts legen.' },
+
+      { ziel: ()=>document.getElementById('todo-sec'),
+        titel: 'Alle offenen Punkte',
+        text: 'Was an Aufgaben aus Doktor, Rundgang und den Karten zusammengekommen ist, sammelt sich hier an einer Stelle.' }
+    ]
+  }
+
+};
+
+/* ── Zustand und Merker ───────────────────────── */
+function tourZustand(){
+  if(!S.tutorial || typeof S.tutorial !== 'object' || Array.isArray(S.tutorial))
+    S.tutorial = {aus:false, kapitel:{}, einricht:0};
+  if(!S.tutorial.kapitel || typeof S.tutorial.kapitel !== 'object'
+     || Array.isArray(S.tutorial.kapitel)) S.tutorial.kapitel = {};
+  if(typeof S.tutorial.einricht !== 'number') S.tutorial.einricht = 0;
+  return S.tutorial;
+}
+
+function tourNoetig(key){
+  const t = tourZustand();
+  if(t.aus) return false;
+  if(tourLauf) return false;
+  if(!TOUR_KAPITEL[key]) return false;
+  return !t.kapitel[key];
+}
+
+function tourErledigt(key){
+  const t = tourZustand();
+  t.kapitel[key] = 1;
+  sichern();
+}
+
+/* Wer schon Pflanzen hat, kennt die App. Der soll nach einem Update
+   nicht plötzlich überall Erklärungen bekommen — die Kapitel gelten
+   für ihn als gesehen und stehen unter „Mehr“ bereit. Das läuft genau
+   einmal, gemerkt an einem eigenen Feld statt am bloßen Vorhandensein
+   des Objekts: sonst würde eine eingespielte Sicherung ohne dieses
+   Feld die Prüfung erneut auslösen. */
+(function tourAltbestand(){
+  const t = tourZustand();
+  if(t.geprueft) return;
+  t.geprueft = 1;
+  let kennt = false;
+  try{
+    kennt = !!(S.startGesehen
+      || (S.eigene && S.eigene.length)
+      || (S.water && Object.keys(S.water).length)
+      || (S.added && Object.keys(S.added).length));
+  }catch(e){ kennt = false; }
+  if(kennt) Object.keys(TOUR_KAPITEL).forEach(k=>{ t.kapitel[k] = 1; });
+  sichern();
+})();
+
+/* ── Anzeige ─────────────────────────────── */
+function tourZiel(schritt){
+  if(!schritt || typeof schritt.ziel !== 'function') return null;
+  let el = null;
+  try{ el = schritt.ziel(); }catch(e){ return null; }
+  if(!el || !el.getBoundingClientRect) return null;
+  const r = el.getBoundingClientRect();
+  if(!r.width && !r.height) return null;
+  return el;
+}
+
+function tourMalen(){
+  if(!tourLauf) return;
+  const box = document.getElementById('tour'); if(!box) return;
+  const s = tourLauf.schritte[tourLauf.i];
+  const el = tourZiel(s);
+  const ring   = document.getElementById('tour-ring');
+  const pfeil  = document.getElementById('tour-pfeil');
+  const karte  = document.getElementById('tour-karte');
+  const deckel = document.getElementById('tour-deckel');
+  const B = window.innerWidth, H = window.innerHeight;
+  const setz = (n, x, y, w, h)=>{
+    if(!n) return;
+    n.style.left = Math.max(0, Math.round(x)) + 'px';
+    n.style.top  = Math.max(0, Math.round(y)) + 'px';
+    n.style.width  = Math.max(0, Math.round(w)) + 'px';
+    n.style.height = Math.max(0, Math.round(h)) + 'px';
+  };
+  const bl = {
+    o: box.querySelector('[data-b="o"]'), r: box.querySelector('[data-b="r"]'),
+    u: box.querySelector('[data-b="u"]'), l: box.querySelector('[data-b="l"]')
+  };
+
+  /* Kein Ziel: ganze Fläche abdunkeln, Karte in die Mitte. Das ist
+     kein Fehlerfall, sondern der Normalfall für einen Bereich, den
+     es gerade nicht gibt. */
+  if(!el){
+    setz(bl.o, 0, 0, B, H); setz(bl.r, 0, 0, 0, 0);
+    setz(bl.u, 0, 0, 0, 0); setz(bl.l, 0, 0, 0, 0);
+    setz(deckel, 0, 0, 0, 0);
+    if(ring) ring.hidden = true;
+    if(pfeil) pfeil.hidden = true;
+    karte.style.bottom = 'auto';
+    karte.style.top = Math.max(12, (H - (karte.offsetHeight || 200)) / 2) + 'px';
+    return;
+  }
+
+  const r = el.getBoundingClientRect();
+  const p = 6;
+  const x = r.left - p, y = r.top - p, w = r.width + 2*p, h = r.height + 2*p;
+  setz(bl.o, 0, 0, B, y);
+  setz(bl.u, 0, y + h, B, H - (y + h));
+  setz(bl.l, 0, y, x, h);
+  setz(bl.r, x + w, y, B - (x + w), h);
+  setz(deckel, x, y, w, h);
+  if(ring){
+    ring.hidden = false;
+    ring.style.left = Math.round(x) + 'px';  ring.style.top = Math.round(y) + 'px';
+    ring.style.width = Math.round(w) + 'px'; ring.style.height = Math.round(h) + 'px';
+  }
+
+  const hoehe = karte.offsetHeight || 190;
+  const unten = H - (y + h);
+  if(unten > hoehe + 30){
+    karte.style.bottom = 'auto';
+    karte.style.top = Math.round(y + h + 15) + 'px';
+    if(pfeil){ pfeil.hidden = false; pfeil.className = 'hoch';
+               pfeil.style.top = Math.round(y + h + 4) + 'px'; }
+  } else if(y > hoehe + 30){
+    karte.style.bottom = 'auto';
+    karte.style.top = Math.round(y - hoehe - 15) + 'px';
+    if(pfeil){ pfeil.hidden = false; pfeil.className = 'runter';
+               pfeil.style.top = Math.round(y - 15) + 'px'; }
+  } else {
+    karte.style.top = 'auto';
+    karte.style.bottom = '14px';
+    if(pfeil) pfeil.hidden = true;
+  }
+  if(pfeil && !pfeil.hidden){
+    const mitte = Math.min(B - 22, Math.max(22, r.left + r.width / 2));
+    pfeil.style.left = Math.round(mitte - 9) + 'px';
+  }
+}
+
+function tourWort(v){ return (typeof v === 'function') ? v() : v; }
+
+function tourText(){
+  if(!tourLauf) return;
+  const s = tourLauf.schritte[tourLauf.i];
+  const kap = TOUR_KAPITEL[tourLauf.key];
+  const erledigt = tourLauf.i < tourLauf.max;
+  const nr = document.getElementById('tour-nr');
+  if(nr) nr.textContent = kap.name + ' · ' + (tourLauf.i + 1)
+    + ' von ' + tourLauf.schritte.length + (erledigt ? ' · erledigt' : '');
+  const ti = document.getElementById('tour-titel');
+  if(ti) ti.textContent = tourWort(s.titel) || '';
+  const tx = document.getElementById('tour-text');
+  if(tx) tx.textContent = tourWort(s.text) || '';
+
+  const zur = document.getElementById('tour-zurueck');
+  const wei = document.getElementById('tour-weiter');
+  const letzter = tourLauf.i === tourLauf.schritte.length - 1;
+  if(zur) zur.disabled = tourLauf.i === 0;
+  if(wei){
+    /* Bei einem Sperrschritt, der noch aussteht, gibt es kein Weiter —
+       außer der Schritt erlaubt es ausdrücklich. Ein bereits erledigter
+       Schritt bekommt immer eines, sonst käme man beim Zurückblättern
+       nicht wieder nach vorn. */
+    const frei = tourLauf.modus !== 'sperre' || erledigt || s.weiter;
+    wei.hidden = !frei;
+    wei.textContent = letzter ? 'Fertig' : 'Weiter ›';
+  }
+  const box = document.getElementById('tour');
+  /* Deckel nur, wo nichts angetippt werden soll. */
+  if(box) box.classList.toggle('zu', !(tourLauf.modus === 'sperre' && !erledigt));
+}
+
+/* ── Ablauf ──────────────────────────────── */
+function tourGehe(i, richtung){
+  if(!tourLauf) return;
+  const ri = (richtung === -1) ? -1 : 1;
+  if(i >= tourLauf.schritte.length){ tourFertig(); return; }
+  if(i < 0) i = 0;
+  tourLauf.i = i;
+  if(i > tourLauf.max) tourLauf.max = i;
+  const s = tourLauf.schritte[i];
+  try{ if(typeof s.vor === 'function') s.vor(); }
+  catch(e){ console.warn('Tutorial:', e); }
+
+  setTimeout(()=>{
+    if(!tourLauf || tourLauf.schritte[tourLauf.i] !== s) return;
+    const el = tourZiel(s);
+    /* Gibt es das Ziel hier nicht — leerer Bereich, Knopf ohne
+       Teilen-Funktion —, still weitergehen statt ins Leere zu zeigen. */
+    if(!el){
+      const n = tourLauf.i + ri;
+      if(n < 0){ tourText(); tourMalen(); return; }
+      tourGehe(n, ri);
+      return;
+    }
+    try{
+      const r = el.getBoundingClientRect();
+      if(r.top < 70 || r.bottom > window.innerHeight - 210)
+        el.scrollIntoView({block:'center'});
+    }catch(e){}
+    tourText();
+    tourMalen();
+  }, s.warte || 100);
+}
+
+function tourTaktStart(){
+  tourTaktStop();
+  tourTakt = setInterval(()=>{
+    if(!tourLauf){ tourTaktStop(); return; }
+    tourMalen();
+    if(tourLauf.modus !== 'sperre') return;
+    if(tourLauf.i < tourLauf.max) return;   /* erledigt, nicht erneut verlangen */
+    const s = tourLauf.schritte[tourLauf.i];
+    if(!s || typeof s.fertig !== 'function') return;
+    let ok = false;
+    try{ ok = !!s.fertig(); }catch(e){ ok = false; }
+    if(ok) tourGehe(tourLauf.i + 1, 1);
+  }, 260);
+}
+function tourTaktStop(){ if(tourTakt){ clearInterval(tourTakt); tourTakt = null; } }
+
+function tourStart(key){
+  const kap = TOUR_KAPITEL[key];
+  if(!kap || tourLauf) return false;
+  const t = tourZustand();
+  if(t.aus) return false;
+  let schritte = [];
+  try{ schritte = kap.schritte() || []; }catch(e){ schritte = []; }
+  if(!schritte.length){ tourErledigt(key); return false; }
+  let stand = 0;
+  try{ stand = allePflanzen().length; }catch(e){ stand = 0; }
+  tourLauf = {key:key, i:0, max:0, schritte:schritte,
+              modus: kap.modus || 'erklaer', stand:stand, danach: kap.danach || null};
+  const box = document.getElementById('tour');
+  if(box) box.hidden = false;
+  tourTaktStart();
+  tourGehe(0, 1);
+  return true;
+}
+
+function tourSchliessen(){
+  tourTaktStop();
+  tourLauf = null;
+  const box = document.getElementById('tour');
+  if(box){ box.hidden = true; box.classList.remove('zu'); }
+  if(typeof tourListeZeichnen === 'function') tourListeZeichnen();
+}
+
+function tourFertig(){
+  if(!tourLauf) return;
+  const key = tourLauf.key, danach = tourLauf.danach;
+  tourErledigt(key);
+  if(key === 'einricht'){ tourZustand().einricht = 0; sichern(); }
+  tourSchliessen();
+  try{ if(typeof render === 'function') render(); }catch(e){}
+  if(typeof danach === 'function') setTimeout(()=>{ try{ danach(); }catch(e){} }, 450);
+}
+
+/* Überspringen und × sind dasselbe: das Kapitel gilt als gesehen und
+   kommt von allein nicht wieder. Nur die Ersteinrichtung bleibt offen,
+   damit der Knopf auf der Willkommenskarte weiter etwas zu holen hat. */
+function tourAbbruch(){
+  if(!tourLauf) return;
+  const key = tourLauf.key, i = tourLauf.i;
+  if(key === 'einricht'){ tourZustand().einricht = i + 1; sichern(); }
+  else tourErledigt(key);
+  tourSchliessen();
+  try{ if(typeof render === 'function') render(); }catch(e){}
+}
+
+/* ── Bedienung ──────────────────────────── */
+(function tourKnoepfe(){
+  const zur = document.getElementById('tour-zurueck');
+  const wei = document.getElementById('tour-weiter');
+  const zu  = document.getElementById('tour-zu');
+  const sk  = document.getElementById('tour-skip');
+  if(zur) zur.onclick = ()=>{ if(tourLauf) tourGehe(tourLauf.i - 1, -1); };
+  if(wei) wei.onclick = ()=>{ if(tourLauf) tourGehe(tourLauf.i + 1, 1); };
+  if(zu)  zu.onclick  = tourAbbruch;
+  if(sk)  sk.onclick  = tourAbbruch;
+})();
+
+window.addEventListener('resize', ()=>{ if(tourLauf) tourMalen(); });
+window.addEventListener('scroll', ()=>{ if(tourLauf) tourMalen(); }, true);
+document.addEventListener('keydown', e=>{
+  if(!tourLauf) return;
+  if(e.key === 'Escape') tourAbbruch();
+});
+
+/* ── Auslöser ────────────────────────────
+   Beim ersten Betreten eines Reiters. Auch dann, wenn der Sprung aus
+   einer Absicht heraus kam — etwa von einer Karte in den Grundriss:
+   wer dort zum ersten Mal landet, hat die Erklärung eher nötiger als
+   jemand, der den Reiter absichtlich aufsucht. Wegtippen geht immer. */
+function tourAnsichtPruefen(name){
+  if(tourLauf) return;
+  let hat = 0;
+  try{ hat = allePflanzen().length; }catch(e){ hat = 0; }
+  if(!hat) return;
+  if(name === 'sammlung' && tourNoetig('sammlung')) setTimeout(()=>tourStart('sammlung'), 360);
+  else if(name === 'heute' && tourNoetig('heute'))  setTimeout(()=>tourStart('heute'), 360);
+}
+const _ansichtVorherTour = ansichtZeigen;
+ansichtZeigen = function(name, merken){
+  _ansichtVorherTour(name, merken);
+  try{ tourAnsichtPruefen(document.body.dataset.ansicht || name); }
+  catch(e){ console.warn('Tutorial:', e); }
+};
+
+/* Erstes Aufklappen einer Karte. */
+document.addEventListener('click', e=>{
+  if(!e.target.closest || !e.target.closest('.card-btn')) return;
+  if(tourLauf || !tourNoetig('karte')) return;
+  setTimeout(()=>{
+    if(tourLauf || !tourNoetig('karte')) return;
+    if(document.querySelector('#out .card.open')) tourStart('karte');
+  }, 460);
+});
+
+/* ── Eintrag unter ‚Mehr‘ ───────────────────── */
+function tourListeZeichnen(){
+  const box = document.getElementById('tour-liste');
+  const t = tourZustand();
+  if(box){
+    box.innerHTML = Object.keys(TOUR_KAPITEL).map(k=>{
+      const gesehen = !!t.kapitel[k];
+      return '<div class="mrow"><b>' + esc(TOUR_KAPITEL[k].name) + '</b>'
+        + '<span class="weg-datum">' + (gesehen ? 'gesehen' : 'offen') + '</span>'
+        + '<button class="linkbtn" data-tourgo="' + k + '">ansehen</button></div>';
+    }).join('');
+  }
+  const schalter = document.getElementById('tour-aus');
+  if(schalter) schalter.checked = !!t.aus;
+  const txt = document.getElementById('tour-aus-text');
+  if(txt) txt.textContent = t.aus
+    ? 'Aus. Es erscheint keine Erklärung mehr von allein. Über „ansehen“ lässt sich trotzdem jederzeit eine holen.'
+    : 'Jede Erklärung erscheint genau einmal, beim ersten Mal in ihrem Bereich.';
+}
+
+document.addEventListener('click', e=>{
+  const g = e.target.closest && e.target.closest('[data-tourgo]');
+  if(!g) return;
+  const k = g.dataset.tourgo;
+  const t = tourZustand();
+  if(t.aus){ t.aus = false; sichern(); }
+  if(k === 'einricht'){
+    let hat = 0;
+    try{ hat = allePflanzen().length; }catch(e){}
+    if(hat){
+      alert('Die Einrichtung führt durch das Anlegen der allerersten Pflanze. '
+        + 'Da schon Pflanzen da sind, gibt es dabei nichts mehr zu zeigen — '
+        + 'das Kapitel „Die Sammlung“ erklärt denselben Weg noch einmal.');
+      tourListeZeichnen();
+      return;
+    }
+    ansichtZeigen('heute');
+    setTimeout(()=>tourStart('einricht'), 320);
+    return;
+  }
+  tourStart(k);
+});
+
+(function tourEinstellungen(){
+  const alle = document.getElementById('btn-tour-alle');
+  if(alle) alle.onclick = ()=>{
+    const t = tourZustand();
+    t.kapitel = {}; t.einricht = 0; t.aus = false;
+    sichern();
+    tourListeZeichnen();
+    try{ if(typeof render === 'function') render(); }catch(e){}
+  };
+  const schalter = document.getElementById('tour-aus');
+  if(schalter) schalter.onchange = ()=>{
+    const t = tourZustand();
+    t.aus = !!schalter.checked;
+    sichern();
+    if(t.aus && tourLauf) tourSchliessen();
+    tourListeZeichnen();
+  };
+})();
+
+/* Die Liste muss stimmen, sobald „Mehr“ gezeichnet wird. */
+if(typeof mehrZeichnen === 'function'){
+  const _mehrVorherTour = mehrZeichnen;
+  mehrZeichnen = function(){ _mehrVorherTour(); tourListeZeichnen(); };
+}
+tourListeZeichnen();
 
 </script>
 </body>
