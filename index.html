@@ -980,6 +980,20 @@ body.gm-offen{overflow:hidden}
 .warnbox.unklar .pruef{display:inline-block;margin-top:4px;font-weight:600;
   font-size:var(--t-s);color:#7A5E1E;text-decoration:underline}
 
+/* Pflegehinweise: bewusst leiser als die Warnungen. Grau statt rot,
+   ohne Ausrufezeichen, mit einem × zum Wegräumen. */
+.pflegehinweis{border:1px solid var(--line);border-radius:4px;
+  background:rgba(0,0,0,.025);padding:2px 4px 2px 10px;margin:0 0 12px}
+.ph-zeile{display:flex;align-items:flex-start;gap:6px;padding:7px 0;
+  border-top:1px solid var(--line)}
+.ph-zeile:first-child{border-top:0}
+.ph-text{margin:0;flex:1;font-size:var(--t-s);line-height:1.45;
+  color:var(--peat);overflow-wrap:anywhere}
+.ph-text b{display:block;color:var(--ink);font-weight:600;margin-bottom:1px}
+.ph-weg{flex:0 0 auto;width:26px;height:26px;padding:0;border:0;background:none;
+  color:var(--peat);font-size:17px;line-height:26px;cursor:pointer;border-radius:4px}
+.ph-weg:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+
 /* Einfacher Modus: alles ausblenden, was Einsteiger nur bremst.
    Der Grundriss ist kein eigener Reiter, sondern ein Block auf der
    Werkzeuge-Seite — deshalb über seine eigene Kennung. */
@@ -1494,7 +1508,16 @@ const ERREICHBARKEIT = {
    selbst angelegte Pflanzen weiter funktionieren. */
 function giftFuer(p, tier){
   const bot = (p.botanisch || '') + ' ' + (p.art || '');
-  const fam = p.familie || '';
+  /* Eine Gattung, für die eine geprüfte Angabe vorliegt, schlägt die
+     Familienregel. Familien sind grobe Raster: Hundsgiftgewächse
+     enthalten den schwer giftigen Oleander und die harmlose Hoya. */
+  const gat = (typeof gattungVon === 'function') ? gattungVon(p) : null;
+  if(gat && gat.gift && gat.gift[tier])
+    return {stufe: gat.gift[tier], grund: gat.giftGrund || '', quelle:'gattung'};
+  /* Ohne Familienangabe greift keine der Familienregeln. Bei selbst
+     angelegten Sammlerpflanzen ist das Feld fast immer leer, deshalb
+     springt hier die Gattungstabelle ein. */
+  const fam = (typeof familieVon === 'function') ? familieVon(p) : (p.familie || '');
   for(const r of GIFT_REGELN){
     const treffer = (r.pruef && r.pruef.test(bot)) || (r.familie && r.familie.test(fam));
     if(treffer) return {stufe: r.wirkung[tier] || 'unklar', grund: r.grund, quelle:'regel'};
@@ -1581,7 +1604,255 @@ const BILDER = {};
    spezial: Codes aus SPEZIAL, mit | getrennt, '' wenn keine
    ══════════════════════════════════════════════════════════════ */
 
-const BIB_FELDER = ['bot','de','en','fam','klasse','licht','giftig','duenger','frost','typ','spez'];
+/* ══════════════════ Gattungstabelle ══════════════════
+   Die Bibliothek kennt einige hundert Arten. Ein Sammler hat aber
+   Sorten im Regal, die dort nie stehen werden — 'Thai Constellation',
+   'Pink Princess', unbenannte Hybriden, Importe mit „sp." hinter dem
+   Gattungsnamen. Für die zählt, was die Gattung mitbringt: Familie,
+   Wuchsform und die Eigenschaften, die über die Behandlung
+   entscheiden.
+
+   Wichtig ist vor allem die Familie. Die Giftregeln arbeiten auf
+   Familienebene — ohne Familienangabe greift bei einer selbst
+   angelegten Alocasia keine einzige davon, obwohl Aronstabgewächse
+   samt und sonders Calciumoxalat enthalten.
+
+   Die Merkmale:
+   wachsbereift   Bereifung geht beim Abwischen oder Abduschen
+                  dauerhaft verloren und wächst nicht nach
+   nichtAbduschen Behaarte oder samtige Blätter, Wasser hinterlässt
+                  Flecken oder fault in der Behaarung
+   keineSeife     Seifen- und Ölsprays schädigen das Blattgewebe
+   substratFeucht Darf nie abtrocknen, „antrocknen lassen" ist tödlich
+   herzNichtNass  Wasser im Vegetationspunkt führt zu Fäule
+   herzBrauchtWasser  Das Gegenteil: der Trichter gehört gefüllt
+   epiphyt        Wächst ohne Erde, Substrat lässt sich nicht spülen
+   caudex         Verdickter Stamm mit Ruhephase, Fäulnisgefahr
+
+   Reihenfolge zählt: die erste passende Zeile gewinnt, deshalb stehen
+   Sonderfälle über ihrer Gattung. */
+const GATTUNGEN = [
+  /* ── Sonderfälle zuerst ───────────────────────────────── */
+  {g:/^Kalanchoe\s+(tomentosa|beharensis|eriophylla|pumila)/i, fam:'Dickblattgewächse', typ:'Sukkulente',
+   m:['nichtAbduschen','herzNichtNass']},
+  {g:/^Dracaena\s+trifasciata|^Sansevieria(?=\s|$)/i, fam:'Spargelgewächse', typ:'Rosettenpflanze', m:['herzNichtNass']},
+  {g:/^Cryptanthus(?=\s|$)/i, fam:'Bromeliengewächse', typ:'Bromelie', m:[]},
+  {g:/^Tillandsia(?=\s|$)/i, fam:'Bromeliengewächse', typ:'Bromelie', m:['epiphyt']},
+
+  /* ── Aronstabgewächse: das Herz der Sammlerszene ───────── */
+  {g:/^Anthurium(?=\s|$)/i,      fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:['epiphyt','nichtAbduschen']},
+  {g:/^Philodendron(?=\s|$)/i,   fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Monstera(?=\s|$)/i,       fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Alocasia(?=\s|$)/i,       fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:['herzNichtNass']},
+  {g:/^Colocasia(?=\s|$)|^Xanthosoma(?=\s|$)/i, fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:['substratFeucht']},
+  {g:/^Caladium(?=\s|$)/i,       fam:'Aronstabgewächse', typ:'Knollenpflanze',  m:[]},
+  {g:/^Syngonium(?=\s|$)/i,      fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Scindapsus(?=\s|$)/i,     fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Epipremnum(?=\s|$)/i,     fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Rhaphidophora(?=\s|$)/i,  fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Amydrium(?=\s|$)/i,       fam:'Aronstabgewächse', typ:'Kletterpflanze',  m:[]},
+  {g:/^Homalomena(?=\s|$)/i,     fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:[]},
+  {g:/^Aglaonema(?=\s|$)/i,      fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:[]},
+  {g:/^Zamioculcas(?=\s|$)/i,    fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:['caudex']},
+  {g:/^Dieffenbachia(?=\s|$)/i,  fam:'Aronstabgewächse', typ:'Strauch',         m:[]},
+  {g:/^Spathiphyllum(?=\s|$)/i,  fam:'Aronstabgewächse', typ:'Rosettenpflanze', m:[]},
+  {g:/^Zantedeschia(?=\s|$)/i,   fam:'Aronstabgewächse', typ:'Knollenpflanze',  m:[]},
+  {g:/^Amorphophallus(?=\s|$)|^Sauromatum(?=\s|$)|^Typhonium(?=\s|$)|^Arisaema(?=\s|$)/i, fam:'Aronstabgewächse', typ:'Knollenpflanze', m:['caudex']},
+  {g:/^Anubias(?=\s|$)|^Cryptocoryne(?=\s|$)/i, fam:'Aronstabgewächse', typ:'Sumpfpflanze', m:['substratFeucht']},
+
+  /* ── Hundsgiftgewächse: Hoya und die Sukkulenten ───────── */
+  /* Die Familienregel für Hundsgiftgewächse stuft schwer giftig ein.
+     Das stimmt für Adenium und Oleander, nicht aber für Hoya und
+     Ceropegia: die ASPCA führt beide ausdrücklich als ungiftig für
+     Katzen, Hunde und Pferde. Ohne diese Übersteuerung bekäme jeder
+     Hoya-Sammler eine Fehlwarnung an jeder Pflanze. Dischidia steht
+     auf keiner Liste — dort bleibt es bei „unklar“ statt bei einer
+     geratenen Entwarnung. */
+  {g:/^Hoya(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Rankpflanze', m:['epiphyt'],
+   gift:{katze:'keine', hund:'keine', nager:'keine', vogel:'unklar'},
+   giftGrund:'Die ASPCA führt Hoya als ungiftig für Katzen, Hunde und Pferde. Große Mengen können wie jedes Pflanzenmaterial den Magen verstimmen.'},
+  {g:/^Ceropegia(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Rankpflanze', m:['caudex'],
+   gift:{katze:'keine', hund:'keine', nager:'unklar', vogel:'unklar'},
+   giftGrund:'Die Leuchterblume wird von der ASPCA als ungiftig für Katzen und Hunde geführt.'},
+  {g:/^Dischidia(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Rankpflanze', m:['epiphyt'],
+   gift:{katze:'unklar', hund:'unklar', nager:'unklar', vogel:'unklar'},
+   giftGrund:'Für Dischidia liegt keine geprüfte Angabe vor. Die Familienregel für Hundsgiftgewächse trifft hier nicht zuverlässig zu — im Zweifel außer Reichweite stellen.'},
+  {g:/^Adenium(?=\s|$)|^Pachypodium(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Sukkulente', m:['caudex','herzNichtNass']},
+  {g:/^Stapelia(?=\s|$)|^Huernia(?=\s|$)|^Orbea(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Sukkulente', m:['herzNichtNass']},
+  {g:/^Stephanotis(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Kletterpflanze', m:[]},
+
+  /* ── Dickblattgewächse: fast alle bereift ─────────────── */
+  {g:/^Echeveria(?=\s|$)|^Graptopetalum(?=\s|$)|^Graptoveria(?=\s|$)|^Sedeveria(?=\s|$)|^Pachyphytum(?=\s|$)|^Pachyveria(?=\s|$)/i,
+   fam:'Dickblattgewächse', typ:'Sukkulente', m:['wachsbereift','herzNichtNass']},
+  {g:/^Sedum(?=\s|$)|^Crassula(?=\s|$)|^Cotyledon(?=\s|$)|^Aeonium(?=\s|$)|^Sempervivum(?=\s|$)|^Kalanchoe(?=\s|$)|^Adromischus(?=\s|$)/i,
+   fam:'Dickblattgewächse', typ:'Sukkulente', m:['wachsbereift','herzNichtNass']},
+
+  /* ── Weitere Sukkulenten ──────────────────────────────── */
+  {g:/^Haworthia(?=\s|$)|^Haworthiopsis(?=\s|$)|^Gasteria(?=\s|$)|^Aloe(?=\s|$)|^Astroloba(?=\s|$)/i,
+   fam:'Affodillgewächse', typ:'Sukkulente', m:['herzNichtNass']},
+  {g:/^Lithops(?=\s|$)|^Conophytum(?=\s|$)|^Fenestraria(?=\s|$)|^Faucaria(?=\s|$)|^Pleiospilos(?=\s|$)|^Titanopsis(?=\s|$)/i,
+   fam:'Mittagsblumengewächse', typ:'Sukkulente', m:['herzNichtNass']},
+  {g:/^Senecio(?=\s|$)|^Curio(?=\s|$)/i,       fam:'Korbblütler', typ:'Sukkulente', m:['wachsbereift']},
+  {g:/^Portulacaria(?=\s|$)/i,         fam:'Portulakgewächse', typ:'Sukkulente', m:[]},
+  {g:/^Dioscorea(?=\s|$)/i,            fam:'Yamswurzelgewächse', typ:'Sukkulente', m:['caudex']},
+  {g:/^Stephania(?=\s|$)/i,            fam:'Mondsamengewächse', typ:'Knollenpflanze', m:['caudex']},
+  {g:/^Beaucarnea(?=\s|$)|^Nolina(?=\s|$)/i,   fam:'Spargelgewächse', typ:'Sukkulente', m:['caudex']},
+  {g:/^Euphorbia(?=\s|$)/i,            fam:'Wolfsmilchgewächse', typ:'Sukkulente', m:['keineSeife']},
+  {g:/^Jatropha(?=\s|$)/i,             fam:'Wolfsmilchgewächse', typ:'Sukkulente', m:['caudex','keineSeife']},
+  {g:/^Codiaeum(?=\s|$)/i,             fam:'Wolfsmilchgewächse', typ:'Strauch',    m:['keineSeife']},
+
+  /* ── Kakteen: Blattkakteen sind keine Wüstenpflanzen ──── */
+  {g:/^Rhipsalis(?=\s|$)|^Epiphyllum(?=\s|$)|^Schlumbergera(?=\s|$)|^Hatiora(?=\s|$)|^Lepismium(?=\s|$)|^Selenicereus(?=\s|$)|^Disocactus(?=\s|$)/i,
+   fam:'Kakteengewächse', typ:'Kaktus', m:['epiphyt']},
+  {g:/^Astrophytum(?=\s|$)|^Ariocarpus(?=\s|$)|^Gymnocalycium(?=\s|$)|^Mammillaria(?=\s|$)|^Echinopsis(?=\s|$)|^Ferocactus(?=\s|$)|^Opuntia(?=\s|$)|^Cereus(?=\s|$)|^Espostoa(?=\s|$)|^Copiapoa(?=\s|$)/i,
+   fam:'Kakteengewächse', typ:'Kaktus', m:['wachsbereift','herzNichtNass']},
+
+  /* ── Orchideen ────────────────────────────────────────── */
+  {g:/^Phalaenopsis(?=\s|$)/i, fam:'Orchideen', typ:'Orchidee', m:['epiphyt','herzNichtNass']},
+  {g:/^Cattleya(?=\s|$)|^Dendrobium(?=\s|$)|^Oncidium(?=\s|$)|^Bulbophyllum(?=\s|$)|^Masdevallia(?=\s|$)|^Vanda(?=\s|$)|^Miltonia(?=\s|$)|^Zygopetalum(?=\s|$)|^Brassia(?=\s|$)|^Coelogyne(?=\s|$)|^Encyclia(?=\s|$)/i,
+   fam:'Orchideen', typ:'Orchidee', m:['epiphyt']},
+  {g:/^Paphiopedilum(?=\s|$)|^Phragmipedium(?=\s|$)/i, fam:'Orchideen', typ:'Orchidee', m:['herzNichtNass','substratFeucht']},
+
+  /* ── Bromelien: Trichter gehört gefüllt ───────────────── */
+  {g:/^Neoregelia(?=\s|$)|^Guzmania(?=\s|$)|^Vriesea(?=\s|$)|^Aechmea(?=\s|$)|^Billbergia(?=\s|$)|^Nidularium(?=\s|$)/i,
+   fam:'Bromeliengewächse', typ:'Bromelie', m:['herzBrauchtWasser']},
+
+  /* ── Karnivoren: die empfindlichste Gruppe überhaupt ──── */
+  {g:/^Dionaea(?=\s|$)/i,     fam:'Sonnentaugewächse',      typ:'Karnivore', m:['substratFeucht','keineSeife']},
+  {g:/^Drosera(?=\s|$)/i,     fam:'Sonnentaugewächse',      typ:'Karnivore', m:['substratFeucht','keineSeife','nichtAbduschen']},
+  {g:/^Nepenthes(?=\s|$)/i,   fam:'Kannenpflanzengewächse',     typ:'Karnivore', m:['substratFeucht','keineSeife','epiphyt']},
+  {g:/^Sarracenia(?=\s|$)/i,  fam:'Schlauchpflanzengewächse',   typ:'Karnivore', m:['substratFeucht','keineSeife']},
+  {g:/^Heliamphora(?=\s|$)/i, fam:'Schlauchpflanzengewächse',   typ:'Karnivore', m:['substratFeucht','keineSeife']},
+  {g:/^Pinguicula(?=\s|$)/i,  fam:'Wasserschlauchgewächse', typ:'Karnivore', m:['substratFeucht','keineSeife','nichtAbduschen']},
+  {g:/^Utricularia(?=\s|$)/i, fam:'Wasserschlauchgewächse', typ:'Karnivore', m:['substratFeucht','keineSeife']},
+  {g:/^Cephalotus(?=\s|$)/i,  fam:'Zwergkruggewächse',    typ:'Karnivore', m:['substratFeucht','keineSeife']},
+
+  /* ── Farne: Seifensprays sind hier riskant ────────────── */
+  {g:/^Adiantum(?=\s|$)/i, fam:'Saumfarngewächse', typ:'Farn', m:['keineSeife','substratFeucht','nichtAbduschen']},
+  {g:/^Platycerium(?=\s|$)/i, fam:'Tüpfelfarngewächse', typ:'Farn', m:['keineSeife','epiphyt','nichtAbduschen']},
+  {g:/^Asplenium(?=\s|$)/i, fam:'Streifenfarngewächse', typ:'Farn', m:['keineSeife','herzNichtNass']},
+  {g:/^Davallia(?=\s|$)|^Microsorum(?=\s|$)|^Phlebodium(?=\s|$)|^Polypodium(?=\s|$)/i, fam:'Tüpfelfarngewächse', typ:'Farn', m:['keineSeife','epiphyt']},
+  {g:/^Nephrolepis(?=\s|$)/i, fam:'Schwertfarngewächse', typ:'Farn', m:['keineSeife','substratFeucht']},
+  {g:/^Pteris(?=\s|$)|^Blechnum(?=\s|$)|^Didymochlaena(?=\s|$)/i, fam:'Tüpfelfarngewächse', typ:'Farn', m:['keineSeife','substratFeucht']},
+  {g:/^Selaginella(?=\s|$)/i, fam:'Moosfarngewächse', typ:'Farn', m:['substratFeucht']},
+
+  /* ── Palmen ───────────────────────────────────────────── */
+  {g:/^Chamaedorea(?=\s|$)|^Howea(?=\s|$)|^Licuala(?=\s|$)|^Caryota(?=\s|$)|^Rhapis(?=\s|$)|^Dypsis(?=\s|$)|^Phoenix(?=\s|$)|^Livistona(?=\s|$)/i,
+   fam:'Palmengewächse', typ:'Palme', m:['keineSeife']},
+
+  /* ── Gesneriengewächse: behaart, Wasser macht Flecken ─── */
+  {g:/^Saintpaulia(?=\s|$)|^Streptocarpus(?=\s|$)|^Episcia(?=\s|$)|^Sinningia(?=\s|$)|^Primulina(?=\s|$)/i,
+   fam:'Gesneriengewächse', typ:'Rosettenpflanze', m:['nichtAbduschen','herzNichtNass']},
+  {g:/^Aeschynanthus(?=\s|$)|^Columnea(?=\s|$)|^Nematanthus(?=\s|$)/i,
+   fam:'Gesneriengewächse', typ:'Rankpflanze', m:['epiphyt']},
+
+  /* ── Pfeilwurzgewächse: empfindlich gegen alles ───────── */
+  {g:/^Calathea(?=\s|$)|^Goeppertia(?=\s|$)|^Maranta(?=\s|$)|^Ctenanthe(?=\s|$)|^Stromanthe(?=\s|$)/i,
+   fam:'Pfeilwurzgewächse', typ:'Rosettenpflanze', m:['keineSeife','substratFeucht']},
+
+  /* ── Restliche Sammlergattungen ───────────────────────── */
+  {g:/^Begonia(?=\s|$)/i,     fam:'Schiefblattgewächse',   typ:'Kraut',          m:['nichtAbduschen','keineSeife']},
+  {g:/^Peperomia(?=\s|$)/i,   fam:'Pfeffergewächse',    typ:'Kraut',          m:[]},
+  {g:/^Pilea(?=\s|$)/i,       fam:'Brennnesselgewächse',    typ:'Kraut',          m:[]},
+  {g:/^Fittonia(?=\s|$)/i,    fam:'Akanthusgewächse',   typ:'Kraut',          m:['substratFeucht']},
+  {g:/^Hypoestes(?=\s|$)/i,   fam:'Akanthusgewächse',   typ:'Kraut',          m:[]},
+  {g:/^Ficus(?=\s|$)/i,       fam:'Maulbeergewächse',      typ:'Strauch',        m:[]},
+  {g:/^Schefflera(?=\s|$)|^Heptapleurum(?=\s|$)|^Fatsia(?=\s|$)|^Hedera(?=\s|$)/i, fam:'Araliengewächse', typ:'Strauch', m:['keineSeife']},
+  {g:/^Dracaena(?=\s|$)|^Cordyline(?=\s|$)/i, fam:'Spargelgewächse', typ:'Strauch',  m:[]},
+  {g:/^Chlorophytum(?=\s|$)|^Aspidistra(?=\s|$)/i, fam:'Spargelgewächse', typ:'Rosettenpflanze', m:[]},
+  {g:/^Strelitzia(?=\s|$)/i,  fam:'Strelitziengewächse', typ:'Rosettenpflanze', m:[]},
+  {g:/^Musa(?=\s|$)|^Ensete(?=\s|$)/i, fam:'Bananengewächse',     typ:'Rosettenpflanze', m:['substratFeucht']},
+  {g:/^Alpinia(?=\s|$)|^Costus(?=\s|$)|^Hedychium(?=\s|$)|^Zingiber(?=\s|$)/i, fam:'Ingwergewächse', typ:'Kraut', m:['substratFeucht']},
+  {g:/^Cissus(?=\s|$)/i,      fam:'Weinrebengewächse',      typ:'Kletterpflanze', m:[]},
+  {g:/^Tradescantia(?=\s|$)|^Callisia(?=\s|$)/i, fam:'Commelinagewächse', typ:'Rankpflanze', m:['nichtAbduschen']},
+  {g:/^Oxalis(?=\s|$)/i,      fam:'Sauerkleegewächse',   typ:'Knollenpflanze', m:[]},
+  {g:/^Soleirolia(?=\s|$)/i,  fam:'Brennnesselgewächse',    typ:'Kraut',          m:['substratFeucht']},
+  {g:/^Labisia(?=\s|$)/i,     fam:'Primelgewächse',   typ:'Kraut',          m:['substratFeucht']},
+  {g:/^Gynura(?=\s|$)/i,      fam:'Korbblütler',    typ:'Kraut',          m:['nichtAbduschen']}
+];
+
+/* Panaschierung ist an der Sorte ablesbar. Sie ändert die Pflege
+   spürbar: weiße Blattteile haben kein Chlorophyll, brauchen deshalb
+   mehr Licht als die grüne Form, verbrennen aber in praller Sonne
+   schneller. */
+const PANASCHIERT_WORTE = /\b(variegat\w*|panaschiert|albo|aurea|marmoriert|marble|mint|tricolor|krimson|thai constellation|pink princess|white (wizard|knight|princess)|snow queen|moonlight|silver dragon)\b/i;
+
+function istPanaschiert(p){
+  if(!p) return false;
+  return PANASCHIERT_WORTE.test((p.botanisch || '') + ' ' + (p.art || '') + ' ' + (p.name || ''));
+}
+
+/* Passenden Gattungseintrag suchen. Der botanische Name ist der
+   verlässlichste Anker; fehlt er, wird der Artname versucht, weil
+   dort bei selbst angelegten Pflanzen oft „Monstera Albo" steht. */
+function gattungVon(p){
+  if(!p) return null;
+  const text = String(p.botanisch || p.art || '').trim();
+  if(!text) return null;
+  for(const e of GATTUNGEN) if(e.g.test(text)) return e;
+  return null;
+}
+
+/* Familie ermitteln. Reihenfolge: eingetragener Wert, exakter
+   Bibliothekstreffer, dann die Gattung. Ohne die letzte Stufe bleibt
+   das Feld bei allem leer, was nicht in der Bibliothek steht — und
+   genau davon lebt eine Sammlung. */
+function familieVon(p){
+  if(!p) return '';
+  if(p.familie) return p.familie;
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(b && b.fam) return b.fam;
+  const g = gattungVon(p);
+  return g ? g.fam : '';
+}
+
+/* Wuchsform ermitteln, gleiche Reihenfolge. */
+function typVon(p){
+  if(!p) return '';
+  if(p.typ) return p.typ;
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(b && b.typ) return b.typ;
+  const g = gattungVon(p);
+  return g ? g.typ : '';
+}
+
+/* Alle Merkmale einer Pflanze. Bibliothek und Gattung ergänzen sich,
+   sie schließen sich nicht aus: eine Art kann über die Gattung
+   „epiphyt" erben und über ihren eigenen Eintrag zusätzlich etwas
+   mitbringen. */
+function merkmaleVon(p){
+  const raus = new Set();
+  if(!p) return raus;
+  const g = gattungVon(p);
+  if(g) g.m.forEach(x=>raus.add(x));
+
+  /* Was in der Bibliothek an der Art selbst steht, kommt dazu. */
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(b){
+    if(b.klasse === 'S') raus.add('substratFeucht');
+    if(b.typ === 'Karnivore'){ raus.add('substratFeucht'); raus.add('keineSeife'); }
+    if(b.typ === 'Farn' || b.typ === 'Palme') raus.add('keineSeife');
+  }
+  /* Und was an der Pflanze selbst eingetragen ist. */
+  if(p && p.klasse === 'S') raus.add('substratFeucht');
+  if(istPanaschiert(p)) raus.add('panaschiert');
+  return raus;
+}
+
+/* Für Anzeige und Prompt: Merkmale in Klartext. */
+const MERKMAL_TEXT = {
+  wachsbereift:      'bereifte Blätter, die Wachsschicht wächst nicht nach',
+  nichtAbduschen:    'behaarte oder samtige Blätter, verträgt kein Wasser auf dem Blatt',
+  keineSeife:        'empfindlich gegen Seifen- und Ölsprays',
+  substratFeucht:    'Substrat darf nie abtrocknen',
+  herzNichtNass:     'kein Wasser in den Vegetationspunkt',
+  herzBrauchtWasser: 'Trichter gehört mit Wasser gefüllt',
+  epiphyt:           'wächst ohne Erde, Substrat lässt sich nicht durchspülen',
+  caudex:            'verdickter Stamm mit Ruhephase, fäulnisgefährdet',
+  panaschiert:       'panaschiert, weiße Blattteile brauchen mehr Licht und verbrennen schneller'
+};
+
+const BIB_FELDER = ['bot','de','en','fam','klasse','licht','giftig','duenger','frost','typ','spez','schaedlingHinweis'];
 
 /* ── Zustände, die für jede Pflanze gelten ────────────────────
    f      = Faktor auf das Gießintervall (größer = seltener gießen)
@@ -2188,6 +2459,10 @@ const BIB_ROHDATEN_2 = [
 const BIB = BIB_ROHDATEN.concat(BIB_ROHDATEN_2).map(r=>{
   const o = {}; BIB_FELDER.forEach((f,i)=>o[f]=r[i]);
   o.spez = o.spez ? o.spez.split('|') : [];
+  /* Artspezifische Schädlingsanmerkung ist freiwillig. Die meisten
+     Zeilen haben sie nicht — dann bleibt das Feld schlicht leer und
+     es gilt der allgemeine Katalog. */
+  o.schaedlingHinweis = o.schaedlingHinweis || '';
   return o;
 });
 const BIB_NACH_BOT = {}; BIB.forEach(a=>BIB_NACH_BOT[a.bot]=a);
@@ -2276,12 +2551,16 @@ function zustandDef(code){ return ZUSTAENDE[code] || SPEZIAL[code] || null; }
 
 /* Bibliothekseintrag zu einer Pflanze der Sammlung finden */
 function bibVon(p){
+  if(!p) return null;
   if(p.bib && BIB_NACH_BOT[p.bib]) return BIB_NACH_BOT[p.bib];
-  if(p.botanisch){
-    if(BIB_NACH_BOT[p.botanisch]) return BIB_NACH_BOT[p.botanisch];
-    const gat = p.botanisch.split(' ').slice(0,2).join(' ');
+  /* Aus einer von Hand bearbeiteten Sicherung kann hier auch eine
+     Zahl stehen. String() davor, sonst bricht split() ab. */
+  const bot = String(p.botanisch || '').trim();
+  if(bot){
+    if(BIB_NACH_BOT[bot]) return BIB_NACH_BOT[bot];
+    const gat = bot.split(' ').slice(0,2).join(' ');
     if(BIB_NACH_BOT[gat]) return BIB_NACH_BOT[gat];
-    const t = BIB.find(a=>a.bot.startsWith(p.botanisch.split(' ')[0]+' '));
+    const t = BIB.find(a=>a.bot.startsWith(bot.split(' ')[0]+' '));
     if(t) return t;
   }
   return null;
@@ -2398,26 +2677,123 @@ function icsLaden(p){
 }
 
 /* ══════════════════ Gemini ══════════════════ */
-const GEMINI_PROMPT = `Du hilfst mir, eine Zimmer- oder Balkonpflanze zu bestimmen. Ich hänge gleich ein Foto an.
+const ANLEGEN_KOPF = 'Du hilfst mir, eine Zimmer- oder Balkonpflanze zu bestimmen. Ich hänge gleich ein Foto an.';
 
-Antworte in genau diesem Format. Wichtig: reiner Text, keine Sternchen, keine Aufzählungszeichen, keine Überschriften, kein Vorwort. Jede Angabe genau eine Zeile, Schlüsselwort komplett in Großbuchstaben, danach Doppelpunkt.
+/* Die Feldliste teilen sich Anlegen und Pflanzendoktor, damit beide
+   Wege dieselbe Antwortstruktur bekommen und der Parser nur ein
+   Format können muss. */
+const ANTWORT_FORMAT = `SO ANTWORTEST DU
 
-ART: deutscher Name der Art
-BOTANISCH: wissenschaftlicher Name, Gattung und Art
-TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rosettenpflanze, Kaktus, Kraut, Strauch, Palme
-SICHERHEIT: hoch, mittel oder niedrig
-FEHLT: nur wenn SICHERHEIT nicht hoch ist — was du auf dem Foto nicht erkennen kannst und welche zusätzliche Aufnahme die Bestimmung sicher machen würde, etwa Blattunterseite, Stängelansatz, ganze Pflanze von der Seite, Blüte in Nahaufnahme. Sonst das Wort keine
-VERWECHSLUNG: ähnliche Arten, mit Komma getrennt
-ZUSTAND: einer von: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung
-BEFUND: ein bis zwei Sätze, woran du den Zustand erkennst
-LICHT: voll, hell oder indirekt
-GIESSKLASSE: genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau
-GIESSEN: ein Satz, wie oft und wie viel bei genau diesem Zustand
-GIESSART: genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau
-FROST: die niedrigste Temperatur in Grad Celsius, die die Art verträgt — oder das Wort winterhart
-WICHTIG: eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß, etwa besondere Wasserqualität, Substrat oder Standortgrenze — oder das Wort keine
-KATZEN: giftig oder unbedenklich, mit kurzer Begründung
-MASSNAHMEN: die zwei bis drei wichtigsten Schritte, mit Semikolon getrennt`;
+Schreibe deine gesamte Antwort in einen einzigen Codeblock: eine Zeile mit drei Backticks davor, eine Zeile mit drei Backticks danach. Außerhalb des Codeblocks schreibst du nichts. Kein Vorwort, keine Einleitung, keine Erklärung, keine Rückfrage, kein Schlusssatz, kein Angebot weiterzuhelfen.
+
+Im Codeblock gilt:
+- Eine Zeile je Schlüsselwort, in der Reihenfolge der Liste unten.
+- Aufbau jeder Zeile: SCHLUESSELWORT, Doppelpunkt, Leerzeichen, Wert.
+- Alle fünfzehn Schlüsselwörter müssen vorkommen, jedes genau einmal. Danach folgen ein bis drei MASSNAHME-Zeilen.
+- Keine Sternchen, keine Rauten, keine Bindestriche am Zeilenanfang, keine Nummerierung, keine Überschriften, keine Emojis, keine Leerzeilen, keine Fettschrift.
+- Kein Wert bleibt leer. Weißt du etwas nicht, schreib genau: unbekannt
+- Schreib die Werte auf Deutsch.
+
+DIE ZEILEN
+
+ART: gebräuchlicher deutscher Name. Gibt es keinen, der botanische Name.
+BOTANISCH: Gattung und Art. Erkennst du sicher eine Sorte, hänge sie in einfachen Anführungszeichen an, etwa: Monstera deliciosa 'Thai Constellation'. Erkennst du die Sorte nicht sicher, lass sie weg. Erfinde keinen Sortennamen — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
+TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rankpflanze, Rosettenpflanze, Kaktus, Sukkulente, Kraut, Strauch, Palme, Farn, Orchidee, Bromelie, Karnivore. Ist die Pflanze panaschiert, hänge das Wort panaschiert mit Komma an.
+SICHERHEIT: Nur genau eines dieser Wörter: hoch, mittel, niedrig
+FEHLT: Was du auf diesem Foto nicht beurteilen kannst. Beantworte hier ausdrücklich: Waren Blattunterseiten und Blattachseln erkennbar? Waren sie es nicht, schreib das hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
+VERWECHSLUNG: Ähnliche Arten, mit Komma getrennt. Keine, dann: keine
+ZUSTAND: Nur genau eines dieser Wörter: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung
+BEFUND: Ein bis zwei Sätze, woran du den Zustand erkennst. Nennst du Schädlinge oder hast du einen Verdacht, schreib dazu, an welcher Stelle du das siehst: Blattachsel, Blattunterseite, Stängel oder Erdoberfläche. Kannst du diese Stelle auf dem Foto nicht sehen, schreib ausdrücklich, dass der Verdacht unbestätigt ist.
+LICHT: Nur genau eines dieser Wörter: voll, hell, indirekt
+GIESSKLASSE: Nur genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau
+GIESSEN: Ein Satz, wie oft und wie viel bei genau diesem Zustand.
+GIESSART: Nur genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau
+FROST: Niedrigste verträgliche Temperatur als Zahl in Grad Celsius, ohne Einheit. Oder genau das Wort: winterhart
+WICHTIG: Eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß. Gibt es keine, schreib genau: keine
+KATZEN: Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.
+MASSNAHME: Ein bis drei Zeilen, jede beginnt neu mit MASSNAHME. Jede Zeile enthält vier Angaben, getrennt durch genau drei senkrechte Striche, in dieser Reihenfolge: Auslöser | Handlung | Dringlichkeit | Wiederholung. Dringlichkeit ist nur eines dieser Wörter: sofort, diese Woche, bei Gelegenheit. Wiederholung ist entweder das Wort einmalig oder ein Abstand wie: alle 7 Tage, dreimal. Nenne nur Schritte, die sich aus dem Foto oder den Angaben oben wirklich ergeben. Allgemeine Ratschläge, die für jede Zimmerpflanze gelten, lass weg.
+
+SO SIEHT EINE RICHTIGE ANTWORT AUS
+
+\`\`\`
+ART: Efeutute
+BOTANISCH: Epipremnum aureum
+TYP: Kletterpflanze
+SICHERHEIT: mittel
+FEHLT: Blattunterseiten und Blattachseln waren nicht erkennbar, ein Schädlingsbefall lässt sich daher nicht ausschließen. Ein Foto der Blattunterseite und des Stängelansatzes würde die Bestimmung sicher machen.
+VERWECHSLUNG: Philodendron hederaceum, Scindapsus pictus
+ZUSTAND: gesund
+BEFUND: Die unteren Blätter sind gleichmäßig gelb ohne Flecken, das entspricht normaler Alterung. Schädlinge sind mangels Sicht auf die Blattunterseite nicht beurteilbar.
+LICHT: indirekt
+GIESSKLASSE: normal
+GIESSEN: Alle sieben bis zehn Tage durchdringend, wenn die oberen drei Zentimeter trocken sind.
+GIESSART: durchdringend
+FROST: 10
+WICHTIG: keine
+KATZEN: giftig, enthält Calciumoxalat-Kristalle
+MASSNAHME: Untere Blätter vergilbt | Vergilbte Blätter am Ansatz abschneiden | bei Gelegenheit | einmalig
+MASSNAHME: Blattunterseite nicht einsehbar | Blattachseln und Unterseiten mit Lupe auf Schädlinge prüfen | diese Woche | einmalig
+\`\`\`
+
+SO NICHT
+
+Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:. Kein "1. Regelmäßig gießen". Keine Zeile ohne Schlüsselwort. Kein "Ich hoffe, das hilft!". Keine Werte wie "hell bis indirekt", wo nur ein Wort erlaubt ist.
+
+PRÜFE VOR DEM ABSENDEN
+
+1. Steht die gesamte Antwort in einem Codeblock und außerhalb nichts?
+2. Kommen alle fünfzehn Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste?
+3. Enthalten SICHERHEIT, ZUSTAND, LICHT, GIESSKLASSE, GIESSART nur eines der erlaubten Wörter?
+4. Hat jede MASSNAHME-Zeile genau drei senkrechte Striche?
+5. Ist in FEHLT beantwortet, ob Blattunterseiten und Blattachseln erkennbar waren?
+6. Steht in BOTANISCH kein geratener Sortenname?`;
+
+/* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
+const GEMINI_PROMPT = ANLEGEN_KOPF + '\n\n' + ANTWORT_FORMAT;
+
+/* Der Prompt fürs Anlegen wird wie beim Pflanzendoktor gebaut statt
+   fest verdrahtet: was die App über Standort und Jahreszeit schon
+   weiß, muss die KI nicht raten. Steht die Art schon fest, kommt der
+   Soll-Lichtbedarf aus der Bibliothek mit — dann kann die Antwort
+   sagen, ob der Platz dazu passt. */
+function anlegenPromptBauen(){
+  const hol = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const zeilen = [ANLEGEN_KOPF, ''];
+  const kontext = [];
+
+  const raumName = (typeof raumNameVon === 'function') ? raumNameVon(hol('f-raum')) : '';
+  const platz = hol('f-stellplatz');
+  if(raumName && platz) kontext.push('Sie soll stehen: ' + raumName + ', ' + platz + '.');
+  else if(raumName) kontext.push('Sie soll stehen: ' + raumName + '.');
+  else if(platz) kontext.push('Sie soll stehen: ' + platz + '.');
+
+  /* Echte Sonnenstunden schlagen jede Schätzung. Sie liegen nur vor,
+     wenn der Raum eingerichtet ist und die Pflanze schon einen Platz
+     im Grundriss hat — beim Anlegen ist das die Ausnahme. */
+  const std = (typeof standortLicht === 'function') ? standortLicht(hol('f-raum'), platz) : null;
+  if(std && std.stunden != null)
+    kontext.push('An diesem Platz misst die App im ' + std.monat + ' etwa '
+      + (std.text || std.stunden) + ' Stunden direkte Sonne pro Tag.');
+
+  const sonne = hol('f-sonne');
+  if(sonne && typeof SONNE !== 'undefined' && SONNE[sonne])
+    kontext.push('Als Lichtbedarf ist eingetragen: ' + SONNE[sonne].text + '.');
+
+  const art = (typeof gewaehlteArt !== 'undefined' && gewaehlteArt) ? gewaehlteArt : null;
+  if(art){
+    kontext.push('Die Art steht vermutlich schon fest: ' + art.de + ' (' + art.bot + '). '
+      + 'Prüfe das am Foto und widersprich, wenn es nicht passt.');
+    if(typeof SONNE !== 'undefined' && SONNE[art.licht])
+      kontext.push('Laut Bibliothek braucht diese Art: ' + SONNE[art.licht].text + '.');
+  }
+
+  if(typeof MONATE !== 'undefined')
+    kontext.push('Wir haben gerade ' + MONATE[new Date().getMonth()] + '.');
+
+  if(kontext.length){ kontext.forEach(z=>zeilen.push(z)); zeilen.push(''); }
+  zeilen.push(ANTWORT_FORMAT);
+  return zeilen.join('\n');
+}
 
 /* Zuverlässig kopieren — auch ohne sicheren Kontext und ohne Fokus.
    Muss synchron im Klick laufen, sonst blockiert der Browser. */
@@ -2454,7 +2830,7 @@ const KI_DIENSTE = {
 
 function kiOeffnen(dienst){
   const d = KI_DIENSTE[dienst] || KI_DIENSTE.gemini;
-  const t = GEMINI_PROMPT;
+  const t = anlegenPromptBauen();
   const kopiert = inZwischenablage(t);          // erst kopieren, dann öffnen
   window.open(d.url(t), '_blank', 'noopener');
   return {dienst:d, kopiert};
@@ -2479,13 +2855,77 @@ const ANTWORT_SCHLUESSEL = [
   ['giessart',['giessart','gießart','giessweise','gießweise','art des giessens','wassergabe','watering style']],
   ['wichtig', ['wichtig','besonderheit','besonderheiten','hinweis','hinweise','achtung','kritisch','special']],
   ['katzen',  ['katzen','katze','giftigkeit','giftig','toxizität','toxizitaet','haustiere','pets']],
-  ['schritte',['massnahmen','maßnahmen','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
+  ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
 const SCHLUESSEL_KARTE = (()=>{
   const m = {};
   ANTWORT_SCHLUESSEL.forEach(([feld, namen])=>namen.forEach(n=>m[norm(n)] = feld));
   return m;
 })();
+
+/* Lange Namen zuerst, damit „massnahmen“ vor „wichtig“ greift, wenn
+   eine Zeile beides enthält. */
+const SCHLUESSEL_LANG = Object.keys(SCHLUESSEL_KARTE).sort((a,b)=>b.length - a.length);
+
+/* Beschriftung einer Zeile einem Feld zuordnen.
+   Erst der genaue Treffer. Führt der nicht weiter, ein Enthält-
+   Abgleich — „Giftig für Katzen“ ist keine exakte Entsprechung,
+   meint aber eindeutig KATZEN. Geraten wird nur bei kurzen
+   Beschriftungen: steht vor dem Doppelpunkt ein ganzer Satz, ist es
+   Fließtext und kein Feldname. Kurze Schlüssel wie „art“ sind vom
+   Raten ausgenommen, sonst wird aus „Diese Art von Standort“ eine
+   Artangabe. */
+function schluesselFinden(beschriftung){
+  const n = norm(beschriftung);
+  if(!n) return null;
+  if(SCHLUESSEL_KARTE[n]) return SCHLUESSEL_KARTE[n];
+  if(n.split(' ').length > 5) return null;
+  for(const k of SCHLUESSEL_LANG){
+    if(k.length >= 5 && n.indexOf(k) >= 0) return SCHLUESSEL_KARTE[k];
+  }
+  return null;
+}
+
+/* Der Prompt verlangt die Antwort in einem Codeblock. Das ist der
+   wirksamste Schutz überhaupt: innerhalb eines Codeblocks setzt kein
+   Chatdienst Fettschrift, Überschriften oder Aufzählungspunkte, und
+   Vorwort und Schlussfloskel bleiben draußen. Hier wird der Inhalt
+   herausgeschnitten. Hält sich ein Dienst nicht daran, wird wie
+   bisher der ganze Text ausgewertet — der Codeblock ist eine
+   Absicherung, keine Bedingung. */
+function codeblockInhalt(txt){
+  const roh = String(txt || '');
+  const schluesselZeilen = t => (t.match(/^[ \t]*[A-ZÄÖÜ][A-ZÄÖÜ_]{2,}[ \t]*:/gm) || []).length;
+  const re = /```[a-zA-Z0-9_+-]*[ \t]*\r?\n([\s\S]*?)```/g;
+  const bloecke = [];
+  let m;
+  while((m = re.exec(roh)) !== null) bloecke.push(m[1]);
+
+  if(bloecke.length){
+    /* Mehrere Blöcke: der mit den meisten Schlüsselzeilen gewinnt. */
+    let best = bloecke[0], bestN = schluesselZeilen(bloecke[0]);
+    for(let i = 1; i < bloecke.length; i++){
+      const n = schluesselZeilen(bloecke[i]);
+      if(n > bestN){ bestN = n; best = bloecke[i]; }
+    }
+    if(bestN >= 2) return best;
+    /* Ein Block ohne Schlüsselzeilen kann auch reines JSON sein. */
+    if(/[{\[]/.test(best)) return best;
+    return null;
+  }
+
+  /* Öffnender Zaun ohne schließenden: manche Dienste schneiden ab. */
+  const auf = roh.indexOf('```');
+  if(auf >= 0){
+    const rest = roh.slice(auf + 3).replace(/^[a-zA-Z0-9_+-]*[ \t]*\r?\n/, '');
+    if(schluesselZeilen(rest) >= 2) return rest;
+  }
+  return null;
+}
+
+/* Abschiedsfloskeln. Modelle hängen sie trotz klarer Ansage an und
+   sie landeten bisher mitten in den Maßnahmen. */
+const FLOSKEL = /^(ich hoffe|hoffe|viel erfolg|viel spass|viel spaß|lass mich wissen|melde dich|gern geschehen|gerne helfe|bei (weiteren )?fragen|falls du|alles gute|liebe gr|beste gr|frag mich|sag bescheid|hoffentlich)/i;
 
 /* Manche Modelle antworten trotz klarer Ansage in JSON, oft noch in
    ```json-Zäune verpackt. Statt den Nutzer zum Nachbessern zu zwingen,
@@ -2512,11 +2952,21 @@ function jsonLesen(txt){
 }
 
 function geminiLesen(txt){
-  const alsJson = jsonLesen(txt);
+  /* Steht die Antwort im Codeblock, zählt nur dessen Inhalt. Alles
+     davor und dahinter ist Geplauder. */
+  const kern = codeblockInhalt(txt);
+  const quelle = (kern !== null && kern.trim()) ? kern : String(txt || '');
+  const alsJson = jsonLesen(quelle);
   if(alsJson) return alsJson;
   const raus = {};
   let letztes = null;
-  String(txt||'').split(/\r?\n/).forEach(roh=>{
+  quelle.split(/\r?\n/).forEach(roh=>{
+    /* Vor dem Abräumen merken, ob die Zeile wie eine Überschrift
+       aussieht: „### Zustand“ oder eine Zeile, die komplett fett
+       gesetzt ist. Das entscheidet später, ob Fließtext darunter
+       noch zum vorigen Feld gehört. */
+    const istUeberschrift = /^\s*#{1,6}\s/.test(roh)
+                         || /^\s*\*\*[^*]+\*\*\s*$/.test(roh);
     /* Aufzählungsstriche, Nummern, Rauten und Sternchen wegräumen */
     let zeile = roh.replace(/^[\s>]*[-–—•*#]+\s*/, '')
                    .replace(/^\s*\d+[.)]\s*/, '')
@@ -2526,21 +2976,54 @@ function geminiLesen(txt){
     if(!zeile){ return; }
     const m = zeile.match(/^([^:：]{2,40})[:：]\s*(.*)$/);
     if(m){
-      const feld = SCHLUESSEL_KARTE[norm(m[1])];
+      const feld = schluesselFinden(m[1]);
       if(feld){
         const wert = m[2].trim();
-        raus[feld] = wert;
-        letztes = wert ? feld : feld;   // leerer Wert: Text folgt in der nächsten Zeile
+        /* Mehrere MASSNAHME-Zeilen sind der Normalfall des neuen
+           Formats. Sie dürfen sich nicht gegenseitig überschreiben. */
+        if(feld === 'schritte' && raus.schritte && wert)
+          raus.schritte = raus.schritte + '\n' + wert;
+        else if(/^(ja|nein|yes|no)$/i.test(wert))
+          /* „Giftig für Katzen: ja“ — die Aussage steckt in der
+             Beschriftung, nicht im Wert. Beides zusammen ergibt erst
+             etwas Auswertbares. */
+          raus[feld] = m[1].trim() + ': ' + wert;
+        else
+          raus[feld] = wert;
+        letztes = feld;   // leerer Wert: Text folgt in der nächsten Zeile
         return;
       }
     }
+    /* Überschrift ohne Doppelpunkt, die genau ein Feld benennt
+       („### Zustand“): der Text darunter gehört dazu. */
+    const alsKopf = istUeberschrift ? schluesselFinden(zeile) : null;
+    if(alsKopf){
+      if(!raus[alsKopf]) raus[alsKopf] = '';
+      letztes = alsKopf;
+      return;
+    }
+    /* Jede andere Überschrift beendet die Fortsetzung. Sonst wandert
+       der ganze folgende Abschnitt in das zuletzt erkannte Feld und
+       der botanische Name füllt sich mit halben Kapiteln. */
+    if(istUeberschrift){ letztes = null; return; }
+    /* Abschiedsfloskel: ab hier kommt nichts Verwertbares mehr. */
+    if(FLOSKEL.test(zeile)){ letztes = null; return; }
     /* Fortsetzungszeile dem zuletzt erkannten Feld anhängen */
     if(letztes){
       raus[letztes] = (raus[letztes] ? raus[letztes] + ' ' : '') + zeile;
     }
   });
   Object.keys(raus).forEach(k=>{
-    raus[k] = raus[k].replace(/\s+/g,' ').replace(/^[\s,;.]+|[\s,;]+$/g,'').trim();
+    /* Bei den Maßnahmen trennt der Zeilenumbruch die einzelnen
+       Schritte — der darf hier nicht mit weggeglättet werden. */
+    raus[k] = k === 'schritte'
+      ? raus[k].split('\n').map(z=>z.replace(/\s+/g,' ').trim()).filter(Boolean).join('\n')
+      : raus[k].replace(/\s+/g,' ').trim();
+    raus[k] = raus[k].replace(/^[\s,;.]+|[\s,;]+$/g,'').trim();
+    /* „unbekannt“ ist die verlangte Antwort auf eine Wissenslücke,
+       aber kein Inhalt — sonst steht es später im Steckbrief. */
+    if(/^(unbekannt|unklar|unsicher|k\.?\s?a\.?|n\/a|keine angabe|nicht bekannt|[-–—?])$/i.test(raus[k]))
+      delete raus[k];
     if(!raus[k]) delete raus[k];
   });
   return raus;
@@ -3055,6 +3538,73 @@ function platzUrteil(r, x, y, monat){
           katze: m ? m.katze !== false : true};
 }
 
+/* ── Wieviel Sonne bekommt dieser Platz wirklich? ────────────
+   Antwort gibt es nur, wenn der Raum eingerichtet ist und die Stelle
+   bekannt ist. Sonst null — die App rät hier nichts zusammen. */
+function standortStunden(p){
+  if(!p) return null;
+  const o = (typeof pflanzenOrt === 'function') ? pflanzenOrt(p.id) : null;
+  if(!o || !o.raum) return null;
+  const r = (S.raeume || []).find(x=>x.id === o.raum);
+  if(!r || r.roh) return null;
+  const monat = new Date().getMonth() + 1;
+  try{
+    const u = platzUrteil(r, o.x, o.y, monat);
+    const std = Math.round(u.stunden * 10) / 10;
+    return {stunden: std, text: String(std).replace('.', ','),
+            monat: MONATE[monat-1], hell: u.hell};
+  }catch(e){ return null; }
+}
+
+/* Dasselbe für das Anlegen-Formular, wo die Pflanze noch keinen Platz
+   im Grundriss hat: gesucht wird das Möbel, das so heißt wie der
+   gewählte Stellplatz. */
+function standortLicht(raumId, platzName){
+  if(!raumId || !platzName) return null;
+  const r = (S.raeume || []).find(x=>x.id === raumId);
+  if(!r || r.roh) return null;
+  const m = (r.moebel || []).find(x=>x.name === platzName);
+  if(!m) return null;
+  const monat = new Date().getMonth() + 1;
+  try{
+    const u = platzUrteil(r, m.x + m.b/2, m.y + m.t/2, monat);
+    const std = Math.round(u.stunden * 10) / 10;
+    return {stunden: std, text: String(std).replace('.', ','), monat: MONATE[monat-1]};
+  }catch(e){ return null; }
+}
+
+/* Passt der Platz zum eingetragenen Lichtbedarf?
+   Ausdrücklich nur ein Hinweis: die App verbietet keine Platzierung
+   und ändert von sich aus nichts. Wer seine Pflanze woanders haben
+   will, hat dafür in aller Regel einen Grund. Die Spannen sind grob
+   gehalten, damit nicht bei jeder halben Stunde Abweichung ein
+   Hinweis erscheint. */
+const LICHT_SPANNE = {
+  voll:     {min:5,   max:24, soll:'mindestens 5 Stunden direkte Sonne'},
+  hell:     {min:1.5, max:7,  soll:'ein bis sieben Stunden Sonne'},
+  indirekt: {min:0,   max:4,  soll:'höchstens vier Stunden direkte Sonne'},
+  schatten: {min:0,   max:2,  soll:'höchstens zwei Stunden direkte Sonne'}
+};
+function standortAbgleich(p){
+  if(!p || !p.sonne) return null;
+  const spanne = LICHT_SPANNE[p.sonne];
+  const messung = standortStunden(p);
+  if(!spanne || !messung || messung.stunden == null) return null;
+  const std = messung.stunden;
+  const zahl = std === 1 ? '1 Stunde' : String(std).replace('.', ',') + ' Stunden';
+  if(std < spanne.min)
+    return {art:'zu-wenig', stunden:std, monat:messung.monat,
+      text:'Hier kommen im ' + messung.monat + ' etwa ' + zahl + ' direkte Sonne an. '
+        + 'Eingetragen ist „' + SONNE[p.sonne].text + '“ — dafür wären ' + spanne.soll + ' üblich. '
+        + 'Das ist kein Muss: viele Pflanzen kommen mit weniger zurecht, sie wachsen dann langsamer.'};
+  if(std > spanne.max)
+    return {art:'zu-viel', stunden:std, monat:messung.monat,
+      text:'Hier kommen im ' + messung.monat + ' etwa ' + zahl + ' direkte Sonne an. '
+        + 'Eingetragen ist „' + SONNE[p.sonne].text + '“ — dafür wären ' + spanne.soll + ' üblich. '
+        + 'Wenn die Blätter helle, trockene Flecken bekommen, wäre das die Erklärung.'};
+  return null;
+}
+
 /* ══════════════════ Zuordnung Pflanze → Raum ══════════════════ */
 function pflanzenOrt(id){ return (S.orte||{})[id] || null; }
 function pflanzeSetzen(id, raumId, x, y){
@@ -3366,6 +3916,45 @@ const DIAGNOSEN = [
    erklaerung:'Karnivoren vertragen nur Regen- oder Osmosewasser und ausschließlich ungedüngtes Torf-Sand-Substrat. Leitungswasser und normale Blumenerde bringen sie innerhalb weniger Wochen um.',
    sofort:['Sofort auf Regen- oder Osmosewasser umstellen','Niemals düngen','Bei normaler Blumenerde umgehend umtopfen','Anstauprinzip: zwei Zentimeter Wasser im Untersetzer stehen lassen']}
 ];
+
+/* ── Schädlingskatalog ───────────────────────────────────────
+   Kein zweiter Datenbestand: die Einträge stehen längst oben in
+   DIAGNOSEN, mit Erkennungsmerkmalen und Sofortmaßnahmen. Hier
+   werden sie nur unter einem Namen greifbar gemacht, damit die
+   KI-Auswertung dieselben Maßnahmen benutzt wie der Doktor und
+   beides nicht auseinanderläuft. */
+const SCHAEDLING_IDS = ['spinnmilben','trauermuecken','wolllaeuse','schildlaeuse',
+  'blattlaeuse','weisse-fliege','mehltau','grauschimmel'];
+const SCHAEDLINGE_KATALOG = SCHAEDLING_IDS
+  .map(id=>DIAGNOSEN.find(d=>d.id === id))
+  .filter(Boolean);
+
+/* Wortfelder, über die sich ein KI-Befund einem Katalogeintrag
+   zuordnen lässt. Trifft nichts zu, bleibt es beim allgemeinen
+   Zustand „Schädlingsbefall“ — geraten wird nicht. */
+const SCHAEDLING_WORTE = [
+  ['spinnmilben',   /spinnmilb|gespinst|rote spinne/i],
+  ['trauermuecken', /trauermuck|trauermück|sciarid/i],
+  ['wolllaeuse',    /wollaus|wollläus|wolllaus|schmierlaus|schmierläus|watte/i],
+  ['schildlaeuse',  /schildlaus|schildläus|hocker|höcker/i],
+  ['blattlaeuse',   /blattlaus|blattläus|blattlaeus/i],
+  ['weisse-fliege', /wei(ss|ß)e fliege|mottenschildlaus/i],
+  ['mehltau',       /mehltau/i],
+  ['grauschimmel',  /grauschimmel|botrytis/i]
+];
+function schaedlingErkennen(text){
+  if(!text) return null;
+  for(const [id, re] of SCHAEDLING_WORTE)
+    if(re.test(text)) return SCHAEDLINGE_KATALOG.find(d=>d.id === id) || null;
+  return null;
+}
+
+/* Weicht die Behandlung bei einer Art vom Standard ab, steht das in
+   der Bibliothek im Feld schaedlingHinweis und geht dem Katalog vor. */
+function schaedlingHinweisVon(p){
+  const b = (typeof bibVon === 'function' && p) ? bibVon(p) : null;
+  return (b && b.schaedlingHinweis) ? b.schaedlingHinweis : '';
+}
 
 /* Bewertung der angeklickten Symptome */
 function diagnose(symptome, antworten, pflanze){
@@ -5029,12 +5618,15 @@ function papierkorbRender(){
       <button class="wz-i" data-mh-info="ansicht" aria-expanded="false" aria-label="Wozu ist die Ansicht-Einstellung da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-ansicht" hidden>
-      <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht. Der einfache Modus blendet alles aus, was man am Anfang nicht braucht — der Grundriss, die Gießart-Auswahl und der Blattzähler verschwinden, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren: sobald du den Haken wieder wegnimmst, ist alles unverändert da.</p>
+      <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht. Der einfache Modus blendet alles aus, was man am Anfang nicht braucht — der Grundriss, die Gießart-Auswahl und der Blattzähler verschwinden, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren: sobald du den Haken wieder wegnimmst, ist alles unverändert da. Pflegehinweise sind die kleinen grauen Kästen auf den Pflanzenkarten — etwa wenn an einem Platz deutlich weniger Sonne ankommt, als die Art gewohnt ist. Sie verbieten nichts und ändern nichts, sie sagen nur Bescheid. Einzelne lassen sich mit dem × wegklicken, mit dem Haken hier verschwinden sie alle.</p>
     <label class="fspan check">
       <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
     <label class="fspan check">
       <input type="checkbox" id="ans-einfach"> <span class="lab" style="display:inline">Einfacher Modus</span></label>
     <p class="fhint" id="einfach-text"></p>
+    <label class="fspan check">
+      <input type="checkbox" id="ans-hinweise"> <span class="lab" style="display:inline">Pflegehinweise auf den Karten</span></label>
+    <p class="fhint" id="hinweise-text"></p>
     </div>
   </section>
 
@@ -5241,8 +5833,70 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '1.5';
+const FASSUNG = '1.8';
 const PATCHNOTES = [
+  {
+    nr: '1.8', datum: '2026-08-22', titel: 'Gattungstabelle',
+    neu: [
+      'Neue Gattungstabelle mit rund achtzig Sammlergattungen. Sie liefert Familie, Wuchsform und Pflegeeigenschaften für Arten, die nicht in der Bibliothek stehen — Anthurium, Hoya, Dischidia, Homalomena, Labisia, Rhaphidophora, Scindapsus, Platycerium, alle Karnivorengattungen, Blattkakteen, Caudexpflanzen und mehr. Sammler kaufen Sorten, keine Arten; ein Artenverzeichnis kann das nie einholen, eine Gattung schon.',
+      'Panaschierte Sorten werden am Namen erkannt. Das ist keine Kosmetik: weiße Blattteile haben kein Chlorophyll, brauchen deshalb mehr Licht als die grüne Form und verbrennen zugleich schneller in praller Sonne.',
+      'Neun Pflegeeigenschaften werden pro Pflanze ermittelt, darunter bereifte Blätter, behaarte Blätter, Empfindlichkeit gegen Seifensprays, Substrat das nie abtrocknen darf, und der Unterschied zwischen Pflanzen, bei denen kein Wasser ins Herz gehört, und Bromelien, bei denen der Trichter gefüllt sein muss.'
+    ],
+    besser: [
+      'Giftigkeit wird jetzt auch für selbst angelegte Pflanzen ohne Bibliothekstreffer bestimmt. Bisher blieb das Familienfeld dort leer, wodurch keine einzige Familienregel griff — eine selbst angelegte Alocasia galt als unbedenklich, obwohl alle Aronstabgewächse Calciumoxalat enthalten.',
+      'Familiennamen der Gattungstabelle folgen der Schreibweise der Bibliothek.'
+    ],
+    behoben: [
+      'In der Zustandsauswahl konnten Blüte und Winterruhe bei Arten, die den Code auch in der Bibliothek tragen, doppelt erscheinen. Die Liste wird jetzt entdoppelt.',
+      'Ein von Hand bearbeiteter Sicherungseintrag mit einer Zahl statt eines botanischen Namens brachte die Artzuordnung zum Absturz.',
+      'Hoya wurde über die Familienregel für Hundsgiftgewächse als schwer giftig eingestuft. Das trifft auf Oleander und Adenium zu, nicht auf Hoya: die ASPCA führt sie ausdrücklich als ungiftig für Katzen, Hunde und Pferde. Gattungen mit geprüfter Angabe schlagen jetzt die Familienregel. Dischidia bleibt bewusst bei unklar, weil dafür keine geprüfte Angabe vorliegt.'
+    ]
+  },
+  {
+    nr: '1.7', datum: '2026-08-22', titel: 'Gehärteter KI-Prompt',
+    neu: [
+      'Die Frage an die KI verlangt die Antwort jetzt in einem Codeblock. Das ist der wirksamste Schutz, den es ohne Programmierschnittstelle gibt: innerhalb eines Codeblocks setzt kein Chatdienst Fettschrift, Überschriften oder Aufzählungspunkte, und Vorwort wie Schlussfloskel bleiben draußen. Die App wertet dann nur noch den Blockinhalt aus.',
+      'Der Prompt nennt für jedes Feld mit fester Wortliste ausdrücklich die erlaubten Wörter, zeigt eine vollständige Musterantwort, führt eine Gegenliste mit typischen Fehlern und endet mit sechs Prüffragen zum Abhaken.',
+      'Sortenerkennung auf Sammlerniveau: Erkennt die KI eine Sorte sicher, hängt sie sie in einfachen Anführungszeichen an den botanischen Namen. Erkennt sie sie nicht sicher, muss sie sie weglassen — geratene Sortennamen sind ausdrücklich verboten, weil panaschierte Sorten am Foto oft nicht unterscheidbar sind.',
+      'Panaschierung wird abgefragt und im Feld Wuchsform vermerkt.'
+    ],
+    besser: [
+      'Fehlt der Codeblock, wertet die App weiterhin den ganzen Text aus. Der Block ist eine Absicherung, keine Bedingung — es geht also nichts verloren, wenn ein Dienst sich nicht daran hält.',
+      'Antwortet ein Dienst mit mehreren Codeblöcken, wird der mit den meisten Feldzeilen genommen statt einfach der erste.',
+      'Bricht ein Dienst die Antwort ab und schließt den Codeblock nicht, wird trotzdem ausgewertet.',
+      'Der Prompt verlangt, dass jede Zeile vorkommt — auch bei Wissenslücken, dann mit dem Wort unbekannt. Das ist zuverlässiger als weggelassene Zeilen.'
+    ],
+    behoben: [
+      'Platzhalter wie unbekannt, unklar oder ein Bindestrich landeten als echter Wert im Steckbrief. Sie werden jetzt verworfen.',
+      'Vier statt drei Backticks, Sprachangaben am Codeblock und Windows-Zeilenenden führten dazu, dass die Antwort nicht erkannt wurde.'
+    ]
+  },
+  {
+    nr: '1.6', datum: '2026-08-22', titel: 'Genauere KI-Bestimmung',
+    neu: [
+      'Die Frage an die KI wird beim Anlegen genauso zusammengebaut wie beim Pflanzendoktor: Raum, Stellplatz, eingetragener Lichtbedarf und der laufende Monat gehen mit. Steht die Art schon fest, kommt ihr Soll-Lichtbedarf aus der Bibliothek dazu — die KI muss den Standort dann nicht mehr aus dem Foto erraten.',
+      'Steht eine Pflanze im Grundriss, schickt die App die tatsächlich gemessenen Sonnenstunden dieses Platzes mit. Das ist belastbarer als jede Schätzung am Bild.',
+      'Neuer Hinweis auf der Pflanzenkarte, wenn an einem Platz deutlich mehr oder weniger Sonne ankommt, als für die Art üblich ist. Er nennt die gemessene Stundenzahl und den Sollwert, verbietet aber nichts: die Pflanze darf stehen bleiben, wo sie steht.',
+      'Pflegehinweise lassen sich einzeln mit dem × wegklicken oder unter Mehr › Ansicht komplett abschalten. Warnungen zu Giftigkeit, Quarantäne und Wasserqualität sind davon nicht betroffen.',
+      'Maßnahmen kommen strukturiert zurück: Auslöser, Handlung, Dringlichkeit und Wiederholung stehen getrennt. Aufgaben tragen dadurch ihren Anlass und den Wiederholungsabstand im Text, und was die KI als „sofort“ einstuft, landet unter „Jetzt“ statt unter „Diese Woche“.',
+      'Standardratschläge werden aussortiert, bevor sie zu Aufgaben werden. „Heller stellen“ erscheint nur noch, wenn an diesem Platz tatsächlich zu wenig Sonne ankommt.'
+    ],
+    besser: [
+      'Die KI muss jetzt sagen, ob Blattunterseiten und Blattachseln auf dem Foto überhaupt zu erkennen waren. Waren sie es nicht, darf sie einen Schädlingsbefall nicht mehr ausschließen — bisher kam gelegentlich ein beruhigendes „keine Schädlinge“ zurück, das auf nichts beruhte.',
+      'Nennt die KI einen Schädling, muss sie die Fundstelle angeben: Blattachsel, Blattunterseite, Stängel oder Erdoberfläche. Sieht sie die Stelle nicht, muss sie den Verdacht ausdrücklich als unbestätigt kennzeichnen.',
+      'Unscharfe, zu dunkle oder angeschnittene Fotos muss die KI als solche benennen. Der Hinweis mit dem Auftrag für die zweite Aufnahme erscheint dann wie bisher.',
+      'Anlegen und Pflanzendoktor benutzen dieselbe Antwortstruktur. Bisher waren es zwei getrennte Listen, die sich mit der Zeit auseinandergelebt hatten.',
+      'Die Schädlingsbehandlungen des Pflanzendoktors stehen jetzt an einer Stelle und werden von der KI-Auswertung mitbenutzt, statt doppelt gepflegt zu werden.',
+      'Die Bibliothek hat ein Feld für artspezifische Schädlingshinweise bekommen. Wo eine Art anders behandelt werden muss als üblich, geht dieser Hinweis der Standardmaßnahme vor.'
+    ],
+    behoben: [
+      'Antwortete eine KI mit Überschriften statt mit Schlüsselwortzeilen — „### Zustand“ statt „ZUSTAND:“ —, wurde der gesamte folgende Abschnitt an das zuletzt erkannte Feld angehängt. Im botanischen Namen standen dann halbe Kapitel.',
+      'Beschriftungen wurden nur bei wortgenauer Übereinstimmung erkannt. „Giftig für Katzen: ja“ ging deshalb verloren, obwohl eindeutig war, was gemeint ist.',
+      'Abschiedsfloskeln wie „Ich hoffe, das hilft dir weiter“ landeten mit in den Maßnahmen und wurden zu einer Aufgabe.',
+      'Mehrere Maßnahmenzeilen überschrieben sich gegenseitig; übrig blieb nur die letzte.',
+      'Beim Anlegen wurden Maßnahmen am Halbgeviertstrich zerschnitten, wodurch Halbsätze als Aufgaben endeten.'
+    ]
+  },
   {
     nr: '1.5', datum: '2026-08-22', titel: 'Aufgeräumt',
     neu: [
@@ -6321,6 +6975,43 @@ function warnungenHTML(p){
   return `<div class="warnbox">${w.map(x=>`<p>⚠ ${x}</p>`).join('')}</div>` + unklarBox;
 }
 
+/* ── Pflegehinweise ──────────────────────────────────────────
+   Alles, was gut zu wissen, aber nicht dringend ist. Bewusst von
+   den Warnungen getrennt: Warnungen bleiben stehen, Hinweise lassen
+   sich einzeln wegklicken und komplett abschalten. Sie verbieten
+   nichts — eine Pflanze darf überall stehen, auch wo weniger Sonne
+   ankommt, als für ihre Art üblich ist. */
+function hinweisWeg(id, key){ return !!((S.hinweisWeg || {})[id + '|' + key]); }
+
+function pflegeHinweiseHTML(p){
+  if(S.pflegehinweise === false) return '';
+  const teile = [];
+
+  const ab = (typeof standortAbgleich === 'function') ? standortAbgleich(p) : null;
+  if(ab && !hinweisWeg(p.id, 'standort-' + ab.art))
+    teile.push({key:'standort-' + ab.art,
+      titel: ab.art === 'zu-wenig' ? 'Weniger Sonne, als die Art gewohnt ist'
+                                   : 'Mehr Sonne, als die Art gewohnt ist',
+      text: ab.text});
+
+  /* Artspezifische Abweichung schlägt den allgemeinen Katalog. */
+  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  if(z && z.code === 'schaedlinge'){
+    const eigen = (typeof schaedlingHinweisVon === 'function') ? schaedlingHinweisVon(p) : '';
+    if(eigen && !hinweisWeg(p.id, 'schaedling-art'))
+      teile.push({key:'schaedling-art',
+        titel:'Bei dieser Art gilt etwas anderes', text:eigen});
+  }
+
+  if(!teile.length) return '';
+  return '<div class="pflegehinweis">' + teile.map(t=>
+    `<div class="ph-zeile">
+       <p class="ph-text"><b>${esc(t.titel)}</b> ${esc(t.text)}</p>
+       <button class="ph-weg" data-do="hinweis-weg" data-p="${esc(p.id)}" data-k="${esc(t.key)}"
+         aria-label="Diesen Hinweis ausblenden" title="Diesen Hinweis ausblenden">×</button>
+     </div>`).join('') + '</div>';
+}
+
 /* ── Abteil „Lage“ ──────────────────────────────────────────
    Raum und Stellplatz, beide direkt in der Karte änderbar. */
 function lagePaneHTML(p){
@@ -6437,6 +7128,7 @@ function cardHTML(p){
     detail = `<div class="detail">
       ${schnellLeiste(p)}
       ${warnungenHTML(p)}
+      ${pflegeHinweiseHTML(p)}
       ${kartenReiter(p.id, [
         {key:'allgemein', titel:'Allgemein', inhalt:
           acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
@@ -6464,6 +7156,7 @@ function cardHTML(p){
     detail = `<div class="detail">
       ${schnellLeiste(p)}
       ${warnungenHTML(p)}
+      ${pflegeHinweiseHTML(p)}
       ${kartenReiter(p.id, [
         {key:'allgemein', titel:'Allgemein', inhalt:
           hinweis
@@ -7198,21 +7891,83 @@ document.addEventListener('click', e=>{
    Eine Stelle für beide Wege: die KI-Antwort beim Anlegen und die
    Diagnose im Pflanzendoktor. Beide liefern Maßnahmen als Text, beide
    sollen daraus echte Aufgaben machen, statt sie nur anzuzeigen. */
+/* ── Maßnahmen ───────────────────────────────────────────────
+   Neues Format je Zeile: Auslöser | Handlung | Dringlichkeit |
+   Wiederholung. Hält sich die KI nicht daran, wird die Zeile als
+   reine Handlung genommen — das alte Semikolon-Format funktioniert
+   dadurch unverändert weiter. */
+function massnahmenLesen(txt){
+  const roh = Array.isArray(txt) ? txt : String(txt||'').split(/\r?\n/);
+  const raus = [];
+  roh.forEach(zeile=>{
+    let z = String(zeile).replace(/^[\s\-–—•*]+/, '').trim();
+    if(!z) return;
+    z = z.replace(/^massnahmen?\s*[:：]\s*/i, '').replace(/^ma(ss|ß)nahmen?\s*[:：]\s*/i, '');
+    /* Ohne senkrechten Strich ist es das alte Format — dort trennt
+       das Semikolon die einzelnen Schritte. */
+    const stuecke = z.indexOf('|') >= 0 ? [z] : z.split(';');
+    stuecke.forEach(st=>{
+      const t = st.trim().replace(/^[\s\-–—•*\d.)]+/, '').trim();
+      if(t.length <= 3) return;
+      const teile = t.split('|').map(x=>x.trim()).filter(x=>x !== '');
+      if(teile.length >= 2)
+        raus.push({ausloeser:teile[0], handlung:teile[1],
+                   dringlich:teile[2]||'', wiederholung:teile[3]||''});
+      else
+        raus.push({ausloeser:'', handlung:t, dringlich:'', wiederholung:''});
+    });
+  });
+  return raus;
+}
+
+/* Trivialfilter. Läuft in der App, nicht im Prompt: nur hier ist
+   bekannt, wie der Platz tatsächlich aussieht. Aussortiert wird nur,
+   was nachweislich schon erfüllt ist oder gar keine Handlung
+   beschreibt — im Zweifel bleibt der Schritt stehen. */
+function massnahmeTrivial(m, p){
+  const t = norm((m.handlung || '') + ' ' + (m.ausloeser || ''));
+  if(!t) return true;
+  const ab = (typeof standortAbgleich === 'function') ? standortAbgleich(p) : null;
+  const heller  = /heller stellen|mehr licht|helleren (standort|platz)|naher ans fenster/.test(t);
+  const dunkler = /dunkler stellen|weniger (licht|sonne)|schattier|vor praller sonne schutzen/.test(t);
+  /* „Heller stellen“ ist nur dann eine Maßnahme, wenn es hier
+     wirklich zu dunkel ist. Sonst ist es eine Floskel. */
+  if(heller  && (!ab || ab.art !== 'zu-wenig')) return true;
+  if(dunkler && (!ab || ab.art !== 'zu-viel'))  return true;
+  /* Sätze ohne Inhalt, die auf jede Zimmerpflanze passen. */
+  if(/^(regelma(ss)?ig|ausreichend|nach bedarf) gie(ss)?en$/.test(t)) return true;
+  if(/^(gut )?pflegen$|^beobachten$|^geduld haben$|^weiter so$/.test(t)) return true;
+  return false;
+}
+
+/* Eine Maßnahme in einen Aufgabentext gießen. Der Auslöser steht
+   mit dabei, weil eine Aufgabe ohne Grund in zwei Wochen niemand
+   mehr einordnen kann. */
+function massnahmeText(m){
+  let t = m.handlung || '';
+  if(m.wiederholung && !/^einmalig$/i.test(m.wiederholung.trim()))
+    t += ' (' + m.wiederholung.trim() + ')';
+  if(m.ausloeser) t += ' — Anlass: ' + m.ausloeser;
+  return t.trim();
+}
+
 function massnahmenZuAufgaben(pflanzeId, massnahmen, herkunft){
-  const liste = (Array.isArray(massnahmen) ? massnahmen : String(massnahmen||'').split(/;|\n/))
-    .map(t=>String(t).replace(/^[\s\-–—•*\d.)]+/,'').trim())
-    .filter(t=>t.length > 3);
-  if(!liste.length) return 0;
   const p = allePflanzen().find(x=>x.id === pflanzeId);
+  const liste = massnahmenLesen(massnahmen).filter(m=>!massnahmeTrivial(m, p));
+  if(!liste.length) return 0;
   const bestand = new Set(((S.added[pflanzeId]||[])).map(a=>(a.text||'').toLowerCase()));
   let neu = 0;
-  liste.forEach(text=>{
-    if(bestand.has(text.toLowerCase())) return;   /* nicht doppelt anlegen */
+  liste.forEach(m=>{
+    const text = massnahmeText(m);
+    if(!text || bestand.has(text.toLowerCase())) return;   /* nicht doppelt anlegen */
+    /* „sofort“ gehört unter Jetzt, alles andere kann warten. */
+    const eilig = /sofort|dringend|umgehend/i.test(m.dringlich || '');
     S.added[pflanzeId] = S.added[pflanzeId] || [];
     S.added[pflanzeId].push({
       id: 'a-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
-      text, wann:'woche', quelle: herkunft || 'ki', angelegt: iso(HEUTE)
+      text, wann: eilig ? 'jetzt' : 'woche', quelle: herkunft || 'ki', angelegt: iso(HEUTE)
     });
+    bestand.add(text.toLowerCase());
     neu++;
   });
   /* Nachschauen, ob es geholfen hat — sonst gerät die Sache in Vergessenheit. */
@@ -7227,6 +7982,22 @@ function massnahmenZuAufgaben(pflanzeId, massnahmen, herkunft){
   sichern();
   return neu;
 }
+
+/* Einzelnen Hinweis ausblenden. Gemerkt wird je Pflanze und Anlass,
+   damit ein weggeklickter Standorthinweis nicht auch den Hinweis zu
+   einem späteren Schädlingsbefall verschluckt. */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do="hinweis-weg"]');
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  S.hinweisWeg = S.hinweisWeg || {};
+  S.hinweisWeg[b.dataset.p + '|' + b.dataset.k] = true;
+  sichern();
+  const zeile = b.closest('.ph-zeile');
+  const kasten = b.closest('.pflegehinweis');
+  if(zeile) zeile.remove();
+  if(kasten && !kasten.querySelector('.ph-zeile')) kasten.remove();
+});
 
 /* ── Haustier-Einstellungen ──────────────────────────────── */
 function tierArtenZeichnen(){
@@ -7435,7 +8206,10 @@ function artFreitext(){
 
 function zustandListe(a){
   const sel = $('#f-zustand'); if(!sel) return;
-  const codes = Object.keys(ZUSTAENDE).concat(a ? a.spez.filter(c=>SPEZIAL[c]) : []);
+  /* Ein Code, den es sowohl als Grundzustand als auch artspezifisch
+     gibt, darf nur einmal in der Auswahl stehen. */
+  const codes = Array.from(new Set(
+    Object.keys(ZUSTAENDE).concat(a ? a.spez.filter(c=>SPEZIAL[c]) : [])));
   sel.innerHTML = codes.map(c=>{
     const d = zustandDef(c);
     return `<option value="${c}">${esc(d.name)}${SPEZIAL[c]?' ·':''}</option>`;
@@ -7587,7 +8361,7 @@ document.addEventListener('click', e=>{
 $('#f-zustand').addEventListener('change', zustandHinweis);
 
 /* ── Gemini ──────────────────────────────────────────────── */
-$('#ki-text').value = GEMINI_PROMPT;
+$('#ki-text').value = anlegenPromptBauen();
 $('#ki-dienst').value = S.kiDienst || 'gemini';
 $('#ki-dienst').onchange = ()=>{ S.kiDienst = $('#ki-dienst').value; sichern(); kiHinweis(); };
 function kiHinweis(txt, ton){
@@ -7614,7 +8388,7 @@ $('#btn-gemini').onclick = ()=>{
   }
 };
 $('#btn-ki-kopie').onclick = ()=>{
-  const ok = inZwischenablage(GEMINI_PROMPT);
+  const ok = inZwischenablage(anlegenPromptBauen());
   $('#btn-ki-kopie').textContent = ok ? 'Kopiert' : 'Bitte von Hand markieren';
   if(!ok){ const t = $('#ki-text'); t.focus(); t.select(); }
   setTimeout(()=>$('#btn-ki-kopie').textContent = 'Prompt kopieren', 2200);
@@ -7819,7 +8593,7 @@ $('#btn-neu-save').onclick = async ()=>{
      auf der Liste, statt nur in der Notiz zu verschwinden. */
   let kiAufgaben = 0;
   if(letzteKiAntwort && letzteKiAntwort.schritte){
-    kiAufgaben = massnahmenZuAufgaben(id, letzteKiAntwort.schritte.split(/[;·]|\s\u2013\s/), 'anlegen');
+    kiAufgaben = massnahmenZuAufgaben(id, letzteKiAntwort.schritte, 'anlegen');
   }
   letzteKiAntwort = null;
   if(files && files.length) await fotosHinzu(id, Array.from(files));
@@ -9879,12 +10653,44 @@ function einfachSetzen(an){
     : 'Blendet Grundriss, Gießart-Auswahl und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Jederzeit umschaltbar, es geht nichts verloren.';
   sichern();
 }
+/* ── Pflegehinweise ein oder aus ─────────────────────────────
+   Standard ist an. Weggeklickte Einzelhinweise bleiben gemerkt und
+   sind nach dem Wiedereinschalten weiterhin weg — wer sie zurück
+   will, setzt sie unten zurück. */
+function hinweiseSetzen(an){
+  S.pflegehinweise = !!an;
+  const txt = document.getElementById('hinweise-text');
+  const weg = Object.keys(S.hinweisWeg || {}).length;
+  if(txt) txt.textContent = an
+    ? ('Kleine Kästen auf den Karten, etwa wenn ein Platz weniger Sonne bekommt, als die Art gewohnt ist. Sie ändern nichts von selbst.'
+       + (weg ? ' ' + weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : ''))
+    : 'Aus. Auf den Karten erscheinen keine Pflegehinweise mehr. Warnungen — Giftigkeit, Quarantäne, Wasserqualität — bleiben davon unberührt.';
+  sichern();
+  if(typeof render === 'function') render();
+}
+const schalterHinweise = document.getElementById('ans-hinweise');
+if(schalterHinweise){
+  schalterHinweise.checked = S.pflegehinweise !== false;
+  schalterHinweise.onchange = ()=>hinweiseSetzen(schalterHinweise.checked);
+}
+
 const schalterEinfach = document.getElementById('ans-einfach');
 if(schalterEinfach){
   schalterEinfach.checked = !!S.einfach;
   schalterEinfach.onchange = ()=>einfachSetzen(schalterEinfach.checked);
 }
 einfachSetzen(!!S.einfach);
+/* Nur den Text setzen, nicht neu zeichnen — die Karten stehen zu
+   diesem Zeitpunkt noch gar nicht. */
+(function(){
+  const txt = document.getElementById('hinweise-text');
+  const an = S.pflegehinweise !== false;
+  const weg = Object.keys(S.hinweisWeg || {}).length;
+  if(txt) txt.textContent = an
+    ? ('Kleine Kästen auf den Karten, etwa wenn ein Platz weniger Sonne bekommt, als die Art gewohnt ist. Sie ändern nichts von selbst.'
+       + (weg ? ' ' + weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : ''))
+    : 'Aus. Auf den Karten erscheinen keine Pflegehinweise mehr. Warnungen — Giftigkeit, Quarantäne, Wasserqualität — bleiben davon unberührt.';
+})();
 if(S.ansichtAlles) ANS_ALLE = true;
 ansichtZeigen(S.ansicht || 'heute', false);
 
@@ -10211,28 +11017,19 @@ function dokPromptBauen(){
     zeilen.push('Es handelt sich um: ' + p.art + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.');
     if(lageVon(p)) zeilen.push('Steht: ' + lageVon(p) + '.');
     if(SONNE[p.sonne]) zeilen.push('Lichtbedarf: ' + SONNE[p.sonne].text + '.');
+    /* Steht sie im Grundriss, kennt die App die tatsächliche
+       Sonnenmenge — die ist belastbarer als jede Schätzung am Foto. */
+    const sl = (typeof standortStunden === 'function') ? standortStunden(p) : null;
+    if(sl && sl.stunden != null)
+      zeilen.push('An diesem Platz misst die App im ' + sl.monat + ' etwa '
+        + (sl.text || sl.stunden) + ' Stunden direkte Sonne pro Tag.');
     const st = giessStatus(p);
     if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + st.iv + ' Tage.');
     zeilen.push('');
   }
   if(sym.length){ zeilen.push('Das fällt mir auf:'); sym.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
   if(ant.length){ zeilen.push('Zusätzlich:'); ant.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
-  zeilen.push('Antworte in genau diesem Format. Reiner Text, keine Sternchen, keine Aufzählungszeichen, kein Vorwort. Jede Angabe eine Zeile, Schlüsselwort in Großbuchstaben, dann Doppelpunkt.');
-  zeilen.push('');
-  zeilen.push('ART: deutscher Name der Art, falls du sie am Foto erkennst');
-  zeilen.push('BOTANISCH: wissenschaftlicher Name');
-  zeilen.push('TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rosettenpflanze, Kaktus, Kraut');
-  zeilen.push('SICHERHEIT: hoch, mittel oder niedrig');
-  zeilen.push('FEHLT: nur wenn SICHERHEIT nicht hoch ist — was du auf dem Foto nicht erkennen kannst und welche zusätzliche Aufnahme weiterhelfen würde. Sonst das Wort keine');
-  zeilen.push('ZUSTAND: einer von: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung');
-  zeilen.push('BEFUND: zwei bis drei Sätze, was du siehst und was die wahrscheinlichste Ursache ist');
-  zeilen.push('GIESSEN: wie oft und wie viel bei genau diesem Zustand');
-  zeilen.push('LICHT: voll, hell oder indirekt');
-  zeilen.push('GIESSKLASSE: genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau');
-  zeilen.push('FROST: die niedrigste Temperatur in Grad Celsius, die die Art verträgt — oder das Wort winterhart');
-  zeilen.push('WICHTIG: eine kurze Anweisung, deren Missachtung genau diese Art umbringt — oder das Wort keine');
-  zeilen.push('KATZEN: giftig oder unbedenklich');
-  zeilen.push('MASSNAHMEN: die drei wichtigsten Schritte, mit Semikolon getrennt');
+  zeilen.push(ANTWORT_FORMAT);
   return zeilen.join('\n');
 }
 

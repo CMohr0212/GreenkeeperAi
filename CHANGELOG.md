@@ -4,6 +4,74 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 1.8 — 22. August 2026
+**Gattungstabelle**
+
+### Neu
+- Neue Gattungstabelle mit rund achtzig Sammlergattungen. Sie liefert Familie, Wuchsform und Pflegeeigenschaften für Arten, die nicht in der Bibliothek stehen — Anthurium, Hoya, Dischidia, Homalomena, Labisia, Rhaphidophora, Scindapsus, Platycerium, alle Karnivorengattungen, Blattkakteen, Caudexpflanzen und mehr. Sammler kaufen Sorten, keine Arten; ein Artenverzeichnis kann das nie einholen, eine Gattung schon.
+- Panaschierte Sorten werden am Namen erkannt. Weiße Blattteile haben kein Chlorophyll, brauchen deshalb mehr Licht als die grüne Form und verbrennen zugleich schneller in praller Sonne.
+- Neun Pflegeeigenschaften werden pro Pflanze ermittelt, darunter bereifte Blätter, behaarte Blätter, Empfindlichkeit gegen Seifensprays, Substrat das nie abtrocknen darf, und der Unterschied zwischen Pflanzen, bei denen kein Wasser ins Herz gehört, und Bromelien, bei denen der Trichter gefüllt sein muss.
+
+### Besser
+- Giftigkeit wird jetzt auch für selbst angelegte Pflanzen ohne Bibliothekstreffer bestimmt. Bisher blieb das Familienfeld dort leer, wodurch keine einzige Familienregel griff — eine selbst angelegte Alocasia galt als unbedenklich, obwohl alle Aronstabgewächse Calciumoxalat enthalten.
+- Familiennamen der Gattungstabelle folgen der Schreibweise der Bibliothek.
+
+### Behoben
+- In der Zustandsauswahl konnten Blüte und Winterruhe bei Arten, die den Code auch in der Bibliothek tragen, doppelt erscheinen. Die Liste wird jetzt entdoppelt.
+- Ein von Hand bearbeiteter Sicherungseintrag mit einer Zahl statt eines botanischen Namens brachte die Artzuordnung zum Absturz.
+- Hoya wurde über die Familienregel für Hundsgiftgewächse als schwer giftig eingestuft. Das trifft auf Oleander und Adenium zu, nicht auf Hoya: die ASPCA führt sie ausdrücklich als ungiftig für Katzen, Hunde und Pferde. Gattungen mit geprüfter Angabe schlagen jetzt die Familienregel. Dischidia bleibt bewusst bei unklar, weil dafür keine geprüfte Angabe vorliegt.
+
+---
+
+## 1.7 — 22. August 2026
+**Gehärteter KI-Prompt**
+
+### Neu
+- Die Frage an die KI verlangt die Antwort jetzt in einem Codeblock. Das ist der wirksamste Schutz, den es ohne Programmierschnittstelle gibt: innerhalb eines Codeblocks setzt kein Chatdienst Fettschrift, Überschriften oder Aufzählungspunkte, und Vorwort wie Schlussfloskel bleiben draußen. Die App wertet dann nur noch den Blockinhalt aus.
+- Der Prompt nennt für jedes Feld mit fester Wortliste ausdrücklich die erlaubten Wörter, zeigt eine vollständige Musterantwort, führt eine Gegenliste mit typischen Fehlern und endet mit sechs Prüffragen zum Abhaken.
+- Sortenerkennung auf Sammlerniveau: Erkennt die KI eine Sorte sicher, hängt sie sie in einfachen Anführungszeichen an den botanischen Namen. Erkennt sie sie nicht sicher, muss sie sie weglassen — geratene Sortennamen sind ausdrücklich verboten, weil panaschierte Sorten am Foto oft nicht unterscheidbar sind.
+- Panaschierung wird abgefragt und im Feld Wuchsform vermerkt.
+
+### Besser
+- Fehlt der Codeblock, wertet die App weiterhin den ganzen Text aus. Der Block ist eine Absicherung, keine Bedingung.
+- Antwortet ein Dienst mit mehreren Codeblöcken, wird der mit den meisten Feldzeilen genommen statt einfach der erste.
+- Bricht ein Dienst die Antwort ab und schließt den Codeblock nicht, wird trotzdem ausgewertet.
+- Der Prompt verlangt, dass jede Zeile vorkommt — auch bei Wissenslücken, dann mit dem Wort unbekannt.
+
+### Behoben
+- Platzhalter wie unbekannt, unklar oder ein Bindestrich landeten als echter Wert im Steckbrief. Sie werden jetzt verworfen.
+- Vier statt drei Backticks, Sprachangaben am Codeblock und Windows-Zeilenenden führten dazu, dass die Antwort nicht erkannt wurde.
+
+---
+
+## 1.6 — 22. August 2026
+**Genauere KI-Bestimmung**
+
+### Neu
+- Die Frage an die KI wird beim Anlegen genauso zusammengebaut wie beim Pflanzendoktor: Raum, Stellplatz, eingetragener Lichtbedarf und der laufende Monat gehen mit. Steht die Art schon fest, kommt ihr Soll-Lichtbedarf aus der Bibliothek dazu — die KI muss den Standort dann nicht mehr aus dem Foto erraten.
+- Steht eine Pflanze im Grundriss, schickt die App die tatsächlich gemessenen Sonnenstunden dieses Platzes mit. Das ist belastbarer als jede Schätzung am Bild.
+- Neuer Hinweis auf der Pflanzenkarte, wenn an einem Platz deutlich mehr oder weniger Sonne ankommt, als für die Art üblich ist. Er nennt die gemessene Stundenzahl und den Sollwert, verbietet aber nichts: die Pflanze darf stehen bleiben, wo sie steht.
+- Pflegehinweise lassen sich einzeln mit dem × wegklicken oder unter Mehr › Ansicht komplett abschalten. Warnungen zu Giftigkeit, Quarantäne und Wasserqualität sind davon nicht betroffen.
+- Maßnahmen kommen strukturiert zurück: Auslöser, Handlung, Dringlichkeit und Wiederholung stehen getrennt. Aufgaben tragen dadurch ihren Anlass und den Wiederholungsabstand im Text, und was die KI als „sofort" einstuft, landet unter „Jetzt" statt unter „Diese Woche".
+- Standardratschläge werden aussortiert, bevor sie zu Aufgaben werden. „Heller stellen" erscheint nur noch, wenn an diesem Platz tatsächlich zu wenig Sonne ankommt.
+
+### Besser
+- Die KI muss jetzt sagen, ob Blattunterseiten und Blattachseln auf dem Foto überhaupt zu erkennen waren. Waren sie es nicht, darf sie einen Schädlingsbefall nicht mehr ausschließen — bisher kam gelegentlich ein beruhigendes „keine Schädlinge" zurück, das auf nichts beruhte.
+- Nennt die KI einen Schädling, muss sie die Fundstelle angeben: Blattachsel, Blattunterseite, Stängel oder Erdoberfläche. Sieht sie die Stelle nicht, muss sie den Verdacht ausdrücklich als unbestätigt kennzeichnen.
+- Unscharfe, zu dunkle oder angeschnittene Fotos muss die KI als solche benennen. Der Hinweis mit dem Auftrag für die zweite Aufnahme erscheint dann wie bisher.
+- Anlegen und Pflanzendoktor benutzen dieselbe Antwortstruktur. Bisher waren es zwei getrennte Listen, die sich mit der Zeit auseinandergelebt hatten.
+- Die Schädlingsbehandlungen des Pflanzendoktors stehen jetzt an einer Stelle und werden von der KI-Auswertung mitbenutzt, statt doppelt gepflegt zu werden.
+- Die Bibliothek hat ein Feld für artspezifische Schädlingshinweise bekommen. Wo eine Art anders behandelt werden muss als üblich, geht dieser Hinweis der Standardmaßnahme vor.
+
+### Behoben
+- Antwortete eine KI mit Überschriften statt mit Schlüsselwortzeilen — „### Zustand" statt „ZUSTAND:" —, wurde der gesamte folgende Abschnitt an das zuletzt erkannte Feld angehängt. Im botanischen Namen standen dann halbe Kapitel.
+- Beschriftungen wurden nur bei wortgenauer Übereinstimmung erkannt. „Giftig für Katzen: ja" ging deshalb verloren, obwohl eindeutig war, was gemeint ist.
+- Abschiedsfloskeln wie „Ich hoffe, das hilft dir weiter" landeten mit in den Maßnahmen und wurden zu einer Aufgabe.
+- Mehrere Maßnahmenzeilen überschrieben sich gegenseitig; übrig blieb nur die letzte.
+- Beim Anlegen wurden Maßnahmen am Halbgeviertstrich zerschnitten, wodurch Halbsätze als Aufgaben endeten.
+
+---
+
 ## 1.5 — 22. August 2026
 **Aufgeräumt**
 
