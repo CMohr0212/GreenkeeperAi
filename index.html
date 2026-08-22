@@ -36,7 +36,6 @@ header.top{padding:44px 0 18px;border-bottom:1.5px solid var(--ink)}
 h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2rem);line-height:.92;letter-spacing:-.03em;margin:0 0 14px}
 .sub{max-width:54ch;margin:0;color:var(--peat);font-size:var(--t-xl)}
 
-.scale-sec{padding:34px 0 26px;border-bottom:1px solid var(--line)}
 .scale-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px 16px;
   flex-wrap:wrap;margin-bottom:10px;width:100%;background:none;border:0;padding:0;
   cursor:pointer;color:inherit;text-align:left;font:inherit}
@@ -563,6 +562,15 @@ body{padding-bottom:76px}
 .wz-kopf .wz-t{flex:1;min-width:0}
 .wz-kopf .wz-p{font-size:1.1rem;color:var(--ink-2);transition:transform .18s ease}
 .wz.auf .wz-kopf .wz-p,.mh.auf .wz-kopf .wz-p,.sm.auf .wz-kopf .wz-p{transform:rotate(90deg)}
+/* ── Kleiner Stempel: wann wurde zuletzt gesichert ──────────
+   Steht bewusst winzig in der Ecke. Wer ihn antippt, landet bei der
+   Sicherung; wer ihn nicht braucht, sieht ihn kaum. */
+.top{position:relative}
+.sich-stempel{position:absolute;top:0;right:0;z-index:2;border:0;background:none;padding:4px 0 4px 8px;
+  font:inherit;font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--peat);opacity:.75;cursor:pointer;text-align:right;line-height:1.3}
+.sich-stempel[hidden]{display:none}
+.sich-stempel.alt{color:var(--terra);opacity:1}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
   line-height:1;cursor:pointer}
@@ -914,13 +922,17 @@ body.gm-offen{overflow:hidden}
 /* Zusammengeklappt nur im festgesetzten Zustand */
 .controls.klebt{box-shadow:0 6px 16px -8px rgba(30,26,20,.35);padding-top:9px;padding-bottom:9px}
 /* Angeheftet bleibt nur die Suche stehen, der Rest klappt weg */
-.controls.fest.klebt:not(.offen) .ctrl-row,
 .controls.fest.klebt:not(.offen) .kurzweg{display:none}
 .controls.fest.klebt .such-zeile{display:flex;gap:8px;align-items:center}
 .such-zeile{display:contents}
-.ctrl-auf{display:none;flex:0 0 auto;font:inherit;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;
+.ctrl-klapp[hidden]{display:none}
+.ctrl-klapp{padding-bottom:2px}
+#gruppen{font:inherit;font-size:var(--t-s);padding:7px 9px;border:1px solid var(--line);
+  border-radius:2px;background:var(--paper);color:var(--ink);max-width:60%}
+.ctrl-auf .ctrl-zahl{display:inline-block;min-width:16px;margin-left:6px;padding:0 4px;
+  border-radius:9px;background:var(--ink);color:var(--paper);font-size:10px;line-height:16px}
+.ctrl-auf{display:block;flex:0 0 auto;font:inherit;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;
   padding:9px 11px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--peat);cursor:pointer}
-.controls.fest.klebt .ctrl-auf{display:block}
 .controls.fest.klebt.offen .ctrl-auf{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 @media(prefers-reduced-motion:reduce){.controls{transition:none}}
 
@@ -1273,11 +1285,21 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
   body.vollbild .vb-fuss label{flex-basis:100%}
 }
 
+.pn-arten{margin:var(--a-2) 0 0;border-top:1px solid var(--line);padding-top:var(--a-2)}
+.pn-arten>summary{cursor:pointer;font-size:var(--t-s);color:var(--peat);list-style:none}
+.pn-arten>summary::-webkit-details-marker{display:none}
+.pn-arten>summary::before{content:'▸ ';display:inline-block;transition:transform .15s}
+.pn-arten[open]>summary::before{content:'▾ '}
+.pn-artliste{margin:var(--a-2) 0 0;padding-left:20px;font-size:var(--t-s);
+  line-height:1.6;color:var(--peat);max-height:340px;overflow:auto}
 .tgruppe{display:flex;gap:var(--a-2);align-items:flex-start;flex-wrap:wrap;
   padding:9px 0;border-bottom:1px solid var(--line);list-style:none}
-.tg-zahl{background:var(--sand);border-color:var(--line);color:var(--ink);font-family:var(--f-data);
-  font-size:var(--t-mono);font-weight:700}
-.task.tgruppe.auf .tg-zahl{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.tg-zahl{flex:0 0 auto;align-self:center;font:inherit;font-family:var(--f-data);
+  font-size:var(--t-mono);font-weight:700;color:var(--peat);cursor:pointer;
+  background:none;border:0;padding:4px 2px 4px 8px;white-space:nowrap}
+.tg-zahl .caret{display:inline-block;transition:transform .18s}
+.tgruppe.auf .tg-zahl{color:var(--ink)}
+.tgruppe.auf .tg-zahl .caret{transform:rotate(180deg)}
 .tg-kopf{display:block;width:100%;text-align:left;border:0;background:none;padding:0;font:inherit;
   color:inherit;cursor:pointer}
 .tg-namen{display:block;font-size:var(--t-s);color:var(--ink-2);margin-top:2px;overflow-wrap:anywhere}
@@ -1885,6 +1907,7 @@ const BIB_ROHDATEN = [
 ["Epipremnum aureum 'Marble Queen'",'Efeutute Marble Queen','Marble Queen Pothos','Aronstabgewächse','B','indirekt',1,'normal',12,'Kletterpflanze','aroid-luftwurzel|panasch-verlust'],
 ['Epipremnum pinnatum','Drachenschwanz','Dragon Tail','Aronstabgewächse','B','indirekt',1,'normal',14,'Kletterpflanze','aroid-luftwurzel'],
 ['Philodendron hederaceum','Kletterphilodendron','Heartleaf Philodendron','Aronstabgewächse','B','indirekt',1,'normal',13,'Kletterpflanze','aroid-luftwurzel|panasch-verlust'],
+['Philodendron hederaceum Brasil','Dreifarbiger Kletterphilodendron','Philodendron Brasil','Aronstabgewächse','B','indirekt',1,'normal',13,'Kletterpflanze','aroid-luftwurzel|panasch-verlust'],
 ['Philodendron erubescens','Baumfreund rot','Blushing Philodendron','Aronstabgewächse','B','indirekt',1,'normal',15,'Kletterpflanze','aroid-luftwurzel'],
 ['Philodendron bipinnatifidum','Baumphilodendron','Tree Philodendron','Aronstabgewächse','B','hell',1,'normal',13,'Strauchpflanze',''],
 ['Philodendron gloriosum','Samtphilodendron','Velvet Philodendron','Aronstabgewächse','B','indirekt',1,'normal',16,'Kriechpflanze',''],
@@ -2026,6 +2049,8 @@ const BIB_ROHDATEN = [
 ['Cyclamen persicum','Alpenveilchen','Persian Cyclamen','Primelgewächse','B','hell',1,'sparsam',5,'Knollenpflanze','knolle-einzug'],
 ['Begonia maculata','Forellenbegonie','Polka Dot Begonia','Schiefblattgewächse','B','indirekt',1,'normal',15,'Blühpflanze',''],
 ['Begonia rex','Blattbegonie','Rex Begonia','Schiefblattgewächse','B','indirekt',1,'normal',15,'Blattschmuck',''],
+['Begonia rex-cultorum','Königsbegonie','King Begonia','Schiefblattgewächse','B','indirekt',1,'normal',15,'Blattschmuck',''],
+['Begonia x hiemalis','Elatior-Begonie','Elatior Begonia','Schiefblattgewächse','B','hell',1,'normal',12,'Blühpflanze',''],
 ['Hibiscus rosa-sinensis','Zimmerhibiskus','Chinese Hibiscus','Malvengewächse','A','voll',0,'viel',10,'Strauchpflanze','bluete'],
 ['Rhododendron simsii','Zimmerazalee','Indian Azalea','Heidekrautgewächse','A','indirekt',1,'sparsam',5,'Blühpflanze',''],
 ['Gardenia jasminoides','Gardenie','Cape Jasmine','Rötegewächse','A','hell',1,'normal',12,'Strauchpflanze',''],
@@ -2550,22 +2575,33 @@ function meldeRender(){
   const liste = S.neueArten || [];
   sec.hidden = !liste.length;
   const ziel = document.getElementById('melde-liste');
-  if(ziel) ziel.innerHTML = liste.map(x=>
-    `<div class="mrow"><b>${esc(x.art)}</b>${x.bot?` · <i>${esc(x.bot)}</i>`:''}${x.notiz?`<br><span>${esc(x.notiz)}</span>`:''}</div>`).join('');
+  if(ziel) ziel.innerHTML = liste.map(x=>{
+    const b = botOhneDeutsch(x.bot, x.art);
+    return `<div class="mrow"><b>${esc(x.art)}</b>${b?` · <i>${esc(b)}</i>`:''}</div>`;
+  }).join('');
+}
+/* Der botanische Name kommt oft mit angehängtem deutschen Namen zurück:
+   „Begonia rex-cultorum (Königsbegonie)“. In der Meldung steht der
+   deutsche Name schon davor — die Klammer wäre nur eine Wiederholung. */
+function botOhneDeutsch(bot, art){
+  let b = String(bot || '').trim();
+  if(!b) return '';
+  b = b.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if(art && norm(b) === norm(art)) return '';
+  return b;
 }
 function meldeText(){
   const liste = S.neueArten || [];
-  const zeilen = liste.map((x,i)=>
-    `${i+1}. ${x.art}${x.bot? ' ('+x.bot+')':''}${x.notiz? ' — '+x.notiz:''} · angelegt am ${new Date(x.datum+'T12:00:00').toLocaleDateString('de-DE')}`);
+  const zeilen = liste.map((x,i)=>{
+    const b = botOhneDeutsch(x.bot, x.art);
+    return `${i+1}. ${x.art}${b ? ' · ' + b : ''}`;
+  });
   return ['Neue Arten für die Pflanzen-Bibliothek',
     '',
-    'Diese Arten habe ich von Hand angelegt, weil die Bibliothek sie noch nicht kennt.',
-    'Bitte recherchieren und mit Gießklasse, Licht, Dünger, Frostgrenze, Katzengiftigkeit',
-    'und den typischen Zuständen in die nächste Fassung aufnehmen.',
+    'Bitte mit Gießklasse, Licht, Dünger, Frostgrenze, Katzengiftigkeit',
+    'und den typischen Zuständen aufnehmen.',
     '',
-    ...zeilen,
-    '',
-    'Stand: ' + new Date().toLocaleDateString('de-DE')].join('\n');
+    ...zeilen].join('\n');
 }
 
 
@@ -4400,9 +4436,8 @@ function papierkorbRender(){
 
 <div class="wrap">
   <header class="top">
-    <p class="eyebrow">Sammlung · <span id="count"></span> Pflanzen · Stand <span id="stand-datum"></span></p>
+    <button class="sich-stempel" id="sich-stempel" type="button" hidden></button>
     <h1 id="kopf-titel">Was heute<br>Wasser braucht</h1>
-    <p class="sub" id="kopf-sub">Jede Pflanze sitzt irgendwo zwischen dauerhaft nassem Moor und staubtrockener Savanne. Diese Skala ordnet die Sammlung — alles Weitere folgt daraus.</p>
   </header>
 
   <section data-ans="heute" class="faellig" id="faellig-sec">
@@ -4425,31 +4460,19 @@ function papierkorbRender(){
     <div id="stichtage"></div>
   </section>
 
-  <section data-ans="sammlung" class="scale-sec" id="scale-sec">
-    <button class="scale-head" id="scale-head" aria-expanded="true" aria-controls="scale-body">
-      <h2 class="scale-title">Feuchte-Skala</h2>
-      <span class="scale-note"><span id="scale-zustand">Zuklappen</span> <span class="caret">▾</span></span>
-    </button>
-    <button class="wz-i scale-i" id="scale-i" aria-expanded="false" aria-label="Wozu ist die Feuchte-Skala da?">i</button>
-    <div id="scale-body">
-    <p class="scale-hint" id="scale-hilfe" hidden>Jede Pflanze sitzt irgendwo zwischen dauernassem Moor und
-      staubtrockener Savanne. Einen Punkt antippen öffnet die Pflanze.</p>
-    <div class="scale">
-      <div class="scale-track"></div>
-      <div id="pins"></div>
-      <div class="scale-ticks"><span class="tick">Anstau, nie trocken</span><span class="tick">staubtrocken</span></div>
-    </div>
-    </div>
+  <div data-ans="sammlung">
     <div class="legend closed" id="legend">
       <button class="legend-head" id="legend-head" aria-expanded="false"><span class="caret">▾</span> Zeichenerklärung</button>
       <div class="legend-body" id="legend-body"></div>
     </div>
-  </section>
+  </div>
 
   <section data-ans="sammlung" class="controls">
     <div class="such-zeile"><input class="search" id="q" type="search" placeholder="Suchen: Name, Art, Symptom, Standort …" aria-label="Sammlung durchsuchen" autocomplete="off"><button class="ctrl-auf" id="btn-ctrl-auf" type="button" aria-label="Filter ein- und ausblenden">Filter</button></div>
-    <div class="ctrl-row"><span class="ctrl-lab">Gruppieren</span><span id="gruppen"></span></div>
-    <div class="ctrl-row"><span class="ctrl-lab">Filter</span><span id="filters"></span></div>
+    <div class="ctrl-klapp" id="ctrl-klapp" hidden>
+      <div class="ctrl-row"><span class="ctrl-lab">Gruppieren</span><select id="gruppen" aria-label="Wonach gruppieren"></select></div>
+      <div class="ctrl-row"><span class="ctrl-lab">Filter</span><span id="filters"></span></div>
+    </div>
   </section>
   <div data-ans="sammlung" id="ctrl-platz" aria-hidden="true"></div>
 
@@ -4460,16 +4483,11 @@ function papierkorbRender(){
   </div>
 
   <section data-ans="sammlung" class="plan" id="anlegen-sec">
-    <div class="sm-kopf-fest">
-      <h2>Pflanze hinzufügen</h2>
-      <button class="wz-i" id="anlegen-i" aria-expanded="false" aria-label="Wie lege ich eine Pflanze an?">i</button>
-    </div>
-    <p class="wz-hilfe" id="anlegen-hilfe" hidden>Zwei Wege führen zum Ziel. Kennst du die Art, such sie in der Bibliothek — deutscher, botanischer oder englischer Name, Tippfehler macht die Suche selbst gerade. Dann kommen Gießklasse, Licht, Dünger und die Katzenfrage von allein. Weißt du nicht, was es ist, lass die Art von einer KI bestimmen: Die App baut die Frage fertig zusammen, du hängst nur dein Foto an und kopierst die Antwort zurück.</p>
     <div class="formwrap" id="form-neu">
       <div class="dok-wahl neu-wahl">
         <button class="dok-weg" data-neuweg="bib">
           <b>Art in der Bibliothek suchen</b>
-          <i>Wenn du weißt, was es ist. Über 400 Arten mit fertigen Pflegedaten.</i>
+          <i>Wenn du weißt, was es ist. Rund 250 Arten mit fertigen Pflegedaten.</i>
         </button>
         <button class="dok-weg" data-neuweg="ki">
           <b>Von einer KI bestimmen lassen</b>
@@ -5223,8 +5241,32 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '1.4';
+const FASSUNG = '1.5';
 const PATCHNOTES = [
+  {
+    nr: '1.5', datum: '2026-08-22', titel: 'Aufgeräumt',
+    neu: [
+      'Oben rechts steht klein, wann du zuletzt eine Sicherung heruntergeladen hast. Ist sie älter als fünf Tage, färbt sich die Zeile. Antippen führt zur Sicherung.',
+      'Gruppenaufgaben lassen sich als Ganzes abhaken. Der Haken links erledigt alle Pflanzen der Gruppe auf einmal, die Zahl rechts klappt sie einzeln auf — wer nur eine Pflanze erledigen will, macht das weiterhin dort.'
+    ],
+    besser: [
+      'Neue Pflanzen legst du ausschließlich über den runden Knopf unten rechts an. Der Block „Pflanze hinzufügen“ steht nicht mehr dauerhaft in der Sammlung herum; er erscheint erst, wenn du den Knopf drückst. Beim allerersten Start führt weiterhin der Willkommensblock hin.',
+      'Gruppieren ist ein Auswahlfeld geworden, und beides — Gruppieren und Filter — liegt hinter dem Knopf „Filter“ neben der Suche. Sind Filter gesetzt, steht ihre Zahl am Knopf. Sichtbar bleibt nur die Suche.',
+      'Die Zeile über jeder Reiterüberschrift mit Sammlung, Pflanzenzahl und Datum ist weggefallen, ebenso der Erklärabsatz darunter.',
+      'Die Feuchte-Skala ist verschwunden. Ab einer gewissen Zahl Pflanzen standen die Marken übereinander und die Angabe steht ohnehin auf jeder Karte. Die Zeichenerklärung bleibt.',
+      'Die Meldung neuer Arten nennt nur noch, was die Art benennt: deutscher und botanischer Name. Standort und Anlagedatum sind raus, und ein in Klammern angehängter deutscher Name wird nicht mehr doppelt gezeigt.',
+      'Werden in einer Fassung Arten ergänzt, stehen sie in den Änderungen als aufklappbare Liste mit Anzahl — nicht mehr einzeln ausgeschrieben.'
+    ],
+    behoben: [
+      'Beim Anlegen stand „über 400 Arten“ in der Bibliothek. Es sind knapp 250 — die Zahl war nie angepasst worden.',
+      'Der Knopf „Filter“ neben der Suche war zweimal verdrahtet und ging beim ersten Antippen nicht auf.'
+    ],
+    arten: [
+      'Königsbegonie · Begonia rex-cultorum',
+      'Elatior-Begonie · Begonia x hiemalis',
+      'Dreifarbiger Kletterphilodendron · Philodendron hederaceum Brasil'
+    ]
+  },
   {
     nr: '1.4', datum: '2026-08-21', titel: 'Anlegen, Pflanzendoktor und Fotos',
     neu: [
@@ -5985,13 +6027,19 @@ function taskGruppenHTML(offenT){
     if(bl.art === 'einzeln') return taskHTML(bl.gruppe[0], true);
     const auf = offeneDone.has('g-'+bl.schluessel);
     const namen = bl.gruppe.map(t=>t.plantName).filter(Boolean);
+    /* Die Kennungen der Gruppe wandern an den Haken. Der Schlüssel allein
+       reicht nicht: er entsteht aus dem Wortlaut und kann sich ändern,
+       sobald eine Aufgabe umbenannt wird. */
+    const ids = bl.gruppe.map(t=>t.id).join(' ');
     return `<li class="tgruppe${auf?' auf':''}" data-tg="${esc(bl.schluessel)}">
-      <button class="tick-btn tg-zahl" data-do="tg-auf" data-k="${esc(bl.schluessel)}"
-        aria-expanded="${auf}" aria-label="${esc(bl.titel)}, ${bl.gruppe.length} Pflanzen">${bl.gruppe.length}</button>
+      <button class="tick-btn tg-tick" data-do="tg-fertig" data-ids="${esc(ids)}"
+        aria-label="Alle ${bl.gruppe.length} erledigt: ${esc(bl.titel)}">✓</button>
       <span class="task-text">
         <button class="tg-kopf" data-do="tg-auf" data-k="${esc(bl.schluessel)}">${esc(bl.titel)}</button>
         <span class="tg-namen">${esc(namen.join(', '))}</span>
       </span>
+      <button class="tg-zahl" data-do="tg-auf" data-k="${esc(bl.schluessel)}"
+        aria-expanded="${auf}" aria-label="Einzeln aufklappen, ${bl.gruppe.length} Pflanzen">${bl.gruppe.length} <span class="caret">▾</span></button>
       <ul class="tg-liste"${auf?'':' hidden'}>${bl.gruppe.map(t=>{
         if(bl.art !== 'verwandt') return taskHTML(t, true);
         const rest = aufgabeRest(t.titel, bl.schluessel);
@@ -6083,9 +6131,12 @@ function kartenBeobachten(){
   }, {rootMargin: '120px 0px 120px 0px', threshold: 0});
   document.querySelectorAll('#out .card.open').forEach(c=>kartenWaechter.observe(c));
 }
+/* Die Kopfzeile mit Pflanzenzahl und Datum ist weggefallen. Die Funktion
+   bleibt stehen, weil sie an mehreren Stellen aufgerufen wird. */
 function zaehler(){
-  $('#count').textContent = allePflanzen().length;
-  const st = $('#stand-datum');
+  const c = document.getElementById('count');
+  if(c) c.textContent = allePflanzen().length;
+  const st = document.getElementById('stand-datum');
   if(st) st.textContent = HEUTE.toLocaleDateString('de-DE',
     {day:'numeric', month:'long', year:'numeric'});
 }
@@ -6093,13 +6144,10 @@ function zaehler(){
 (function(){
   const G = {raum:'Raum', stellplatz:'Stellplatz', licht:'Lichtbedarf',
              klasse:'Gießklasse', typ:'Typ', keine:'Keine'};
-  $('#gruppen').innerHTML = Object.entries(G).map(([k,v])=>
-    `<button class="chip" data-g="${k}" aria-pressed="${k===gruppierung}">${v}</button>`).join(' ');
-  $('#gruppen').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    gruppierung = c.dataset.g; zu.clear();
-    $('#gruppen').querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.g===gruppierung)));
-    render();
-  });
+  const gsel = $('#gruppen');
+  gsel.innerHTML = Object.entries(G).map(([k,v])=>
+    `<option value="${k}"${k===gruppierung?' selected':''}>${v}</option>`).join('');
+  gsel.onchange = ()=>{ gruppierung = gsel.value; zu.clear(); render(); };
   const f = $('#filters');
   f.innerHTML = `<span id="lage-filter"></span>`
     + Object.keys(KLASSEN).map(k=>`<button class="chip" data-k="${k}" aria-pressed="false">${k} · ${esc(KLASSEN[k].name)}</button>`).join(' ')
@@ -6110,8 +6158,37 @@ function zaehler(){
     if(c.dataset.cat) filterKatze = filterKatze===c.dataset.cat ? null : c.dataset.cat;
     f.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',
       String((x.dataset.k&&x.dataset.k===filterKlasse)||(x.dataset.cat&&x.dataset.cat===filterKatze))));
+    if(typeof ctrlKnopfZeichnen === 'function') ctrlKnopfZeichnen();
     render();
   });
+})();
+
+/* ── Klappfeld für Gruppieren und Filter ─────────────────────
+   Beide standen dauerhaft unter der Suche und haben zwei Zeilen belegt,
+   auch wenn nichts gefiltert war. Jetzt öffnet sie ein Knopf, der die
+   Zahl der gesetzten Filter mitführt — sichtbar bleibt nur die Suche. */
+function filterZahl(){
+  return [filterKlasse, filterKatze, filterRaum, filterPlatz].filter(Boolean).length;
+}
+function ctrlKnopfZeichnen(){
+  const b = document.getElementById('btn-ctrl-auf'); if(!b) return;
+  const n = filterZahl();
+  b.innerHTML = 'Filter' + (n ? `<span class="ctrl-zahl">${n}</span>` : '');
+  b.setAttribute('aria-expanded', String(!document.getElementById('ctrl-klapp').hidden));
+}
+(function(){
+  const b = document.getElementById('btn-ctrl-auf');
+  const k = document.getElementById('ctrl-klapp');
+  if(!b || !k) return;
+  b.setAttribute('aria-controls', 'ctrl-klapp');
+  b.onclick = ()=>{
+    k.hidden = !k.hidden;
+    /* „offen“ hält die Leiste im klebenden Zustand aufgeklappt */
+    const leiste = document.querySelector('.controls');
+    if(leiste) leiste.classList.toggle('offen', !k.hidden);
+    ctrlKnopfZeichnen();
+  };
+  ctrlKnopfZeichnen();
 })();
 
 /* Die beiden Lage-Filter werden nur dann neu aufgebaut, wenn sich die
@@ -6143,8 +6220,14 @@ function lageFilterZeichnen(){
       ${plaetze.map(n=>`<option value="${esc(n)}"${filterPlatz===n?' selected':''}>${esc(n)}</option>`).join('')}
       <option value="__ohne"${filterPlatz==='__ohne'?' selected':''}>Ohne Stellplatz</option>
     </select>`;
-  box.querySelector('#filter-raum').onchange = e=>{ filterRaum = e.target.value || null; render(); };
-  box.querySelector('#filter-platz').onchange = e=>{ filterPlatz = e.target.value || null; render(); };
+  box.querySelector('#filter-raum').onchange = e=>{
+    filterRaum = e.target.value || null;
+    if(typeof ctrlKnopfZeichnen === 'function') ctrlKnopfZeichnen();
+    render(); };
+  box.querySelector('#filter-platz').onchange = e=>{
+    filterPlatz = e.target.value || null;
+    if(typeof ctrlKnopfZeichnen === 'function') ctrlKnopfZeichnen();
+    render(); };
 }
 
 /* ══════════════════ Karte ══════════════════ */
@@ -6647,6 +6730,18 @@ document.addEventListener('click', e=>{
     if(offeneDone.has(k)) offeneDone.delete(k); else offeneDone.add(k);
     render(); return;
   }
+  /* Die ganze Gruppe auf einmal. Wünsche und echte Aufgaben liegen an
+     verschiedenen Stellen, darum beide Wege. Bleibt danach nur noch eine
+     offene Aufgabe übrig, zerfällt die Gruppe von selbst — sie entsteht
+     ohnehin erst beim Zeichnen aus dem Wortlaut. */
+  if(a==='tg-fertig'){
+    const ids = String(btn.dataset.ids||'').split(' ').filter(Boolean);
+    ids.forEach(id=>{
+      if(id.charAt(0)==='w'){ const i = wunschIndex(id); if(i>-1) S.wish[i].done = true; }
+      else S.tasks[id] = Object.assign({}, S.tasks[id], {done:true, erledigtAm: iso(HEUTE)});
+    });
+    sichern(); render(); return;
+  }
   const li = btn.closest('.task'); if(!li || !li.dataset.task) return;
   const id = li.dataset.task, istWunsch = id.charAt(0)==='w';
 
@@ -6753,7 +6848,12 @@ document.addEventListener('click', e=>{
 function fabZeichnen(){
   const fab = document.getElementById('fab-neu'); if(!fab) return;
   const sammlung = document.body.dataset.ansicht === 'sammlung';
-  fab.hidden = !sammlung || $('#form-neu').classList.contains('on');
+  const offen = $('#form-neu').classList.contains('on');
+  fab.hidden = !sammlung || offen;
+  /* Das Anlegen hat keinen eigenen Platz mehr in der Seite. Es gibt nur
+     den schwebenden Knopf — und den Willkommensblock beim ersten Start. */
+  const sec = document.getElementById('anlegen-sec');
+  if(sec) sec.hidden = !offen;
 }
 const fabKnopf = document.getElementById('fab-neu');
 if(fabKnopf) fabKnopf.onclick = ()=>{
@@ -6791,6 +6891,28 @@ function sicherungGemerkt(){
   S.letzteSicherung = iso(HEUTE);
   sichern();
   if(typeof sicherungHinweis === 'function') sicherungHinweis();
+  if(typeof sicherungStempel === 'function') sicherungStempel();
+}
+
+/* Der Stempel oben rechts. Nur eine Zeile, kein Kasten, kein Erklärtext —
+   er beantwortet genau eine Frage: wann zuletzt? */
+function sicherungStempel(){
+  const el = document.getElementById('sich-stempel'); if(!el) return;
+  const daten = (S.eigene||[]).length + Object.keys(S.water||{}).length;
+  if(!daten){ el.hidden = true; return; }
+  el.hidden = false;
+  if(!S.letzteSicherung){
+    el.textContent = 'Nie gesichert';
+    el.classList.add('alt');
+  } else {
+    const t = tageSeit(S.letzteSicherung);
+    el.textContent = 'Sicherung ' + (t === 0 ? 'heute'
+      : t === 1 ? 'gestern'
+      : new Date(S.letzteSicherung + 'T12:00:00').toLocaleDateString('de-DE',
+          {day:'numeric', month:'short'}));
+    el.classList.toggle('alt', t >= SICHER_TAGE);
+  }
+  el.onclick = ()=>{ ansichtZeigen('mehr'); };
 }
 
 /* Sanfter Streifen auf der Heute-Seite, wenn seit über fünf Tagen keine
@@ -7005,7 +7127,9 @@ function skala(){
   /* Stehen mehrere Marken übereinander, wandern die Namen abwechselnd
      nach links und rechts. Sonst liegen sie alle auf derselben Senkrechten
      und überdecken die Stiele der darunterliegenden Marken. */
-  $('#pins').innerHTML = sorted.map((p,i)=>{
+  const pinZiel = document.getElementById('pins');
+  if(!pinZiel) return;
+  pinZiel.innerHTML = sorted.map((p,i)=>{
     const f = KLASSEN[p.klasse].feuchte;
     const off = (seen[f] = (seen[f]||0)+1) - 1;
     const left = Math.min(90, Math.max(10, 100-f));
@@ -7021,25 +7145,6 @@ statusText();
 render();
 skala();
 
-/* Feuchte-Skala auf- und zuklappen, Zustand merken. */
-(function(){
-  const sec = document.getElementById('scale-sec');
-  const kopf = document.getElementById('scale-head');
-  if(!sec || !kopf) return;
-  const anzeigen = ()=>{
-    const zu = sec.classList.contains('zu');
-    kopf.setAttribute('aria-expanded', String(!zu));
-    const t = document.getElementById('scale-zustand');
-    if(t) t.textContent = zu ? 'Aufklappen' : 'Zuklappen';
-  };
-  if(S.acc && S.acc.skala === 0) sec.classList.add('zu');
-  anzeigen();
-  kopf.onclick = ()=>{
-    const zu = sec.classList.toggle('zu');
-    S.acc = S.acc || {}; S.acc.skala = zu ? 0 : 1;
-    sichern(); anzeigen();
-  };
-})();
 
 /* ══════════════════ Sammelaktion je Raum ══════════════════
    Nach dem Gießen mit der Kanne durch einen Raum ist es lästig, jede
@@ -7358,12 +7463,21 @@ function patchEintragHTML(e, kopf){
   const datum = e.datum
     ? new Date(e.datum + 'T12:00:00').toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'})
     : '';
+  /* Neue Arten können hundert Einträge sein. Ausgeschrieben wäre die
+     Änderungsliste danach nur noch eine Artenliste — darum eingeklappt,
+     mit der Zahl im Kopf. Wer sie sehen will, tippt sie auf. */
+  const arten = (e.arten && e.arten.length)
+    ? `<details class="pn-arten"><summary>${e.arten.length}
+         ${e.arten.length === 1 ? 'Art' : 'Arten'} in der Bibliothek ergänzt oder überarbeitet</summary>
+       <ul class="pn-artliste">${e.arten.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></details>`
+    : '';
   return `<div class="pn-eintrag">
     ${kopf === false ? '' : `<p class="pn-kopf"><b>Fassung ${esc(e.nr)}</b>${datum ? ' · ' + esc(datum) : ''}</p>`}
     ${e.titel ? `<p class="pn-titel">${esc(e.titel)}</p>` : ''}
     ${block('Neu', e.neu)}
     ${block('Besser', e.besser)}
     ${block('Behoben', e.behoben)}
+    ${arten}
   </div>`;
 }
 
@@ -7711,6 +7825,7 @@ $('#btn-neu-save').onclick = async ()=>{
   if(files && files.length) await fotosHinzu(id, Array.from(files));
   formularLeeren();
   $('#form-neu').classList.remove('on');
+  fabZeichnen();
   render();
   if(kiAufgaben){
     const meld = $('#paste-meld');
@@ -7786,6 +7901,7 @@ meldeRender();
 
 
 fabZeichnen();
+sicherungStempel();
 
 </script>
 <script>
@@ -8990,15 +9106,13 @@ const ANSICHTEN = ['heute','sammlung','werkzeuge','mehr'];
    funktionieren, werden die alten Namen hier übersetzt. */
 const WERKZEUGE = ['doktor','substrat','grundriss'];
 let ANS_ALLE = false;   // alles untereinander statt in Reitern
+/* Nur noch die Ueberschrift. Der erklaerende Untertitel ist weggefallen —
+   die Reiter erklaeren sich ueber ihren Inhalt, nicht ueber einen Absatz. */
 const ANSICHT_KOPF = {
-  heute:    ['Was heute<br>zu tun ist',
-             'Fällige Pflanzen, anstehende Nachfragen und offene Aufgaben — alles, was jetzt Aufmerksamkeit braucht.'],
-  sammlung: ['Die ganze<br>Sammlung',
-             'Alle Pflanzen mit Steckbrief, Fotos und Gießstand. Suchen, filtern, bearbeiten, neue anlegen — dazu Feuchte-Skala, Gießplan und Stammbaum.'],
-  werkzeuge:['Drei Werkzeuge',
-             'Pflanzendoktor, Substratrechner und Grundriss. Einen Block antippen klappt ihn auf — die anderen schließen sich.'],
-  mehr:     ['Sichern und<br>einstellen',
-             'Zuerst die Sicherung — sie liegt gleich oben. Darunter Rückmeldungen, der Rhythmus des Rundgangs und die Darstellung.']
+  heute:    ['Was heute<br>zu tun ist'],
+  sammlung: ['Die ganze<br>Sammlung'],
+  werkzeuge:['Drei Werkzeuge'],
+  mehr:     ['Sichern und<br>einstellen']
 };
 
 function ansichtZeigen(name, merken){
@@ -9025,12 +9139,13 @@ function ansichtZeigen(name, merken){
     if(erste) erste.classList.add('ans-erste');
   }
   const kopf = ANSICHT_KOPF[name];
-  if(kopf){ $('#kopf-titel').innerHTML = kopf[0]; $('#kopf-sub').textContent = kopf[1]; }
+  if(kopf) $('#kopf-titel').innerHTML = kopf[0];
   if(name === 'werkzeuge'){
     werkzeugZeichnen();
     if(S.wzOffen === 'grundriss' && typeof planRender === 'function') planRender();
   }
   if(name === 'mehr') mehrZeichnen();
+  if(typeof sicherungStempel === 'function') sicherungStempel();
   if(name === 'sammlung') sammlungZeichnen();
   document.body.dataset.ansicht = name;
   if(typeof fabZeichnen === 'function') fabZeichnen();
@@ -9081,7 +9196,7 @@ document.addEventListener('click', e=>{
 });
 
 /* Feste Überschriften mit i-Knopf: Heute, Anlegen, Feuchte-Skala */
-[['todo-i','todo-hilfe'], ['anlegen-i','anlegen-hilfe'], ['scale-i','scale-hilfe']].forEach(([kn, hi])=>{
+[['todo-i','todo-hilfe']].forEach(([kn, hi])=>{
   const k = document.getElementById(kn), h = document.getElementById(hi);
   if(!k || !h) return;
   k.onclick = ev=>{
@@ -9793,8 +9908,9 @@ ansichtZeigen(S.ansicht || 'heute', false);
   obenSetzen();
   window.addEventListener('resize', obenSetzen);
 
-  const auf = document.getElementById('btn-ctrl-auf');
-  if(auf) auf.onclick = ()=>leiste.classList.toggle('offen');
+  /* Der Knopf wird beim Aufbau des Klappfeldes verdrahtet. Früher stand
+     hier eine zweite Zuweisung, die die erste überschrieben hat — das
+     Klappfeld ging dann beim ersten Antippen nicht auf. */
 
   let letzteY = window.scrollY;
   let summe = 0;              // aufaddierte Bewegung in eine Richtung
@@ -9908,6 +10024,7 @@ document.addEventListener('click', e=>{
     ansichtZeigen('sammlung');
     const f = document.getElementById('form-neu');
     if(f) f.classList.add('on');
+    if(typeof fabZeichnen === 'function') fabZeichnen();
     setTimeout(()=>{ const q = document.getElementById('f-art'); if(q){ q.scrollIntoView({block:'center'}); q.focus(); } }, 200);
   }
   if(b.dataset.do === 'start-import'){

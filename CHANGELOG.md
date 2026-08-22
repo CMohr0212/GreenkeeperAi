@@ -4,6 +4,30 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 1.5 — 22. August 2026
+**Aufgeräumt**
+
+### Neu
+- Oben rechts steht klein, wann du zuletzt eine Sicherung heruntergeladen hast. Ist sie älter als fünf Tage, färbt sich die Zeile. Antippen führt zur Sicherung.
+- Gruppenaufgaben lassen sich als Ganzes abhaken. Der Haken links erledigt alle Pflanzen der Gruppe auf einmal, die Zahl rechts klappt sie einzeln auf — wer nur eine Pflanze erledigen will, macht das weiterhin dort.
+
+### Besser
+- Neue Pflanzen legst du ausschließlich über den runden Knopf unten rechts an. Der Block „Pflanze hinzufügen" steht nicht mehr dauerhaft in der Sammlung herum; er erscheint erst, wenn du den Knopf drückst. Beim allerersten Start führt weiterhin der Willkommensblock hin.
+- Gruppieren ist ein Auswahlfeld geworden, und beides — Gruppieren und Filter — liegt hinter dem Knopf „Filter" neben der Suche. Sind Filter gesetzt, steht ihre Zahl am Knopf. Sichtbar bleibt nur die Suche.
+- Die Zeile über jeder Reiterüberschrift mit Sammlung, Pflanzenzahl und Datum ist weggefallen, ebenso der Erklärabsatz darunter.
+- Die Feuchte-Skala ist verschwunden. Ab einer gewissen Zahl Pflanzen standen die Marken übereinander und die Angabe steht ohnehin auf jeder Karte. Die Zeichenerklärung bleibt.
+- Die Meldung neuer Arten nennt nur noch, was die Art benennt: deutscher und botanischer Name. Standort und Anlagedatum sind raus, und ein in Klammern angehängter deutscher Name wird nicht mehr doppelt gezeigt.
+- Werden in einer Fassung Arten ergänzt, stehen sie in den Änderungen als aufklappbare Liste mit Anzahl — nicht mehr einzeln ausgeschrieben.
+
+### Behoben
+- Beim Anlegen stand „über 400 Arten" in der Bibliothek. Es sind knapp 250 — die Zahl war nie angepasst worden.
+- Der Knopf „Filter" neben der Suche war zweimal verdrahtet und ging beim ersten Antippen nicht auf.
+
+### Bibliothek
+Drei Arten ergänzt: Königsbegonie (Begonia rex-cultorum), Elatior-Begonie (Begonia x hiemalis), Dreifarbiger Kletterphilodendron (Philodendron hederaceum Brasil).
+
+---
+
 ## 1.4 — 21. August 2026
 **Anlegen, Pflanzendoktor und Fotos**
 
