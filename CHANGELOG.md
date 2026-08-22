@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.0 — 22. August 2026
+**Erklärungen für die ganze App**
+
+### Neu
+- Elf weitere Erklärungen, jede dort, wo sie hingehört: Gießmodus und Rundgang beim ersten Start, die drei Werkzeuge beim ersten Öffnen, dazu Pflanzendoktor, Substratrechner, Grundriss, die Zeichenfläche, die Mehr-Seite, Sicherung, Urlaubszettel und Vermehren.
+- Damit ist jeder Bereich der App einmal erklärt — immer beim ersten Betreten, immer wegtippbar, nie zweimal von allein.
+
+### Besser
+- Springt man von einer Pflanzenkarte aus in ein Werkzeug, erscheint die Erklärung ausdrücklich trotzdem. Wer auf diesem Weg zum ersten Mal irgendwo landet, hat sie eher nötiger als jemand, der den Reiter absichtlich aufsucht.
+- Erklärungen für Gießmodus und Rundgang erscheinen nur, wenn der Vollbildmodus wirklich aufgeht — ist gerade nichts fällig, bleibt es bei der bekannten Meldung.
+
+### Behoben
+- Der Pflanzendoktor ließ sich nicht mehr weiterbedienen, wenn die KI meldete, dass das Foto für eine sichere Bestimmung nicht reicht. Der Hinweis stand da und verlangte ein zweites Foto — obwohl Zustand, Befund und Maßnahmen längst übernommen waren. Er hat jetzt zwei Knöpfe: „Trotzdem übernehmen“ schreibt auch die offenen Steckbriefangaben in die Karte, „Hinweis ausblenden“ räumt ihn weg. Dasselbe gilt beim Anlegen einer Pflanze.
+- Antwortet ein Chatdienst in freier Prosa statt im vorgegebenen Aufbau — typisch bei „das Foto reicht nicht aus“ —, fand die App keine Felder und blieb bei einer Warnung stehen. Der Text lässt sich jetzt mit einem Knopf als Befund in die Notizen der Pflanze legen, statt verloren zu gehen.
+
+---
+
 ## 1.9 — 22. August 2026
 **Erklärungen beim ersten Mal**
 

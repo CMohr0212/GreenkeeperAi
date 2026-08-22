@@ -5915,8 +5915,23 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '1.9';
+const FASSUNG = '2.0';
 const PATCHNOTES = [
+  {
+    nr: '2.0', datum: '2026-08-22', titel: 'Erklärungen für die ganze App',
+    neu: [
+      'Elf weitere Erklärungen, jede dort, wo sie hingehört: Gießmodus und Rundgang beim ersten Start, die drei Werkzeuge beim ersten Öffnen, dazu Pflanzendoktor, Substratrechner, Grundriss, die Zeichenfläche, die Mehr-Seite, Sicherung, Urlaubszettel und Vermehren.',
+      'Damit ist jeder Bereich der App einmal erklärt — immer beim ersten Betreten, immer wegtippbar, nie zweimal von allein.'
+    ],
+    besser: [
+      'Springt man von einer Pflanzenkarte aus in ein Werkzeug, erscheint die Erklärung ausdrücklich trotzdem. Wer auf diesem Weg zum ersten Mal irgendwo landet, hat sie eher nötiger als jemand, der den Reiter absichtlich aufsucht.',
+      'Erklärungen für Gießmodus und Rundgang erscheinen nur, wenn der Vollbildmodus wirklich aufgeht — ist gerade nichts fällig, bleibt es bei der bekannten Meldung.'
+    ],
+    behoben: [
+      'Der Pflanzendoktor ließ sich nicht mehr weiterbedienen, wenn die KI meldete, dass das Foto für eine sichere Bestimmung nicht reicht. Der Hinweis stand da und verlangte ein zweites Foto — obwohl Zustand, Befund und Maßnahmen längst übernommen waren. Er hat jetzt zwei Knöpfe: „Trotzdem übernehmen“ schreibt auch die offenen Steckbriefangaben in die Karte, „Hinweis ausblenden“ räumt ihn weg. Dasselbe gilt beim Anlegen einer Pflanze.',
+      'Antwortet ein Chatdienst in freier Prosa statt im vorgegebenen Aufbau — typisch bei „das Foto reicht nicht aus“ —, fand die App keine Felder und blieb bei einer Warnung stehen. Der Text lässt sich jetzt mit einem Knopf als Befund in die Notizen der Pflanze legen, statt verloren zu gehen.'
+    ]
+  },
   {
     nr: '1.9', datum: '2026-08-22', titel: 'Erklärungen beim ersten Mal',
     neu: [
@@ -8580,13 +8595,13 @@ $('#btn-paste-los').onclick = ()=>{
   meld.className = 'pastemeld';
   const gelesen = Object.keys(d).length;
   meld.textContent = uebernommen.join(' · ') + `. ${gelesen} Angaben gelesen — bitte kurz kontrollieren, dann anlegen.`;
-  unsicherZeigen('#neu-unsicher', d);
+  unsicherZeigen('#neu-unsicher', d, 'neu');
 };
 
 /* ── Wenn sich die KI nicht sicher ist ─────────────────────
    Statt die Bestimmung stillschweigend zu übernehmen, wird gesagt,
    woran es hakt und welches zweite Foto weiterhelfen würde. */
-function unsicherZeigen(wohin, d){
+function unsicherZeigen(wohin, d, quelle){
   const el = document.querySelector(wohin); if(!el) return;
   const stufe = norm(d.sicher || '');
   const knapp = stufe && !/hoch|high|sicher/.test(stufe);
@@ -8595,8 +8610,51 @@ function unsicherZeigen(wohin, d){
   el.innerHTML = `<div class="dok-unsicher">
     <b>Die Bestimmung ist noch nicht eindeutig.</b>
     ${fehlt ? ' ' + esc(fehlt) : ' Ein zweites Foto aus einem anderen Winkel würde helfen.'}
-    <br>Mach die Aufnahme, häng sie an dieselbe Unterhaltung an und kopiere die neue Antwort hier herein.</div>`;
+    <br>Mach die Aufnahme, häng sie an dieselbe Unterhaltung an und kopiere die neue Antwort hier herein.
+    <div class="tools">
+      <button class="haupt" data-do="uns-weiter" data-q="${esc(quelle||'')}">Trotzdem übernehmen</button>
+      <button data-do="uns-weg">Hinweis ausblenden</button>
+    </div></div>`;
 }
+
+/* Der Hinweis war bisher eine Sackgasse: er stand da, sagte „mach ein
+   zweites Foto“ und ließ keinen Weg daran vorbei — obwohl die Angaben
+   längst übernommen waren. Beides ist jetzt ausdrücklich möglich:
+   bewusst weitermachen oder den Hinweis wegklicken. */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do]'); if(!b) return;
+  if(b.dataset.do === 'uns-weg'){
+    const box = b.closest('.dok-unsicher'); if(box) box.remove();
+    return;
+  }
+  if(b.dataset.do !== 'uns-weiter') return;
+  const box = b.closest('.dok-unsicher');
+  if(b.dataset.q === 'dok'){
+    /* Was noch offen war, wandert jetzt bewusst in die Karte. */
+    let n = 0;
+    if(typeof dokVorschlaege !== 'undefined' && dokVorschlaege.length && dokPflanze){
+      const felder = {};
+      dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
+      aenderungSetzen(dokPflanze, felder);
+      n = dokVorschlaege.length;
+      dokVorschlaege = [];
+      if(typeof dokAbgleichZeichnen === 'function') dokAbgleichZeichnen();
+      render();
+    }
+    if(typeof dokKiHinweis === 'function') dokKiHinweis(
+      n ? ('Trotz unklarer Bestimmung übernommen — ' + n
+           + (n === 1 ? ' Angabe steht' : ' Angaben stehen')
+           + ' jetzt in der Karte. Bitte kurz kontrollieren.')
+        : 'Trotz unklarer Bestimmung übernommen. Zustand, Befund und Maßnahmen stehen in der Karte — bitte kurz kontrollieren.', 'ok');
+  } else {
+    const meld = document.getElementById('paste-meld');
+    if(meld){
+      meld.hidden = false; meld.className = 'pastemeld ok';
+      meld.textContent = 'Trotz unklarer Bestimmung übernommen. Bitte die Felder kurz durchsehen, dann anlegen.';
+    }
+  }
+  if(box) box.remove();
+});
 
 /* Alltagswörter der KI auf die vier Gießklassen abbilden. */
 function klasseRaten(text){
@@ -11171,6 +11229,19 @@ document.addEventListener('click', e=>{
     dokAufbau(); dokErgebnis(); return;
   }
   const btn = e.target.closest('[data-do]'); if(!btn) return;
+  if(btn.dataset.do === 'dok-roh'){
+    const roh = ($('#dok-paste').value || '').trim();
+    if(!roh || !dokPflanze) return;
+    const p = allePflanzen().find(x=>x.id===dokPflanze);
+    if(!p) return;
+    const alt = (p.notiz || '').trim();
+    aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '')
+      + 'Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + roh});
+    const box = document.getElementById('dok-abgleich-hinweis');
+    if(box) box.innerHTML = '';
+    dokKiHinweis('Der Text steht jetzt als Befund in den Notizen.', 'ok');
+    render(); return;
+  }
   if(btn.dataset.do === 'ab-weg'){
     dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
     dokAbgleichZeichnen(); return;
@@ -11392,9 +11463,21 @@ if(dokDatei) dokDatei.onchange = async ()=>{
 };
 
 $('#btn-dok-paste').onclick = ()=>{
-  const d = geminiLesen($('#dok-paste').value);
+  const roh = $('#dok-paste').value;
+  const d = geminiLesen(roh);
   if(!Object.keys(d).length){
+    /* Antwortet ein Dienst in reiner Prosa — etwa „das Foto reicht nicht
+       aus“ —, findet der Leser keine Felder. Statt in der Warnung stecken
+       zu bleiben, lässt sich der Text als Befund in die Notizen legen. */
     dokKiHinweis('Aus dem Text ließ sich nichts herauslesen. Bitte die ganze Antwort hereinkopieren.', 'warn');
+    const box = document.getElementById('dok-abgleich-hinweis');
+    if(box) box.innerHTML = roh.trim() && dokPflanze
+      ? `<div class="dok-unsicher"><b>Keine Felder gefunden.</b>
+          Vermutlich hat der Dienst frei geantwortet statt im vorgegebenen Aufbau — oft mit dem
+          Hinweis, dass das Foto nicht reicht. Der Text lässt sich trotzdem als Befund sichern.
+          <div class="tools"><button class="haupt" data-do="dok-roh">Text als Befund in die Notizen</button>
+          <button data-do="uns-weg">Hinweis ausblenden</button></div></div>`
+      : '';
     return;
   }
   const teile = [];
@@ -11419,7 +11502,7 @@ $('#btn-dok-paste').onclick = ()=>{
   } else {
     teile.push('Keine Pflanze gewählt — die Antwort steht nur hier');
   }
-  unsicherZeigen('#dok-abgleich-hinweis', d);
+  unsicherZeigen('#dok-abgleich-hinweis', d, 'dok');
   dokKiHinweis(teile.join(' · ') + '.', 'ok');
 };
 
@@ -12517,6 +12600,169 @@ const TOUR_KAPITEL = {
         titel: 'Alle offenen Punkte',
         text: 'Was an Aufgaben aus Doktor, Rundgang und den Karten zusammengekommen ist, sammelt sich hier an einer Stelle.' }
     ]
+  },
+
+  giessmodus: {
+    name: 'Gießmodus',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('gm-inhalt'),
+        titel: 'Eine nach der anderen',
+        text: 'Oben läuft ein Balken mit, der zeigt, wie weit du bist. In der Mitte steht die Pflanze, die gerade dran ist — mit Bild, Standort und der Gießart, die zu ihr passt.',
+        warte: 300 },
+      { ziel: ()=>document.getElementById('gm-knoepfe'),
+        titel: 'Gegossen, übersprungen, noch feucht',
+        text: '„Noch feucht“ ist kein Überspringen: die App merkt sich das und verlängert den Abstand für diese Pflanze. So lernt der Rhythmus mit, statt jedes Mal danebenzuliegen.' }
+    ]
+  },
+
+  rundgang: {
+    name: 'Rundgang',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('rg-inhalt'),
+        titel: 'Die ganze Sammlung der Reihe nach',
+        text: 'Anders als der Gießmodus geht der Rundgang alle Pflanzen durch, nicht nur die fälligen. Damit fällt auf, was sonst monatelang unbeachtet in der Ecke steht.',
+        warte: 300 },
+      { ziel: ()=>document.getElementById('rg-knoepfe'),
+        titel: 'Was unterwegs erfasst wird',
+        text: 'Welche Knöpfe hier stehen, entscheidest du unter „Mehr“ › Rundgang: nur ein kurzer Blick, dazu Blattzahl und Ereignisse, oder zusätzlich ein Foto. Je weniger, desto schneller geht es.' }
+    ]
+  },
+
+  werkzeuge: {
+    name: 'Die drei Werkzeuge',
+    schritte: ()=>[
+      { vor: ()=>ansichtZeigen('werkzeuge'),
+        ziel: ()=>document.querySelector('#doktor-sec .wz-kopfzeile'),
+        titel: 'Drei Werkzeuge, eines offen',
+        text: 'Der Pflanzendoktor sucht die Ursache, wenn etwas nicht stimmt. Substrat mischen rechnet die Mischung und die Menge für deinen Topf. Räume und Grundriss zeichnet deine Wohnung und rechnet daraus das Licht an jedem Platz. Jedes erklärt sich, sobald du es öffnest.',
+        warte: 300 }
+    ]
+  },
+
+  doktor: {
+    name: 'Pflanzendoktor',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('dok-fortschritt'),
+        titel: 'Vier Schritte',
+        text: 'Die Leiste oben zeigt, wo du stehst. Sie geht nur weiter, wenn der Schritt davor beantwortet ist — halbe Angaben ergeben halbe Diagnosen.',
+        warte: 320 },
+      { ziel: ()=>document.getElementById('dok-s1'),
+        titel: 'Erst die Pflanze',
+        text: 'Auch Arten, die du gar nicht besitzt, stehen zur Auswahl — dann bekommst du die Einschätzung, aber nichts wird in eine Karte übernommen.' },
+      { ziel: ()=>document.querySelector('#doktor-sec .wz-i'),
+        titel: 'Zwei Wege danach',
+        text: 'Mit Foto von einer KI ansehen lassen — die Frage wird fertig zusammengebaut, du hängst nur das Bild an — oder selbst beschreiben, was auffällt. Das geht ohne Internet. Alles Grundsätzliche steht hinter diesem i.' }
+    ]
+  },
+
+  substrat: {
+    name: 'Substrat mischen',
+    schritte: ()=>[
+      { ziel: ()=>{ const e = document.getElementById('sub-pflanze'); return e ? e.closest('label') : null; },
+        titel: 'Für welche Pflanze',
+        text: 'Aus der Art ergibt sich die Zielmischung: wie luftig, wie sauer, wie viel Wasser sie halten soll. Ohne Pflanze lässt sich auch eine Gruppe von Hand wählen.',
+        warte: 320 },
+      { ziel: ()=>document.querySelector('#substrat-sec .topf-block'),
+        titel: 'Topfform und Größe',
+        text: 'Aus Form und Durchmesser rechnet die App das Volumen und daraus die Menge je Zutat. Ein konischer Topf fasst deutlich weniger als ein zylindrischer derselben Weite — deshalb die Auswahl.' },
+      { ziel: ()=>document.getElementById('sub-vorrat'),
+        titel: 'Was du zu Hause hast',
+        text: 'Hak an, was vorrätig ist. Die App rechnet die beste mögliche Mischung daraus — und sagt darunter ausdrücklich, wo sie am Ziel vorbeischrammt, statt so zu tun, als ginge alles.' }
+    ]
+  },
+
+  grundriss: {
+    name: 'Räume und Grundriss',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('gr-liste'),
+        titel: 'Erst die Räume',
+        text: 'Jeder Raum ist eine Karte. Erst wenn Maße, Fenster und Himmelsrichtung stehen, kann die App rechnen — vorher steht „noch nicht eingerichtet“ dabei.',
+        warte: 320 },
+      { ziel: ()=>document.getElementById('btn-raum-neu'),
+        titel: 'Einen Raum anlegen',
+        text: 'Danach geht es in die Zeichenfläche: Größe festlegen, Wände und Fenster auf die Kanten setzen, den Raum auf dem Kompass drehen. Quer halten hilft sehr.' },
+      { ziel: ()=>document.querySelector('#zonen-sec .wz-i'),
+        titel: 'Freiwillig, aber nützlich',
+        text: 'Der Grundriss ist der aufwendigste Teil der App und der einzige, der echte Sonnenstunden liefert statt einer Schätzung. Nichts davon verbietet dir einen Standort — die App sagt nur, was sie sieht.' }
+    ]
+  },
+
+  plan: {
+    name: 'Die Zeichenfläche',
+    schritte: ()=>[
+      { ziel: ()=>document.querySelector('#gr-editor .gr-tabs'),
+        titel: 'Sechs Werkzeuge',
+        text: 'Pflanzen setzen, Möbel stellen, Fläche füllen, Wände und Fenster auf die Kanten ziehen, Licht rechnen, Raummaße ändern. Immer nur eines aktiv — darunter steht, was gerade ein Tippen bewirkt.',
+        warte: 340 },
+      { ziel: ()=>document.querySelector('#gr-editor .raumgrid'),
+        titel: 'Maße und Himmelsrichtung',
+        text: 'Die Drehung ist die wichtigste Angabe überhaupt: Ein Fenster nach Norden bringt an manchen Tagen ein Zehntel des Lichts eines Fensters nach Süden. Der rote Zeiger oben rechts zeigt nach Norden.' },
+      { ziel: ()=>document.querySelector('#gr-editor [data-pmodus="licht"]'),
+        titel: 'Licht rechnen lassen',
+        text: 'Unter Licht siehst du Sonnenstunden über den Tag, einen einzelnen Moment oder die Grundhelligkeit — wahlweise für Sommer, Winter oder jetzt. Daraus kommen die Hinweise auf den Pflanzenkarten.' }
+    ]
+  },
+
+  mehr: {
+    name: 'Sichern und einstellen',
+    schritte: ()=>[
+      { vor: ()=>ansichtZeigen('mehr'),
+        ziel: ()=>document.querySelector('[data-mh="sicherung"] .wz-kopfzeile'),
+        titel: 'Das Wichtigste steht oben',
+        text: 'Alle Daten liegen nur in diesem Browser. Die Sicherung ist der einzige Schutz davor, sie bei einem Aufräumlauf oder Gerätewechsel zu verlieren.',
+        warte: 320 },
+      { ziel: ()=>document.querySelector('[data-mh="ansicht"] .wz-kopfzeile'),
+        titel: 'Wenn es zu viel ist',
+        text: 'Unter Ansicht liegt der einfache Modus: er blendet Grundriss, Gießart und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Es geht dabei nichts verloren, der Haken lässt sich jederzeit wieder wegnehmen.' },
+      { ziel: ()=>document.querySelector('[data-mh="tour"] .wz-kopfzeile'),
+        titel: 'Und hier stehen diese Erklärungen',
+        text: 'Jedes Kapitel lässt sich noch einmal ansehen, alle zusammen zurücksetzen oder ganz abschalten. Die übrigen Abschnitte hier erklären sich über ihr i.' }
+    ]
+  },
+
+  sicherung: {
+    name: 'Sicherung',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('storage-state'),
+        titel: 'Wo deine Daten liegen',
+        text: 'Nichts davon liegt auf einem fremden Rechner. Das ist der Vorteil und zugleich das Risiko: niemand sonst hat eine Kopie.',
+        warte: 320 },
+      { ziel: ()=>document.getElementById('btn-download'),
+        titel: 'Eine Datei mit allem darin',
+        text: 'Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. Die App erinnert alle zwei Wochen daran.' },
+      { ziel: ()=>document.getElementById('btn-reset'),
+        titel: 'Der rote Knopf',
+        text: '„Alles zurücksetzen“ löscht den gesamten Bestand samt Fotos und lässt sich nicht rückgängig machen. Vorher eine Sicherung herunterladen.' }
+    ]
+  },
+
+  urlaub: {
+    name: 'Urlaubszettel',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('url-von'),
+        titel: 'Der Zeitraum entscheidet alles',
+        text: 'Auf den Zettel kommen nur Pflanzen, die in diesen Tagen wirklich drankommen. Pflanzen in der Gießpause und solche ohne Eintrag stehen getrennt darunter, damit die Vertretung weiß, warum sie fehlen.',
+        warte: 320 },
+      { ziel: ()=>document.getElementById('url-puffer'),
+        titel: 'Lieber einen Tag zu früh',
+        text: 'Eine Vertretung kommt selten auf den Tag genau. Ein Tag zu früh schadet fast nie, drei Tage zu spät oft schon.' },
+      { ziel: ()=>document.getElementById('btn-url-druck'),
+        titel: 'Ausgeben',
+        text: 'Der Zettel wird immer schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt — mit Raumplan, Nummern zum Ausschneiden und Bildern, wenn du sie mitnimmst.' }
+    ]
+  },
+
+  vermehren: {
+    name: 'Vermehren',
+    schritte: ()=>[
+      { ziel: ()=>document.getElementById('ver-pflanze'),
+        titel: 'Passend zur Art',
+        text: 'Nicht jede Pflanze lässt sich auf jede Weise vermehren. Aus der gewählten Art ergeben sich die Wege, die bei ihr wirklich funktionieren — Kopfsteckling, Teilung, Blattsteckling, Kindel.',
+        warte: 320 },
+      { ziel: ()=>document.getElementById('ver-inhalt'),
+        titel: 'Vom Ableger zur Pflanze',
+        text: 'Zu jedem Weg stehen Jahreszeit, Werkzeug und die einzelnen Handgriffe. Ein fertiger Ableger lässt sich von hier aus direkt als neue Pflanze anlegen — die Mutterpflanze bleibt im Stammbaum verknüpft.' }
+    ]
   }
 
 };
@@ -12809,6 +13055,8 @@ function tourAnsichtPruefen(name){
   if(tourLauf) return;
   let hat = 0;
   try{ hat = allePflanzen().length; }catch(e){ hat = 0; }
+  if(name === 'werkzeuge' && tourNoetig('werkzeuge')){ setTimeout(()=>tourStart('werkzeuge'), 360); return; }
+  if(name === 'mehr' && tourNoetig('mehr')){ setTimeout(()=>tourStart('mehr'), 360); return; }
   if(!hat) return;
   if(name === 'sammlung' && tourNoetig('sammlung')) setTimeout(()=>tourStart('sammlung'), 360);
   else if(name === 'heute' && tourNoetig('heute'))  setTimeout(()=>tourStart('heute'), 360);
@@ -12819,6 +13067,68 @@ ansichtZeigen = function(name, merken){
   try{ tourAnsichtPruefen(document.body.dataset.ansicht || name); }
   catch(e){ console.warn('Tutorial:', e); }
 };
+
+/* Beim ersten Öffnen eines Werkzeugs, eines Mehr-Blocks, des
+   Vermehren-Blocks oder der Zeichenfläche. Ausdrücklich auch dann,
+   wenn der Sprung von einer Pflanzenkarte aus kam. */
+function tourNachOeffnen(key, verzug){
+  if(!tourNoetig(key)) return;
+  setTimeout(()=>{ if(tourNoetig(key)) tourStart(key); }, verzug || 420);
+}
+if(typeof werkzeugOeffnen === 'function'){
+  const _wzVorherTour = werkzeugOeffnen;
+  werkzeugOeffnen = function(key, springen){
+    _wzVorherTour(key, springen);
+    if(TOUR_KAPITEL[key]) tourNachOeffnen(key);
+  };
+}
+if(typeof mehrOeffnen === 'function'){
+  const _mhVorherTour = mehrOeffnen;
+  mehrOeffnen = function(key, springen){
+    _mhVorherTour(key, springen);
+    if(TOUR_KAPITEL[key]) tourNachOeffnen(key);
+  };
+}
+if(typeof sammlungOeffnen === 'function'){
+  const _smVorherTour = sammlungOeffnen;
+  sammlungOeffnen = function(key, springen){
+    _smVorherTour(key, springen);
+    if(key === 'vermehren') tourNachOeffnen('vermehren');
+  };
+}
+if(typeof grOeffnen === 'function'){
+  const _grVorherTour = grOeffnen;
+  grOeffnen = function(raumId){
+    _grVorherTour(raumId);
+    tourNachOeffnen('plan', 520);
+  };
+}
+/* Gießmodus und Rundgang starten nicht immer — ohne Fälliges bleibt
+   es bei einer Meldung. Nur wenn der Vollbildmodus wirklich offen ist. */
+if(typeof gmStarten === 'function'){
+  const _gmVorherTour = gmStarten;
+  gmStarten = function(){
+    _gmVorherTour();
+    const el = document.getElementById('giessmodus');
+    if(el && !el.hidden) tourNachOeffnen('giessmodus', 520);
+  };
+}
+if(typeof rgStarten === 'function'){
+  const _rgVorherTour = rgStarten;
+  rgStarten = function(){
+    _rgVorherTour();
+    const el = document.getElementById('rundgang');
+    if(el && !el.hidden) tourNachOeffnen('rundgang', 520);
+  };
+}
+/* Die beiden Startknoepfe halten noch die alte Funktion fest — sie
+   wurden vor dem Umhaengen gesetzt. Also neu verdrahten. */
+(function(){
+  const g = document.getElementById('btn-giessmodus');
+  if(g && typeof gmStarten === 'function') g.onclick = gmStarten;
+  const r = document.getElementById('btn-rundgang');
+  if(r && typeof rgStarten === 'function') r.onclick = rgStarten;
+})();
 
 /* Erstes Aufklappen einer Karte. */
 document.addEventListener('click', e=>{
