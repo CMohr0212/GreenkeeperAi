@@ -4,6 +4,60 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.6 — 24. August 2026
+**Was auf dem Foto zu sehen sein muss**
+
+### Neu
+- Die KI beurteilt jetzt verbindlich auch Topf und Platz: Größe, Material und Aufbau, Wasserablauf — dazu eine konkrete Umtopfempfehlung mit Zielgröße und bester Zeit. Sieht sie den Topf auf dem Foto nicht, sagt sie das, statt zu raten.
+- Über beiden Kopierknöpfen steht jetzt, welche drei Aufnahmen die KI wirklich braucht: ganze Pflanze mit Topf und Untersetzer, Blattunterseite mit Blattachsel, und die auffällige Stelle selbst.
+- Vorgeschlagene Maßnahmen stehen mit einem Haken zur Auswahl, statt ungefragt auf der Aufgabenliste zu landen. Was nicht passt, wird abgewählt. Die Umtopfempfehlung steht als eigener Punkt mit dabei.
+
+### Besser
+- Der Befund geht jetzt immer alle drei Punkte durch: Schädlinge, Mangelerscheinungen, Krankheitszeichen — jeweils mit Fundstelle. Ist etwas auf dem Foto nicht einsehbar, steht das ausdrücklich dabei, statt als Entwarnung durchzugehen.
+- Der Pflanzendoktor fragt die Topfeinschätzung nicht ab, wenn die Pflanze gerade erst umgetopft wurde.
+- Topfeinschätzung und Befund wandern beim Anlegen wie beim Doktor in die Notizen der Pflanze.
+
+---
+
+## 2.5 — 24. August 2026
+**Sicherheitsnetz nachgezogen**
+
+### Neu
+- Änderst du die Raumgröße im Grundriss, gibt es jetzt für die laufende Sitzung einen Knopf „Änderung rückgängig“ — Fläche, Wände, Möbel und Stellplätze kommen zurück.
+- Lädst du eine Sicherung, wird der bisherige Stand beiseitegelegt. Unter „Mehr“ holt ihn ein Knopf zurück, falls die Datei doch nicht die richtige war.
+- Sicherungsdateien tragen jetzt ein Kennzeichen. Eine fremde JSON-Datei wird abgelehnt, statt deine Sammlung zu ersetzen.
+
+### Besser
+- Deine eigene Angabe unter „Für Katzen“ gilt jetzt. Bisher konnte eine Bibliotheksregel sie stillschweigend überstimmen.
+- Filter „katzensicher“, Kartenmarke, Grundriss, Rundgang und Urlaubszettel benutzen dieselbe Auskunft. Vorher konnte der Filter eine Pflanze als sicher zeigen, die auf der Karte als giftig stand.
+- Die Giftwarnung steht jetzt auch in der Kurzfassung des Urlaubszettels, nicht nur auf dem gedruckten Blatt.
+- Der Palmfarn wird als das geführt, was er ist: hochgiftig für alle vier Tierarten, und nicht durch Teilung vermehrbar.
+- Hydrokultur und Wasserkultur werden im Substratrechner sauber getrennt. Für Hydrokultur gibt es jetzt eine eigene Referenzmischung aus Blähton und Lava.
+- Die Sammlung wird deutlich schneller aufgebaut: bei zweihundert Pflanzen etwa ein Sechstel des bisherigen Umfangs. Die Suche wartet kurz ab, statt bei jedem Buchstaben alles neu zu bauen.
+- Nepenthes bekommt den Kopfsteckling als Weg, Lithops und Verwandte Aussaat und Teilung statt der Blattstecklinge, die dort nur faulen.
+- Vollbildfenster — Gießmodus, Rundgang, Willkommen, Foto in groß — sind für Tastatur und Sprachausgabe richtig abgegrenzt. Zwölf Felder haben eine Beschriftung bekommen, Filterknöpfe und Gießplanbalken größere Tippflächen.
+- Gedämpfte Nebentexte hatten keine Farbe und sahen aus wie Fließtext. Die beiden Farben der Giftkennzeichnung waren zu hell und sind nachgedunkelt.
+
+### Behoben
+- Stand im Text der KI irgendwo das Wort „sicher“ — auch in „unsicher“ oder „sicher giftig“ —, wurde die Pflanze als unbedenklich eingetragen.
+- „Keinesfalls trocken werden lassen“ wurde als Kakteenmodus gelesen. Ein Farn bekam danach 17 statt 3 Tage Abstand.
+- Kannenpflanzen bekamen die Anweisung zum Dauerstau. Anstau gilt jetzt nur noch für die Gießklasse S.
+- „Palmfarngewächse“ fiel unter die Regel für Farngewächse und bekam Entwarnung für alle Tierarten.
+- Der Knopf „Übernehmen“ bei der Raumgröße leerte den Raum auch dann, wenn sich nichts geändert hatte. Ein gezeichneter Grundriss ohne Wände galt als leer und wurde ohne Rückfrage verworfen.
+- Zitronengras, Dahlie und Studentenblume standen als unbedenklich in der Bibliothek, obwohl die ASPCA sie führt. Ringelblume und Zyperngras stehen jetzt auf „ungeklärt“. Kalanchoe und Cotyledon sind als stark giftig eingestuft.
+- Der Pflanzendoktor konnte eine Karnivore per KI-Antwort aus der Klasse S nehmen. Das gibt es jetzt nur noch mit Rückfrage.
+- Eine Antwort, die gar keine Pflanze beschreibt, wurde beim Anlegen wortlos übernommen.
+- Unvollständige Vermehrungszeilen und stehengebliebene Präfixe landeten als Vermehrungsweg in der Karte.
+- Der Prompt war zu lang für die Adresszeile und wurde von den Diensten abgeschnitten, obwohl die App meldete, er stehe schon im Feld. Jetzt geht er ab einer bestimmten Länge über die Zwischenablage.
+- Balkonblumen bekamen einen Zuwachszähler, obwohl die Patchnote 2.3 das Gegenteil versprach.
+- Widersprüchliche Angaben zur Winterruhe bei Karnivoren: es gilt jetzt einheitlich „Untersetzer leeren, Substrat klamm halten“.
+- Der Ansichtsschalter der Sammlung war nach dem Neuladen falsch beschriftet.
+- „Die letzte Sicherung ist 1 Tage her.“ und „3.0 m“ statt „3 m“ im Grundriss.
+- Ein Reiterwechsel während der App Tour ließ den Deckel über einem Ziel liegen, das nicht mehr zu sehen war.
+- Beim Sonnenverlauf wurde bei einem diagonalen Schritt über eine Kachelecke nur eine der beiden Kanten geprüft.
+
+---
+
 ## 2.4 — 23. August 2026
 **Kleine Angleichung**
 

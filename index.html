@@ -20,8 +20,13 @@
   /* Abstände */
   --a-1:4px; --a-2:8px; --a-3:12px; --a-4:16px; --a-5:22px; --a-6:32px;
 
-  --paper:#E6E7E2; --sand:#D6D7D0; --ink:#1F2320; --peat:#57503F;
-  --moss:#4F7245; --terra:#A6553A; --water:#2F5F70; --line:rgba(31,35,32,.16);
+  /* --ink-2 ist die gedämpfte Zweitfarbe für Hinweise, Zustandsmarken
+     und Formulartexte. Sie wurde an 82 Stellen benutzt, war aber nie
+     definiert — alles davon rendert sonst wie Fließtext.
+     --moss und --terra sind nachgedunkelt: als Giftkennzeichnung in
+     10 px standen sie auf Kartenhintergrund unter dem AA-Kontrast. */
+  --paper:#E6E7E2; --sand:#D6D7D0; --ink:#1F2320; --ink-2:#3D423C; --peat:#57503F;
+  --moss:#3D5A34; --terra:#8A3F26; --water:#2F5F70; --line:rgba(31,35,32,.16);
   --f-display:'Bricolage Grotesque',system-ui,sans-serif;
   --f-body:'Newsreader',Georgia,serif;
   --f-data:'JetBrains Mono',ui-monospace,monospace;
@@ -43,7 +48,9 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .search:focus{outline:2px solid var(--water);outline-offset:1px}
 .ctrl-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:11px}
 .ctrl-lab{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--peat);margin-right:2px}
-.chip{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.05em;text-transform:uppercase;padding:6px 11px;border:1px solid var(--line);border-radius:100px;background:transparent;color:var(--peat);cursor:pointer;transition:.15s}
+.chip{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.05em;text-transform:uppercase;
+  display:inline-flex;align-items:center;min-height:32px;padding:8px 12px;
+  border:1px solid var(--line);border-radius:100px;background:transparent;color:var(--peat);cursor:pointer;transition:.15s}
 .chip:hover{border-color:var(--ink);color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip:focus-visible{outline:2px solid var(--water);outline-offset:2px}
@@ -74,9 +81,6 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .card-name{display:block;font-family:var(--f-display);font-weight:600;font-size:1.42rem;letter-spacing:-.02em;
   line-height:1.1;margin:3px 0 2px;overflow-wrap:anywhere;hyphens:auto}
 .card-bot{display:block;font-style:italic;font-size:var(--t-md);color:var(--peat);margin:0 0 11px;overflow-wrap:anywhere}
-.flags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.flag{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid currentColor}
-.f-safe{color:var(--moss)} .f-tox{color:var(--terra)} .f-cls{color:var(--water)}
 .bar{display:block;height:5px;background:rgba(31,35,32,.1);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--water);border-radius:3px}
 
@@ -339,7 +343,6 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .fgrid textarea{min-height:74px;resize:vertical}
 .fgrid input:focus,.fgrid select:focus,.fgrid textarea:focus{outline:2px solid var(--water);outline-offset:-1px}
 .fspan{grid-column:1/-1}
-.warnbox{border-left:3px solid #B08A3A;background:rgba(176,138,58,.09);padding:11px 14px;margin:12px 0;border-radius:0 3px 3px 0;font-size:var(--t-md)}
 
 #lightbox{position:fixed;inset:0;background:rgba(20,22,20,.93);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
 #lightbox.on{display:flex}
@@ -592,6 +595,38 @@ body.gm-offen #fab-neu{display:none}
 .ab-alt{color:var(--peat);text-decoration:line-through}
 .ab-weg{flex:0 0 auto;background:none;border:0;font:inherit;font-size:var(--t-l);
   color:var(--peat);cursor:pointer;line-height:1;padding:0 4px}
+/* ── Topfeinschätzung und Maßnahmen zur Auswahl ─────────── */
+.topfbox{margin-top:var(--a-3);border-left:3px solid var(--water);padding:12px 14px;
+  background:color-mix(in srgb, var(--water) 7%, transparent)}
+.topfbox.warn{border-left-color:var(--terra);background:color-mix(in srgb, var(--terra) 8%, transparent)}
+.topfbox.unklar{border-left-color:var(--line);background:transparent}
+.topfbox h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
+.topfbox .spec{margin:0}
+
+.mn-wahl{margin-top:var(--a-3);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+.mn-wahl h4{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-l)}
+.mn-wahl>.sub{margin:0 0 8px}
+.mn-zeile{display:flex;align-items:flex-start;gap:10px;padding:9px 0;
+  border-top:1px solid var(--line);cursor:pointer;min-height:44px}
+.mn-zeile:first-of-type{border-top:0}
+.mn-zeile input{flex:0 0 auto;margin-top:3px;width:20px;height:20px}
+.mn-text{flex:1;min-width:0;font-size:var(--t-m);line-height:1.45}
+.mn-text b{display:block;font-weight:600;overflow-wrap:anywhere}
+.mn-sub{display:block;font-size:var(--t-xs);color:var(--ink-2);margin-top:2px;overflow-wrap:anywhere}
+.mn-eilig{flex:0 0 auto;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--terra);border:1px solid var(--terra);
+  border-radius:100px;padding:2px 7px;align-self:flex-start}
+.mn-meld{margin:8px 0 0;font-size:var(--t-s);color:var(--moss)}
+
+/* Ohne die richtigen Aufnahmen kann die KI die Hälfte nicht beurteilen. */
+.fotokrit{margin:var(--a-3) 0;border:1px dashed var(--line);border-radius:4px;
+  padding:11px 13px;background:var(--sand)}
+.fotokrit b{font-weight:600}
+.fotokrit>b{display:block;font-family:var(--f-display);font-size:var(--t-m);margin-bottom:6px}
+.fotokrit ol{margin:0;padding-left:19px;font-size:var(--t-s);line-height:1.55}
+.fotokrit li{margin-bottom:4px;overflow-wrap:anywhere}
+.fotokrit p{margin:7px 0 0;font-size:var(--t-xs);color:var(--ink-2)}
+
 .dok-unsicher{margin-top:var(--a-3);border-left:3px solid var(--terra);padding:12px 14px;
   background:color-mix(in srgb, var(--terra) 8%, transparent);font-size:var(--t-m)}
 
@@ -992,25 +1027,6 @@ body.einfach #zonen-sec{display:none!important}
 .filter-sel{font:inherit;font-size:var(--t-m);padding:7px 9px;border:1px solid var(--line);
   border-radius:3px;background:var(--paper);color:var(--ink);margin:0 6px 6px 0;max-width:47%}
 
-/* ── Kompakte Listenansicht ──────────────────────────────── */
-body.liste .card{margin-bottom:0;border-radius:0;border-top:0}
-body.liste .group-body>.card:first-child,body.liste #out>.card:first-child{border-top:1px solid var(--line)}
-body.liste .card-btn{padding:11px 13px;gap:11px;align-items:center;max-width:100%;overflow:hidden}
-body.liste .thumb{width:34px;height:34px;flex:0 0 34px;border-radius:3px}
-body.liste .card-id,body.liste .icons,body.liste .bar,body.liste .zbadge{display:none}
-body.liste .card-body{display:block;margin:0;padding:0;min-width:0;max-width:100%;overflow:hidden}
-body.liste .card-name{font-size:var(--t-l);margin:0;line-height:1.25;display:block;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.liste .card-bot{font-size:var(--t-s);margin:1px 0 0;line-height:1.25;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.liste .card-bot i{font-style:italic}
-body.liste .card.open{border-radius:3px;border-top:1px solid var(--line);margin:8px 0}
-body.liste .card.open .card-body{display:block;padding:16px 16px 15px}
-body.liste .card.open .card-name{white-space:normal}
-body.liste .card.open .card-bot{white-space:normal}
-body.liste .card.open .card-id,body.liste .card.open .icons,body.liste .card.open .zbadge{display:block}
-body.liste .card.open .icons{display:flex}
-body.liste .card.open .card-btn{padding:14px 16px;align-items:flex-start}
-body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
 .verki{border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;background:var(--sand)}
 .verki.leer{background:transparent}
 .verki h4{margin:0 0 8px}
@@ -1032,8 +1048,8 @@ body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
 .gp-sockel b{color:var(--terra)}
 .gp-sockel span{font-size:var(--t-xs);color:var(--peat)}
 .gp-balken{display:flex;align-items:flex-end;gap:2px;height:132px;overflow-x:auto;padding-bottom:2px}
-.gp-tag{flex:1 0 22px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;
-  height:100%;padding:0 0 2px;background:none;border:0;border-radius:0;min-width:22px}
+.gp-tag{flex:1 0 32px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;
+  height:100%;padding:0 0 2px;background:none;border:0;border-radius:0;min-width:32px}
 .gp-tag .gp-saeule{display:block;width:74%;background:var(--water);border-radius:2px 2px 0 0;min-height:2px}
 .gp-tag.leer .gp-saeule{background:var(--line)}
 .gp-tag.wo{border-left:1px dotted var(--line)}
@@ -1584,9 +1600,17 @@ const GIFT_REGELN = [
     wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
     grund:'Echte Palmen gelten als unbedenklich. Achtung: Die Sagopalme ist keine echte Palme und hochgiftig.' },
 
-  { familie:/Polypodiaceae|Nephrolepis|Farngewächse/i,
+  /* Der Palmfarn (Cycas) ist kein Farn und die häufigste tödliche
+     Zimmerpflanzenvergiftung beim Hund. Er darf hier nicht mit
+     hineinrutschen, deshalb steht er als eigene Regel davor. */
+  { pruef:/Cycas|Zamia|Encephalartos|Palmfarn|Sagopalme|Brotpalmfarn/i,
+    familie:/Palmfarngewächse|Cycadaceae|Zamiaceae/i,
+    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+    grund:'Cycasin schädigt die Leber. Schon ein bis zwei Samen können für einen Hund tödlich sein. Sofort tierärztlich behandeln lassen.' },
+
+  { familie:/Polypodiaceae|Nephrolepis|Schwertfarn|Streifenfarn|Saumfarn|Tüpfelfarn|Moosfarn|Frauenhaarfarn|Rippenfarn|(?:^|[^a-zäöü])Farngewächse/i,
     wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
-    grund:'Echte Farne wie der Schwertfarn gelten als unbedenklich.' }
+    grund:'Echte Farne wie der Schwertfarn gelten als unbedenklich. Der Palmfarn ist kein Farn und davon ausgenommen.' }
 ];
 
 /* Stufen und wie ernst sie zu nehmen sind. */
@@ -1610,7 +1634,46 @@ const ERREICHBARKEIT = {
 /* Giftbewertung einer Pflanze für eine Tierart. Erst die Regeln, dann
    als Rückfall das alte Katzenfeld — damit bestehende Einträge und
    selbst angelegte Pflanzen weiter funktionieren. */
+/* Hat der Nutzer die Giftfrage selbst beantwortet? Nur eine
+   ausdrückliche Eingabe zählt, nicht ein aus der Bibliothek
+   übernommener Wert. */
+function giftEigenVon(p){
+  if(!p || p.giftEigen !== true) return null;
+  if(p.giftig === true  || p.giftig === 1) return true;
+  if(p.giftig === false || p.giftig === 0) return false;
+  return null;
+}
+
 function giftFuer(p, tier){
+  /* Rangfolge: eigene Angabe, dann Gattung, dann Familie, dann das
+     alte Bibliotheksfeld. Wer selbst „giftig“ einträgt, bekommt keine
+     Entwarnung mehr aus einer Regel. */
+  const selbst = giftEigenVon(p);
+  if(selbst !== null && tier === 'katze')
+    return {stufe: selbst ? 'mittel' : 'keine',
+            grund: selbst
+              ? 'Von dir als giftig für Katzen eingetragen. Deine Angabe geht der Bibliothek vor.'
+              : 'Von dir als katzensicher eingetragen. Deine Angabe geht der Bibliothek vor.',
+            quelle:'eigen'};
+  const erg = giftRegelFuer(p, tier);
+  /* Eigene Warnung für Katzen: bei den anderen Tierarten wird daraus
+     keine Entwarnung, sondern höchstens „ungeprüft“. */
+  if(selbst === true && erg.stufe === 'keine')
+    return {stufe:'unklar', quelle:'eigen',
+            grund:'Du hast diese Pflanze als giftig für Katzen eingetragen. Für diese Tierart liegt keine geprüfte Angabe vor — im Zweifel außer Reichweite stellen.'};
+  return erg;
+}
+
+/* Einheitliche Ja/Nein/Unklar-Auskunft. Alles, was filtert, listet
+   oder druckt, fragt hier — damit Karte, Filter und Urlaubszettel
+   nicht drei verschiedene Antworten geben. */
+function istGiftig(p, tier){
+  const g = giftFuer(p, tier || 'katze');
+  if(g.stufe === 'unklar') return null;
+  return ((GIFT_STUFEN[g.stufe] || {}).rang || 0) > 0;
+}
+
+function giftRegelFuer(p, tier){
   const bot = (p.botanisch || '') + ' ' + (p.art || '');
   /* Eine Gattung, für die eine geprüfte Angabe vorliegt, schlägt die
      Familienregel. Familien sind grobe Raster: Hundsgiftgewächse
@@ -1669,9 +1732,9 @@ function erreichbarFuer(stufe, tier){
 }
 
 const KLASSEN = {
-  S:{name:"Karnivoren",kurz:"Anstau, dauerhaft nass",feuchte:100,sommer:"Untersetzer dauerhaft 1–2 cm gefüllt",winter:"Untersetzer leer, nur leicht feucht",
+  S:{name:"Anstau / dauernass",kurz:"Anstau, dauerhaft nass",feuchte:100,sommer:"Untersetzer dauerhaft 1–2 cm gefüllt",winter:"Untersetzer leer, nur leicht feucht",
      probe:"Keine Fingerprobe. Wasserstand im Untersetzer ansehen: ein bis drei Zentimeter kalkfreies Wasser, das Substrat bleibt durchgehend nass.",
-     probeWinter:"Winterruhe: Anstau flacher halten, etwa einen halben Zentimeter. Nicht trocken werden lassen."},
+     probeWinter:"Winterruhe: Untersetzer leeren. Das Substrat bleibt klamm, steht aber nicht mehr im Wasser — im kalten Stand fault der Ballen sonst."},
   A:{name:"Durstig",kurz:"gleichmäßig feucht",feuchte:75,sommer:"alle 2–4 Tage",winter:"alle 5–8 Tage",
      probe:"Oberfläche antippen. Fühlt sie sich nur klamm an, ist es schon Zeit — diese Gruppe verzeiht kein Durchtrocknen.",
      probeWinter:"Auch im Winter nie ganz austrocknen lassen, aber vor dem Gießen den Finger einen Zentimeter tief prüfen."},
@@ -1746,7 +1809,9 @@ const BILDER = {};
 const GATTUNGEN = [
   /* ── Sonderfälle zuerst ───────────────────────────────── */
   {g:/^Kalanchoe\s+(tomentosa|beharensis|eriophylla|pumila)/i, fam:'Dickblattgewächse', typ:'Sukkulente',
-   m:['nichtAbduschen','herzNichtNass']},
+   m:['nichtAbduschen','herzNichtNass'],
+   gift:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+   giftGrund:'Enthält Bufadienolide — herzwirksame Gifte. Neben Erbrechen und Durchfall sind Herzrhythmusstörungen möglich. Bei größeren Mengen sofort zum Tierarzt.'},
   {g:/^Dracaena\s+trifasciata|^Sansevieria(?=\s|$)/i, fam:'Spargelgewächse', typ:'Rosettenpflanze', m:['herzNichtNass']},
   {g:/^Cryptanthus(?=\s|$)/i, fam:'Bromeliengewächse', typ:'Bromelie', m:[]},
   {g:/^Tillandsia(?=\s|$)/i, fam:'Bromeliengewächse', typ:'Bromelie', m:['epiphyt']},
@@ -1792,6 +1857,20 @@ const GATTUNGEN = [
   {g:/^Adenium(?=\s|$)|^Pachypodium(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Sukkulente', m:['caudex','herzNichtNass']},
   {g:/^Stapelia(?=\s|$)|^Huernia(?=\s|$)|^Orbea(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Sukkulente', m:['herzNichtNass']},
   {g:/^Stephanotis(?=\s|$)/i, fam:'Hundsgiftgewächse', typ:'Kletterpflanze', m:[]},
+
+  /* Kalanchoe, Crassula und Cotyledon enthalten herzwirksame
+     Bufadienolide. Über das alte Katzenfeld landeten sie bei „giftig“;
+     in der Literatur stehen sie mit Herzrhythmusstörungen und
+     Todesfällen bei Hund, Katze und Weidetieren. */
+  {g:/^Kalanchoe(?=\s|$)|^Bryophyllum(?=\s|$)/i, fam:'Dickblattgewächse', typ:'Sukkulente', m:['nichtAbduschen'],
+   gift:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+   giftGrund:'Enthält Bufadienolide — herzwirksame Gifte. Neben Erbrechen und Durchfall sind Herzrhythmusstörungen möglich. Bei größeren Mengen sofort zum Tierarzt.'},
+  {g:/^Cotyledon(?=\s|$)|^Tylecodon(?=\s|$)/i, fam:'Dickblattgewächse', typ:'Sukkulente', m:['wachsbereift'],
+   gift:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+   giftGrund:'Enthält Bufadienolide — dieselbe herzwirksame Gruppe wie Kalanchoe. In Südafrika eine bekannte Weidevergiftung.'},
+  {g:/^Crassula(?=\s|$)/i, fam:'Dickblattgewächse', typ:'Sukkulente', m:[],
+   gift:{katze:'mittel', hund:'mittel', nager:'mittel', vogel:'unklar'},
+   giftGrund:'Die ASPCA führt den Geldbaum als giftig für Katzen und Hunde: Erbrechen, Schwäche, Koordinationsstörungen. Der Wirkstoff ist nicht abschließend geklärt.'},
 
   /* ── Dickblattgewächse: fast alle bereift ─────────────── */
   {g:/^Echeveria(?=\s|$)|^Graptopetalum(?=\s|$)|^Graptoveria(?=\s|$)|^Sedeveria(?=\s|$)|^Pachyphytum(?=\s|$)|^Pachyveria(?=\s|$)/i,
@@ -2360,7 +2439,7 @@ const BIB_ROHDATEN = [
 ['Plectranthus scutellarioides','Buntnessel','Coleus','Lippenblütler','A','hell',1,'viel',12,'Blattschmuck','kraut-schossen'],
 ['Coffea arabica','Kaffeestrauch','Coffee Plant','Rötegewächse','B','indirekt',1,'normal',15,'Strauchpflanze',''],
 ['Sparrmannia africana','Zimmerlinde','African Hemp','Malvengewächse','A','hell',2,'normal',8,'Strauchpflanze',''],
-['Cyperus alternifolius','Zyperngras','Umbrella Sedge','Sauergrasgewächse','S','hell',0,'normal',10,'Sumpfpflanze',''],
+['Cyperus alternifolius','Zyperngras','Umbrella Sedge','Sauergrasgewächse','S','hell',2,'normal',10,'Sumpfpflanze',''],
 ['Nertera granadensis','Korallenmoos','Coral Bead Plant','Rötegewächse','A','indirekt',2,'sparsam',5,'Blattschmuck',''],
 ['Aeschynanthus radicans','Schamblume','Lipstick Plant','Gesneriengewächse','B','indirekt',0,'normal',15,'Ampelpflanze',''],
 
@@ -2492,7 +2571,7 @@ const BIB_ROHDATEN_2 = [
 ['Laurus nobilis','Lorbeer','Bay Laurel','Lorbeergewächse','C','voll',1,'sparsam',-5,'Strauchpflanze',''],
 ['Lavandula angustifolia','Lavendel','English Lavender','Lippenblütler','C','voll',1,'sparsam',-15,'Kraut','kraut-verholzt'],
 ['Eruca vesicaria','Rucola','Arugula','Kreuzblütler','B','hell',0,'normal',-5,'Blattgemüse','kraut-schossen'],
-['Cymbopogon citratus','Zitronengras','Lemongrass','Süßgräser','A','voll',0,'viel',10,'Kraut',''],
+['Cymbopogon citratus','Zitronengras','Lemongrass','Süßgräser','A','voll',1,'viel',10,'Kraut',''],
 ['Aloysia citrodora','Zitronenverbene','Lemon Verbena','Eisenkrautgewächse','B','voll',0,'normal',5,'Strauchpflanze',''],
 ['Stevia rebaudiana','Stevia','Stevia','Korbblütler','B','voll',0,'normal',10,'Kraut','kraut-schossen'],
 ['Perilla frutescens','Shiso','Perilla','Lippenblütler','B','voll',0,'normal',10,'Kraut','kraut-schossen'],
@@ -2543,12 +2622,12 @@ const BIB_ROHDATEN_2 = [
 ['Lobelia erinus','Männertreu','Edging Lobelia','Glockenblumengewächse','A','hell',1,'normal',3,'Balkonblume','bluete'],
 ['Viola × wittrockiana','Stiefmütterchen','Pansy','Veilchengewächse','B','hell',0,'normal',-10,'Balkonblume','bluete'],
 ['Tropaeolum majus','Kapuzinerkresse','Nasturtium','Kapuzinerkressengewächse','B','voll',0,'sparsam',3,'Balkonblume','bluete'],
-['Tagetes patula','Studentenblume','French Marigold','Korbblütler','B','voll',0,'normal',3,'Balkonblume','bluete'],
-['Calendula officinalis','Ringelblume','Pot Marigold','Korbblütler','B','voll',0,'normal',-5,'Balkonblume','bluete'],
+['Tagetes patula','Studentenblume','French Marigold','Korbblütler','B','voll',1,'normal',3,'Balkonblume','bluete'],
+['Calendula officinalis','Ringelblume','Pot Marigold','Korbblütler','B','voll',2,'normal',-5,'Balkonblume','bluete'],
 ['Antirrhinum majus','Löwenmäulchen','Snapdragon','Wegerichgewächse','B','voll',0,'normal',-5,'Balkonblume','bluete'],
 ['Zinnia elegans','Zinnie','Zinnia','Korbblütler','B','voll',0,'normal',5,'Balkonblume','bluete'],
 ['Helianthus annuus','Sonnenblume','Sunflower','Korbblütler','A','voll',0,'viel',3,'Balkonblume','bluete'],
-['Dahlia','Dahlie','Dahlia','Korbblütler','A','voll',0,'viel',5,'Knollenpflanze','knolle-einzug|bluete'],
+['Dahlia','Dahlie','Dahlia','Korbblütler','A','voll',1,'viel',5,'Knollenpflanze','knolle-einzug|bluete'],
 ['Osteospermum','Kapkörbchen','African Daisy','Korbblütler','B','voll',0,'normal',3,'Balkonblume','bluete'],
 ['Verbena','Eisenkraut','Verbena','Eisenkrautgewächse','B','voll',0,'viel',3,'Balkonblume','bluete'],
 ['Argyranthemum frutescens','Margerite','Marguerite Daisy','Korbblütler','A','voll',0,'viel',3,'Balkonblume','bluete'],
@@ -2848,7 +2927,7 @@ Schreibe deine gesamte Antwort in einen einzigen Codeblock: eine Zeile mit drei 
 Im Codeblock gilt:
 - Eine Zeile je Schlüsselwort, in der Reihenfolge der Liste unten.
 - Aufbau jeder Zeile: SCHLUESSELWORT, Doppelpunkt, Leerzeichen, Wert.
-- Alle fünfzehn Schlüsselwörter müssen vorkommen, jedes genau einmal. Danach folgen ein bis drei MASSNAHME-Zeilen.
+- Alle sechzehn Schlüsselwörter müssen vorkommen, jedes genau einmal. Danach folgen ein bis drei MASSNAHME-Zeilen.
 - Keine Sternchen, keine Rauten, keine Bindestriche am Zeilenanfang, keine Nummerierung, keine Überschriften, keine Emojis, keine Leerzeilen, keine Fettschrift.
 - Kein Wert bleibt leer. Weißt du etwas nicht, schreib genau: unbekannt
 - Schreib die Werte auf Deutsch.
@@ -2859,10 +2938,10 @@ ART: gebräuchlicher deutscher Name. Gibt es keinen, der botanische Name.
 BOTANISCH: Gattung und Art. Erkennst du sicher eine Sorte, hänge sie in einfachen Anführungszeichen an, etwa: Monstera deliciosa 'Thai Constellation'. Erkennst du die Sorte nicht sicher, lass sie weg. Erfinde keinen Sortennamen — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
 TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rankpflanze, Rosettenpflanze, Kaktus, Sukkulente, Kraut, Strauch, Palme, Farn, Orchidee, Bromelie, Karnivore. Ist die Pflanze panaschiert, hänge das Wort panaschiert mit Komma an.
 SICHERHEIT: Nur genau eines dieser Wörter: hoch, mittel, niedrig
-FEHLT: Was du auf diesem Foto nicht beurteilen kannst. Beantworte hier ausdrücklich: Waren Blattunterseiten und Blattachseln erkennbar? Waren sie es nicht, schreib das hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
+FEHLT: Was du auf diesem Foto nicht beurteilen kannst. Beantworte hier ausdrücklich zwei Fragen: Waren Blattunterseiten und Blattachseln erkennbar? Waren Topf, Topfrand und Untersetzer ganz im Bild? Was nicht erkennbar war, schreibst du hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei, und nichts über den Topf behaupten, was du nicht siehst. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
 VERWECHSLUNG: Ähnliche Arten, mit Komma getrennt. Keine, dann: keine
 ZUSTAND: Nur genau eines dieser Wörter: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung
-BEFUND: Ein bis zwei Sätze, woran du den Zustand erkennst. Nennst du Schädlinge oder hast du einen Verdacht, schreib dazu, an welcher Stelle du das siehst: Blattachsel, Blattunterseite, Stängel oder Erdoberfläche. Kannst du diese Stelle auf dem Foto nicht sehen, schreib ausdrücklich, dass der Verdacht unbestätigt ist.
+BEFUND: Zwei bis vier Sätze. Gehe dabei alle drei Punkte durch, auch wenn nichts zu sehen ist. Erstens Schädlinge: Was siehst du, und an welcher Stelle — Blattachsel, Blattunterseite, Stängel, Erdoberfläche? Zweitens Mangelerscheinungen: Verfärbungen, Blattform, Wuchsbild, und was daraus folgt. Drittens Krankheitszeichen: Flecken, Beläge, Fäulnis, Vergeilung. Ist zu einem Punkt nichts zu erkennen, schreib genau, ob dort wirklich nichts ist oder ob du die nötige Stelle auf dem Foto nicht sehen kannst — im zweiten Fall nenne den Verdacht ausdrücklich unbestätigt. Beschreibe, was du siehst; nenne einen Erreger oder ein Schädlingstier nur, wenn es am Foto eindeutig ist.
 LICHT: Nur genau eines dieser Wörter: voll, hell, indirekt
 GIESSKLASSE: Nur genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau
 GIESSEN: Ein Satz, wie oft und wie viel bei genau diesem Zustand.
@@ -2870,6 +2949,7 @@ GIESSART: Nur genau eines dieser Wörter: durchdringend, schluck, tauchen, von u
 FROST: Niedrigste verträgliche Temperatur als Zahl in Grad Celsius, ohne Einheit. Oder genau das Wort: winterhart
 WICHTIG: Eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß. Gibt es keine, schreib genau: keine
 KATZEN: Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.
+TOPF: Vier Angaben, getrennt durch genau drei senkrechte Striche, in dieser Reihenfolge: Größenurteil | Material und Aufbau | Wasserablauf | Empfehlung. Größenurteil ist nur eines dieser Wörter: passend, zu klein, zu groß, nicht beurteilbar. Beurteile es am Verhältnis von Pflanze zu Topf, an Wurzeln über der Erde oder aus dem Abzugsloch und an einem Topf, der beim Gießen sofort durchläuft. Wasserablauf ist nur eines dieser Wörter: Ablauf vorhanden, kein Ablauf sichtbar, nicht beurteilbar. Steht der Kulturtopf in einem geschlossenen Übertopf, schreib das unter Material. Die Empfehlung ist ein konkreter Satz mit Zielgröße in Zentimetern und bester Zeit, oder genau: kein Umtopfen nötig. Ist der Topf auf dem Foto nicht zu sehen, schreib: nicht beurteilbar | nicht beurteilbar | nicht beurteilbar | Foto mit ganzem Topf und Untersetzer nachreichen
 VERMEHRUNG: Ein bis drei Zeilen, jede beginnt neu mit VERMEHRUNG. Jede Zeile enthält fünf Angaben, getrennt durch genau vier senkrechte Striche, in dieser Reihenfolge: Methode | Erfolgsaussicht in Prozent als reine Zahl | beste Jahreszeit | Substrat oder Medium für den Steckling | Bewurzelungsdauer. Nenne die Methoden, die bei genau dieser Art wirklich üblich sind, die aussichtsreichste zuerst — nicht die allgemein bekannteste. Ist eine Methode bei dieser Art unüblich oder aussichtslos, lass sie weg. Bist du dir bei einer Art nicht sicher, gib eine niedrigere Prozentzahl an, statt zu raten.
 MASSNAHME: Ein bis drei Zeilen, jede beginnt neu mit MASSNAHME. Jede Zeile enthält vier Angaben, getrennt durch genau drei senkrechte Striche, in dieser Reihenfolge: Auslöser | Handlung | Dringlichkeit | Wiederholung. Dringlichkeit ist nur eines dieser Wörter: sofort, diese Woche, bei Gelegenheit. Wiederholung ist entweder das Wort einmalig oder ein Abstand wie: alle 7 Tage, dreimal. Nenne nur Schritte, die sich aus dem Foto oder den Angaben oben wirklich ergeben. Allgemeine Ratschläge, die für jede Zimmerpflanze gelten, lass weg.
 
@@ -2880,10 +2960,10 @@ ART: Efeutute
 BOTANISCH: Epipremnum aureum
 TYP: Kletterpflanze
 SICHERHEIT: mittel
-FEHLT: Blattunterseiten und Blattachseln waren nicht erkennbar, ein Schädlingsbefall lässt sich daher nicht ausschließen. Ein Foto der Blattunterseite und des Stängelansatzes würde die Bestimmung sicher machen.
+FEHLT: Blattunterseiten und Blattachseln waren nicht erkennbar, ein Schädlingsbefall lässt sich daher nicht ausschließen. Topf und Untersetzer sind ganz im Bild. Ein Foto der Blattunterseite und des Stängelansatzes würde die Bestimmung sicher machen.
 VERWECHSLUNG: Philodendron hederaceum, Scindapsus pictus
 ZUSTAND: gesund
-BEFUND: Die unteren Blätter sind gleichmäßig gelb ohne Flecken, das entspricht normaler Alterung. Schädlinge sind mangels Sicht auf die Blattunterseite nicht beurteilbar.
+BEFUND: Schädlinge sind mangels Sicht auf Blattunterseite und Blattachseln nicht beurteilbar, ein Verdacht besteht nicht, er ist aber auch nicht ausgeräumt. Als Mangelerscheinung zeigen sich gleichmäßig gelbe untere Blätter ohne Flecken, das entspricht normaler Alterung und nicht einem Nährstoffmangel. Krankheitszeichen wie Flecken, Beläge oder weiche Stellen sind auf den sichtbaren Blättern nicht zu erkennen.
 LICHT: indirekt
 GIESSKLASSE: normal
 GIESSEN: Alle sieben bis zehn Tage durchdringend, wenn die oberen drei Zentimeter trocken sind.
@@ -2891,6 +2971,7 @@ GIESSART: durchdringend
 FROST: 10
 WICHTIG: keine
 KATZEN: giftig, enthält Calciumoxalat-Kristalle
+TOPF: zu klein | Kunststoff-Kulturtopf in geschlossenem Keramik-Übertopf | Ablauf vorhanden | Im Frühjahr in einen Topf mit 14 statt 12 cm umsetzen und in den Übertopf eine Schicht Blähton legen, damit die Wurzeln nicht im Restwasser stehen
 VERMEHRUNG: Kopfsteckling im Wasserglas | 90 | Frühjahr bis Spätsommer | Wasserglas, danach umsetzen in lockeres Substrat | 2 bis 4 Wochen
 VERMEHRUNG: Kopfsteckling direkt im Substrat | 75 | Frühjahr bis Spätsommer | lockere Anzuchterde mit Perlite | 3 bis 6 Wochen
 MASSNAHME: Untere Blätter vergilbt | Vergilbte Blätter am Ansatz abschneiden | bei Gelegenheit | einmalig
@@ -2899,16 +2980,18 @@ MASSNAHME: Blattunterseite nicht einsehbar | Blattachseln und Unterseiten mit Lu
 
 SO NICHT
 
-Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:. Kein "1. Regelmäßig gießen". Keine Zeile ohne Schlüsselwort. Kein "Ich hoffe, das hilft!". Keine Werte wie "hell bis indirekt", wo nur ein Wort erlaubt ist.
+Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:. Kein "1. Regelmäßig gießen". Keine Zeile ohne Schlüsselwort. Kein "Ich hoffe, das hilft!". Keine Werte wie "hell bis indirekt", wo nur ein Wort erlaubt ist. Kein "keine Schädlinge erkennbar", wenn du die Blattunterseite gar nicht sehen konntest. Kein "Topf sieht gut aus", wo vier Angaben mit drei Strichen stehen müssen. Kein TOPF-Urteil, wenn der Topf nicht im Bild ist.
 
 PRÜFE VOR DEM ABSENDEN
 
 1. Steht die gesamte Antwort in einem Codeblock und außerhalb nichts?
 2. Kommen alle Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste? Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.
 3. Enthalten SICHERHEIT, ZUSTAND, LICHT, GIESSKLASSE, GIESSART nur eines der erlaubten Wörter?
-4. Hat jede MASSNAHME-Zeile genau drei und jede VERMEHRUNG-Zeile genau vier senkrechte Striche?
-5. Ist in FEHLT beantwortet, ob Blattunterseiten und Blattachseln erkennbar waren?
-6. Steht in BOTANISCH kein geratener Sortenname?`;
+4. Hat jede MASSNAHME-Zeile und die TOPF-Zeile genau drei und jede VERMEHRUNG-Zeile genau vier senkrechte Striche?
+5. Ist in FEHLT beantwortet, ob Blattunterseiten, Blattachseln, Topf und Untersetzer erkennbar waren?
+6. Behandelt BEFUND alle drei Punkte — Schädlinge, Mangelerscheinungen, Krankheitszeichen — und steht bei jedem, ob wirklich nichts da ist oder die Stelle nur nicht sichtbar war?
+7. Enthält TOPF in Feld 1 und 3 nur die erlaubten Wörter, und passt das Urteil dazu, was auf dem Foto überhaupt zu sehen ist?
+8. Steht in BOTANISCH kein geratener Sortenname?`;
 
 /* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
 const GEMINI_PROMPT = ANLEGEN_KOPF + '\n\n' + ANTWORT_FORMAT;
@@ -2984,18 +3067,30 @@ function inZwischenablage(text){
    vorbefuellen = true heißt: der Dienst nimmt den Text aus der Adresse
    entgegen. Gemini kann das nicht, dort muss man einfügen. */
 const KI_DIENSTE = {
-  gemini:     {name:'Gemini', url:()=>'https://gemini.google.com/app', vorbefuellen:false},
-  chatgpt:    {name:'ChatGPT', url:t=>'https://chatgpt.com/?q='+encodeURIComponent(t), vorbefuellen:true},
-  claude:     {name:'Claude', url:t=>'https://claude.ai/new?q='+encodeURIComponent(t), vorbefuellen:true},
-  perplexity: {name:'Perplexity', url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true}
+  gemini:     {name:'Gemini', leer:'https://gemini.google.com/app',
+               url:()=>'https://gemini.google.com/app', vorbefuellen:false},
+  chatgpt:    {name:'ChatGPT', leer:'https://chatgpt.com/',
+               url:t=>'https://chatgpt.com/?q='+encodeURIComponent(t), vorbefuellen:true},
+  claude:     {name:'Claude', leer:'https://claude.ai/new',
+               url:t=>'https://claude.ai/new?q='+encodeURIComponent(t), vorbefuellen:true},
+  perplexity: {name:'Perplexity', leer:'https://www.perplexity.ai/',
+               url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true}
 };
+
+/* Lange Fragen passen nicht in eine Adresse: die Dienste schneiden ab
+   dieser Größenordnung stillschweigend ab, und dann fehlt gerade das
+   Antwortformat am Ende. Ab hier geht es über die Zwischenablage. */
+const KI_URL_GRENZE = 1500;
+function kiPerUrl(d, t){ return !!(d && d.vorbefuellen) && String(t || '').length <= KI_URL_GRENZE; }
+function kiZiel(d, t){ return kiPerUrl(d, t) ? d.url(t) : (d.leer || d.url('')); }
 
 function kiOeffnen(dienst){
   const d = KI_DIENSTE[dienst] || KI_DIENSTE.gemini;
   const t = anlegenPromptBauen();
   const kopiert = inZwischenablage(t);          // erst kopieren, dann öffnen
-  window.open(d.url(t), '_blank', 'noopener');
-  return {dienst:d, kopiert};
+  const perUrl = kiPerUrl(d, t);
+  window.open(kiZiel(d, t), '_blank', 'noopener');
+  return {dienst:d, kopiert, perUrl};
 }
 
 /* Antwort einer KI in Felder zerlegen.
@@ -3017,6 +3112,7 @@ const ANTWORT_SCHLUESSEL = [
   ['giessart',['giessart','gießart','giessweise','gießweise','art des giessens','wassergabe','watering style']],
   ['wichtig', ['wichtig','besonderheit','besonderheiten','hinweis','hinweise','achtung','kritisch','special']],
   ['katzen',  ['katzen','katze','giftigkeit','giftig','toxizität','toxizitaet','haustiere','pets']],
+  ['topf',    ['topf','topfverhaeltnisse','topfverhältnisse','topf und platz','gefaess','gefäß','pflanzgefaess','pflanzgefäß','pot']],
   ['vermehrung',['vermehrung','vermehrungsmethode','vermehrungsmethoden','vermehren','stecklinge','steckling','propagation']],
   ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
@@ -3276,7 +3372,6 @@ function pflanzeAusWahl(wert){
             klasse:a.klasse, sonne:a.licht, typ:a.typ, bib:a.bot,
             giftig: a.giftig===1 ? true : (a.giftig===0 ? false : 'unbekannt'),
             frostMin:a.frost, duenger:a.duenger, raum:'', stellplatz:'',
-            intervall:(typeof KLASSE_IV!=='undefined'&&KLASSE_IV[a.klasse])||[8,12],
             todo:[], log:[], notiz:''};
   }
   return allePflanzen().find(x=>x.id===wert) || null;
@@ -3608,14 +3703,21 @@ function sonnigImRaum(r, x, y, h, sonne){
     const nx = Math.floor(cx/KACHEL), ny = Math.floor(cy/KACHEL);
     if(nx === kx && ny === ky) continue;
     if(kachelAn(r, nx, ny)){ kx = nx; ky = ny; continue; }
-    /* Kante überschritten — welche? */
-    let k;
-    if(nx !== kx) k = nx > kx ? 'r' : 'l';
-    else          k = ny > ky ? 'u' : 'o';
-    const kanteId = k+':'+kx+','+ky;
-    const m = kantenMass(r, kanteId);
-    if(m.oben === 0) return false;                     // massive Wand
-    if(z < m.sockel || z > m.oben) return false;
+    /* Kante überschritten — welche? Bei einem diagonalen Schritt über
+       eine Ecke sind es zwei; beide müssen durchlässig sein. */
+    const kanten = [];
+    if(nx !== kx) kanten.push((nx > kx ? 'r' : 'l')+':'+kx+','+ky);
+    if(ny !== ky) kanten.push((ny > ky ? 'u' : 'o')+':'+kx+','+ky);
+    let m = null;
+    for(const kanteId of kanten){
+      const mm = kantenMass(r, kanteId);
+      if(mm.oben === 0) return false;                  // massive Wand
+      if(z < mm.sockel || z > mm.oben) return false;
+      /* Für die Breitenprüfung unten die engste Öffnung nehmen. */
+      if(!m || mm.b < m.b){ m = mm; m.k = kanteId.charAt(0); }
+    }
+    if(!m) return false;
+    const k = m.k;
     /* Ist die Öffnung schmaler als die Kachel, sitzt sie mittig. Der
        Strahl muss dann auch seitlich durch die Öffnung passen. */
     if(m.b < KACHEL){
@@ -4331,7 +4433,7 @@ const ZIELE = {
       'Dünger nur als Hydrodünger und höchstens in Viertelstärke — normaler Blumendünger versalzt das Wasser.'],
     wechsel:'alle 7 Tage im Sommer, alle 10 im Winter'},
   hydrokultur: {name:'Hydrokultur — Blähton oder Pon (auch Semi-Hydro)', wasser:3, luft:9, naehr:0.5, ph:6.5, sperre:'hydro',
-    gewicht:{luft:5, wasser:2, naehr:2, ph:1},
+    gewicht:{luft:5, wasser:2, naehr:2, ph:1}, ohneMaxGrenzen:true,
     text:'Nicht Erde und nicht reines Wasser, sondern ein Zwischenweg: ein inertes Korn hält die Pflanze fest, das Wasser steht darunter. Blähton grob, Pon feiner und schwerer. Im englischen Sprachraum heißt dasselbe Verfahren Semi-Hydro.',
     anleitung:[
       'Kulturtopf mit Wasserstandsanzeiger in ein wasserdichtes Übergefäß.',
@@ -4351,8 +4453,8 @@ function zielFuer(p){
   if(ga === 'wasser') return 'wasserkultur';
   if(ga === 'hydro')  return 'hydrokultur';
   const b = (typeof bibVon === 'function') ? bibVon(p) : null;
-  const typ = (b ? b.typ : p.typ) || '';
-  const fam = (b ? b.fam : p.familie) || '';
+  const typ = (b ? b.typ : p.typ) || (typeof typVon === 'function' ? typVon(p) : '') || '';
+  const fam = (b ? b.fam : p.familie) || (typeof familieVon === 'function' ? familieVon(p) : '') || '';
   const bot = (b ? b.bot : p.botanisch) || '';
   const kl  = p.klasse || (b ? b.klasse : 'B');
   if(/Karnivore/i.test(typ)) return 'karnivore';
@@ -4410,7 +4512,9 @@ function mischungSuchen(vorrat, zielId, ohneGrenzen){
     if(!werte) return;
     /* Manche Zutaten dürfen nicht die Mischung beherrschen —
        reiner Kompost etwa verdichtet und versalzt. */
-    if(!ohneGrenzen) for(const id of ids){
+    /* In der Hydrokultur darf eine einzige Zutat den Topf füllen —
+       reiner Blähton ist dort die Regel, nicht die Ausnahme. */
+    if(!ohneGrenzen && !ziel.ohneMaxGrenzen) for(const id of ids){
       const grenze = ZUTAT[id].max;
       if(grenze && teile[id]/werte.teile > grenze + 0.001) return;
     }
@@ -4589,19 +4693,25 @@ const REZEPTE = {
     text:'Standfest und durchlässig. Der mineralische Anteil hält große Pflanzen im Topf, wenn sie kopflastig werden.'},
   bromelie: {teile:{rinde:4, perlit:2, sphagnum:1},
     text:'Die Wurzeln halten nur fest, Wasser kommt in den Trichter. Deshalb fast nur grobe Struktur.'},
+  hydrokultur: {teile:{blaehton:4, lava:1},
+    text:'Rein mineralisch und ohne jedes organische Material — im stehenden Wasser würde das verrotten. Blähton als Basis, etwas Lava gibt Standfestigkeit. Pon statt Blähton geht genauso.'},
   standard: {teile:{pflanzerde:4, kokoshum:2, bims:2, rindenhumus:1},
     text:'Der Allrounder: eine gute Woche Wasservorrat, genug Luft gegen Staunässe, hält zwei bis drei Jahre.'}
 };
 
 function rezeptFuer(zielId){
-  const r = REZEPTE[zielId] || REZEPTE.standard;
-  const werte = mischungWerte(r.teile);
   const ziel = ZIELE[zielId] || ZIELE.standard;
+  const r = REZEPTE[zielId] || REZEPTE.standard;
+  /* Lieber gar kein Rezept als eins mit gesperrten Zutaten. Bisher
+     stand unter „So wäre es optimal — für Hydrokultur“ Blumenerde. */
+  const sperre = ziel.sperre ? VERBOTEN[ziel.sperre] || [] : [];
+  if(Object.keys(r.teile).some(id=>sperre.includes(id))) return null;
+  const werte = mischungWerte(r.teile);
   return {teile:r.teile, text:r.text, werte, wert:abweichung(werte, ziel)};
 }
 function fehlendFuer(zielId, vorrat){
-  const r = REZEPTE[zielId] || REZEPTE.standard;
-  return Object.keys(r.teile).filter(id=>!vorrat.includes(id));
+  const r = rezeptFuer(zielId);
+  return r ? Object.keys(r.teile).filter(id=>!vorrat.includes(id)) : [];
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -4803,8 +4913,8 @@ const V_METHODEN = {
 /* Welche Methoden passen zu welcher Pflanze? */
 function vermehrungFuer(p){
   const b = (typeof bibVon === 'function') ? bibVon(p) : null;
-  const typ = (b ? b.typ : (p ? p.typ : '')) || '';
-  const fam = (b ? b.fam : (p ? p.familie : '')) || '';
+  const typ = (b ? b.typ : (p ? p.typ : '')) || (typeof typVon === 'function' ? typVon(p) : '') || '';
+  const fam = (b ? b.fam : (p ? p.familie : '')) || (typeof familieVon === 'function' ? familieVon(p) : '') || '';
   const bot = (b ? b.bot : (p ? p.botanisch : '')) || '';
   const de  = (b ? b.de  : (p ? p.art : '')) || '';
   const treffer = [];
@@ -4820,13 +4930,19 @@ function vermehrungFuer(p){
   if(/Pilea peperomioides/i.test(bot)) dazu('kindel', 'sehr gut', 'Schiebt von allein Kindel aus der Erde.');
   if(/Chlorophytum/i.test(bot)) dazu('auslaeufer', 'sehr gut', 'Die Kindel an den Trieben wurzeln fast von selbst.');
   if(/Fragaria/i.test(bot)) dazu('auslaeufer', 'sehr gut', 'Ausläufer sind hier die übliche Vermehrung — nach drei Jahren ohnehin fällig.');
-  if(/Aronstab/i.test(fam) || /Kletter|Ampel|Kriech/i.test(typ)){
+  if(/Aronstab/i.test(fam) || /Kletter|Ampel|Kriech|Rank/i.test(typ)){
     dazu('kopfsteckling', 'sehr gut', 'Am Knoten schneiden, dort sitzen die Wurzelansätze.');
     dazu('stammstueck', 'gut', 'Aus einem langen kahlen Trieb werden mehrere Pflanzen.');
   }
   if(/Monstera|Ficus elastica|Ficus lyrata|Philodendron/i.test(bot))
     dazu('abmoosen', 'gut', 'Für große, unten kahle Pflanzen — die Mutter bleibt dabei erhalten.');
-  if(/Dickblatt|Mittagsblume/i.test(fam) || /Echeveria|Sedum|Crassula|Kalanchoe|Graptopetalum|Aeonium/i.test(bot)){
+  /* Mittagsblumengewächse gehören ausdrücklich nicht hierher: ihre
+     Blätter faulen als Steckling, sie gehen über Aussaat und Teilung. */
+  if(/Mittagsblume|Aizoaceae/i.test(fam) || /Lithops|Conophytum|Fenestraria|Pleiospilos|Faucaria|Delosperma/i.test(bot)){
+    dazu('aussaat', 'gut', 'Der übliche Weg. Feiner Samen, hell keimend, im Frühjahr aussäen.');
+    dazu('teilung', 'gut', 'Ältere Gruppen im Frühjahr am Wurzelhals trennen, Schnittfläche antrocknen lassen.');
+  }
+  else if(/Dickblatt/i.test(fam) || /Echeveria|Sedum|Crassula|Kalanchoe|Graptopetalum|Aeonium/i.test(bot)){
     dazu('blatt_sukkulent', 'sehr gut', 'Ein einzelnes Blatt reicht, sauber abdrehen.');
     dazu('kopfsteckling', 'gut', 'Vergeilte Köpfe abschneiden und neu bewurzeln — löst gleich zwei Probleme.');
   }
@@ -4835,9 +4951,15 @@ function vermehrungFuer(p){
   if(/Sukkulente|Kaktus/i.test(typ)) dazu('kopfsteckling', 'gut', 'Schnittfläche unbedingt erst antrocknen lassen.');
   if(/Alocasia|Colocasia|Zamioculcas|Calathea|Goeppertia|Maranta|Ctenanthe|Stromanthe/i.test(bot))
     dazu('rhizomteilung', 'sehr gut', 'Die Knolle oder das Rhizom mit Austrieb teilen.');
-  if(/Farn|Gras|Staude|Bodendecker/i.test(typ)) dazu('teilung', 'sehr gut', 'Horst einfach auseinanderziehen.');
+  /* „Palmfarn“ enthält „Farn“, ist aber keiner: er bildet keinen Horst
+     und lässt sich nicht teilen. Deshalb hier ausdrücklich ausnehmen. */
+  const istPalmfarn = /Palmfarn/i.test(typ) || /Cycas|Zamia|Encephalartos/i.test(bot);
+  if(!istPalmfarn && /Farn|Gras|Staude|Bodendecker/i.test(typ))
+    dazu('teilung', 'sehr gut', 'Horst einfach auseinanderziehen.');
   if(/Orchidee/i.test(typ)) dazu('kindel', 'mäßig', 'Keikis am Blütenstiel abnehmen, sobald sie eigene Wurzeln haben. Kommt nicht bei jeder Pflanze vor.');
   if(/Bromelie/i.test(typ)) dazu('kindel', 'sehr gut', 'Die Mutter stirbt nach der Blüte ohnehin, die Kindel übernehmen.');
+  if(/Nepenthes/i.test(bot))
+    dazu('kopfsteckling', 'gut', 'Bei Kannenpflanzen der Standardweg: Triebstück mit zwei bis drei Blättern, Blätter halbieren, warm und sehr feucht in Sphagnum bewurzeln.');
   if(/Karnivore/i.test(typ)){
     dazu('teilung', 'gut', 'Nur mit Regenwasser arbeiten und ausschließlich in ungedüngtes Torfsubstrat setzen.');
     dazu('aussaat', 'mäßig', 'Langwierig, aber bei Karnivoren üblich. Kalt keimend, Geduld über Monate.');
@@ -4846,13 +4968,15 @@ function vermehrungFuer(p){
     dazu('kopfsteckling', 'sehr gut', 'Nicht blühende Triebspitzen nehmen, die wurzeln deutlich besser.');
   if(/Mentha|Melissa|Nepeta|Origanum/i.test(bot)) dazu('teilung', 'sehr gut', 'Breitet sich unterirdisch aus, Teilung ist die einfachste Variante.');
   if(/Kraut|Blattgemüse|Nutzpflanze|Balkonblume/i.test(typ)) dazu('aussaat', 'sehr gut', 'Der übliche Weg, jedes Jahr neu.');
-  if(/Strauch|Kübel|Baum/i.test(typ)){
+  if(/Strauchpflanze|Strauch|Kübel|Baum/i.test(typ)){
     dazu('kopfsteckling', 'mäßig', 'Halb verholzte Triebe im Sommer nehmen.');
     dazu('absenker', 'gut', 'Langsam, aber sehr zuverlässig.');
   }
   if(/Palme|Palmfarn/i.test(typ)) dazu('aussaat', 'schwierig',
     'Palmen lassen sich nicht durch Stecklinge vermehren — sie haben nur einen Vegetationspunkt. Aussaat dauert Jahre.');
   if(/Zwiebelpflanze|Knollenpflanze/i.test(typ)) dazu('kindel', 'gut', 'Brutzwiebeln beim Umtopfen abnehmen.');
+  if(/Rosettenpflanze/i.test(typ)) dazu('kindel', 'gut', 'Rosetten schieben Kindel am Fuß — abnehmen, sobald sie eigene Wurzeln haben.');
+  if(/Sumpfpflanze/i.test(typ)) dazu('teilung', 'sehr gut', 'Im Frühjahr den Horst teilen, danach sofort wieder in den Anstau.');
 
   if(!treffer.length){
     dazu('kopfsteckling', 'geraten', 'Zu dieser Art liegt keine Regel vor — der Kopfsteckling ist der Versuch mit der besten Aussicht. Über „Bei der KI nachfragen“ oben bekommst du eine Auskunft zu genau dieser Art.');
@@ -4871,7 +4995,15 @@ function vSaison(methode, monat){
     const da = (a - m + 12) % 12, db = (b - m + 12) % 12;
     return da - db;
   })[0];
-  return {gut:false, text:'Besser ab ' + MONATE[naechster-1] + ' — jetzt wurzelt es langsamer und fault häufiger.'};
+  /* „Wurzelt langsamer und fault häufiger“ stimmt für Stecklinge.
+     Aussaat, Abmoosen und Teilung haben je einen eigenen Grund. */
+  const wie = String(methode.name || '');
+  const grund = /Aussaat|Samen/i.test(wie) ? 'jetzt keimt es unregelmäßig und die Sämlinge vergeilen im schwachen Licht'
+    : /Teilung|Rhizom/i.test(wie) ? 'jetzt fehlt der Pflanze die Kraft, den Eingriff zügig zu überwachsen'
+    : /Absenker|Abmoosen/i.test(wie) ? 'jetzt dauert die Bewurzelung deutlich länger'
+    : /Kindel|Ausläufer|Auslaeufer/i.test(wie) ? 'jetzt sind die Jungpflanzen noch zu schwach zum Abtrennen'
+    : 'jetzt wurzelt es langsamer und fault häufiger';
+  return {gut:false, text:'Besser ab ' + MONATE[naechster-1] + ' — ' + grund + '.'};
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -5003,10 +5135,18 @@ const GIESSART_STANDARD = 'durch';
 
 /* Vorschlag aus dem, was die App ohnehin weiß. */
 function giessartRaten(p){
-  const typ = String(p.typ || '').toLowerCase();
-  if(/wasserkultur|hydrokultur|hydrokultur/.test(typ)) return 'wasser';
+  /* typVon zieht auch die Gattungstabelle heran — sonst greift bei
+     selbst angelegten Pflanzen keine einzige dieser Regeln. */
+  const typ = String((typeof typVon === 'function' ? typVon(p) : p.typ) || '').toLowerCase();
+  /* Reihenfolge: Hydrokultur zuerst, sonst schluckt der Wasserkultur-
+     Zweig sie mit. Zwei verschiedene Verfahren, zwei Rhythmen. */
+  if(/hydrokultur|semi.?hydro|blähton|blaehton|pon\b|seramis|lechuza/.test(typ)) return 'hydro';
+  if(/wasserkultur|wasserglas|nur wasser/.test(typ)) return 'wasser';
   const kl  = p.klasse;
-  if(kl === 'S' || /karnivore|sumpf/.test(typ))      return 'anstau';
+  /* Anstau ausschließlich über die Gießklasse. Nepenthes und
+     Heliamphora sind Karnivoren, stehen aber nie im Dauerstau —
+     der Typ allein darf das nicht auslösen. */
+  if(kl === 'S')                                      return 'anstau';
   if(/orchidee/.test(typ))                            return 'tauchen';
   if(/usambara|alpenveilchen|cyclamen/.test(String(p.art||'').toLowerCase())) return 'unten';
   if(kl === 'C' || /sukkulente|kaktus|palmfarn/.test(typ)) return 'schluck';
@@ -5029,6 +5169,10 @@ const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','not
 function aenderungen(id){ return (S.edits||{})[id] || null; }
 function aenderungSetzen(id, felder){
   if(!S.edits) S.edits = {};
+  /* Eine von Hand gesetzte Giftangabe wird als solche vermerkt —
+     nur dann schlägt sie später die Bibliotheks- und Familienregeln. */
+  if(Object.prototype.hasOwnProperty.call(felder, 'giftig'))
+    felder = Object.assign({}, felder, {giftEigen: felder.giftig === true || felder.giftig === false});
   const eigen = (S.eigene||[]).find(p=>p.id===id);
   if(eigen){ Object.assign(eigen, felder); }
   else { S.edits[id] = Object.assign({}, S.edits[id], felder); }
@@ -5046,10 +5190,13 @@ function pflanzeMitAenderung(p){
 }
 
 function bearbeitenHTML(p){
+  return `<div class="bearb" id="b-${p.id}" hidden>${bearbeitenInnenHTML(p)}</div>`;
+}
+function bearbeitenInnenHTML(p){
   const eigen = !!(S.eigene||[]).find(x=>x.id===p.id);
   const geaendert = !eigen && !!aenderungen(p.id);
   const gift = p.giftig === true ? 'ja' : (p.giftig === false ? 'nein' : 'unbekannt');
-  return `<div class="bearb" id="b-${p.id}" hidden>
+  return `
     <div class="fgrid">
       <label><span class="lab">Name</span><input data-e="name" data-p="${p.id}" value="${esc(p.name==='Name offen'?'':p.name||'')}" placeholder="z. B. Rudi"></label>
       <label><span class="lab">Art</span><input data-e="art" data-p="${p.id}" value="${esc(p.art||'')}"></label>
@@ -5077,8 +5224,7 @@ function bearbeitenHTML(p){
       ${geaendert?`<button data-do="bearb-reset" data-p="${p.id}">Auf Originalwerte zurück</button>`:''}
       <button class="loeschen" data-do="bearb-weg" data-p="${p.id}">${eigen?'Pflanze löschen':'Aus der Sammlung nehmen'}</button>
     </div>
-    ${geaendert?'<p class="bearb-hinweis">Diese Pflanze weicht von den mitgelieferten Daten ab.</p>':''}
-  </div>`;
+    ${geaendert?'<p class="bearb-hinweis">Diese Pflanze weicht von den mitgelieferten Daten ab.</p>':''}`;
 }
 
 document.addEventListener('click', e=>{
@@ -5087,7 +5233,15 @@ document.addEventListener('click', e=>{
   if(a === 'bearb-auf'){
     e.stopPropagation();
     const box = document.getElementById('b-'+id);
-    if(box){ box.hidden = !box.hidden; if(!box.hidden) box.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    if(!box) return;
+    /* Der Kasten wird erst jetzt gebaut. Vorher lag er in jeder der
+       womöglich zweihundert Karten im Markup, auch zugeklappt. */
+    if(box.dataset.spaet){
+      const p = allePflanzen().find(x=>x.id === id);
+      if(p){ box.innerHTML = bearbeitenInnenHTML(p); delete box.dataset.spaet; }
+    }
+    box.hidden = !box.hidden;
+    if(!box.hidden) box.scrollIntoView({behavior:'smooth', block:'nearest'});
     return;
   }
   if(a === 'bearb-zu'){ const box = document.getElementById('b-'+id); if(box) box.hidden = true; return; }
@@ -5103,10 +5257,8 @@ document.addEventListener('click', e=>{
     });
     if(!felder.name) felder.name = 'Name offen';
     if(!felder.art) felder.art = 'Unbestimmt';
-    /* Gießklasse geändert? Dann auch das Intervall mitziehen. */
-    const alt = allePflanzen().find(x=>x.id===id);
-    if(alt && alt.klasse !== felder.klasse && KLASSE_IV[felder.klasse])
-      felder.intervall = KLASSE_IV[felder.klasse];
+    /* Das Intervall kommt aus der Gießklasse und wird nicht kopiert —
+       eine geänderte Klasse wirkt dadurch sofort. */
     aenderungSetzen(id, felder);
     render();
     return;
@@ -5162,7 +5314,7 @@ function papierkorbRender(){
 </script>
 <!-- Beim allerersten Öffnen: kurze Vorstellung und die zwei Fragen,
      die sonst nirgends auffallen. Danach nie wieder. -->
-<div id="willkommen" class="wk" hidden>
+<div id="willkommen" class="wk" role="dialog" aria-modal="true" aria-label="Willkommen" hidden>
   <div class="wk-blatt">
     <div class="wk-schritt" data-wk="1">
       <p class="wk-nr">Willkommen</p>
@@ -5259,7 +5411,7 @@ function papierkorbRender(){
 
 <div class="wrap">
   <header class="top">
-    <button class="sich-stempel" id="sich-stempel" type="button" hidden></button>
+    <button class="sich-stempel" id="sich-stempel" type="button" aria-label="Letzte Sicherung" hidden></button>
     <h1 id="kopf-titel">Was heute<br>Wasser braucht</h1>
   </header>
 
@@ -5325,7 +5477,7 @@ function papierkorbRender(){
       </div>
       <div class="bibbox" id="neu-bibbox" hidden>
         <div class="bibfeld">
-          <input id="f-art" placeholder="z. B. Efeutute, Epipremnum, Pothos" autocomplete="off" spellcheck="false">
+          <input id="f-art" aria-label="Art suchen" placeholder="z. B. Efeutute, Epipremnum, Pothos" autocomplete="off" spellcheck="false">
           <button id="btn-bib" type="button">Alle ansehen</button>
         </div>
         <div class="biblist" id="bib-liste" hidden></div>
@@ -5341,10 +5493,19 @@ function papierkorbRender(){
             </select>
             <button id="btn-gemini" type="button">Öffnen</button>
           </div>
+          <div class="fotokrit">
+            <b>Diese drei Aufnahmen braucht die KI</b>
+            <ol>
+              <li>Die ganze Pflanze, <b>Topf und Untersetzer vollständig im Bild</b> — sonst kann sie zu Topfgröße und Wasserablauf nichts sagen.</li>
+              <li>Eine Nahaufnahme der <b>Blattunterseite und einer Blattachsel</b> — dort sitzen Schädlinge, und ohne diese Sicht bleibt jeder Befund unbestätigt.</li>
+              <li>Die auffällige Stelle selbst, scharf und bei Tageslicht.</li>
+            </ol>
+            <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
+          </div>
           <p class="kihinweis" id="ki-hinweis"></p>
           <details class="kiprompt">
             <summary>Prompt anzeigen und selbst kopieren</summary>
-            <textarea id="ki-text" readonly></textarea>
+            <textarea id="ki-text" aria-label="Prompt für die KI" readonly></textarea>
             <div class="tools"><button id="btn-ki-kopie" class="haupt" type="button">Prompt kopieren</button></div>
             <p class="kihinweis">Falls das Kopieren am Handy nicht greift: langes Tippen ins Feld, alles markieren, kopieren.</p>
           </details>
@@ -5353,10 +5514,11 @@ function papierkorbRender(){
           </div>
         </div>
         <div class="pastebox" id="paste-box" hidden>
-          <textarea id="f-paste" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
+          <textarea id="f-paste" aria-label="Antwort der KI einfügen" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
           <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
           <p class="pastemeld" id="paste-meld" hidden></p>
           <div id="neu-unsicher"></div>
+          <div id="neu-massnahmen"></div>
         </div>
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="f-name" placeholder="z. B. Rudi"></label>
@@ -5445,7 +5607,7 @@ function papierkorbRender(){
 
     <div class="dok-stufe" id="dok-s1">
       <h3><span class="dok-nr">1</span> Um welche Pflanze geht es?</h3>
-      <select id="dok-pflanze"></select>
+      <select id="dok-pflanze" aria-label="Pflanze für den Doktor wählen"></select>
       <p class="fhint">Auch Arten, die du nicht besitzt — dann bekommst du die Einschätzung ohne Übernahme.</p>
     </div>
 
@@ -5484,10 +5646,19 @@ function papierkorbRender(){
         </select>
         <button id="btn-dok-ki" type="button">Öffnen</button>
       </div>
+      <div class="fotokrit">
+        <b>Diese drei Aufnahmen braucht die KI</b>
+        <ol>
+          <li>Die ganze Pflanze, <b>Topf und Untersetzer vollständig im Bild</b> — sonst kann sie zu Topfgröße und Wasserablauf nichts sagen.</li>
+          <li>Eine Nahaufnahme der <b>Blattunterseite und einer Blattachsel</b> — dort sitzen Schädlinge, und ohne diese Sicht bleibt jeder Befund unbestätigt.</li>
+          <li>Die auffällige Stelle selbst, scharf und bei Tageslicht.</li>
+        </ol>
+        <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
+      </div>
       <p class="kihinweis" id="dok-ki-hinweis"></p>
       <details class="kiprompt" id="dok-frage-details">
         <summary>Frage anzeigen und selbst kopieren</summary>
-        <textarea id="dok-ki-text" readonly></textarea>
+        <textarea id="dok-ki-text" aria-label="Frage an die KI" readonly></textarea>
         <div class="tools"><button id="btn-dok-kopie" class="haupt" type="button">Frage kopieren</button></div>
       </details>
       <label class="dok-foto" id="dok-foto-feld">
@@ -5495,7 +5666,7 @@ function papierkorbRender(){
         <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
       </label>
       <div class="pastebox" id="dok-paste-box" hidden>
-        <textarea id="dok-paste" placeholder="ZUSTAND: …&#10;BEFUND: …&#10;MASSNAHMEN: …"></textarea>
+        <textarea id="dok-paste" aria-label="Antwort der KI einfügen" placeholder="ZUSTAND: …&#10;BEFUND: …&#10;MASSNAHMEN: …"></textarea>
         <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button>
           <button id="btn-dok-leeren" type="button">Feld leeren</button></div>
       </div>
@@ -5508,6 +5679,7 @@ function papierkorbRender(){
       </details>
       <div id="dok-abgleich-hinweis"></div>
       <div id="dok-abgleich"></div>
+      <div id="dok-massnahmen"></div>
       <div id="dok-ergebnis"></div>
     </div>
 
@@ -5594,11 +5766,11 @@ function papierkorbRender(){
       <p class="kihinweis" id="ver-kihinweis"></p>
       <details class="kiprompt" id="ver-frage-details">
         <summary>Frage anzeigen und selbst kopieren</summary>
-        <textarea id="ver-kifrage-text" readonly></textarea>
+        <textarea id="ver-kifrage-text" aria-label="Frage zur Vermehrung" readonly></textarea>
         <div class="tools"><button id="btn-ver-kopie" class="haupt" type="button">Frage kopieren</button></div>
       </details>
       <div class="pastebox">
-        <textarea id="ver-kipaste" placeholder="VERMEHRUNG: …"></textarea>
+        <textarea id="ver-kipaste" aria-label="Antwort zur Vermehrung einfügen" placeholder="VERMEHRUNG: …"></textarea>
         <div class="tools">
           <button id="btn-ver-kipaste" class="haupt" type="button">Übernehmen</button>
           <button id="btn-ver-leeren" type="button">Feld leeren</button>
@@ -5647,7 +5819,7 @@ function papierkorbRender(){
       <b id="gr-titel"></b>
     </div>
     <div class="raumleiste" hidden>
-      <select id="raum-wahl"></select>
+      <select id="raum-wahl" aria-label="Raum wählen"></select>
       <button id="btn-raum-auf">Raum einrichten</button>
     </div>
     <div class="fgrid raumgrid" id="raum-einrichten">
@@ -5666,6 +5838,7 @@ function papierkorbRender(){
           <label class="rm-f"><span>Tiefe</span>
             <input id="r-tiefe" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
           <button id="btn-raum-groesse">Übernehmen</button>
+          <button id="btn-raum-undo" hidden>Änderung rückgängig</button>
         </div>
         <span class="fhint" id="r-mass-hint">Gezeichnet wird in Schritten von 50 cm. Angebaut wird nach rechts und unten.
           Beim Übernehmen wird die Einrichtung des Raums geleert — Fläche, Wände, Fenster, Möbel und Stellplätze.</span>
@@ -5777,6 +5950,11 @@ function papierkorbRender(){
       <button id="btn-import">Sicherung laden</button>
       <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
     </div>
+    <div class="tools" id="vorher-zeile" hidden>
+      <button id="btn-vorher">Stand vor dem Laden zurückholen</button>
+    </div>
+    <p class="sub" id="vorher-hint" hidden>Beim letzten Laden einer Sicherung wurde der bis dahin
+      vorhandene Stand beiseitegelegt. Solange er hier steht, kommst du damit zurück.</p>
     <div class="takt" id="sicher-takt">
       <span class="lab">Erinnern, wenn seit</span>
       <button class="takt-pm" data-takt="-" aria-label="Weniger Tage">−</button>
@@ -5785,7 +5963,7 @@ function papierkorbRender(){
       <button class="takt-pm" data-takt="+" aria-label="Mehr Tage">+</button>
       <span class="lab" id="sicher-takt-wort">Tagen nicht gesichert wurde</span>
     </div>
-    <input type="file" id="import-file" accept="application/json,.json" hidden>
+    <input type="file" id="import-file" accept="application/json,.json" aria-label="Sicherungsdatei wählen" hidden>
     </div>
   </section>
 
@@ -5976,7 +6154,7 @@ function papierkorbRender(){
       <button id="btn-ru-github">Auf GitHub melden</button>
       <button id="btn-ru-kopie">Text kopieren</button>
     </div>
-    <div class="pastebox" id="ru-box" hidden><textarea id="ru-fertig" readonly></textarea></div>
+    <div class="pastebox" id="ru-box" hidden><textarea id="ru-fertig" aria-label="Zusammenfassung des Rundgangs" readonly></textarea></div>
     <p class="kihinweis" id="ru-hinweis"></p>
     </div>
   </section>
@@ -6023,7 +6201,7 @@ function papierkorbRender(){
       <button id="btn-melden-weg" class="loeschen">Liste leeren</button>
     </div>
     <div class="pastebox" id="melde-box" hidden>
-      <textarea id="melde-text" readonly></textarea>
+      <textarea id="melde-text" aria-label="Meldung an die Bibliothek" readonly></textarea>
       <div class="tools">
         <button id="btn-melde-kopie" class="haupt">Text kopieren</button>
         <button id="btn-melde-mail">Als E-Mail öffnen</button>
@@ -6050,7 +6228,7 @@ function papierkorbRender(){
 
 </div>
 
-<div id="giessmodus" hidden>
+<div id="giessmodus" role="dialog" aria-modal="true" aria-label="Gießmodus" hidden>
   <div class="gm-leiste">
     <div class="gm-fort-bahn"><span id="gm-fort"></span></div>
     <button id="gm-abbruch" aria-label="Gießmodus beenden">×</button>
@@ -6059,7 +6237,7 @@ function papierkorbRender(){
   <div class="gm-fuss" id="gm-knoepfe"></div>
 </div>
 
-<div id="rundgang" hidden>
+<div id="rundgang" role="dialog" aria-modal="true" aria-label="Rundgang" hidden>
   <div class="gm-leiste">
     <div class="gm-fort-bahn"><span id="rg-fort"></span></div>
     <button id="rg-abbruch" aria-label="Rundgang beenden">×</button>
@@ -6097,7 +6275,7 @@ function papierkorbRender(){
   </svg>
 </button>
 
-<div id="lightbox"><img alt=""></div>
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Foto in groß"><img alt=""></div>
 
 <div id="foto-modal" class="modal" hidden>
   <div class="modal-box">
@@ -6151,8 +6329,59 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.4';
+const FASSUNG = '2.6';
 const PATCHNOTES = [
+  {
+    nr: '2.6', datum: '2026-08-24', titel: 'Was auf dem Foto zu sehen sein muss',
+    neu: [
+      'Die KI beurteilt jetzt verbindlich auch Topf und Platz: Größe, Material und Aufbau, Wasserablauf — dazu eine konkrete Umtopfempfehlung mit Zielgröße und bester Zeit. Sieht sie den Topf auf dem Foto nicht, sagt sie das, statt zu raten.',
+      'Über beiden Kopierknöpfen steht jetzt, welche drei Aufnahmen die KI wirklich braucht: ganze Pflanze mit Topf und Untersetzer, Blattunterseite mit Blattachsel, und die auffällige Stelle selbst.',
+      'Vorgeschlagene Maßnahmen stehen mit einem Haken zur Auswahl, statt ungefragt auf der Aufgabenliste zu landen. Was nicht passt, wird abgewählt. Die Umtopfempfehlung steht als eigener Punkt mit dabei.'
+    ],
+    besser: [
+      'Der Befund geht jetzt immer alle drei Punkte durch: Schädlinge, Mangelerscheinungen, Krankheitszeichen — jeweils mit Fundstelle. Ist etwas auf dem Foto nicht einsehbar, steht das ausdrücklich dabei, statt als Entwarnung durchzugehen.',
+      'Der Pflanzendoktor fragt die Topfeinschätzung nicht ab, wenn die Pflanze gerade erst umgetopft wurde.',
+      'Topfeinschätzung und Befund wandern beim Anlegen wie beim Doktor in die Notizen der Pflanze.'
+    ],
+    behoben: []
+  },
+  {
+    nr: '2.5', datum: '2026-08-24', titel: 'Sicherheitsnetz nachgezogen',
+    neu: [
+      'Änderst du die Raumgröße im Grundriss, gibt es jetzt für die laufende Sitzung einen Knopf „Änderung rückgängig“ — Fläche, Wände, Möbel und Stellplätze kommen zurück.',
+      'Lädst du eine Sicherung, wird der bisherige Stand beiseitegelegt. Unter „Mehr“ holt ihn ein Knopf zurück, falls die Datei doch nicht die richtige war.',
+      'Sicherungsdateien tragen jetzt ein Kennzeichen. Eine fremde JSON-Datei wird abgelehnt, statt deine Sammlung zu ersetzen.'
+    ],
+    besser: [
+      'Deine eigene Angabe unter „Für Katzen“ gilt jetzt. Bisher konnte eine Bibliotheksregel sie stillschweigend überstimmen.',
+      'Filter „katzensicher“, Kartenmarke, Grundriss, Rundgang und Urlaubszettel benutzen dieselbe Auskunft. Vorher konnte der Filter eine Pflanze als sicher zeigen, die auf der Karte als giftig stand.',
+      'Die Giftwarnung steht jetzt auch in der Kurzfassung des Urlaubszettels, nicht nur auf dem gedruckten Blatt.',
+      'Der Palmfarn wird als das geführt, was er ist: hochgiftig für alle vier Tierarten, und nicht durch Teilung vermehrbar.',
+      'Hydrokultur und Wasserkultur werden im Substratrechner sauber getrennt. Für Hydrokultur gibt es jetzt eine eigene Referenzmischung aus Blähton und Lava.',
+      'Die Sammlung wird deutlich schneller aufgebaut: bei zweihundert Pflanzen etwa ein Sechstel des bisherigen Umfangs. Die Suche wartet kurz ab, statt bei jedem Buchstaben alles neu zu bauen.',
+      'Nepenthes bekommt den Kopfsteckling als Weg, Lithops und Verwandte Aussaat und Teilung statt der Blattstecklinge, die dort nur faulen.',
+      'Vollbildfenster — Gießmodus, Rundgang, Willkommen, Foto in groß — sind für Tastatur und Sprachausgabe richtig abgegrenzt. Zwölf Felder haben eine Beschriftung bekommen, Filterknöpfe und Gießplanbalken größere Tippflächen.',
+      'Gedämpfte Nebentexte hatten keine Farbe und sahen aus wie Fließtext. Die beiden Farben der Giftkennzeichnung waren zu hell und sind nachgedunkelt.'
+    ],
+    behoben: [
+      'Stand im Text der KI irgendwo das Wort „sicher“ — auch in „unsicher“ oder „sicher giftig“ —, wurde die Pflanze als unbedenklich eingetragen.',
+      '„Keinesfalls trocken werden lassen“ wurde als Kakteenmodus gelesen. Ein Farn bekam danach 17 statt 3 Tage Abstand.',
+      'Kannenpflanzen bekamen die Anweisung zum Dauerstau. Anstau gilt jetzt nur noch für die Gießklasse S.',
+      '„Palmfarngewächse“ fiel unter die Regel für Farngewächse und bekam Entwarnung für alle Tierarten.',
+      'Der Knopf „Übernehmen“ bei der Raumgröße leerte den Raum auch dann, wenn sich nichts geändert hatte. Ein gezeichneter Grundriss ohne Wände galt als leer und wurde ohne Rückfrage verworfen.',
+      'Zitronengras, Dahlie und Studentenblume standen als unbedenklich in der Bibliothek, obwohl die ASPCA sie führt. Ringelblume und Zyperngras stehen jetzt auf „ungeklärt“. Kalanchoe und Cotyledon sind als stark giftig eingestuft.',
+      'Der Pflanzendoktor konnte eine Karnivore per KI-Antwort aus der Klasse S nehmen. Das gibt es jetzt nur noch mit Rückfrage.',
+      'Eine Antwort, die gar keine Pflanze beschreibt, wurde beim Anlegen wortlos übernommen.',
+      'Unvollständige Vermehrungszeilen und stehengebliebene Präfixe landeten als Vermehrungsweg in der Karte.',
+      'Der Prompt war zu lang für die Adresszeile und wurde von den Diensten abgeschnitten, obwohl die App meldete, er stehe schon im Feld. Jetzt geht er ab einer bestimmten Länge über die Zwischenablage.',
+      'Balkonblumen bekamen einen Zuwachszähler, obwohl die Patchnote 2.3 das Gegenteil versprach.',
+      'Widersprüchliche Angaben zur Winterruhe bei Karnivoren: es gilt jetzt einheitlich „Untersetzer leeren, Substrat klamm halten“.',
+      'Der Ansichtsschalter der Sammlung war nach dem Neuladen falsch beschriftet.',
+      '„Die letzte Sicherung ist 1 Tage her.“ und „3.0 m“ statt „3 m“ im Grundriss.',
+      'Ein Reiterwechsel während der App Tour ließ den Deckel über einem Ziel liegen, das nicht mehr zu sehen war.',
+      'Beim Sonnenverlauf wurde bei einem diagonalen Schritt über eine Kachelecke nur eine der beiden Kanten geprüft.'
+    ]
+  },
   {
     nr: '2.4', datum: '2026-08-23', titel: 'Kleine Angleichung',
     neu: [],
@@ -6724,8 +6953,10 @@ function icoWasser(p){
   return `<span class="ico wet" title="${esc(KLASSEN[p.klasse].kurz)}"><span class="drops">${d}</span>${p.klasse}</span>`;
 }
 function icoKatze(p){
-  if(p.giftig==='unbekannt') return `<span class="ico" title="Noch nicht geprüft">${SVG.katzeGift}ungeprüft</span>`;
-  return p.giftig
+  /* Dieselbe Auskunft wie Filter, Warnkasten und Urlaubszettel. */
+  const g = (typeof istGiftig === 'function') ? istGiftig(p, 'katze') : (p.giftig === true);
+  if(g === null) return `<span class="ico" title="Noch nicht geprüft">${SVG.katzeGift}ungeprüft</span>`;
+  return g
     ? `<span class="ico warn" title="Giftig für Katzen">${SVG.katzeGift}giftig</span>`
     : `<span class="ico good" title="Für Katzen unbedenklich">${SVG.katzeOk}sicher</span>`;
 }
@@ -6813,15 +7044,13 @@ function intervallBasis(p){
   const w = wechselIntervall(p);
   if(w) return w;
   const ausKlasse = (typeof KLASSE_IV !== 'undefined' && KLASSE_IV[p.klasse]) || null;
-  const eigen = Array.isArray(p.intervall) && p.intervall.length === 2
+  /* Ein eigener Rhythmus gilt nur, wenn er ausdrücklich als solcher
+     gesetzt wurde. Vorher wurde geraten, ob ein Wert von Hand stammt —
+     dabei fielen Werte wie [8,12] als vermeintliche Kopie durch. */
+  const eigen = p.intervallEigen === true
+             && Array.isArray(p.intervall) && p.intervall.length === 2
              && p.intervall.every(x=>typeof x === 'number' && x > 0) ? p.intervall : null;
-  if(!ausKlasse) return eigen || [8,12];
-  if(!eigen) return ausKlasse;
-  /* Stammt der eigene Wert aus irgendeiner Klassentabelle, ist er nur
-     eine alte Kopie und wird verworfen. Nur echte Handarbeit bleibt. */
-  const istKopie = Object.keys(KLASSE_IV).some(k=>
-    KLASSE_IV[k][0] === eigen[0] && KLASSE_IV[k][1] === eigen[1]);
-  return istKopie ? ausKlasse : eigen;
+  return eigen || ausKlasse || [8,12];
 }
 function intervallVon(p){
   const w = wechselIntervall(p);
@@ -7383,7 +7612,7 @@ function schnellLeiste(p){
       <button class="sb" data-do="karte-zu-oben" data-p="${p.id}">Zuklappen</button>
     </div>
   </div>
-  ${typeof bearbeitenHTML==='function'?bearbeitenHTML(p):''}`;
+  <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
 }
 
 function giessAbschnitt(p){
@@ -7413,7 +7642,7 @@ function warnungenHTML(p){
   });
   if(betroffen.length)
     w.push('<b>Giftig für ' + esc(betroffen.join(', ')) + '.</b> Nicht in Reichweite stellen.');
-  else if(!tiere.length && p.giftig === true)
+  else if(!tiere.length && istGiftig(p, 'katze') === true)
     w.push('<b>Giftig für Katzen.</b> Nicht in Reichweite stellen.');
 
   const z = zustandVon(p);
@@ -7573,13 +7802,13 @@ document.addEventListener('change', e=>{
   render();
 });
 
-function cardHTML(p){
+/* Der Inhalt einer aufgeklappten Karte. Steht in einer eigenen
+   Funktion, weil er erst gebaut wird, wenn jemand die Karte öffnet —
+   zugeklappt lag er vorher in jeder einzelnen Karte im Markup und
+   machte bei zweihundert Pflanzen den Löwenanteil der Last aus. */
+function kartenDetailHTML(p){
   const K = KLASSEN[p.klasse];
   const fs = fotosVon(p.id);
-  const pf = profilFoto(p.id);
-  const thumb = pf ? `<span class="thumb" style="background-image:url('${pf.src}')" aria-hidden="true"></span>` : '';
-  const auf = offen.has(p.id);
-  const st = giessStatus(p);
   const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
   let detail;
 
@@ -7634,7 +7863,15 @@ function cardHTML(p){
           + acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
           + acc('pflege', 'Pflege', `<ul>${p.pflege.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
           + acc('probleme', 'Wenn etwas nicht stimmt', probs, `${p.probleme.length}`)
-          + acc('katzen', 'Katzen', `<div class="alert ${p.giftig?'':'safe'}"><strong>${p.giftig?'Nicht in Katzenreichweite.':'Unbedenklich.'}</strong> ${esc(p.katzentext)}</div>`, p.giftig?'giftig':'sicher')},
+          + (function(){
+              const g = istGiftig(p, 'katze');
+              const t = giftFuer(p, 'katze');
+              const kopf = g === true ? 'Nicht in Katzenreichweite.' : g === false ? 'Unbedenklich.' : 'Noch nicht geprüft.';
+              const text = t.quelle === 'eigen' || !p.katzentext ? t.grund : p.katzentext;
+              return acc('katzen', 'Katzen',
+                `<div class="alert ${g === false ? 'safe' : ''}"><strong>${kopf}</strong> ${esc(text)}</div>`,
+                g === true ? 'giftig' : g === false ? 'sicher' : 'ungeprüft');
+            })()},
         {key:'lage', titel:'Lage', inhalt: lagePaneHTML(p)},
         {key:'geschichte', titel:'Geschichte', inhalt:
           acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
@@ -7643,6 +7880,16 @@ function cardHTML(p){
       ])}
     </div>`;
   }
+  return detail;
+}
+
+function cardHTML(p){
+  const K = KLASSEN[p.klasse];
+  const pf = profilFoto(p.id);
+  const thumb = pf ? `<span class="thumb" style="background-image:url('${pf.src}')" aria-hidden="true"></span>` : '';
+  const auf = offen.has(p.id);
+  const st = giessStatus(p);
+  const detail = auf ? kartenDetailHTML(p) : `<div class="detail" data-spaetkarte="${p.id}"></div>`;
 
   return `<article class="card${auf?' open':''}" id="c-${p.id}">
     <button class="card-btn" aria-expanded="${auf}" data-t="${p.id}">
@@ -7727,6 +7974,13 @@ document.addEventListener('click', e=>{
   const b = e.target.closest('[data-samview]'); if(!b) return;
   samAnsichtSetzen(b.dataset.samview);
 });
+/* Nach dem Neuladen stand die Beschriftung fest auf „Karten“, auch
+   wenn die Raster-Ansicht gespeichert war. */
+function samAnsichtBeschriften(){
+  document.querySelectorAll('[data-samview]').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.samview === samAnsicht())));
+}
+samAnsichtBeschriften();
 
 /* Vier Wochen im Voraus: je Tag ein Balken mit der Zahl fälliger
    Pflanzen. Wo sich etwas türmt, sieht man es hier, bevor man verreist.
@@ -7806,8 +8060,10 @@ function render(){
   if(typeof formLageZeichnen === 'function') formLageZeichnen();
   const list = alle.filter(p=>{
     if(filterKlasse && p.klasse!==filterKlasse) return false;
-    if(filterKatze==='safe' && p.giftig!==false) return false;
-    if(filterKatze==='tox' && p.giftig!==true) return false;
+    /* Dieselbe Auskunft wie auf der Karte — sonst zeigt der Filter
+       „katzensicher“ einen Oleander. */
+    if(filterKatze==='safe' && istGiftig(p, 'katze') !== false) return false;
+    if(filterKatze==='tox' && istGiftig(p, 'katze') !== true) return false;
     if(filterRaum === '__ohne' ? !!p.raum : (filterRaum && p.raum !== filterRaum)) return false;
     if(filterPlatz === '__ohne' ? !!p.stellplatz : (filterPlatz && p.stellplatz !== filterPlatz)) return false;
     if(!q) return true;
@@ -7857,6 +8113,13 @@ function render(){
         if(btn){ btn.setAttribute('aria-expanded','false'); offen.delete(btn.dataset.t); }
       });
     }
+    if(wirdAuf){
+      const platz = c.querySelector('[data-spaetkarte]');
+      if(platz){
+        const pp = allePflanzen().find(x=>x.id === platz.dataset.spaetkarte);
+        if(pp) platz.outerHTML = kartenDetailHTML(pp);
+      }
+    }
     c.classList.toggle('open', wirdAuf);
     b.setAttribute('aria-expanded', String(wirdAuf));
     wirdAuf ? offen.add(b.dataset.t) : offen.delete(b.dataset.t);
@@ -7877,6 +8140,7 @@ function render(){
   $('#out').querySelectorAll('.gal img').forEach(im=>im.onclick=e=>{
     e.stopPropagation();
     const lb = $('#lightbox'); lb.querySelector('img').src = im.src; lb.classList.add('on');
+    if(typeof fensterAuf === 'function') fensterAuf(lb);
   });
   $('#out').querySelectorAll('input[data-foto]').forEach(inp=>inp.onchange=e=>{
     e.stopPropagation();
@@ -8071,6 +8335,8 @@ function formularLeeren(){
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
   $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
   const uns = $('#neu-unsicher'); if(uns) uns.innerHTML = '';
+  const mnz = $('#neu-massnahmen'); if(mnz) mnz.innerHTML = '';
+  if(typeof massnahmeAuswahl !== 'undefined') massnahmeAuswahl['neu'] = [];
   zustandListe(null);
   if(typeof zustandHinweis === 'function') zustandHinweis();
   neuWegSetzen(null);
@@ -8212,7 +8478,7 @@ function sicherungHinweis(){
   const el = document.createElement('div');
   el.id = 'sich-hinweis'; el.className = 'sich-hinweis';
   el.innerHTML = `<span>${S.letzteSicherung
-      ? 'Die letzte Sicherung ist ' + tage + ' Tage her.'
+      ? 'Die letzte Sicherung ist ' + tage + (tage === 1 ? ' Tag her.' : ' Tage her.')
       : 'Von diesen Daten gibt es noch keine Sicherung.'}
     Der Browserspeicher kann jederzeit geleert werden — dann ist alles weg.</span>
     <button id="sich-jetzt">Jetzt sichern</button>
@@ -8259,7 +8525,7 @@ document.addEventListener('click', e=>{
 const SICHERUNG_NAME = 'pflanzen-sicherung.json';
 
 $('#btn-download').onclick = async ()=>{
-  const blob = new Blob([JSON.stringify(S,null,2)], {type:'application/json'});
+  const blob = new Blob([sicherungInhalt()], {type:'application/json'});
   
   /* Neuere Browser (Chrome >= 86, Android >= 2022): Datei-Speicher-Dialog
      mit Option, einen Ordner auszuwählen. Dann landen alle Downloads dort
@@ -8297,9 +8563,29 @@ $('#btn-download').onclick = async ()=>{
    gelöscht. Über das Teilen-Fenster geht sie in einem Schritt nach
    WhatsApp, Drive, iCloud oder in eine Mail an sich selbst.
    Muss direkt im Klick laufen — das Teilen-Fenster öffnet sonst nicht. */
+/* Ein Kennzeichen in der Datei, damit sich eine Sicherung von jeder
+   beliebigen JSON-Datei unterscheiden lässt. */
+function sicherungInhalt(){
+  return JSON.stringify(Object.assign({__app:'greenkeeperai', __fassung:FASSUNG,
+    __gesichert:new Date().toISOString()}, S), null, 2);
+}
+function sicherungPruefen(daten){
+  if(!daten || typeof daten !== 'object' || Array.isArray(daten))
+    return 'Das ist kein Sicherungsobjekt.';
+  if(daten.__app === 'greenkeeperai') return null;
+  /* Ältere Sicherungen haben noch kein Kennzeichen — dann muss
+     wenigstens eines der bekannten Felder im richtigen Format da sein. */
+  const eigene = Array.isArray(daten.eigene);
+  const water  = daten.water && typeof daten.water === 'object';
+  const fotos  = daten.fotos && typeof daten.fotos === 'object';
+  const edits  = daten.edits && typeof daten.edits === 'object';
+  if(eigene || water || fotos || edits) return null;
+  return 'In der Datei steht nichts, was nach einer Sicherung dieser App aussieht.';
+}
+
 function sicherungDatei(){
   return new File(
-    [JSON.stringify(S, null, 2)],
+    [sicherungInhalt()],
     SICHERUNG_NAME,
     {type:'application/json'}
   );
@@ -8363,6 +8649,36 @@ async function speicherFesthalten(){
   }catch(e){}
 }
 speicherFesthalten();
+/* Der Stand, der beim Laden einer Sicherung überschrieben wurde. */
+function vorherZeigen(){
+  let da = false;
+  try{ da = !!localStorage.getItem(KEY + ':vorher'); }catch(e){}
+  const z = document.getElementById('vorher-zeile'), h = document.getElementById('vorher-hint');
+  if(z) z.hidden = !da;
+  if(h) h.hidden = !da;
+}
+vorherZeigen();
+const _btnVorher = document.getElementById('btn-vorher');
+if(_btnVorher) _btnVorher.onclick = ()=>{
+  let roh = null;
+  try{ roh = localStorage.getItem(KEY + ':vorher'); }catch(e){}
+  if(!roh){ vorherZeigen(); return; }
+  if(!confirm('Den Stand von vor dem Laden zurückholen? Die zuletzt geladene Sicherung wird dabei ersetzt.')) return;
+  try{
+    S = Object.assign(LEERSTAND(), JSON.parse(roh));
+    grundwerteErgaenzen();
+    FOTOS_BEREIT = true;
+    localStorage.removeItem(KEY + ':vorher');
+    sichern();
+    vorherZeigen();
+    render();
+    alert('Zurückgeholt: ' + allePflanzen().length + ' Pflanzen.');
+  }catch(e){
+    console.error(e);
+    alert('Der alte Stand ließ sich nicht lesen.');
+  }
+};
+
 $('#btn-import').onclick = ()=>$('#import-file').click();
 $('#import-file').onchange = ()=>{
   const f = $('#import-file').files[0]; if(!f) return;
@@ -8370,8 +8686,12 @@ $('#import-file').onchange = ()=>{
   fr.onload = ()=>{
     try{
       const daten = JSON.parse(fr.result);
-      if(!daten || typeof daten!=='object') throw new Error('Format');
+      const einwand = sicherungPruefen(daten);
+      if(einwand) throw new Error(einwand);
       if(!confirm('Sicherung laden? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
+      /* Den bisherigen Stand einmal beiseitelegen, bevor er verschwindet. */
+      try{ localStorage.setItem(KEY + ':vorher', localStorage.getItem(KEY) || ''); }catch(e){}
+      delete daten.__app; delete daten.__fassung; delete daten.__gesichert;
       S = Object.assign(LEERSTAND(), daten);
       grundwerteErgaenzen();
       /* Beim Einlesen einer Sicherung sind die Fotos vollständig da —
@@ -8383,6 +8703,7 @@ $('#import-file').onchange = ()=>{
          loszuwerden — nach einem Import sah die Sammlung anders aus als
          vorher, bis man die Seite neu lud. */
       sichern();
+      vorherZeigen();
       /* Bricht die Anzeige aus irgendeinem Grund ab, sind die Daten trotzdem
          schon geschrieben. Dann lieber neu laden als halb gezeichnet dastehen. */
       try{ render(); }
@@ -8391,7 +8712,8 @@ $('#import-file').onchange = ()=>{
         alert('Sicherung geladen. Die Seite wird einmal neu aufgebaut.');
         location.reload(); return;
       }
-      alert('Sicherung geladen: ' + allePflanzen().length + ' Pflanzen.');
+      alert('Sicherung geladen: ' + allePflanzen().length + ' Pflanzen.'
+        + '\n\nDer vorherige Stand liegt noch im Browser. Über „Stand vor dem Laden zurückholen“ in Mehr kommst du zurück.');
     }catch(err){
       console.error(err);
       alert('Die Datei konnte nicht gelesen werden.\n\n' + (err && err.message ? err.message : '')
@@ -8410,8 +8732,34 @@ $('#btn-reset').onclick = async ()=>{
   location.reload();
 };
 
-$('#lightbox').onclick = ()=>$('#lightbox').classList.remove('on');
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#lightbox').classList.remove('on'); });
+/* ── Vollbild-Fenster und die Tastatur ────────────────────
+   Ohne das hier tabbt man aus einem offenen Fenster heraus in die
+   Seite dahinter, die man gar nicht sehen kann. `inert` nimmt den
+   Hintergrund komplett aus der Bedienung; wo der Browser das nicht
+   kennt, bleibt wenigstens der Fokus richtig gesetzt. */
+let _fensterVorher = null;
+function fensterAuf(el){
+  if(!el) return;
+  _fensterVorher = document.activeElement;
+  const wrap = document.querySelector('.wrap');
+  if(wrap && !wrap.contains(el)) wrap.setAttribute('inert', '');
+  const ziel = el.querySelector('button, [href], input, select, textarea');
+  if(ziel && typeof ziel.focus === 'function') setTimeout(()=>ziel.focus(), 0);
+}
+function fensterZu(){
+  const wrap = document.querySelector('.wrap');
+  if(wrap) wrap.removeAttribute('inert');
+  if(_fensterVorher && typeof _fensterVorher.focus === 'function'){
+    try{ _fensterVorher.focus(); }catch(e){}
+  }
+  _fensterVorher = null;
+}
+
+$('#lightbox').onclick = ()=>{ $('#lightbox').classList.remove('on'); fensterZu(); };
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Escape') return;
+  if($('#lightbox').classList.contains('on')){ $('#lightbox').classList.remove('on'); fensterZu(); }
+});
 
 /* ══════════════════ Plan & Skala ══════════════════ */
 function planTabellen(){
@@ -8542,7 +8890,13 @@ function massnahmeText(m){
 function massnahmenZuAufgaben(pflanzeId, massnahmen, herkunft){
   const p = allePflanzen().find(x=>x.id === pflanzeId);
   const liste = massnahmenLesen(massnahmen).filter(m=>!massnahmeTrivial(m, p));
-  if(!liste.length) return 0;
+  return aufgabenAusMassnahmen(pflanzeId, liste, herkunft);
+}
+
+/* Derselbe Weg, aber mit einer schon ausgewählten Liste. */
+function aufgabenAusMassnahmen(pflanzeId, liste, herkunft){
+  const p = allePflanzen().find(x=>x.id === pflanzeId);
+  if(!liste || !liste.length) return 0;
   const bestand = new Set(((S.added[pflanzeId]||[])).map(a=>(a.text||'').toLowerCase()));
   let neu = 0;
   liste.forEach(m=>{
@@ -8570,6 +8924,77 @@ function massnahmenZuAufgaben(pflanzeId, massnahmen, herkunft){
   sichern();
   return neu;
 }
+
+/* ── Maßnahmen zur Auswahl stellen ────────────────────────
+   Bisher wanderten alle Vorschläge ungefragt auf die Aufgabenliste.
+   Jetzt steht jeder mit einem Haken da: was nicht passt, wird
+   abgewählt, statt später einzeln wieder gelöscht zu werden. */
+let massnahmeAuswahl = {};        /* Kennung → Liste geparster Maßnahmen */
+
+function massnahmenAuswahlHTML(kennung, liste, kopf){
+  massnahmeAuswahl[kennung] = liste || [];
+  if(!liste || !liste.length) return '';
+  const DRING = {sofort:'sofort', dringend:'sofort', umgehend:'sofort'};
+  return `<div class="mn-wahl" data-mnwahl="${esc(kennung)}">
+    <h4>${esc(kopf || 'Was jetzt zu tun ist')}</h4>
+    <p class="sub">Hak ab, was auf die Aufgabenliste soll. Alles andere bleibt außen vor.</p>
+    ${liste.map((m,i)=>{
+      const eilig = !!DRING[norm(m.dringlich || '')];
+      return `<label class="mn-zeile">
+        <input type="checkbox" data-mn="${esc(kennung)}" data-i="${i}" checked>
+        <span class="mn-text">
+          <b>${esc(m.handlung || '')}</b>
+          <span class="mn-sub">${m.ausloeser ? esc(m.ausloeser) : ''}${
+            m.ausloeser && (m.dringlich || m.wiederholung) ? ' · ' : ''}${
+            esc([m.dringlich, m.wiederholung].filter(x=>x && !/^einmalig$/i.test(x)).join(' · '))}</span>
+        </span>
+        ${eilig ? '<span class="mn-eilig">sofort</span>' : ''}
+      </label>`;
+    }).join('')}
+    <div class="tools">
+      <button class="haupt" data-do="mn-nehmen" data-k="${esc(kennung)}">Ausgewählte als Aufgaben</button>
+      <button data-do="mn-keine" data-k="${esc(kennung)}">Keine übernehmen</button>
+    </div>
+    <p class="mn-meld" hidden></p>
+  </div>`;
+}
+
+/* Was steht angehakt in der Liste? */
+function massnahmenGewaehlt(kennung){
+  const liste = massnahmeAuswahl[kennung] || [];
+  const raus = [];
+  document.querySelectorAll('[data-mn="' + kennung + '"]').forEach(el=>{
+    if(el.checked && liste[parseInt(el.dataset.i, 10)]) raus.push(liste[parseInt(el.dataset.i, 10)]);
+  });
+  return raus;
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do="mn-nehmen"], [data-do="mn-keine"]');
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const kennung = b.dataset.k;
+  const kasten = document.querySelector('[data-mnwahl="' + kennung + '"]');
+  const meld = kasten ? kasten.querySelector('.mn-meld') : null;
+  const sag = t => { if(meld){ meld.hidden = false; meld.textContent = t; } };
+  if(b.dataset.do === 'mn-keine'){
+    massnahmeAuswahl[kennung] = [];
+    if(kasten) kasten.innerHTML = '<p class="sub">Keine Aufgabe angelegt.</p>';
+    return;
+  }
+  /* Beim Anlegen gibt es die Pflanze noch nicht — dort wird die
+     Auswahl nur gemerkt und beim Speichern übernommen. */
+  const id = kasten ? kasten.dataset.pfl : null;
+  const gewaehlt = massnahmenGewaehlt(kennung);
+  if(!gewaehlt.length){ sag('Nichts ausgewählt.'); return; }
+  if(!id){ sag(gewaehlt.length + (gewaehlt.length === 1 ? ' Schritt vorgemerkt' : ' Schritte vorgemerkt')
+    + ' — sie werden beim Anlegen zu Aufgaben.'); return; }
+  const n = aufgabenAusMassnahmen(id, gewaehlt, kasten.dataset.quelle || 'ki');
+  sag(n ? n + (n === 1 ? ' Aufgabe angelegt.' : ' Aufgaben angelegt.') + ' Zu finden bei „Heute“ und in der Karte.'
+        : 'Diese Schritte stehen schon auf der Liste.');
+  massnahmeAuswahl[kennung] = [];
+  render();
+});
 
 /* Einzelnen Hinweis ausblenden. Gemerkt wird je Pflanze und Anlass,
    damit ein weggeklickter Standorthinweis nicht auch den Hinweis zu
@@ -8657,6 +9082,7 @@ function wkFertig(mitTutorial){
   const w = document.getElementById('willkommen');
   if(w) w.hidden = true;
   document.body.style.overflow = '';
+  if(typeof fensterZu === 'function') fensterZu();
   tierEinstellungZeichnen();
   render();
   /* Frueher sprang der Knopf direkt ins offene Formular. Jetzt geht es
@@ -8722,6 +9148,7 @@ document.addEventListener('click', e=>{
   document.body.style.overflow = 'hidden';
   wkSchritt(1);
   wkArtenZeichnen();
+  if(typeof fensterAuf === 'function') fensterAuf(w);
 })();
 
 /* Fotos aus dem großen Speicher nachladen und die Anzeige auffrischen.
@@ -8730,10 +9157,13 @@ if(typeof fotosVorbereiten === 'function') fotosVorbereiten();
 
 /* Erinnerung an die Sicherung, sobald etwas zu verlieren ist. */
 if(typeof sicherungHinweis === 'function') sicherungHinweis();
-/* Die Skala muss jedem Zu- und Abgang folgen, nicht nur dem Start */
-const _renderVorherSkala = render;
-render = function(){ _renderVorherSkala(); };
-$('#q').addEventListener('input', render);
+/* Jeder Tastendruck baut sonst die ganze Sammlung neu — bei 200
+   Pflanzen sind das über zwei Megabyte Markup pro Buchstabe. */
+let _suchTakt = null;
+$('#q').addEventListener('input', ()=>{
+  clearTimeout(_suchTakt);
+  _suchTakt = setTimeout(render, 180);
+});
 
 </script>
 <script>
@@ -8971,21 +9401,21 @@ function kiHinweis(txt, ton){
   el.className = 'kihinweis' + (ton ? ' ' + ton : '');
   if(txt){ el.textContent = txt; return; }
   const d = KI_DIENSTE[$('#ki-dienst').value];
-  el.textContent = d.vorbefuellen
+  el.textContent = kiPerUrl(d, anlegenPromptBauen())
     ? 'Der Prompt steht dort schon im Feld. Nur noch dein Foto anhängen und abschicken.'
-    : 'Gemini kann keinen Text über die Adresse übernehmen. Der Prompt wird deshalb beim Öffnen in die Zwischenablage gelegt — dort einfügen und Foto anhängen.';
+    : 'Der Prompt ist zu lang für die Adresszeile — er wird beim Öffnen in die Zwischenablage gelegt. Dort einfügen und Foto anhängen.';
 }
 kiHinweis();
 
 $('#btn-gemini').onclick = ()=>{
-  const {dienst, kopiert} = kiOeffnen($('#ki-dienst').value);
+  const {dienst, kopiert, perUrl} = kiOeffnen($('#ki-dienst').value);
   $('#paste-box').hidden = false;
-  if(dienst.vorbefuellen){
+  if(perUrl){
     kiHinweis(dienst.name + ' ist offen, der Prompt steht dort im Feld. Foto anhängen, abschicken — die Antwort kommt hier ins Feld unten.', 'ok');
   } else if(kopiert){
-    kiHinweis('Gemini ist offen, der Prompt liegt in der Zwischenablage. Dort ins Eingabefeld einfügen, Foto anhängen, abschicken.', 'ok');
+    kiHinweis(dienst.name + ' ist offen, der Prompt liegt in der Zwischenablage. Dort ins Eingabefeld einfügen, Foto anhängen, abschicken.', 'ok');
   } else {
-    kiHinweis('Gemini ist offen, aber das Kopieren hat nicht geklappt. Klapp unten „Prompt anzeigen“ auf und kopiere den Text von Hand.', 'warn');
+    kiHinweis(dienst.name + ' ist offen, aber das Kopieren hat nicht geklappt. Klapp unten „Prompt anzeigen“ auf und kopiere den Text von Hand.', 'warn');
     const d = document.querySelector('.kiprompt'); if(d) d.open = true;
   }
 };
@@ -9061,6 +9491,12 @@ $('#btn-paste-los').onclick = ()=>{
   const notiz = [];
   if(d.befund) notiz.push('Befund: ' + d.befund);
   if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
+  const nTopf = topfLesen(d.topf);
+  if(nTopf && nTopf.empfehlung){
+    notiz.push('Topf und Platz: ' + nTopf.groesse
+      + (nTopf.material ? ', ' + nTopf.material : '') + ', ' + nTopf.ablauf + '. ' + nTopf.empfehlung);
+    uebernommen.push('Topfeinschätzung übernommen');
+  }
   if(d.schritte) notiz.push('Schritte: ' + d.schritte);
   if(d.vermehrung) uebernommen.push('Vermehrungswege gemerkt');
   if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
@@ -9074,7 +9510,61 @@ $('#btn-paste-los').onclick = ()=>{
   const gelesen = Object.keys(d).length;
   meld.textContent = uebernommen.join(' · ') + `. ${gelesen} Angaben gelesen — bitte kurz kontrollieren, dann anlegen.`;
   unsicherZeigen('#neu-unsicher', d, 'neu');
+  neuMassnahmenZeigen(d);
+  /* Ohne Bibliothekstreffer und ohne bekannte Gattung: nicht still
+     übernehmen, sondern nachfragen. */
+  if(!treffer && d.bot && !botPlausibel(d.bot)){
+    const el = document.querySelector('#neu-unsicher');
+    if(el) el.innerHTML = botWarnungHTML(d.bot) + el.innerHTML;
+  }
 };
+
+/* Beim Anlegen gibt es die Pflanze noch nicht. Die Auswahl steht
+   trotzdem schon da und wird beim Speichern eingelöst. */
+function neuMassnahmenZeigen(d){
+  const ziel = document.getElementById('neu-massnahmen');
+  if(!ziel) return;
+  const topf = topfLesen(d.topf);
+  const liste = massnahmenLesen(d.schritte ? String(d.schritte).split(/\r?\n/) : []);
+  const ausTopf = topfMassnahme(topf);
+  if(ausTopf) liste.unshift(ausTopf);
+  ziel.innerHTML = topfHTML(topf) + massnahmenAuswahlHTML('neu', liste);
+}
+
+/* Sieht der botanische Name überhaupt nach einer Pflanze aus?
+   Eine Antwort mit „Carassius auratus“ wurde bisher wortlos
+   übernommen. Geprüft wird gegen Bibliothek und Gattungstabelle. */
+function botPlausibel(bot){
+  const t = String(bot || '').trim();
+  if(!t) return false;
+  if(typeof BIB_NACH_BOT !== 'undefined' && BIB_NACH_BOT[t]) return true;
+  if(typeof bibTreffer === 'function'){
+    const tr = bibTreffer(t, 1)[0];
+    if(tr && tr.s >= SICHERER_TREFFER) return true;
+  }
+  if(typeof GATTUNGEN !== 'undefined' && GATTUNGEN.some(e=>e.g.test(t))) return true;
+  /* Auch die Familie zählt: eine unbekannte Gattung in einer bekannten
+     Familie ist plausibel, ein Fisch ist es nicht. */
+  const gattung = t.split(/\s+/)[0];
+  if(typeof BIB !== 'undefined' && BIB.some(a=>String(a.bot||'').split(/\s+/)[0] === gattung)) return true;
+  return false;
+}
+function botWarnungHTML(bot){
+  return `<div class="dok-unsicher"><b>Diese Antwort passt zu keiner bekannten Pflanze.</b>
+    „${esc(bot)}“ steht weder in der Bibliothek noch in der Gattungstabelle.
+    Das kann eine seltene Art sein — oder die Antwort gehört gar nicht zu einer Pflanze.
+    Bitte den botanischen Namen kurz gegenprüfen, bevor du sie anlegst.</div>`;
+}
+
+/* Ein Wechsel weg von Klasse S braucht eine ausdrückliche Antwort. */
+function klasseSBestaetigt(id, neueKlasse){
+  if(!neueKlasse || neueKlasse === 'S') return true;
+  const p = allePflanzen().find(x=>x.id === id);
+  if(!p || p.klasse !== 'S') return true;
+  return confirm('Diese Art wird als Anstau-Pflanze geführt — Untersetzer dauerhaft gefüllt.\n\n'
+    + 'Die Gießklasse auf „' + neueKlasse + '“ zu setzen nimmt ihr den Anstau, den Karnivorenrhythmus und die zugehörigen Hinweise.\n\n'
+    + 'Wirklich ändern?');
+}
 
 /* ── Wenn sich die KI nicht sicher ist ─────────────────────
    Statt die Bestimmung stillschweigend zu übernehmen, wird gesagt,
@@ -9146,8 +9636,12 @@ function klasseRaten(text){
   const t = norm(text);
   if(/^[abcs]$/i.test(String(text).trim())) return String(text).trim().toUpperCase();
   if(/anstau|karniv|moor|dauernass/.test(t)) return 'S';
-  if(/kakt|sukkul|durchtrock|sparsam|trocken/.test(t)) return 'C';
+  /* „keinesfalls trocken werden lassen“ ist das Gegenteil von
+     Kakteenmodus. Verneinungen deshalb vor dem C-Zweig abfangen. */
+  const verneint = /\b(nicht|nie|niemals|keines?falls|ohne|vermeide[nt]?)\b/.test(t);
+  if(!verneint && /kakt|sukkul|durchtrock|sparsam|trocken/.test(t)) return 'C';
   if(/durstig|feucht|viel wasser|hoch/.test(t)) return 'A';
+  if(verneint && /trocken/.test(t)) return 'A';
   if(/normal|mittel|standard/.test(t)) return 'B';
   return null;
 }
@@ -9220,6 +9714,7 @@ $('#btn-neu-save').onclick = async ()=>{
     botanisch: $('#f-bot').value.trim() || (a ? a.bot : ''),
     familie: a ? a.fam : '', klasse: kl,
     giftig: gift==='ja' ? true : (gift==='nein' ? false : 'unbekannt'),
+    giftEigen: gift==='ja' || gift==='nein',
     raum: $('#f-raum').value || '',
     stellplatz: $('#f-stellplatz').value || '',
     typ: $('#f-typ').value.trim() || (a ? a.typ : 'Ohne Angabe'),
@@ -9244,8 +9739,9 @@ $('#btn-neu-save').onclick = async ()=>{
      der Doktor den Zustand von Anfang an und die Schritte stehen sofort
      auf der Liste, statt nur in der Notiz zu verschwinden. */
   let kiAufgaben = 0;
-  if(letzteKiAntwort && letzteKiAntwort.schritte){
-    kiAufgaben = massnahmenZuAufgaben(id, letzteKiAntwort.schritte, 'anlegen');
+  const gewaehlt = massnahmenGewaehlt('neu');
+  if(gewaehlt.length){
+    kiAufgaben = aufgabenAusMassnahmen(id, gewaehlt.filter(m=>!massnahmeTrivial(m, p)), 'anlegen');
   }
   if(letzteKiAntwort && letzteKiAntwort.vermehrung){
     const v = vermehrungLesen(letzteKiAntwort.vermehrung,
@@ -9253,6 +9749,8 @@ $('#btn-neu-save').onclick = async ()=>{
     if(v) p.vermehrungKi = v;
   }
   letzteKiAntwort = null;
+  massnahmeAuswahl['neu'] = [];
+  const nmz = document.getElementById('neu-massnahmen'); if(nmz) nmz.innerHTML = '';
   if(files && files.length) await fotosHinzu(id, Array.from(files));
   formularLeeren();
   $('#form-neu').classList.remove('on');
@@ -9548,7 +10046,7 @@ function grundrissSVG(){
   pflanzenIm(r.id).forEach(p=>{
     const o = pflanzenOrt(p.id);
     const u = platzUrteil(r, o.x, o.y, pMonat);
-    const gift = p.giftig === true;
+    const gift = istGiftig(p, 'katze') !== false;
     const warn = gift && u.katze;
     const gew = pGewaehlt && pGewaehlt.typ==='pflanze' && pGewaehlt.id===p.id;
     const form = FORMEN[formVon(p)] ? FORMEN[formVon(p)]() : FORMEN.bluete();
@@ -9691,7 +10189,7 @@ function planKarteHTML(p){
       <button class="pk-zu" data-do="karte-zu">×</button>
       <h4>${esc(nice(p))}</h4>
       <p class="pk-zeile">${esc(wo)}${u ? ' · ' + esc(licht) : ''}</p>
-      <p class="pk-zeile">${esc(wasser)}${z.code!=='gesund'?' · '+esc(z.def.name):''}${p.giftig===true?' · giftig für Katzen':''}</p>
+      <p class="pk-zeile">${esc(wasser)}${z.code!=='gesund'?' · '+esc(z.def.name):''}${istGiftig(p,'katze')===true?' · giftig für Katzen':''}</p>
       <div class="tools"><button class="haupt" data-do="giessen" data-p="${p.id}">${giessTat(p)}</button></div>
     </div>`;
   }
@@ -9701,7 +10199,7 @@ function planKarteHTML(p){
     <p class="pk-art">${esc(p.art)}${p.botanisch?` · <i>${esc(p.botanisch)}</i>`:''}</p>
     <p class="pk-zeile">${esc(wo)} in ${esc(u&&u.hoehe?u.hoehe+' cm Höhe':'Bodenhöhe')} · ${esc(licht)}</p>
     <p class="pk-zeile">${esc(SONNE[p.sonne]?SONNE[p.sonne].text:'Licht offen')} · ${esc(wasser)}${z.code!=='gesund'?' · '+esc(z.def.name):''}</p>
-    ${p.giftig===true?`<p class="pk-warn">Giftig für Katzen${u&&u.katze?' — und hier erreichbar':''}</p>`:''}
+    ${istGiftig(p,'katze')===true?`<p class="pk-warn">Giftig für Katzen${u&&u.katze?' — und hier erreichbar':''}</p>`:''}
     <div class="tools">
       <button data-do="giessen" data-p="${p.id}">Heute gegossen</button>
       <button data-go="${p.id}">Steckbrief</button>
@@ -9715,7 +10213,8 @@ function freiHTML(){
   return `<p class="sub">Noch ohne Platz — antippen, dann in den Grundriss tippen:</p>
     <div class="zchips">${frei.map(p=>{
       const gew = pGewaehlt && pGewaehlt.typ==='neu' && pGewaehlt.id===p.id;
-      return `<button class="zchip${gew?' gewaehlt':''}${p.giftig===true?' gift':(p.giftig===false?' safe':'')}" data-neu="${p.id}">${esc(kurz(p))}</button>`;
+      const gz = istGiftig(p, 'katze');
+      return `<button class="zchip${gew?' gewaehlt':''}${gz===true?' gift':(gz===false?' safe':'')}" data-neu="${p.id}">${esc(kurz(p))}</button>`;
     }).join('')}</div>`;
 }
 
@@ -10078,13 +10577,25 @@ $('#r-name').onchange = ()=>{ raum().name = $('#r-name').value.trim() || raum().
 $('#r-drehung').addEventListener('input', ()=>{ raum().drehung = parseInt($('#r-drehung').value,10); planRender(); });
 $('#r-drehung').addEventListener('change', sichern);
 $('#r-dach').onchange = ()=>{ raum().dach = !$('#r-dach').checked; sichern(); planRender(); };
+/* Der letzte Stand vor einer Größenänderung. Gilt nur für die
+   laufende Sitzung — mehr braucht es für ein Versehen nicht. */
+let raumUndo = null;
+function raumUndoZeigen(){
+  const k = document.getElementById('btn-raum-undo');
+  const r = (typeof raum === 'function') ? raum() : null;
+  if(k) k.hidden = !(raumUndo && r && raumUndo.id === r.id);
+}
+
 /* Trägt die aktuellen Maße in die Felder ein. */
 function raumMasseZeichnen(){
   const r = (typeof raum === 'function') ? raum() : null;
   const b = document.getElementById('r-breite'), t = document.getElementById('r-tiefe');
   if(!r || !b || !t) return;
-  if(document.activeElement !== b) b.value = ((r.echtB || r.sp * KACHEL) / 100).toFixed(2).replace(/0$/,'');
-  if(document.activeElement !== t) t.value = ((r.echtT || r.re * KACHEL) / 100).toFixed(2).replace(/0$/,'');
+  /* 3,00 m stand hier als „3.0“ — falsche Nullen und ein Punkt, wo
+     überall sonst ein Komma steht. */
+  const mass = cm => String((cm / 100).toFixed(2)).replace(/\.?0+$/, '');
+  if(document.activeElement !== b) b.value = mass(r.echtB || r.sp * KACHEL);
+  if(document.activeElement !== t) t.value = mass(r.echtT || r.re * KACHEL);
 }
 
 /* Zählt, was beim Leeren verloren geht — man soll wissen, worauf man
@@ -10095,11 +10606,26 @@ function raumInhaltZaehlen(r){
   const kanten = Object.keys(r.kanten || {}).length;
   const moebel = (r.moebel || []).length;
   const plaetze = (typeof pflanzenIm === 'function' ? pflanzenIm(r.id) : []).length;
+  if(kacheln) teile.push(kacheln + (kacheln === 1 ? ' Feld Grundfläche' : ' Felder Grundfläche'));
   if(kanten)  teile.push(kanten + (kanten === 1 ? ' Wand- oder Fensterstück' : ' Wand- und Fensterstücke'));
   if(moebel)  teile.push(moebel + (moebel === 1 ? ' Möbelstück' : ' Möbelstücke'));
   if(plaetze) teile.push(plaetze + (plaetze === 1 ? ' platzierte Pflanze' : ' platzierte Pflanzen'));
   return {teile, kacheln, leer: !teile.length};
 }
+
+$('#btn-raum-undo').onclick = ()=>{
+  const r = raum();
+  if(!raumUndo || !r || raumUndo.id !== r.id) return;
+  const alt = raumUndo.stand;
+  Object.keys(r).forEach(k=>{ if(!(k in alt)) delete r[k]; });
+  Object.assign(r, JSON.parse(JSON.stringify(alt)));
+  if(!S.orte) S.orte = {};
+  Object.keys(raumUndo.orte || {}).forEach(id=>{ S.orte[id] = raumUndo.orte[id]; });
+  raumUndo = null;
+  sichern();
+  if(typeof zoomSetzen === 'function') zoomSetzen(1);
+  planRender(); raumMasseZeichnen(); raumUndoZeigen();
+};
 
 $('#btn-raum-groesse').onclick = ()=>{
   const r = raum(); if(!r) return;
@@ -10114,6 +10640,15 @@ $('#btn-raum-groesse').onclick = ()=>{
   const sp = Math.max(1, Math.min(20, Math.round(b * 100 / KACHEL)));
   const re = Math.max(1, Math.min(20, Math.round(t * 100 / KACHEL)));
 
+  /* Nichts geändert? Dann auch nichts leeren. Zweimal auf den Knopf
+     tippen hat den Raum bisher trotzdem geräumt. */
+  if(sp === r.sp && re === r.re
+     && Math.round(b*100) === (r.echtB || r.sp * KACHEL)
+     && Math.round(t*100) === (r.echtT || r.re * KACHEL)){
+    raumMasseZeichnen();
+    return;
+  }
+
   const z = raumInhaltZaehlen(r);
   if(!z.leer){
     const weiter = confirm(
@@ -10123,6 +10658,16 @@ $('#btn-raum-groesse').onclick = ()=>{
       + '\n\nWirklich ändern?');
     if(!weiter) return;
   }
+
+  /* Eine Kopie für die laufende Sitzung, damit ein Fehlgriff nicht
+     endgültig ist. */
+  try{
+    const orte = {};
+    Object.keys(S.orte || {}).forEach(id=>{
+      if(S.orte[id] && S.orte[id].raum === r.id) orte[id] = S.orte[id];
+    });
+    raumUndo = {id:r.id, stand: JSON.parse(JSON.stringify(r)), orte};
+  }catch(e){ raumUndo = null; }
 
   r.sp = sp; r.re = re;
   r.echtB = Math.round(b * 100); r.echtT = Math.round(t * 100);
@@ -10139,6 +10684,7 @@ $('#btn-raum-groesse').onclick = ()=>{
   if(typeof zoomSetzen === 'function') zoomSetzen(1);
   planRender();
   raumMasseZeichnen();
+  raumUndoZeigen();
 };
 
 $('#p-monat').addEventListener('input', ()=>{ pMonat = parseInt($('#p-monat').value,10); planRender(); });
@@ -10352,10 +10898,12 @@ function gmStarten(){
   $('#giessmodus').hidden = false;
   document.body.classList.add('gm-offen');
   gmZeichnen();
+  if(typeof fensterAuf === 'function') fensterAuf($('#giessmodus'));
 }
 function gmBeenden(){
   $('#giessmodus').hidden = true;
   document.body.classList.remove('gm-offen');
+  if(typeof fensterZu === 'function') fensterZu();
   render();
 }
 function gmWeiter(){
@@ -10422,7 +10970,10 @@ function giessHinweisFuer(p){
   const probe = winter ? (kl.probeWinter || kl.probe) : kl.probe;
   if(probe) teile.push(probe);
 
-  if(art && typeof GIESSARTEN !== 'undefined' && GIESSARTEN[art] && p.klasse !== 'S')
+  /* Anstau-Text nur, wenn die Pflanze auch wirklich Klasse S ist.
+     Sonst stünde bei einer Kannenpflanze die Anleitung zum Dauerstau. */
+  if(art && typeof GIESSARTEN !== 'undefined' && GIESSARTEN[art]
+     && p.klasse !== 'S' && art !== 'anstau')
     teile.push(GIESSARTEN[art].kurz);
 
   if(z && z.code !== 'gesund' && z.def && z.def.f && z.def.f !== 1)
@@ -10658,7 +11209,7 @@ let ANS_ALLE = false;   // alles untereinander statt in Reitern
 const ANSICHT_KOPF = {
   heute:    ['Was heute<br>zu tun ist'],
   sammlung: ['Die ganze<br>Sammlung'],
-  werkzeuge:['Drei Werkzeuge'],
+  werkzeuge:['Werkzeuge'],
   mehr:     ['Sichern und<br>einstellen']
 };
 
@@ -11156,7 +11707,9 @@ function ubBlattHTML(plan, o){
       const extra = [];
       if(p.wichtig) extra.push('Wichtig: ' + p.wichtig);
       if(p.giesstipp) extra.push(p.giesstipp);
-      if(p.giftig === true) extra.push('Giftig — von Kindern und Tieren fernhalten.');
+      const gpz = istGiftig(p, 'katze');
+      if(gpz === true) extra.push('Giftig — von Kindern und Tieren fernhalten.');
+      else if(gpz === null) extra.push('Giftigkeit ungeprüft — sicherheitshalber von Kindern und Tieren fernhalten.');
       return `<div class="ub-karte">
         ${bild ? `<img src="${esc(bild)}" alt="">`
                : `<div class="ub-kein-bild">${e.raum ? 'Nr. ' + e.nr : 'kein Bild'}</div>`}
@@ -11268,6 +11821,16 @@ function ubTextBauen(plan, o){
     z.push('');
     z.push('WICHTIG');
     beson.forEach(e => z.push(`  ${nice(e.p)}: ${e.p.wichtig}`));
+  }
+  /* Die Giftwarnung stand bisher nur auf dem gedruckten Zettel. Wer die
+     Kurzfassung verschickt, muss sie genauso bekommen. */
+  const giftig = plan.giessen.concat(plan.unsicher, plan.pause)
+    .filter(e => istGiftig(e.p, 'katze') === true)
+    .map(e => nice(e.p));
+  if(giftig.length){
+    z.push('');
+    z.push('GIFTIG — VON KINDERN UND TIEREN FERNHALTEN');
+    Array.from(new Set(giftig)).forEach(n => z.push('  - ' + n));
   }
   z.push('');
   z.push('Termin verpasst? Am nächsten Tag nachholen, kein Drama.');
@@ -11850,7 +12413,12 @@ function dokPromptBauen(){
      hinterlegt ist. Bei einem kranken Blatt geht es um etwas anderes,
      und jede zusätzliche Anforderung ist eine Stelle mehr, an der eine
      Antwort ausschert. */
-  zeilen.push(p && vermehrungKiVon(p) ? ohneVermehrung(ANTWORT_FORMAT) : ANTWORT_FORMAT);
+  let format = ANTWORT_FORMAT;
+  if(p && vermehrungKiVon(p)) format = ohneVermehrung(format);
+  /* Wer gerade umgetopft hat, braucht keine Umtopfempfehlung. */
+  const zst = (typeof zustandVon === 'function' && p) ? zustandVon(p) : null;
+  if(zst && zst.code === 'frisch') format = ohneTopf(format);
+  zeilen.push(format);
   return zeilen.join('\n');
 }
 /* Schneidet die VERMEHRUNG-Zeilen aus dem Antwortformat heraus. */
@@ -11858,7 +12426,80 @@ function ohneVermehrung(txt){
   return String(txt).split('\n').filter(z=>!/^VERMEHRUNG:/.test(z.trim())).join('\n')
     .replace(' und jede VERMEHRUNG-Zeile genau vier senkrechte Striche', '')
     .replace(' Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.',
-             ' Nur MASSNAHME darf mehrfach vorkommen.');
+             ' Nur MASSNAHME darf mehrfach vorkommen.')
+    .replace('Alle sechzehn Schlüsselwörter', 'Alle fünfzehn Schlüsselwörter');
+}
+
+/* Wer gerade umgetopft hat, braucht keine Umtopfempfehlung. Jede
+   Anforderung, die nichts bringt, ist eine Stelle mehr, an der eine
+   Antwort ausschert. */
+function ohneTopf(txt){
+  let t = String(txt).split('\n').filter(z=>!/^TOPF:/.test(z.trim())).join('\n');
+  t = t.replace('Alle sechzehn Schlüsselwörter', 'Alle fünfzehn Schlüsselwörter')
+       .replace('Alle fünfzehn Schlüsselwörter', 'Alle vierzehn Schlüsselwörter')
+       .replace('Hat jede MASSNAHME-Zeile und die TOPF-Zeile genau drei', 'Hat jede MASSNAHME-Zeile genau drei')
+       .replace(', Topf und Untersetzer erkennbar waren', ' erkennbar waren')
+       .replace(' Waren Topf, Topfrand und Untersetzer ganz im Bild?', '')
+       .replace(', und nichts über den Topf behaupten, was du nicht siehst', '')
+       .replace(' Kein "Topf sieht gut aus", wo vier Angaben mit drei Strichen stehen müssen. Kein TOPF-Urteil, wenn der Topf nicht im Bild ist.', '');
+  /* Nummerierung der Prüfliste wieder schließen. */
+  return t.replace(/^7\. Enthält TOPF[^\n]*\n/m, '').replace(/^8\. Steht in BOTANISCH/m, '7. Steht in BOTANISCH');
+}
+
+/* Die TOPF-Zeile hat vier Angaben, getrennt durch drei senkrechte
+   Striche. Ohne alle vier ist es keine Auskunft, sondern ein Rest. */
+const TOPF_GROESSE = ['passend', 'zu klein', 'zu groß', 'nicht beurteilbar'];
+const TOPF_ABLAUF  = ['ablauf vorhanden', 'kein ablauf sichtbar', 'nicht beurteilbar'];
+function topfLesen(roh){
+  if(!roh) return null;
+  const zeile = String(roh).split('\n')[0]
+    .replace(/^[\s\-–—•*]+/, '')
+    .replace(/^topf\s*[:：]\s*/i, '').trim();
+  const t = zeile.split('|').map(x=>x.trim());
+  if(t.length < 4) return null;
+  const wahl = (wert, liste) => {
+    const x = norm(wert);
+    return liste.find(o => x.indexOf(norm(o)) >= 0) || null;
+  };
+  const groesse = wahl(t[0], TOPF_GROESSE);
+  const ablauf  = wahl(t[2], TOPF_ABLAUF);
+  const empf = t[3];
+  if(!groesse && !ablauf && !empf) return null;
+  /* norm() macht aus „nötig“ ein „notig“ — die Prüfung muss beides
+     vertragen, sonst gilt jedes „kein Umtopfen nötig“ als Auftrag. */
+  const noetig = /^kein(e)? (umtopfen|umtopf|massnahme|handlung)/.test(norm(empf))
+              || /^nicht n(o|oe|ö)tig/.test(norm(empf));
+  return {
+    groesse: groesse || 'nicht beurteilbar',
+    material: t[1] || '',
+    ablauf: ablauf || 'nicht beurteilbar',
+    empfehlung: empf || '',
+    /* Wann es eilt: zu kleiner Topf oder fehlender Ablauf. */
+    handeln: !noetig && !!empf,
+    eilig: groesse === 'zu klein' || ablauf === 'kein ablauf sichtbar'
+  };
+}
+function topfHTML(t){
+  if(!t) return '';
+  const marke = g => g === 'passend' ? 'ok' : g === 'nicht beurteilbar' ? 'unklar' : 'warn';
+  return `<div class="topfbox ${marke(t.groesse)}">
+    <h4>Topf und Platz</h4>
+    <dl class="spec">
+      <dt>Größe</dt><dd>${esc(t.groesse)}</dd>
+      ${t.material ? `<dt>Aufbau</dt><dd>${esc(t.material)}</dd>` : ''}
+      <dt>Wasserablauf</dt><dd>${esc(t.ablauf)}</dd>
+      ${t.empfehlung ? `<dt>Empfehlung</dt><dd>${esc(t.empfehlung)}</dd>` : ''}
+    </dl></div>`;
+}
+/* Aus einer Topfauskunft wird eine Maßnahme wie jede andere — dann
+   läuft sie durch dieselbe Auswahl. */
+function topfMassnahme(t){
+  if(!t || !t.handeln) return null;
+  const anlass = t.groesse !== 'passend' && t.groesse !== 'nicht beurteilbar'
+    ? 'Topf ' + t.groesse
+    : (t.ablauf === 'kein ablauf sichtbar' ? 'Kein Wasserablauf sichtbar' : 'Topf und Platz');
+  return {ausloeser: anlass, handlung: t.empfehlung,
+          dringlich: t.eilig ? 'diese Woche' : 'bei Gelegenheit', wiederholung: 'einmalig'};
 }
 
 /* Grundsatz für den ganzen Doktor: keine Warnung ohne Ausweg. Jeder
@@ -11918,6 +12559,9 @@ document.addEventListener('click', e=>{
     if(!dokPflanze || !dokVorschlaege.length) return;
     const felder = {};
     dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
+    /* Weg von Klasse S heißt: keine Anstau-Texte, kein Karnivoren-
+       Rhythmus mehr. Das darf keine KI-Antwort nebenbei erledigen. */
+    if(!klasseSBestaetigt(dokPflanze, felder.klasse)) delete felder.klasse;
     aenderungSetzen(dokPflanze, felder);
     const anzahl = dokVorschlaege.length;
     dokVorschlaege = [];
@@ -12063,13 +12707,13 @@ $('#btn-dok-ki').onclick = ()=>{
   $('#dok-ki-text').value = t;
   const d = KI_DIENSTE[$('#dok-dienst').value] || KI_DIENSTE.gemini;
   const kopiert = inZwischenablage(t);
-  window.open(d.vorbefuellen ? d.url(t) : d.url(t), '_blank', 'noopener');
+  window.open(kiZiel(d, t), '_blank', 'noopener');
   $('#dok-paste-box').hidden = false;
-  dokKiHinweis(d.vorbefuellen
+  dokKiHinweis(kiPerUrl(d, t)
     ? d.name + ' ist offen, die Frage steht dort im Feld. Foto anhängen, abschicken — die Antwort kommt unten ins Feld.'
     : (kopiert
-      ? 'Gemini ist offen, die Frage liegt in der Zwischenablage. Dort einfügen, Foto anhängen, abschicken.'
-      : 'Gemini ist offen, aber das Kopieren hat nicht geklappt. Klapp „Frage anzeigen“ auf und kopiere sie von Hand.'), 'ok');
+      ? d.name + ' ist offen, die Frage liegt in der Zwischenablage. Dort einfügen, Foto anhängen, abschicken.'
+      : d.name + ' ist offen, aber das Kopieren hat nicht geklappt. Klapp „Frage anzeigen“ auf und kopiere sie von Hand.'), 'ok');
 };
 $('#btn-dok-kopie').onclick = ()=>{
   const t = dokPromptBauen();
@@ -12092,6 +12736,7 @@ $('#dok-dienst').onchange = ()=>{ S.kiDienst = $('#dok-dienst').value; sichern()
    Antwort abweicht. Steht alles schon richtig drin, erscheint gar
    nichts — das hält die Rückmeldung kurz. */
 let dokVorschlaege = [];
+/* Einzelübernahme geht durch dieselbe Rückfrage. */
 const AB_FELDER = [
   {feld:'botanisch', name:'Botanisch', lies:d=>d.bot,
    ist:p=>p.botanisch || '', zeig:v=>v},
@@ -12129,10 +12774,15 @@ function vermehrungLesen(roh, dienst){
   const raus = [];
   String(roh).split('\n').forEach(zeile=>{
     const t = zeile.split('|').map(x=>x.trim());
-    if(t.length < 2 || !t[0]) return;
+    /* Eine unvollständige Zeile ist keine Auskunft, sondern ein Rest.
+       Fünf Felder müssen es sein, sonst wird sie verworfen. */
+    if(t.length < 5) return;
+    /* Ein stehengebliebenes Präfix landete bisher als Methodenname. */
+    t[0] = t[0].replace(/^[-*•\s]*(vermehrung|propagation)\s*:?\s*/i, '').trim();
+    if(!t[0] || t[0].length > 60) return;
     const zahl = parseInt(String(t[1]).replace(/[^0-9]/g,''), 10);
-    const quote = (zahl >= 0 && zahl <= 100) ? Math.round(zahl/5)*5 : null;
-    raus.push({ methode:t[0], quote:quote,
+    if(!(zahl >= 0 && zahl <= 100)) return;
+    raus.push({ methode:t[0], quote:Math.round(zahl/5)*5,
                 zeit:t[2] || '', medium:t[3] || '', dauer:t[4] || '' });
   });
   if(!raus.length) return null;
@@ -12153,10 +12803,14 @@ function vermehrungKiVon(p){
   return (v && Array.isArray(v.wege) && v.wege.length) ? v : null;
 }
 
+/* Reihenfolge ist hier alles. „unsicher“ enthält „sicher“, und
+   „sicher giftig“ auch — deshalb steht das Wort in keinem der beiden
+   Muster mehr, und die Verneinung wird zuerst geprüft. */
 function giftRaten(t){
   if(!t) return null; const x = norm(t);
-  if(/unbedenklich|ungiftig|nicht giftig|sicher/.test(x)) return false;
-  if(/giftig|toxisch/.test(x)) return true;
+  if(/\b(nicht|nie|kaum)\s+(giftig|toxisch)\b/.test(x)) return false;
+  if(/\bungiftig\b|\bunbedenklich\b|\bharmlos\b|\bkatzensicher\b/.test(x)) return false;
+  if(/\bgiftig\b|\btoxisch\b|\bgiftpflanze\b/.test(x)) return true;
   return null;
 }
 function frostRaten(t){
@@ -12164,6 +12818,23 @@ function frostRaten(t){
   if(/winterhart/.test(norm(t))) return null;
   const m = String(t).match(/-?\d+/);
   return m ? parseInt(m[0], 10) : null;
+}
+
+/* Topfauskunft und Maßnahmen zur Auswahl, unter dem Abgleich. */
+function dokMassnahmenZeigen(d){
+  const ziel = document.getElementById('dok-massnahmen');
+  if(!ziel) return;
+  if(!dokPflanze){ ziel.innerHTML = ''; return; }
+  const p = allePflanzen().find(x=>x.id === dokPflanze);
+  const topf = topfLesen(d.topf);
+  const liste = massnahmenLesen(d.schritte ? String(d.schritte).split(/\r?\n/) : [])
+    .filter(m=>!massnahmeTrivial(m, p));
+  const ausTopf = topfMassnahme(topf);
+  if(ausTopf) liste.unshift(ausTopf);
+  const wahl = massnahmenAuswahlHTML('dok', liste);
+  ziel.innerHTML = topfHTML(topf) + wahl;
+  const kasten = ziel.querySelector('[data-mnwahl]');
+  if(kasten){ kasten.dataset.pfl = dokPflanze; kasten.dataset.quelle = 'doktor'; }
 }
 
 function dokAbgleichZeigen(d){
@@ -12252,16 +12923,18 @@ $('#btn-dok-paste').onclick = ()=>{
     const notiz = [];
     if(d.befund) notiz.push('Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + d.befund);
     if(d.giessen) notiz.push('Gießen: ' + d.giessen);
+    const topf = topfLesen(d.topf);
+    if(topf && topf.empfehlung) notiz.push('Topf und Platz: ' + topf.groesse
+      + (topf.material ? ', ' + topf.material : '') + ', ' + topf.ablauf + '. ' + topf.empfehlung);
     if(notiz.length){
       const p = allePflanzen().find(x=>x.id===dokPflanze);
       const alt = (p.notiz||'').trim();
       aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '') + notiz.join('\n')});
       teile.push('Befund in die Notizen');
     }
-    if(d.schritte){
-      const n = massnahmenZuAufgaben(dokPflanze, d.schritte.split(/[;·]|\s\u2013\s/), 'doktor');
-      if(n) teile.push(n + (n === 1 ? ' Aufgabe angelegt' : ' Aufgaben angelegt'));
-    }
+    /* Die Maßnahmen wandern nicht mehr von selbst auf die Liste,
+       sondern stehen unten mit einem Haken zur Auswahl. */
+    dokMassnahmenZeigen(d);
     if(d.vermehrung){
       const n = vermehrungUebernehmen(dokPflanze, d.vermehrung,
         (KI_DIENSTE[$('#dok-dienst').value] || {}).name);
@@ -12493,6 +13166,9 @@ function subErgebnis(){
 function optimumHTML(v){
   const r = rezeptFuer(subZiel);
   const ziel = ZIELE[subZiel] || ZIELE.standard;
+  if(!r) return `<h4 class="sub-titel">So wäre es optimal</h4>
+    <div class="alert info">Für ${esc(ziel.name)} ist keine Referenzmischung hinterlegt.
+      Unten steht, was sich aus deinem Vorrat mischen lässt.</div>`;
   const liter = topfLiter(subTopf);
   const gesamt = Object.values(r.teile).reduce((a,x)=>a+x, 0);
   const proTeil = liter / gesamt;
@@ -12786,8 +13462,8 @@ document.addEventListener('click', e=>{
     const t = (document.getElementById('ver-kifrage-text')||{}).value || '';
     const d = KI_DIENSTE[(document.getElementById('ver-dienst')||{}).value] || KI_DIENSTE.gemini;
     const kopiert = inZwischenablage(t);
-    window.open(d.url(t), '_blank', 'noopener');
-    meld(d.vorbefuellen
+    window.open(kiZiel(d, t), '_blank', 'noopener');
+    meld(kiPerUrl(d, t)
       ? d.name + ' ist offen, die Frage steht dort im Feld. Antwort danach hier einfügen.'
       : (kopiert ? d.name + ' ist offen, die Frage liegt in der Zwischenablage. Dort einfügen, Antwort hier zurück.'
                  : 'Die Frage oben markieren, kopieren und im Dienst einfügen.'));
@@ -12849,10 +13525,10 @@ function ablegerAnlegen(mutterId, methodeId){
     klasse: mutter.klasse, giftig: mutter.giftig,
     raum: mutter.raum || '', stellplatz: mutter.stellplatz || '', typ: mutter.typ, sonne: mutter.sonne,
     frostMin: mutter.frostMin, duenger: mutter.duenger,
-    /* Das Intervall der Mutterpflanze ist genauer als der Klassenwert;
-       der Zustand „Steckling“ verkürzt es zusätzlich. */
-    intervall: (mutter.intervall && mutter.intervall.slice())
-             || (typeof KLASSE_IV !== 'undefined' && KLASSE_IV[mutter.klasse]) || [8,12],
+    /* Nur ein von Hand gesetzter Rhythmus wandert mit. Sonst gilt der
+       Klassenwert, den der Zustand „Steckling“ zusätzlich verkürzt. */
+    intervall: (mutter.intervallEigen && mutter.intervall) ? mutter.intervall.slice() : undefined,
+    intervallEigen: !!mutter.intervallEigen,
     bib: mutter.bib || (b ? b.bot : null),
     eltern: mutterId, linie:null, seit: heute,
     notiz: m.name + ' am ' + heute + ', genommen von ' + nice(mutter) + '.\n'
@@ -12963,7 +13639,7 @@ function inTrennung(p){
    dort verschwindet der Zähler. */
 function zuwachsArt(p){
   const b = (typeof bibVon === 'function') ? bibVon(p) : null;
-  const typ = String((b ? b.typ : p && p.typ) || '');
+  const typ = String((b ? b.typ : (p && p.typ)) || (typeof typVon === 'function' ? typVon(p) : '') || '');
   const bot = String((b ? b.bot : p && p.botanisch) || '');
   const kl  = p && p.klasse;
 
@@ -12978,7 +13654,9 @@ function zuwachsArt(p){
   if(/Kaktus|Sukkulente/i.test(typ)) return {zaehlen:true, eins:'Neuer Trieb', kurz:'Trieb'};
   /* Kräuter, Gemüse und Einjährige schieben täglich Blätter — ein
      Strichzähler sagt dort nichts über den Zustand. */
-  if(/Kraut|Nutzpflanze|Gemüse|Einjährig/i.test(typ)) return {zaehlen:false};
+  /* „Einjährig“ gibt es als Typ nicht — die zwanzig Balkonblumen der
+     Bibliothek bekamen deshalb weiter einen Strichzähler. */
+  if(/Kraut|Nutzpflanze|Gemüse|Blattgemüse|Einjährig|Balkonblume/i.test(typ)) return {zaehlen:false};
   return {zaehlen:true, eins:'Neues Blatt', kurz:'Blatt'};
 }
 
@@ -13016,10 +13694,12 @@ function rgStarten(){
   $('#rundgang').hidden = false;
   document.body.classList.add('gm-offen');
   rgZeichnen();
+  if(typeof fensterAuf === 'function') fensterAuf($('#rundgang'));
 }
 function rgBeenden(){
   $('#rundgang').hidden = true;
   document.body.classList.remove('gm-offen');
+  if(typeof fensterZu === 'function') fensterZu();
   const e = rgEinst(); e.zaehler = (e.zaehler || 0) + 1; sichern();
   render();
 }
@@ -13565,7 +14245,7 @@ const TOUR_KAPITEL = {
     schritte: ()=>[
       { vor: ()=>ansichtZeigen('werkzeuge'),
         ziel: ()=>document.querySelector('#doktor-sec .wz-kopfzeile'),
-        titel: 'Drei Werkzeuge, eines offen',
+        titel: 'Werkzeuge, eines offen',
         text: 'Der Pflanzendoktor sucht die Ursache, wenn etwas nicht stimmt. Substrat mischen rechnet die Mischung und die Menge für deinen Topf. Räume und Grundriss zeichnet deine Wohnung und rechnet daraus das Licht an jedem Platz. Jedes erklärt sich, sobald du es öffnest.' }
     ]
   },
@@ -14009,6 +14689,11 @@ function tourAnsichtPruefen(name){
 }
 const _ansichtVorherTour = ansichtZeigen;
 ansichtZeigen = function(name, merken){
+  /* Der Deckel lag sonst über einem Ziel, das nach dem Wechsel gar
+     nicht mehr auf dem Schirm ist. */
+  if(tourLauf && typeof tourAbbruch === 'function'){
+    try{ tourAbbruch(); }catch(e){}
+  }
   _ansichtVorherTour(name, merken);
   try{ tourAnsichtPruefen(document.body.dataset.ansicht || name); }
   catch(e){ console.warn('Tutorial:', e); }
