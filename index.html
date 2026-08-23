@@ -5589,16 +5589,22 @@ function papierkorbRender(){
           <option value="claude">Claude</option>
           <option value="perplexity">Perplexity</option>
         </select>
-        <button class="haupt" id="btn-ver-ki">Dienst öffnen</button>
-      </div>
-      <textarea id="ver-kifrage-text" rows="4" aria-label="Die Frage"></textarea>
-      <label class="lab" for="ver-kipaste">Antwort hier einfügen</label>
-      <textarea id="ver-kipaste" rows="4" placeholder="VERMEHRUNG: …"></textarea>
-      <div class="tools">
-        <button class="haupt" id="btn-ver-kipaste">Antwort auswerten</button>
-        <button id="btn-ver-kizu">Schließen</button>
+        <button id="btn-ver-ki" type="button">Öffnen</button>
       </div>
       <p class="kihinweis" id="ver-kihinweis"></p>
+      <details class="kiprompt" id="ver-frage-details">
+        <summary>Frage anzeigen und selbst kopieren</summary>
+        <textarea id="ver-kifrage-text" readonly></textarea>
+        <div class="tools"><button id="btn-ver-kopie" class="haupt" type="button">Frage kopieren</button></div>
+      </details>
+      <div class="pastebox">
+        <textarea id="ver-kipaste" placeholder="VERMEHRUNG: …"></textarea>
+        <div class="tools">
+          <button id="btn-ver-kipaste" class="haupt" type="button">Übernehmen</button>
+          <button id="btn-ver-leeren" type="button">Feld leeren</button>
+          <button id="btn-ver-kizu" type="button">Schließen</button>
+        </div>
+      </div>
     </div>
     <div id="ver-inhalt"></div>
     </div>
@@ -6145,8 +6151,19 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.3';
+const FASSUNG = '2.4';
 const PATCHNOTES = [
+  {
+    nr: '2.4', datum: '2026-08-23', titel: 'Kleine Angleichung',
+    neu: [],
+    besser: [
+      'Der Nachfrage-Kasten im Vermehren-Werkzeug sieht aus wie der im Pflanzendoktor und wird genauso bedient: Dienst wählen, öffnen, Frage aufklappen und kopieren, Antwort einfügen, übernehmen.'
+    ],
+    behoben: [
+      'Im Nachfrage-Kasten fehlte der Knopf „Frage kopieren“, und die Knöpfe hatten einen anderen Stil als überall sonst.',
+      'Auch dort gibt es jetzt „Feld leeren“.'
+    ]
+  },
   {
     nr: '2.3', datum: '2026-08-23', titel: 'Der Pflanzendoktor, neu sortiert',
     neu: [
@@ -12793,6 +12810,20 @@ document.addEventListener('click', e=>{
       + (n === 1 ? ' Weg' : ' Wege') + (vorher ? ' statt bisher ' + vorher.wege.length + '.' : '.'), 'ok');
     document.getElementById('ver-kipaste').value = '';
     verRender();
+  };
+
+  const kopie = document.getElementById('btn-ver-kopie');
+  if(kopie) kopie.onclick = ()=>{
+    const t = (document.getElementById('ver-kifrage-text')||{}).value || '';
+    meld(inZwischenablage(t) ? 'Frage kopiert. Im Dienst einfügen.'
+                             : 'Kopieren ging nicht — Text oben markieren und selbst kopieren.',
+         inZwischenablage ? 'ok' : 'warn');
+  };
+  const leer = document.getElementById('btn-ver-leeren');
+  if(leer) leer.onclick = ()=>{
+    const f = document.getElementById('ver-kipaste');
+    if(f){ f.value = ''; f.focus(); }
+    meld('Feld geleert. Neue Antwort einfügen.');
   };
 
   if(zu) zu.onclick = ()=>{

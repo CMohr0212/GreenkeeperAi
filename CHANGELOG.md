@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.4 — 23. August 2026
+**Kleine Angleichung**
+
+### Besser
+- Der Nachfrage-Kasten im Vermehren-Werkzeug sieht aus wie der im Pflanzendoktor und wird genauso bedient: Dienst wählen, öffnen, Frage aufklappen und kopieren, Antwort einfügen, übernehmen.
+
+### Behoben
+- Im Nachfrage-Kasten fehlte der Knopf „Frage kopieren“, und die Knöpfe hatten einen anderen Stil als überall sonst.
+- Auch dort gibt es jetzt „Feld leeren“.
+
+---
+
 ## 2.3 — 23. August 2026
 **Der Pflanzendoktor, neu sortiert**
 
