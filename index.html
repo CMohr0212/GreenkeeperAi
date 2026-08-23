@@ -1011,6 +1011,85 @@ body.liste .card.open .card-id,body.liste .card.open .icons,body.liste .card.ope
 body.liste .card.open .icons{display:flex}
 body.liste .card.open .card-btn{padding:14px 16px;align-items:flex-start}
 body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
+.verki{border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;background:var(--sand)}
+.verki.leer{background:transparent}
+.verki h4{margin:0 0 8px}
+.verki-liste{margin:0 0 10px;padding-left:1.15em}
+.verki-liste li{margin-bottom:8px;line-height:1.5}
+.verki-quote{font-family:var(--f-data);font-size:var(--t-mono);color:var(--water);margin-left:4px}
+.verki-mehr{display:block;font-size:var(--t-s);color:var(--peat)}
+.verki-quelle{margin:0 0 10px;font-size:var(--t-xs);color:var(--peat);line-height:1.5}
+.ver-eig.geraten{opacity:.75}
+.raummass .rm-zeile{display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap}
+.raummass .rm-f{display:flex;align-items:center;gap:5px;margin:0}
+.raummass .rm-f span{font-size:var(--t-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--peat)}
+.raummass .rm-f input{width:76px;text-align:right}
+.raummass .rm-f i{font-style:normal;font-size:var(--t-s);color:var(--peat)}
+/* ── Gießplan als Häufungsgrafik ──────────────────────────── */
+.gp{margin:0 0 18px}
+.gp-sockel{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:9px 12px;margin-bottom:10px;
+  border:1px solid var(--terra);border-radius:4px;background:rgba(178,90,58,.09)}
+.gp-sockel b{color:var(--terra)}
+.gp-sockel span{font-size:var(--t-xs);color:var(--peat)}
+.gp-balken{display:flex;align-items:flex-end;gap:2px;height:132px;overflow-x:auto;padding-bottom:2px}
+.gp-tag{flex:1 0 22px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;
+  height:100%;padding:0 0 2px;background:none;border:0;border-radius:0;min-width:22px}
+.gp-tag .gp-saeule{display:block;width:74%;background:var(--water);border-radius:2px 2px 0 0;min-height:2px}
+.gp-tag.leer .gp-saeule{background:var(--line)}
+.gp-tag.wo{border-left:1px dotted var(--line)}
+.gp-tag.on .gp-saeule{background:var(--ink)}
+.gp-tag .gp-zahl{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);min-height:1em}
+.gp-tag .gp-datum{font-size:var(--t-xs);color:var(--peat);white-space:nowrap}
+.gp-legende{margin:8px 0 0;font-size:var(--t-xs);color:var(--peat);line-height:1.5}
+.gp-liste{margin:6px 0 0;padding-left:1.1em}
+.gp-liste li{margin-bottom:4px}
+.gp-liste li span{color:var(--peat);font-size:var(--t-xs)}
+
+/* ── Ansichten der Sammlung ──────────────────────────────── */
+.sam-ansicht{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--line);border-radius:4px;overflow:hidden;width:fit-content}
+.sam-ansicht button{border:0;border-radius:0;padding:8px 15px;background:transparent;font-size:var(--t-s);
+  border-right:1px solid var(--line)}
+.sam-ansicht button:last-child{border-right:0}
+.sam-ansicht button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* Zeilen: kein Bild, eine Zeile je Pflanze. */
+.sam-zeilen .grid{display:block}
+.sam-zeilen .card{margin-bottom:-1px;border-radius:0}
+.sam-zeilen .card:not(.open) .thumb,
+.sam-zeilen .card:not(.open) .icons,
+.sam-zeilen .card:not(.open) .bar,
+.sam-zeilen .card:not(.open) .zbadge,
+.sam-zeilen .card:not(.open) .warnbox,
+.sam-zeilen .card:not(.open) .pflegehinweis{display:none}
+.sam-zeilen .card:not(.open) .card-body{padding:11px 13px}
+.sam-zeilen .card:not(.open) .card-body h2{font-size:var(--t-m);margin:0}
+.sam-zeilen .card:not(.open) .card-body .lat,
+.sam-zeilen .card:not(.open) .card-body .ort{font-size:var(--t-xs);margin:2px 0 0}
+
+/* Raster: drei Kacheln je Reihe. Bild, Name, Gießampel — mehr passt
+   auf 92 Bildpunkten nicht, ohne unleserlich zu werden. */
+.sam-raster .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sam-raster .card{margin:0}
+.sam-raster .card.open{grid-column:1 / -1}
+.sam-raster .card:not(.open) .card-btn{display:block;padding:0}
+.sam-raster .card:not(.open) .thumb{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;display:block}
+.sam-raster .card:not(.open) .card-body{padding:7px 8px 9px}
+.sam-raster .card:not(.open) .card-body h2{font-size:var(--t-s);line-height:1.25;margin:0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sam-raster .card:not(.open) .lat,
+.sam-raster .card:not(.open) .ort,
+.sam-raster .card:not(.open) .icons,
+.sam-raster .card:not(.open) .zbadge,
+.sam-raster .card:not(.open) .warnbox,
+.sam-raster .card:not(.open) .pflegehinweis,
+.sam-raster .card:not(.open) .nr{display:none}
+.sam-raster .card:not(.open) .bar{margin-top:6px}
+@media(min-width:760px){ .sam-raster .grid{grid-template-columns:repeat(4,1fr)} }
+
+.quar-anbieten{border:1px solid var(--line);border-radius:4px;padding:12px;background:var(--sand)}
+.quar-anbieten p{margin:0 0 10px;font-size:var(--t-s);line-height:1.55;color:var(--peat)}
+.zmed{margin:10px 0}
+.zmed .lab{display:block;margin-bottom:6px}
 .aqua{border:1px solid var(--line);border-radius:4px;padding:16px;background:var(--sand)}
 .aqua h3{margin:0 0 10px}
 .aqua-liste{margin:0 0 12px;padding-left:1.15em}
@@ -1913,9 +1992,29 @@ const ZUSTAENDE = {
     tasks:['Substrat gleichmäßig leicht feucht halten, nie ganz austrocknen','Kein Dünger in der Umstellungszeit','Hohe Luftfeuchte hilft: heller Platz ohne pralle Sonne']},
 
   steckling: {name:'Steckling, bewurzelt gerade', kurz:'noch keine Wurzeln', f:0.5, tage:35, ton:'info',
-    text:'Ohne Wurzeln kann der Steckling kein Wasser aufnehmen und verliert es nur über die Blätter. Deshalb Substrat gleichmäßig feucht, hohe Luftfeuchte, kein direktes Sonnenlicht und auf keinen Fall Dünger.',
+    text:'Ohne Wurzeln kann der Steckling kein Wasser aufnehmen und verliert es nur über die Blätter. Deshalb gleichmäßig feucht, hohe Luftfeuchte, kein direktes Sonnenlicht und auf keinen Fall Dünger.',
     frage:'Hat er Wurzeln gebildet — Widerstand beim leichten Ziehen oder neuer Trieb?',
-    tasks:['Gleichmäßig feucht halten, Staunässe trotzdem vermeiden','Kein Dünger, bis Wurzeln da sind','Warm und hell, aber ohne direkte Sonne']},
+    danach:'frisch',
+    medien:{
+      wasser:   {name:'Im Wasserglas',
+        text:'Wasser alle drei bis vier Tage wechseln, Gefäß dabei ausspülen. Nur der Schnitt steht im Wasser, kein Blatt. Wasserwurzeln sind weich — je länger sie werden, desto schwerer der spätere Umzug in Erde. Bei zwei bis drei Zentimetern umsetzen.',
+        tasks:['Wasser alle drei bis vier Tage wechseln','Blätter dürfen das Wasser nicht berühren','Bei 2–3 cm Wurzellänge in Substrat umsetzen']},
+      substrat: {name:'Im Substrat',
+        text:'Gleichmäßig feucht, aber nicht nass. Eine durchsichtige Haube oder ein Beutel hält die Luftfeuchte oben; täglich kurz lüften, sonst schimmelt es. Zugkontrolle erst nach drei Wochen — vorher reißt man die ersten Wurzeln ab.',
+        tasks:['Gleichmäßig feucht halten, Staunässe vermeiden','Haube täglich kurz lüften','Erst nach drei Wochen vorsichtig am Steckling ziehen']},
+      moos:     {name:'In Sphagnum',
+        text:'Das Moos ausgedrückt feucht, nicht tropfnass. Es speichert viel und bleibt trotzdem luftig, deshalb wurzeln darin auch heikle Arten. Sobald Wurzeln zwei bis drei Zentimeter haben, umsetzen — im Moos allein bekommt die Pflanze auf Dauer zu wenig Nährstoffe.',
+        tasks:['Moos ausgedrückt feucht halten, nie tropfnass','Hell, aber ohne direkte Sonne','Bei 2–3 cm Wurzellänge in Substrat umsetzen']}
+    },
+    tasks:['Kein Dünger, bis Wurzeln da sind','Warm und hell, aber ohne direkte Sonne']},
+
+  quarantaene: {name:'Quarantäne', kurz:'getrennt von den anderen', f:1, tage:21, ton:'warn', trennen:true,
+    text:'Neuzugänge und befallene Pflanzen gehören für drei Wochen getrennt. Das ist die wirksamste Einzelmaßnahme gegen Schädlinge in einer Sammlung: die meisten Arten brauchen genau diese Zeit für einen vollständigen Generationswechsel, und was übersehen wurde, zeigt sich in dieser Spanne. Eigener Raum oder wenigstens ein Platz ohne Blattkontakt zu anderen. Gegossen wird normal — Quarantäne ist keine Krankheit.',
+    frage:'Drei Wochen um. Auf Blattunterseiten, Blattachseln und Erdoberfläche nichts gefunden?',
+    tasks:['Getrennt aufstellen, kein Blattkontakt zu anderen Pflanzen',
+           'Alle drei bis vier Tage Blattunterseiten und Blattachseln mit einer Lupe ansehen',
+           'Werkzeug und Hände nach dem Anfassen reinigen, bevor andere Pflanzen drankommen',
+           'Nicht vermehren, solange die Quarantäne läuft']},
 
   wurzelfaeule: {name:'Wurzelfäule / Staunässe', kurz:'zu viel Wasser gehabt', f:2.6, tage:42, stopp:14, ton:'warn',
     text:'Faule Wurzeln nehmen kein Wasser mehr auf. Die Pflanze lässt die Blätter hängen und wirkt durstig — genau deshalb wird oft nachgegossen und alles wird schlimmer. Richtig ist das Gegenteil: austopfen, faule Wurzeln abschneiden, in luftiges, eher magere Substrat setzen, Drainageloch prüfen und erst einmal gar nicht gießen.',
@@ -2617,13 +2716,28 @@ function zustandVon(p){
   return {code:z.code, def, seit:z.seit||null, bis:z.bis||null, faellig};
 }
 
-function zustandSetzen(id, code, tage){
+function zustandSetzen(id, code, tage, medium){
   if(!code || code==='gesund'){ delete S.zustand[id]; sichern(); return; }
   const def = zustandDef(code); if(!def) return;
   const t = tage!=null ? tage : (def.tage||0);
   const bis = t>0 ? iso(new Date(HEUTE.getTime() + t*86400000)) : null;
-  S.zustand[id] = {code, seit:iso(HEUTE), bis};
+  const alt = S.zustand[id];
+  S.zustand[id] = {code, seit:iso(HEUTE), bis,
+    medium: medium || (alt && alt.code === code ? alt.medium : null) || null};
   sichern();
+}
+/* Wasserglas, Substrat oder Moos — die Pflege weicht deutlich ab,
+   der Gießrhythmus nicht. */
+function mediumSetzen(id, medium){
+  const z = S.zustand[id]; if(!z) return;
+  z.medium = medium || null; sichern();
+}
+function mediumVon(p){
+  const z = S.zustand[p.id];
+  const def = z ? zustandDef(z.code) : null;
+  if(!def || !def.medien) return null;
+  const key = z.medium && def.medien[z.medium] ? z.medium : null;
+  return key ? Object.assign({key}, def.medien[key]) : null;
 }
 function zustandVerlaengern(id, tage){
   const z = S.zustand[id]; if(!z) return;
@@ -2662,12 +2776,23 @@ function zustandBlockHTML(p){
     ? `<p class="zbis">Nächste Nachfrage am ${new Date(z.bis+'T12:00:00').toLocaleDateString('de-DE')}.
        <button class="linkbtn" data-do="ics" data-p="${p.id}">In den Kalender legen</button></p>` : '';
   const text = z.code==='gesund' ? '' : `<p class="ztext">${esc(z.def.text)}</p>`;
-  const tasks = (z.def.tasks && z.def.tasks.length && z.code!=='gesund')
+  /* Bei Zuständen mit Medien steht die Feinwahl direkt darunter —
+     ein Steckling im Wasserglas wird anders behandelt als einer im Moos. */
+  const med = mediumVon(p);
+  const medWahl = (z.def.medien && z.code !== 'gesund')
+    ? `<div class="zmed">
+        <span class="lab">Worin steckt er?</span>
+        <div class="sym-liste">${Object.keys(z.def.medien).map(k=>
+          `<button class="sym${med && med.key===k?' on':''}" data-zmed="${p.id}" data-m="${k}">${esc(z.def.medien[k].name)}</button>`).join('')}</div>
+        ${med ? `<p class="ztext">${esc(med.text)}</p>`
+              : '<p class="fhint">Noch nicht gewählt — die Pflege weicht je nach Medium deutlich ab.</p>'}
+      </div>` : '';
+  const tasks = ((z.def.tasks && z.def.tasks.length) || mediumVon(p)) && z.code!=='gesund'
     ? `<p class="zvor">Passend dazu: <button class="linkbtn" data-do="ztasks" data-p="${p.id}">Vorschläge als Aufgaben übernehmen</button></p>` : '';
   return `<div class="zustand">
     <label class="zsel"><span class="lab">Zustand</span>
       <select data-zsel="${p.id}">${opts}</select></label>
-    ${stoppTxt}${text}${tasks}${bis}
+    ${stoppTxt}${text}${medWahl}${tasks}${bis}
   </div>`;
 }
 
@@ -2680,7 +2805,8 @@ function stichtageHTML(){
     ${liste.map(({p,z})=>`<div class="stich-row">
       <p class="stich-q"><b>${esc(nice(p))}</b> — ${esc(z.def.name)}<br><span>${esc(z.def.frage||'Ist der Zustand vorbei?')}</span></p>
       <div class="stich-btns">
-        <button data-do="zfertig" data-p="${p.id}">Ja, wieder normal</button>
+        <button data-do="zfertig" data-p="${p.id}">${z.def.danach && ZUSTAENDE[z.def.danach]
+          ? 'Ja — weiter als „' + esc(ZUSTAENDE[z.def.danach].name) + '“' : 'Ja, wieder normal'}</button>
         <button data-do="zplus" data-p="${p.id}">Noch zwei Wochen</button>
       </div></div>`).join('')}
   </div>`;
@@ -2744,6 +2870,7 @@ GIESSART: Nur genau eines dieser Wörter: durchdringend, schluck, tauchen, von u
 FROST: Niedrigste verträgliche Temperatur als Zahl in Grad Celsius, ohne Einheit. Oder genau das Wort: winterhart
 WICHTIG: Eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß. Gibt es keine, schreib genau: keine
 KATZEN: Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.
+VERMEHRUNG: Ein bis drei Zeilen, jede beginnt neu mit VERMEHRUNG. Jede Zeile enthält fünf Angaben, getrennt durch genau vier senkrechte Striche, in dieser Reihenfolge: Methode | Erfolgsaussicht in Prozent als reine Zahl | beste Jahreszeit | Substrat oder Medium für den Steckling | Bewurzelungsdauer. Nenne die Methoden, die bei genau dieser Art wirklich üblich sind, die aussichtsreichste zuerst — nicht die allgemein bekannteste. Ist eine Methode bei dieser Art unüblich oder aussichtslos, lass sie weg. Bist du dir bei einer Art nicht sicher, gib eine niedrigere Prozentzahl an, statt zu raten.
 MASSNAHME: Ein bis drei Zeilen, jede beginnt neu mit MASSNAHME. Jede Zeile enthält vier Angaben, getrennt durch genau drei senkrechte Striche, in dieser Reihenfolge: Auslöser | Handlung | Dringlichkeit | Wiederholung. Dringlichkeit ist nur eines dieser Wörter: sofort, diese Woche, bei Gelegenheit. Wiederholung ist entweder das Wort einmalig oder ein Abstand wie: alle 7 Tage, dreimal. Nenne nur Schritte, die sich aus dem Foto oder den Angaben oben wirklich ergeben. Allgemeine Ratschläge, die für jede Zimmerpflanze gelten, lass weg.
 
 SO SIEHT EINE RICHTIGE ANTWORT AUS
@@ -2764,6 +2891,8 @@ GIESSART: durchdringend
 FROST: 10
 WICHTIG: keine
 KATZEN: giftig, enthält Calciumoxalat-Kristalle
+VERMEHRUNG: Kopfsteckling im Wasserglas | 90 | Frühjahr bis Spätsommer | Wasserglas, danach umsetzen in lockeres Substrat | 2 bis 4 Wochen
+VERMEHRUNG: Kopfsteckling direkt im Substrat | 75 | Frühjahr bis Spätsommer | lockere Anzuchterde mit Perlite | 3 bis 6 Wochen
 MASSNAHME: Untere Blätter vergilbt | Vergilbte Blätter am Ansatz abschneiden | bei Gelegenheit | einmalig
 MASSNAHME: Blattunterseite nicht einsehbar | Blattachseln und Unterseiten mit Lupe auf Schädlinge prüfen | diese Woche | einmalig
 \`\`\`
@@ -2775,9 +2904,9 @@ Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:.
 PRÜFE VOR DEM ABSENDEN
 
 1. Steht die gesamte Antwort in einem Codeblock und außerhalb nichts?
-2. Kommen alle fünfzehn Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste?
+2. Kommen alle Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste? Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.
 3. Enthalten SICHERHEIT, ZUSTAND, LICHT, GIESSKLASSE, GIESSART nur eines der erlaubten Wörter?
-4. Hat jede MASSNAHME-Zeile genau drei senkrechte Striche?
+4. Hat jede MASSNAHME-Zeile genau drei und jede VERMEHRUNG-Zeile genau vier senkrechte Striche?
 5. Ist in FEHLT beantwortet, ob Blattunterseiten und Blattachseln erkennbar waren?
 6. Steht in BOTANISCH kein geratener Sortenname?`;
 
@@ -2888,6 +3017,7 @@ const ANTWORT_SCHLUESSEL = [
   ['giessart',['giessart','gießart','giessweise','gießweise','art des giessens','wassergabe','watering style']],
   ['wichtig', ['wichtig','besonderheit','besonderheiten','hinweis','hinweise','achtung','kritisch','special']],
   ['katzen',  ['katzen','katze','giftigkeit','giftig','toxizität','toxizitaet','haustiere','pets']],
+  ['vermehrung',['vermehrung','vermehrungsmethode','vermehrungsmethoden','vermehren','stecklinge','steckling','propagation']],
   ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
 const SCHLUESSEL_KARTE = (()=>{
@@ -3014,8 +3144,8 @@ function geminiLesen(txt){
         const wert = m[2].trim();
         /* Mehrere MASSNAHME-Zeilen sind der Normalfall des neuen
            Formats. Sie dürfen sich nicht gegenseitig überschreiben. */
-        if(feld === 'schritte' && raus.schritte && wert)
-          raus.schritte = raus.schritte + '\n' + wert;
+        if((feld === 'schritte' || feld === 'vermehrung') && raus[feld] && wert)
+          raus[feld] = raus[feld] + '\n' + wert;
         else if(/^(ja|nein|yes|no)$/i.test(wert))
           /* „Giftig für Katzen: ja“ — die Aussage steckt in der
              Beschriftung, nicht im Wert. Beides zusammen ergibt erst
@@ -3049,7 +3179,7 @@ function geminiLesen(txt){
   Object.keys(raus).forEach(k=>{
     /* Bei den Maßnahmen trennt der Zeilenumbruch die einzelnen
        Schritte — der darf hier nicht mit weggeglättet werden. */
-    raus[k] = k === 'schritte'
+    raus[k] = (k === 'schritte' || k === 'vermehrung')
       ? raus[k].split('\n').map(z=>z.replace(/\s+/g,' ').trim()).filter(Boolean).join('\n')
       : raus[k].replace(/\s+/g,' ').trim();
     raus[k] = raus[k].replace(/^[\s,;.]+|[\s,;]+$/g,'').trim();
@@ -3655,6 +3785,16 @@ function pflanzeSetzen(id, raumId, x, y){
   sichern();
 }
 function pflanzeEntfernen(id){ if(S.orte) delete S.orte[id]; sichern(); }
+/* Alle Plätze eines Raums räumen. Die Pflanzen selbst bleiben in der
+   Sammlung, sie stehen danach nur nirgends mehr im Grundriss. */
+function plaetzeLeeren(raumId){
+  if(!S.orte) return 0;
+  let n = 0;
+  Object.keys(S.orte).forEach(id=>{
+    if(S.orte[id] && S.orte[id].raum === raumId){ delete S.orte[id]; n++; }
+  });
+  sichern(); return n;
+}
 function pflanzenIm(raumId){
   return allePflanzen().filter(p=>{ const o = pflanzenOrt(p.id); return o && o.raum === raumId; });
 }
@@ -4715,10 +4855,10 @@ function vermehrungFuer(p){
   if(/Zwiebelpflanze|Knollenpflanze/i.test(typ)) dazu('kindel', 'gut', 'Brutzwiebeln beim Umtopfen abnehmen.');
 
   if(!treffer.length){
-    dazu('kopfsteckling', 'unklar', 'Zu dieser Art habe ich keine gesicherte Angabe — der Kopfsteckling ist der Versuch mit der besten Aussicht.');
-    dazu('teilung', 'unklar', 'Falls sie mehrere Triebe aus dem Boden schiebt, ist Teilung meist der sicherste Weg.');
+    dazu('kopfsteckling', 'geraten', 'Zu dieser Art liegt keine Regel vor — der Kopfsteckling ist der Versuch mit der besten Aussicht. Über „Bei der KI nachfragen“ oben bekommst du eine Auskunft zu genau dieser Art.');
+    dazu('teilung', 'geraten', 'Falls sie mehrere Triebe aus dem Boden schiebt, ist Teilung meist der sicherste Weg.');
   }
-  const rang = {'sehr gut':0, 'gut':1, 'mäßig':2, 'unklar':3, 'schwierig':4};
+  const rang = {'sehr gut':0, 'gut':1, 'mäßig':2, 'geraten':3, 'schwierig':4};
   treffer.sort((a,b2)=>rang[a.eignung]-rang[b2.eignung]);
   return treffer;
 }
@@ -5150,6 +5290,12 @@ function papierkorbRender(){
     </div>
   </div>
 
+  <div data-ans="sammlung" class="sam-ansicht" id="sammel-ansicht" role="group" aria-label="Ansicht der Sammlung">
+    <button data-samview="karten" aria-pressed="true">Karten</button>
+    <button data-samview="zeilen" aria-pressed="false">Zeilen</button>
+    <button data-samview="raster" aria-pressed="false">Raster</button>
+  </div>
+
   <section data-ans="sammlung" class="controls">
     <div class="such-zeile"><input class="search" id="q" type="search" placeholder="Suchen: Name, Art, Symptom, Standort …" aria-label="Sammlung durchsuchen" autocomplete="off"><button class="ctrl-auf" id="btn-ctrl-auf" type="button" aria-label="Filter ein- und ausblenden">Filter</button></div>
     <div class="ctrl-klapp" id="ctrl-klapp" hidden>
@@ -5217,6 +5363,12 @@ function papierkorbRender(){
         <label><span class="lab">Botanisch (falls bekannt)</span><input id="f-bot" placeholder="z. B. Epipremnum aureum"></label>
         <label class="fspan"><span class="lab">Zustand</span><select id="f-zustand"></select>
           <span class="fhint" id="f-zustand-hint"></span></label>
+        <div class="fspan quar-anbieten" id="f-quar">
+          <p>Neuzugang? Drei Wochen getrennt aufstellen ist die wirksamste Einzelmaßnahme gegen
+            eingeschleppte Schädlinge. Die Pflanze läuft dann nicht im Rundgang mit und bekommt
+            eigene Kontrolltermine.</p>
+          <div class="tools"><button type="button" id="btn-f-quar">Mit Quarantäne anlegen</button></div>
+        </div>
         <label><span class="lab">Raum</span><select id="f-raum"></select></label>
         <label><span class="lab">Stellplatz</span><select id="f-stellplatz"></select></label>
         <label><span class="lab">Gießklasse</span><select id="f-klasse">
@@ -5255,50 +5407,8 @@ function papierkorbRender(){
     </div>
   </section>
 
-  <section data-ans="sammlung" class="plan sm sm-erste" id="vermehr-sec" data-sm="vermehren">
-    <h2 class="wz-h2">Vermehren</h2>
-    <div class="wz-kopfzeile">
-      <button class="wz-kopf" data-sm-go="vermehren" aria-expanded="false" aria-controls="sm-in-vermehren">
-        <span class="wz-t">Vermehren</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-sm-info="vermehren" aria-expanded="false" aria-label="Wozu ist „Vermehren“ da?">i</button>
-    </div>
-    <div class="wz-in" id="sm-in-vermehren" hidden>
-      <p class="wz-hilfe" hidden>Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
-    <label class="fspan" style="display:block;margin-bottom:14px"><span class="lab">Welche Pflanze?</span>
-      <select id="ver-pflanze"></select></label>
-    <div class="alert info" id="ver-meldung" hidden></div>
-    <div id="ver-inhalt"></div>
-    </div>
-  </section>
 
-  <section data-ans="sammlung" class="plan sm" data-sm="stammbaum">
-    <h2 class="wz-h2">Stammbaum</h2>
-    <div class="wz-kopfzeile">
-      <button class="wz-kopf" data-sm-go="stammbaum" aria-expanded="false" aria-controls="sm-in-stammbaum">
-        <span class="wz-t">Stammbaum</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-sm-info="stammbaum" aria-expanded="false" aria-label="Wozu ist der Stammbaum da?">i</button>
-    </div>
-    <div class="wz-in" id="sm-in-stammbaum" hidden>
-      <p class="wz-hilfe" hidden>Wer von wem abstammt. Ableger und Teilungen behalten die Eigenschaften der Mutterpflanze.</p>
-    <div class="tree" id="tree"></div>
-    </div>
-  </section>
 
-  <section data-ans="sammlung" class="plan sm" data-sm="giessplan">
-    <h2 class="wz-h2">Gießplan</h2>
-    <div class="wz-kopfzeile">
-      <button class="wz-kopf" data-sm-go="giessplan" aria-expanded="false" aria-controls="sm-in-giessplan">
-        <span class="wz-t">Gießplan</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-sm-info="giessplan" aria-expanded="false" aria-label="Wozu ist der Gießplan da?">i</button>
-    </div>
-    <div class="wz-in" id="sm-in-giessplan" hidden>
-      <p class="wz-hilfe" hidden>Die Intervalle sind Richtwerte. Entscheidend ist die Fingerprobe — außer bei Klasse S, dort gilt das Anstauprinzip.</p>
-    <h4>Klassen</h4>
-    <div class="t-scroll"><table class="plan-t"><thead><tr><th>Klasse</th><th>Prinzip</th><th>Sommer</th><th>Winter</th></tr></thead><tbody id="klassen"></tbody></table></div>
-    <h4>Jahreszeiten-Alarme</h4>
-    <div class="t-scroll"><table class="plan-t"><thead><tr><th>Zeitpunkt</th><th>Was passieren muss</th><th>Betrifft</th></tr></thead><tbody id="alarme"></tbody></table></div>
-    </div>
-  </section>
 
   <section data-ans="heute" class="plan" id="todo-sec">
     <div class="sm-kopf-fest">
@@ -5309,7 +5419,7 @@ function papierkorbRender(){
     <div id="alltodo"></div>
   </section>
 
-  <section data-ans="sammlung" class="plan sm" id="wunsch-sec" data-sm="wunsch">
+  <section data-ans="heute" class="plan sm" id="wunsch-sec" data-sm="wunsch">
     <h2 class="wz-h2">Wunschliste</h2>
     <div class="wz-kopfzeile">
       <button class="wz-kopf" data-sm-go="wunsch" aria-expanded="false" aria-controls="sm-in-wunsch">
@@ -5403,6 +5513,23 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="werkzeuge" class="plan wz" data-wz="giessplan">
+    <h2 class="wz-h2">Gießplan</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="giessplan" aria-expanded="false" aria-controls="wz-in-giessplan">
+        <span class="wz-t">Gießplan</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="giessplan" aria-expanded="false" aria-label="Wozu ist der Gießplan da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-giessplan" hidden>
+      <p class="wz-hilfe" hidden>Die Grafik zeigt, an welchen Tagen wie viel zusammenkommt — nützlich, um vor einer Reise nichts zu übersehen. Die Intervalle darunter sind Richtwerte. Entscheidend ist die Fingerprobe, außer bei Klasse S, dort gilt das Anstauprinzip.</p>
+    <div id="gp-grafik"></div>
+    <h4>Klassen</h4>
+    <div class="t-scroll"><table class="plan-t"><thead><tr><th>Klasse</th><th>Prinzip</th><th>Sommer</th><th>Winter</th></tr></thead><tbody id="klassen"></tbody></table></div>
+    <h4>Jahreszeiten-Alarme</h4>
+    <div class="t-scroll"><table class="plan-t"><thead><tr><th>Zeitpunkt</th><th>Was passieren muss</th><th>Betrifft</th></tr></thead><tbody id="alarme"></tbody></table></div>
+    </div>
+  </section>
+
   <section data-ans="werkzeuge" class="plan wz" id="substrat-sec" data-wz="substrat">
     <h2 class="wz-h2">Substrat mischen</h2>
     <div class="wz-kopfzeile">
@@ -5437,6 +5564,55 @@ function papierkorbRender(){
     <h3>Mischung</h3>
     <div id="sub-mischung"></div>
     <div id="sub-warnungen"></div>
+    </div>
+  </section>
+
+  <section data-ans="werkzeuge" class="plan wz" id="vermehr-sec" data-wz="vermehren">
+    <h2 class="wz-h2">Vermehren</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="vermehren" aria-expanded="false" aria-controls="wz-in-vermehren">
+        <span class="wz-t">Vermehren</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="vermehren" aria-expanded="false" aria-label="Wozu ist „Vermehren“ da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-vermehren" hidden>
+      <p class="wz-hilfe" hidden>Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
+    <label class="fspan" style="display:block;margin-bottom:14px"><span class="lab">Welche Pflanze?</span>
+      <select id="ver-pflanze"></select></label>
+    <div class="alert info" id="ver-meldung" hidden></div>
+    <div class="kibox" id="ver-kibox" hidden>
+      <h3>Bei einer KI nachfragen</h3>
+      <div class="kizeile">
+        <select id="ver-dienst" aria-label="Welcher Dienst">
+          <option value="gemini">Gemini</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="perplexity">Perplexity</option>
+        </select>
+        <button class="haupt" id="btn-ver-ki">Dienst öffnen</button>
+      </div>
+      <textarea id="ver-kifrage-text" rows="4" aria-label="Die Frage"></textarea>
+      <label class="lab" for="ver-kipaste">Antwort hier einfügen</label>
+      <textarea id="ver-kipaste" rows="4" placeholder="VERMEHRUNG: …"></textarea>
+      <div class="tools">
+        <button class="haupt" id="btn-ver-kipaste">Antwort auswerten</button>
+        <button id="btn-ver-kizu">Schließen</button>
+      </div>
+      <p class="kihinweis" id="ver-kihinweis"></p>
+    </div>
+    <div id="ver-inhalt"></div>
+    </div>
+  </section>
+
+  <section data-ans="werkzeuge" class="plan wz" data-wz="stammbaum">
+    <h2 class="wz-h2">Stammbaum</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="stammbaum" aria-expanded="false" aria-controls="wz-in-stammbaum">
+        <span class="wz-t">Stammbaum</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="stammbaum" aria-expanded="false" aria-label="Wozu ist der Stammbaum da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-stammbaum" hidden>
+      <p class="wz-hilfe" hidden>Wer von wem abstammt. Ableger und Teilungen behalten die Eigenschaften der Mutterpflanze.</p>
+    <div class="tree" id="tree"></div>
     </div>
   </section>
 
@@ -5475,7 +5651,18 @@ function papierkorbRender(){
         <input type="range" id="r-drehung" min="0" max="345" step="15">
         <span class="fhint">Dreht den ganzen Raum. Der rote Zeiger oben rechts zeigt nach Norden.</span></label>
       <label class="fspan check"><input type="checkbox" id="r-dach"> <span class="lab" style="display:inline">Offener Himmel — Balkon, Terrasse, Dachgarten</span></label>
-      <label class="fspan"><button id="btn-raum-groesse">Rastergröße ändern</button></label>
+      <div class="fspan raummass">
+        <span class="lab">Raumgröße</span>
+        <div class="rm-zeile">
+          <label class="rm-f"><span>Breite</span>
+            <input id="r-breite" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
+          <label class="rm-f"><span>Tiefe</span>
+            <input id="r-tiefe" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
+          <button id="btn-raum-groesse">Übernehmen</button>
+        </div>
+        <span class="fhint" id="r-mass-hint">Gezeichnet wird in Schritten von 50 cm. Angebaut wird nach rechts und unten.
+          Beim Übernehmen wird die Einrichtung des Raums geleert — Fläche, Wände, Fenster, Möbel und Stellplätze.</span>
+      </div>
     </div>
 
     <div class="pleiste gr-tabs">
@@ -5957,8 +6144,29 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.1';
+const FASSUNG = '2.2';
 const PATCHNOTES = [
+  {
+    nr: '2.2', datum: '2026-08-23', titel: 'Aufgeräumt, getrennt, nachgefragt',
+    neu: [
+      'Vermehrung kommt jetzt von der KI, für genau deine Pflanze. Beide Formulare — Anlegen und Pflanzendoktor — fragen nach bis zu drei Methoden mit Erfolgsaussicht, bester Jahreszeit, Medium und Bewurzelungsdauer. Die Angaben stehen im Vermehren-Werkzeug ganz oben, mit Dienst und Datum. Die Prozentzahlen sind Schätzungen und werden auf Fünferschritte gerundet — das steht auch so dabei.',
+      'Für Pflanzen ohne solche Auskunft gibt es einen eigenen Nachfrage-Kasten: kurze Frage, Dienst öffnen, Antwort einfügen. Wird etwas ersetzt, sagt die App, wie viele Wege vorher hinterlegt waren.',
+      'Quarantäne als eigener Zustand. Drei Wochen getrennt aufstellen ist die wirksamste Einzelmaßnahme gegen Schädlinge in einer Sammlung. Wer darin steht, läuft nicht im Rundgang mit, bekommt eigene Kontrollaufgaben und am Stichtag eine Nachfrage. Beim Anlegen wird sie angeboten, beim Schädlingsbefund schlägt der Doktor sie von sich aus vor.',
+      'Der Zustand „Steckling“ unterscheidet Wasserglas, Substrat und Sphagnum. Jedes Medium hat eigene Pflegehinweise und eigene Aufgabenvorschläge; im Wasserglas entfällt die Fingerprobe. Ist er angewachsen, geht es weiter als „Frisch umgetopft“ statt als „gesund“ — frisch bewurzelt ist nicht eingewachsen.',
+      'Die Sammlung hat drei Ansichten: Karten wie bisher, kompakte Zeilen und ein Raster. Die Wahl bleibt gemerkt, die Karte klappt in jeder Ansicht an Ort und Stelle auf.',
+      'Der Gießplan ist eine Häufungsgrafik über vier Wochen: je Tag eine Säule mit der Zahl fälliger Pflanzen. Antippen zeigt, welche. Überfälliges steht als eigener Sockel darüber, damit ein Rückstand nicht wie normale Tagesarbeit aussieht.',
+      'Die Raumgröße lässt sich jederzeit ändern — Felder für Breite und Tiefe in Metern, größer wie kleiner. Angebaut wird nach rechts und unten.'
+    ],
+    besser: [
+      'Vermehren, Stammbaum und Gießplan sind in die Werkzeuge gezogen. Die Sammlung ist damit nur noch die Pflanzenliste, und man scrollt nicht mehr an vierzig Karten vorbei, um zum Stammbaum zu kommen.',
+      'Die Wunschliste steht jetzt auf Heute, unter der Aufgabenliste, und verschwindet ganz, wenn sie leer ist.',
+      'Der Vermerk „unklar“ an Vermehrungsvorschlägen heißt jetzt „geraten“ und verweist auf die Nachfrage bei der KI. Er sagt damit, was er meint.',
+      'Beim Ändern der Raumgröße wird die Einrichtung des Raums geleert — Fläche, Wände, Fenster, Möbel und Stellplätze. Vorher steht eine Abfrage, die aufzählt, was entfällt. Die Pflanzen selbst bleiben in der Sammlung.'
+    ],
+    behoben: [
+      'Der Grundriss stand nie ganz mittig. Die Begrenzung des Bildausschnitts verschob ihn um genau eine Randbreite nach links oben, und bei voller Übersicht fielen beide Grenzen zusammen, sodass die Verschiebung nicht mehr wegging. Auch „Zoom zurücksetzen“ landete deshalb nicht in der Mitte.'
+    ]
+  },
   {
     nr: '2.1', datum: '2026-08-23', titel: 'Verlässliche Zahlen, ehrliche Hinweise',
     neu: [
@@ -7463,6 +7671,96 @@ function oeffne(id){
   if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
+/* Karten, kompakte Zeilen oder Raster. Der Aufbau der Karte bleibt in
+   allen dreien derselbe — was sich ändert, ist ausschließlich CSS.
+   Damit klappt jede Karte weiterhin an Ort und Stelle auf und es gibt
+   keine zweite Darstellung, die getrennt gepflegt werden müsste. */
+const SAM_ANSICHTEN = ['karten','zeilen','raster'];
+function samAnsicht(){
+  return SAM_ANSICHTEN.includes(S.samAnsicht) ? S.samAnsicht : 'karten';
+}
+function samAnsichtSetzen(v){
+  S.samAnsicht = SAM_ANSICHTEN.includes(v) ? v : 'karten';
+  sichern();
+  document.querySelectorAll('[data-samview]').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.samview === S.samAnsicht)));
+  render();
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-samview]'); if(!b) return;
+  samAnsichtSetzen(b.dataset.samview);
+});
+
+/* Vier Wochen im Voraus: je Tag ein Balken mit der Zahl fälliger
+   Pflanzen. Wo sich etwas türmt, sieht man es hier, bevor man verreist.
+   Überfälliges läuft nicht im Balken des heutigen Tages mit, sondern
+   steht als eigener Sockel darunter — sonst sieht ein Rückstand aus
+   wie normale Tagesarbeit. */
+function giessplanDaten(tage){
+  tage = tage || 28;
+  const raus = [], ueber = [];
+  for(let i=0;i<tage;i++) raus.push([]);
+  allePflanzen().forEach(p=>{
+    const st = giessStatus(p);
+    if(!st.letzte){ return; }
+    if(typeof stoppRest === 'function' && stoppRest(p) > 0) return;
+    const rest = st.rest;
+    if(rest < 0) ueber.push({p, tage:-rest});
+    else if(rest < tage) raus[rest].push(p);
+  });
+  return {tage:raus, ueber};
+}
+
+function giessplanZeichnen(){
+  const ziel = document.getElementById('gp-grafik'); if(!ziel) return;
+  const d = giessplanDaten(28);
+  const hoechst = Math.max(1, ...d.tage.map(x=>x.length));
+  const namen = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const heute = new Date(HEUTE.getTime());
+
+  if(!d.tage.some(x=>x.length) && !d.ueber.length){
+    ziel.innerHTML = '<p class="allgut">In den nächsten vier Wochen steht nichts an. '
+      + 'Sobald du Gießvorgänge einträgst, entsteht hier die Vorschau.</p>';
+    return;
+  }
+
+  const saeulen = d.tage.map((liste, i)=>{
+    const tag = new Date(heute.getTime() + i*86400000);
+    const h = Math.round(liste.length / hoechst * 100);
+    const woStart = tag.getDay() === 1;
+    return `<button class="gp-tag${liste.length?'':' leer'}${woStart?' wo':''}" data-gptag="${i}"
+      aria-label="${namen[tag.getDay()]}, ${tag.getDate()}. ${tag.getMonth()+1}. — ${liste.length} fällig">
+      <span class="gp-zahl">${liste.length || ''}</span>
+      <span class="gp-saeule" style="height:${Math.max(liste.length?8:2, h)}%"></span>
+      <span class="gp-datum">${i===0 ? 'heute' : (tag.getDate()===1||i===0 ? tag.getDate()+'.' : namen[tag.getDay()])}</span>
+    </button>`;
+  }).join('');
+
+  ziel.innerHTML = `<div class="gp">
+    ${d.ueber.length ? `<div class="gp-sockel">
+      <b>${d.ueber.length} überfällig</b>
+      <span>${d.ueber.slice(0,6).map(x=>esc(nice(x.p)) + ' (' + x.tage + ')').join(' · ')}${d.ueber.length>6?' …':''}</span>
+    </div>` : ''}
+    <div class="gp-balken">${saeulen}</div>
+    <p class="gp-legende">Vier Wochen im Voraus. Die Zahl über der Säule ist die Menge fälliger Pflanzen an diesem Tag. Antippen zeigt, welche.</p>
+    <div class="gp-namen" id="gp-namen"></div>
+  </div>`;
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-gptag]'); if(!b) return;
+  const i = parseInt(b.dataset.gptag, 10);
+  const d = giessplanDaten(28);
+  const liste = d.tage[i] || [];
+  const tag = new Date(HEUTE.getTime() + i*86400000);
+  const box = document.getElementById('gp-namen'); if(!box) return;
+  document.querySelectorAll('[data-gptag]').forEach(x=>x.classList.toggle('on', x === b));
+  box.innerHTML = liste.length
+    ? `<h4>${tag.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'})}</h4>
+       <ul class="gp-liste">${liste.map(p=>`<li>${esc(nice(p))} <span>${esc(lageVon(p) || 'ohne Platz')}</span></li>`).join('')}</ul>`
+    : `<p class="allgut">An diesem Tag ist nichts fällig.</p>`;
+});
+
 function render(){
   zaehler();
   const alle = allePflanzen();
@@ -7505,6 +7803,9 @@ function render(){
     }).join('');
   }
   $('#out').innerHTML = html;
+  $('#out').className = 'sam-' + samAnsicht();
+  if(typeof giessplanZeichnen === 'function') giessplanZeichnen();
+  if(typeof wunschSichtbarkeit === 'function') wunschSichtbarkeit();
   $('#empty').hidden = list.length>0;
 
   $('#out').querySelectorAll('.card-btn').forEach(b=>b.onclick=()=>{
@@ -7560,6 +7861,13 @@ function render(){
 
 /* ══════════════════ Interaktion ══════════════════ */
 function wunschIndex(id){ return S.wish.findIndex(x=>x.id===id); }
+/* Auf Heute ist Platz knapp: eine leere Wunschliste hat dort nichts
+   verloren und verschwindet ganz. */
+function wunschSichtbarkeit(){
+  const sec = document.getElementById('wunsch-sec');
+  if(!sec) return;
+  sec.hidden = !(S.wish && S.wish.length);
+}
 
 document.addEventListener('click', e=>{
   const go = e.target.closest('[data-go]');
@@ -8465,6 +8773,17 @@ function zustandListe(a){
 function zustandHinweis(){
   const d = zustandDef($('#f-zustand').value);
   $('#f-zustand-hint').textContent = d && d.text ? d.text : '';
+  /* Angeboten, nicht vorausgewählt: was vorausgewählt ist, wird
+     weggetippt, ohne gelesen zu werden. */
+  const box = document.getElementById('f-quar');
+  if(box) box.hidden = $('#f-zustand').value === 'quarantaene';
+}
+{
+  const k = document.getElementById('btn-f-quar');
+  if(k) k.onclick = ()=>{
+    const sel = document.getElementById('f-zustand');
+    if(sel){ sel.value = 'quarantaene'; zustandHinweis(); }
+  };
 }
 
 /* ── Giftwarnung ─────────────────────────────────────────── */
@@ -8706,6 +9025,7 @@ $('#btn-paste-los').onclick = ()=>{
   if(d.befund) notiz.push('Befund: ' + d.befund);
   if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
   if(d.schritte) notiz.push('Schritte: ' + d.schritte);
+  if(d.vermehrung) uebernommen.push('Vermehrungswege gemerkt');
   if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
   if(d.verw) notiz.push('Könnte verwechselt sein mit: ' + d.verw);
   if(notiz.length){
@@ -8887,6 +9207,11 @@ $('#btn-neu-save').onclick = async ()=>{
   if(letzteKiAntwort && letzteKiAntwort.schritte){
     kiAufgaben = massnahmenZuAufgaben(id, letzteKiAntwort.schritte, 'anlegen');
   }
+  if(letzteKiAntwort && letzteKiAntwort.vermehrung){
+    const v = vermehrungLesen(letzteKiAntwort.vermehrung,
+      (KI_DIENSTE[$('#ki-dienst').value] || {}).name);
+    if(v) p.vermehrungKi = v;
+  }
   letzteKiAntwort = null;
   if(files && files.length) await fotosHinzu(id, Array.from(files));
   formularLeeren();
@@ -8919,15 +9244,27 @@ document.addEventListener('change', e=>{
   render();
 });
 document.addEventListener('click', e=>{
+  const m = e.target.closest('[data-zmed]');
+  if(m){ mediumSetzen(m.dataset.zmed, m.dataset.m); render(); return; }
+});
+document.addEventListener('click', e=>{
   const btn = e.target.closest('[data-do]'); if(!btn) return;
   const a = btn.dataset.do, id = btn.dataset.p;
   const p = allePflanzen().find(x=>x.id===id);
-  if(a==='zfertig'){ zustandSetzen(id, 'gesund'); render(); }
+  /* Ist der Steckling angewachsen, geht es nicht zurück auf „gesund",
+     sondern auf den Zustand danach — frisch getopfte Wurzeln sind
+     etwas anderes als eine eingewachsene Pflanze. */
+  if(a==='zfertig'){
+    const z = p ? zustandVon(p) : null;
+    zustandSetzen(id, (z && z.def && z.def.danach) ? z.def.danach : 'gesund');
+    render();
+  }
   else if(a==='zplus'){ zustandVerlaengern(id, 14); render(); }
   else if(a==='ics' && p){ icsLaden(p); }
   else if(a==='ztasks' && p){
     const z = zustandVon(p);
-    (z.def.tasks||[]).forEach(t=>{
+    const med = (typeof mediumVon === 'function') ? mediumVon(p) : null;
+    (z.def.tasks||[]).concat(med && med.tasks ? med.tasks : []).forEach(t=>{
       const liste = S.added[id] = S.added[id] || [];
       if(!liste.some(x=>x.text===t)) liste.push({id:'z'+Date.now()+Math.random().toString(36).slice(2,6), text:t});
     });
@@ -9577,6 +9914,7 @@ function planAufbau(){
   $('#kanten-leiste').innerHTML = Object.keys(KANTEN_ART).map(k=>
     `<button class="mchip${k===pKanteArt?' on':''}" data-kart="${k}">${esc(KANTEN_ART[k].name)}</button>`).join('');
   $('#p-monat').value = pMonat; $('#p-zeit').value = pZeit;
+  if(typeof raumMasseZeichnen === 'function') raumMasseZeichnen();
 }
 
 document.addEventListener('click', e=>{
@@ -9700,15 +10038,67 @@ $('#r-name').onchange = ()=>{ raum().name = $('#r-name').value.trim() || raum().
 $('#r-drehung').addEventListener('input', ()=>{ raum().drehung = parseInt($('#r-drehung').value,10); planRender(); });
 $('#r-drehung').addEventListener('change', sichern);
 $('#r-dach').onchange = ()=>{ raum().dach = !$('#r-dach').checked; sichern(); planRender(); };
+/* Trägt die aktuellen Maße in die Felder ein. */
+function raumMasseZeichnen(){
+  const r = (typeof raum === 'function') ? raum() : null;
+  const b = document.getElementById('r-breite'), t = document.getElementById('r-tiefe');
+  if(!r || !b || !t) return;
+  if(document.activeElement !== b) b.value = ((r.echtB || r.sp * KACHEL) / 100).toFixed(2).replace(/0$/,'');
+  if(document.activeElement !== t) t.value = ((r.echtT || r.re * KACHEL) / 100).toFixed(2).replace(/0$/,'');
+}
+
+/* Zählt, was beim Leeren verloren geht — man soll wissen, worauf man
+   sich einlässt, bevor es weg ist. */
+function raumInhaltZaehlen(r){
+  const teile = [];
+  const kacheln = Object.keys(r.kacheln || {}).filter(k=>r.kacheln[k]).length;
+  const kanten = Object.keys(r.kanten || {}).length;
+  const moebel = (r.moebel || []).length;
+  const plaetze = (typeof pflanzenIm === 'function' ? pflanzenIm(r.id) : []).length;
+  if(kanten)  teile.push(kanten + (kanten === 1 ? ' Wand- oder Fensterstück' : ' Wand- und Fensterstücke'));
+  if(moebel)  teile.push(moebel + (moebel === 1 ? ' Möbelstück' : ' Möbelstücke'));
+  if(plaetze) teile.push(plaetze + (plaetze === 1 ? ' platzierte Pflanze' : ' platzierte Pflanzen'));
+  return {teile, kacheln, leer: !teile.length};
+}
+
 $('#btn-raum-groesse').onclick = ()=>{
-  const r = raum();
-  const m = masseAbfragen(
-    (r.echtB || r.sp * KACHEL) / 100,
-    (r.echtT || r.re * KACHEL) / 100);
-  if(!m) return;
-  r.sp = m.sp; r.re = m.re; r.echtB = m.echtB; r.echtT = m.echtT;
-  for(let y=0;y<r.re;y++) for(let x=0;x<r.sp;x++) if(r.kacheln[x+','+y]===undefined) r.kacheln[x+','+y]=1;
-  sichern(); planRender();
+  const r = raum(); if(!r) return;
+  const lies = id => { const el = document.getElementById(id);
+    return el ? parseFloat(String(el.value).replace(',', '.')) : NaN; };
+  let b = lies('r-breite'), t = lies('r-tiefe');
+  if(!(b > 0) || !(t > 0)){ alert('Bitte für Breite und Tiefe eine Zahl in Metern angeben.'); return; }
+  if(b > 30) b = b / 100;
+  if(t > 30) t = t / 100;
+  b = Math.min(10, Math.max(0.5, b));
+  t = Math.min(10, Math.max(0.5, t));
+  const sp = Math.max(1, Math.min(20, Math.round(b * 100 / KACHEL)));
+  const re = Math.max(1, Math.min(20, Math.round(t * 100 / KACHEL)));
+
+  const z = raumInhaltZaehlen(r);
+  if(!z.leer){
+    const weiter = confirm(
+      'Beim Ändern der Raumgröße wird die Einrichtung geleert.\n\n'
+      + 'Das entfällt:\n· ' + z.teile.join('\n· ')
+      + '\n\nDie Pflanzen selbst bleiben in der Sammlung, sie verlieren nur ihren Platz im Grundriss.'
+      + '\n\nWirklich ändern?');
+    if(!weiter) return;
+  }
+
+  r.sp = sp; r.re = re;
+  r.echtB = Math.round(b * 100); r.echtT = Math.round(t * 100);
+  /* Wie besprochen: bei jeder Größenänderung fängt der Raum leer an.
+     Das erspart das Nachziehen von Wänden, die nur halb passen. */
+  r.kacheln = {};
+  for(let y=0;y<re;y++) for(let x=0;x<sp;x++) r.kacheln[x+','+y] = 1;
+  r.kanten = {};
+  r.moebel = [];
+  delete r.roh;
+  if(typeof plaetzeLeeren === 'function') plaetzeLeeren(r.id);
+  sichern();
+  /* Nach der Änderung wieder alles zeigen, mittig. */
+  if(typeof zoomSetzen === 'function') zoomSetzen(1);
+  planRender();
+  raumMasseZeichnen();
 };
 
 $('#p-monat').addEventListener('input', ()=>{ pMonat = parseInt($('#p-monat').value,10); planRender(); });
@@ -9753,8 +10143,14 @@ function grenzenPruefen(){
   const sk = planSkala()/pZoom, rand = 30*sk;
   const W = r.sp*KACHEL + rand*2, H = r.re*KACHEL + rand*2;
   const sichtW = W/pZoom, sichtH = H/pZoom;
-  pPanX = Math.max(-rand, Math.min(W - rand - sichtW, pPanX));
-  pPanY = Math.max(-rand, Math.min(H - rand - sichtH, pPanY));
+  /* Der Ausschnitt beginnt bei -rand + pPan. Damit links wie rechts
+     derselbe Rand bleibt, ist die untere Grenze 0 und nicht -rand —
+     sonst wird das Bild um genau einen Rand nach links oben versetzt,
+     und bei Zoom 1 fallen beide Grenzen auf -rand zusammen: der Raum
+     stand dann immer außermittig. */
+  const maxX = Math.max(0, W - sichtW), maxY = Math.max(0, H - sichtH);
+  pPanX = Math.max(0, Math.min(maxX, pPanX));
+  pPanY = Math.max(0, Math.min(maxY, pPanY));
 }
 
 function vollbildAn(an){
@@ -9976,6 +10372,9 @@ function giessHinweisFuer(p){
   const art = (typeof giessartVon === 'function') ? giessartVon(p) : null;
   if(art && GIESSARTEN[art] && GIESSARTEN[art].wechsel)
     return { warn:false, text: GIESSARTEN[art].kurz };
+
+  const med = (typeof mediumVon === 'function') ? mediumVon(p) : null;
+  if(med) return { warn:false, text: med.text };
 
   const probe = winter ? (kl.probeWinter || kl.probe) : kl.probe;
   if(probe) teile.push(probe);
@@ -10209,7 +10608,7 @@ const ANSICHTEN = ['heute','sammlung','werkzeuge','mehr'];
    Blöcke im Reiter „Werkzeuge“. Damit die vielen vorhandenen Aufrufe
    ansichtZeigen('doktor') und die Verknüpfung ?start=doktor weiter
    funktionieren, werden die alten Namen hier übersetzt. */
-const WERKZEUGE = ['doktor','substrat','grundriss'];
+const WERKZEUGE = ['doktor','giessplan','substrat','vermehren','stammbaum','grundriss'];
 let ANS_ALLE = false;   // alles untereinander statt in Reitern
 /* Nur noch die Ueberschrift. Der erklaerende Untertitel ist weggefallen —
    die Reiter erklaeren sich ueber ihren Inhalt, nicht ueber einen Absatz. */
@@ -10261,7 +10660,7 @@ function ansichtZeigen(name, merken){
    Bewusst wieder eine eigene Funktion mit eigenem Merker, damit sich
    die drei Seiten nicht gegenseitig zuklappen. Die Feuchte-Skala und
    die Kartenliste bleiben außen vor — die gehören immer sichtbar. */
-const SAMMEL_BLOECKE = ['vermehren','stammbaum','giessplan','wunsch'];
+const SAMMEL_BLOECKE = ['wunsch'];
 function sammlungZeichnen(){
   document.querySelectorAll('[data-sm]').forEach(sec=>{
     const auf = sec.dataset.sm === S.sammlungOffen;
@@ -11366,8 +11765,19 @@ function dokPromptBauen(){
   }
   if(sym.length){ zeilen.push('Das fällt mir auf:'); sym.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
   if(ant.length){ zeilen.push('Zusätzlich:'); ant.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
-  zeilen.push(ANTWORT_FORMAT);
+  /* Der Doktor fragt nach der Vermehrung nur, wenn noch nichts
+     hinterlegt ist. Bei einem kranken Blatt geht es um etwas anderes,
+     und jede zusätzliche Anforderung ist eine Stelle mehr, an der eine
+     Antwort ausschert. */
+  zeilen.push(p && vermehrungKiVon(p) ? ohneVermehrung(ANTWORT_FORMAT) : ANTWORT_FORMAT);
   return zeilen.join('\n');
+}
+/* Schneidet die VERMEHRUNG-Zeilen aus dem Antwortformat heraus. */
+function ohneVermehrung(txt){
+  return String(txt).split('\n').filter(z=>!/^VERMEHRUNG:/.test(z.trim())).join('\n')
+    .replace(' und jede VERMEHRUNG-Zeile genau vier senkrechte Striche', '')
+    .replace(' Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.',
+             ' Nur MASSNAHME darf mehrfach vorkommen.');
 }
 
 /* Grundsatz für den ganzen Doktor: keine Warnung ohne Ausweg. Jeder
@@ -11454,8 +11864,26 @@ document.addEventListener('click', e=>{
     if(!d || !d.zustand || !dokPflanze) return;
     zustandSetzen(dokPflanze, d.zustand);
     render();
+    /* Bei Schädlingen ist das Trennen die wirksamste Einzelmaßnahme —
+       und der Moment, sie vorzuschlagen, ist genau jetzt. */
+    if(d.zustand === 'schaedlinge'){
+      dokKiHinweis('Zustand gesetzt.', 'ok');
+      const box = document.getElementById('dok-abgleich-hinweis');
+      if(box) box.innerHTML = `<div class="dok-unsicher"><b>Schädlingsbefall — trennen?</b>
+        Drei Wochen getrennt aufstellen hält den Befall von der übrigen Sammlung fern.
+        Der Zustand „Quarantäne“ nimmt die Pflanze aus dem Rundgang und legt häufigere Kontrollen an.
+        <div class="tools"><button class="haupt" data-do="quar-an" data-p="${dokPflanze}">Quarantäne setzen</button>
+        <button data-do="uns-weg">Nicht nötig</button></div></div>`;
+      return;
+    }
     dokKiHinweis('Zustand gesetzt. Die Gießempfehlung ist damit angepasst.', 'ok');
     return;
+  }
+  if(btn.dataset.do === 'quar-an'){
+    zustandSetzen(btn.dataset.p, 'quarantaene');
+    const box = document.getElementById('dok-abgleich-hinweis'); if(box) box.innerHTML = '';
+    dokKiHinweis('Quarantäne läuft — drei Wochen, dann fragt die App nach.', 'ok');
+    render(); return;
   }
   /* Von der Pflanzenkarte in den Grundriss: den Raum öffnen, in dem die
      Pflanze steht, und ihre Karte gleich aufschlagen. Steht sie nirgends,
@@ -11585,6 +12013,39 @@ function lichtRaten(t){
   if(/hell/.test(x)) return 'hell';
   return null;
 }
+/* Eine VERMEHRUNG-Zeile hat fünf Angaben, getrennt durch vier
+   senkrechte Striche. Die Prozentzahl ist eine Schätzung, keine
+   Messung — deshalb wird auf Fünferschritte gerundet und immer
+   dazugeschrieben, woher sie stammt. */
+function vermehrungLesen(roh, dienst){
+  if(!roh) return null;
+  const raus = [];
+  String(roh).split('\n').forEach(zeile=>{
+    const t = zeile.split('|').map(x=>x.trim());
+    if(t.length < 2 || !t[0]) return;
+    const zahl = parseInt(String(t[1]).replace(/[^0-9]/g,''), 10);
+    const quote = (zahl >= 0 && zahl <= 100) ? Math.round(zahl/5)*5 : null;
+    raus.push({ methode:t[0], quote:quote,
+                zeit:t[2] || '', medium:t[3] || '', dauer:t[4] || '' });
+  });
+  if(!raus.length) return null;
+  raus.sort((a,b)=>(b.quote == null ? -1 : b.quote) - (a.quote == null ? -1 : a.quote));
+  return { wege: raus.slice(0,3), quelle: dienst || 'KI',
+           datum: new Date().toISOString().slice(0,10) };
+}
+
+/* Steht schon etwas da, wird es ersetzt — aber sichtbar. */
+function vermehrungUebernehmen(id, roh, dienst){
+  const v = vermehrungLesen(roh, dienst);
+  if(!id || !v) return null;
+  aenderungSetzen(id, {vermehrungKi: v});
+  return v.wege.length;
+}
+function vermehrungKiVon(p){
+  const v = p && p.vermehrungKi;
+  return (v && Array.isArray(v.wege) && v.wege.length) ? v : null;
+}
+
 function giftRaten(t){
   if(!t) return null; const x = norm(t);
   if(/unbedenklich|ungiftig|nicht giftig|sicher/.test(x)) return false;
@@ -11685,6 +12146,11 @@ $('#btn-dok-paste').onclick = ()=>{
     if(d.schritte){
       const n = massnahmenZuAufgaben(dokPflanze, d.schritte.split(/[;·]|\s\u2013\s/), 'doktor');
       if(n) teile.push(n + (n === 1 ? ' Aufgabe angelegt' : ' Aufgaben angelegt'));
+    }
+    if(d.vermehrung){
+      const n = vermehrungUebernehmen(dokPflanze, d.vermehrung,
+        (KI_DIENSTE[$('#dok-dienst').value] || {}).name);
+      if(n) teile.push(n + (n === 1 ? ' Vermehrungsweg' : ' Vermehrungswege') + ' gemerkt');
     }
     dokAbgleichZeigen(d);
     render();
@@ -12100,6 +12566,12 @@ function verAufbau(){
   sel.innerHTML = pflanzenAuswahlHTML(verPflanze, 'Pflanze wählen …');
 }
 
+function datumKurz(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T12:00:00');
+  return isNaN(d) ? String(iso) : d.toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'});
+}
+
 function verRender(){
   const ziel = $('#ver-inhalt'); if(!ziel) return;
   verAufbau();
@@ -12111,8 +12583,27 @@ function verRender(){
   if(!p){ verPflanze = null; verRender(); return; }
   const wege = vermehrungFuer(p);
   const monat = new Date().getMonth()+1;
+  const ki = vermehrungKiVon(p);
 
-  ziel.innerHTML = wege.map((w, i)=>{
+  /* Was die KI zu genau dieser Art gesagt hat, steht oben — es ist
+     spezifischer als jede Gattungsregel. Darunter bleiben die
+     allgemeinen Anleitungen mit den Schritt-für-Schritt-Angaben. */
+  const kiHtml = ki ? `<div class="verki">
+      <h4>Für genau diese Art</h4>
+      <ul class="verki-liste">${ki.wege.map(w=>`<li>
+        <b>${esc(w.methode)}</b>${w.quote != null ? ` <span class="verki-quote">${w.quote} %</span>` : ''}
+        <span class="verki-mehr">${[w.zeit && 'Zeit: ' + w.zeit, w.medium && 'Medium: ' + w.medium,
+          w.dauer && 'Dauer: ' + w.dauer].filter(Boolean).map(esc).join(' · ')}</span></li>`).join('')}</ul>
+      <p class="verki-quelle">Auskunft von ${esc(ki.quelle)}, ${esc(datumKurz(ki.datum))}.
+        Die Prozentzahlen sind Schätzungen, auf Fünferschritte gerundet — keine Messwerte.</p>
+      <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Neu nachfragen</button></div>
+    </div>`
+    : `<div class="verki leer">
+      <p>Für diese Art liegt keine eigene Auskunft vor. Unten stehen die allgemeinen Wege ihrer Gattung.</p>
+      <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Bei der KI nachfragen</button></div>
+    </div>`;
+
+  ziel.innerHTML = kiHtml + wege.map((w, i)=>{
     const m = w.m;
     const s = vSaison(m, monat);
     const auf = verMethode ? verMethode === w.id : i === 0;
@@ -12144,6 +12635,72 @@ function verRender(){
       </div>
     </details>`;
   }).join('');
+}
+
+/* Eine Frage nur zur Vermehrung — kurz, weil hier nichts anderes
+   gebraucht wird, und ohne Foto, weil die Art schon feststeht. */
+function vermehrungFrageBauen(p){
+  const zeilen = ['Du bist ein erfahrener Gärtner. Es geht um: '
+    + (p.art || '') + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.', '',
+    'Nenne mir, wie ich genau diese Art vermehre.', '',
+    'ANTWORTE AUSSCHLIESSLICH IN DIESEM AUFBAU, in einem Codeblock, ohne Text davor oder danach:', ''];
+  zeilen.push('VERMEHRUNG: Ein bis drei Zeilen, jede beginnt neu mit VERMEHRUNG. Jede Zeile enthält fünf Angaben, getrennt durch genau vier senkrechte Striche, in dieser Reihenfolge: Methode | Erfolgsaussicht in Prozent als reine Zahl | beste Jahreszeit | Substrat oder Medium für den Steckling | Bewurzelungsdauer. Die aussichtsreichste Methode zuerst. Nenne nur, was bei dieser Art wirklich üblich ist. Bist du unsicher, gib eine niedrigere Prozentzahl an, statt zu raten.');
+  return zeilen.join('\n');
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do="ver-kifrage"]'); if(!b) return;
+  const p = allePflanzen().find(x=>x.id === b.dataset.p); if(!p) return;
+  const box = document.getElementById('ver-kibox'); if(!box) return;
+  box.hidden = false;
+  const feld = document.getElementById('ver-kifrage-text');
+  if(feld) feld.value = vermehrungFrageBauen(p);
+  box.dataset.p = p.id;
+  if(box.scrollIntoView) box.scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+{
+  const oeffnen = document.getElementById('btn-ver-ki');
+  const werten  = document.getElementById('btn-ver-kipaste');
+  const zu      = document.getElementById('btn-ver-kizu');
+  const meld = (t, ton)=>{ const el = document.getElementById('ver-kihinweis');
+    if(el){ el.className = 'kihinweis' + (ton ? ' ' + ton : ''); el.textContent = t; } };
+
+  if(oeffnen) oeffnen.onclick = ()=>{
+    const t = (document.getElementById('ver-kifrage-text')||{}).value || '';
+    const d = KI_DIENSTE[(document.getElementById('ver-dienst')||{}).value] || KI_DIENSTE.gemini;
+    const kopiert = inZwischenablage(t);
+    window.open(d.url(t), '_blank', 'noopener');
+    meld(d.vorbefuellen
+      ? d.name + ' ist offen, die Frage steht dort im Feld. Antwort danach hier einfügen.'
+      : (kopiert ? d.name + ' ist offen, die Frage liegt in der Zwischenablage. Dort einfügen, Antwort hier zurück.'
+                 : 'Die Frage oben markieren, kopieren und im Dienst einfügen.'));
+  };
+
+  if(werten) werten.onclick = ()=>{
+    const box = document.getElementById('ver-kibox');
+    const id = box ? box.dataset.p : null;
+    const roh = (document.getElementById('ver-kipaste')||{}).value || '';
+    if(!id){ meld('Keine Pflanze gewählt.', 'warn'); return; }
+    if(!roh.trim()){ meld('Das Feld ist leer. Die ganze Antwort des Dienstes hier einfügen.', 'warn'); return; }
+    const gelesen = geminiLesen(roh);
+    const rohWege = (gelesen && gelesen.vermehrung) ? gelesen.vermehrung : roh;
+    const p = allePflanzen().find(x=>x.id === id);
+    const vorher = p && vermehrungKiVon(p);
+    const n = vermehrungUebernehmen(id, rohWege,
+      (KI_DIENSTE[(document.getElementById('ver-dienst')||{}).value] || {}).name);
+    if(!n){ meld('Darin steckt keine VERMEHRUNG-Zeile. Der Aufbau muss lauten: Methode | Prozent | Jahreszeit | Medium | Dauer.', 'warn'); return; }
+    meld((vorher ? 'Ersetzt: ' : 'Übernommen: ') + n
+      + (n === 1 ? ' Weg' : ' Wege') + (vorher ? ' statt bisher ' + vorher.wege.length + '.' : '.'), 'ok');
+    document.getElementById('ver-kipaste').value = '';
+    verRender();
+  };
+
+  if(zu) zu.onclick = ()=>{
+    const box = document.getElementById('ver-kibox');
+    if(box) box.hidden = true;
+    meld('');
+  };
 }
 
 /* Aus dem Leitfaden direkt einen Ableger in die Sammlung legen */
@@ -12263,10 +12820,17 @@ function rhythmusJetzt(){
 }
 
 /* Wer ist dran? */
+/* Steht eine Pflanze getrennt, gehört sie nicht in den Durchgang durch
+   die Sammlung — man geht ja gerade nicht von ihr zur nächsten. Sie
+   bekommt ihre eigene, häufigere Kontrolle über die Aufgabenliste. */
+function inTrennung(p){
+  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  return !!(z && z.def && z.def.trennen);
+}
 function rundgangListe(){
   const e = rgEinst();
   const takt = rhythmusJetzt();
-  let liste = allePflanzen();
+  let liste = allePflanzen().filter(p=>!inTrennung(p));
   if(e.wer === 'faellig')
     liste = liste.filter(p=>{ const t = tageSeitGesehen(p.id); return t == null || t >= takt; });
   else if(e.wer === 'zustand')
@@ -12757,9 +13321,9 @@ const TOUR_KAPITEL = {
         titel: 'Weitere Pflanzen',
         text: 'Der runde Knopf ist der einzige Weg zum Anlegen und steht immer an derselben Stelle.' },
 
-      { ziel: ()=>document.querySelector('[data-sm="vermehren"]'),
-        titel: 'Vier Blöcke am Fuß der Seite',
-        text: 'Vermehren mit den Methoden zur jeweiligen Art, Stammbaum für Ableger und ihre Eltern, Gießplan als Übersicht über alle Termine, Wunschliste für alles, was noch fehlt. Immer nur einer offen, damit die Seite kurz bleibt.' }
+      { ziel: ()=>document.getElementById('sammel-ansicht'),
+        titel: 'Drei Ansichten',
+        text: 'Karten mit allen Angaben, kompakte Zeilen für den schnellen Überblick, Raster für viele Pflanzen auf einmal. Die Wahl bleibt gemerkt. Vermehren, Stammbaum und Gießplan sind in die Werkzeuge gezogen — die Sammlung ist jetzt nur noch die Pflanzenliste.' }
     ]
   },
 
@@ -13313,13 +13877,8 @@ if(typeof mehrOeffnen === 'function'){
     if(TOUR_KAPITEL[key]) tourNachOeffnen(key);
   };
 }
-if(typeof sammlungOeffnen === 'function'){
-  const _smVorherTour = sammlungOeffnen;
-  sammlungOeffnen = function(key, springen){
-    _smVorherTour(key, springen);
-    if(key === 'vermehren') tourNachOeffnen('vermehren');
-  };
-}
+/* Vermehren liegt jetzt in den Werkzeugen — die Erklärung hängt
+   deshalb an werkzeugOeffnen und nicht mehr an sammlungOeffnen. */
 if(typeof grOeffnen === 'function'){
   const _grVorherTour = grOeffnen;
   grOeffnen = function(raumId){

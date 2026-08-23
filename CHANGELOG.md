@@ -4,6 +4,29 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.2 — 23. August 2026
+**Aufgeräumt, getrennt, nachgefragt**
+
+### Neu
+- Vermehrung kommt jetzt von der KI, für genau deine Pflanze. Beide Formulare — Anlegen und Pflanzendoktor — fragen nach bis zu drei Methoden mit Erfolgsaussicht, bester Jahreszeit, Medium und Bewurzelungsdauer. Die Angaben stehen im Vermehren-Werkzeug ganz oben, mit Dienst und Datum. Die Prozentzahlen sind Schätzungen und werden auf Fünferschritte gerundet — das steht auch so dabei.
+- Für Pflanzen ohne solche Auskunft gibt es einen eigenen Nachfrage-Kasten: kurze Frage, Dienst öffnen, Antwort einfügen. Wird etwas ersetzt, sagt die App, wie viele Wege vorher hinterlegt waren.
+- Quarantäne als eigener Zustand. Drei Wochen getrennt aufstellen ist die wirksamste Einzelmaßnahme gegen Schädlinge in einer Sammlung. Wer darin steht, läuft nicht im Rundgang mit, bekommt eigene Kontrollaufgaben und am Stichtag eine Nachfrage. Beim Anlegen wird sie angeboten, beim Schädlingsbefund schlägt der Doktor sie von sich aus vor.
+- Der Zustand „Steckling“ unterscheidet Wasserglas, Substrat und Sphagnum. Jedes Medium hat eigene Pflegehinweise und eigene Aufgabenvorschläge; im Wasserglas entfällt die Fingerprobe. Ist er angewachsen, geht es weiter als „Frisch umgetopft“ statt als „gesund“ — frisch bewurzelt ist nicht eingewachsen.
+- Die Sammlung hat drei Ansichten: Karten wie bisher, kompakte Zeilen und ein Raster. Die Wahl bleibt gemerkt, die Karte klappt in jeder Ansicht an Ort und Stelle auf.
+- Der Gießplan ist eine Häufungsgrafik über vier Wochen: je Tag eine Säule mit der Zahl fälliger Pflanzen. Antippen zeigt, welche. Überfälliges steht als eigener Sockel darüber, damit ein Rückstand nicht wie normale Tagesarbeit aussieht.
+- Die Raumgröße lässt sich jederzeit ändern — Felder für Breite und Tiefe in Metern, größer wie kleiner. Angebaut wird nach rechts und unten.
+
+### Besser
+- Vermehren, Stammbaum und Gießplan sind in die Werkzeuge gezogen. Die Sammlung ist damit nur noch die Pflanzenliste, und man scrollt nicht mehr an vierzig Karten vorbei, um zum Stammbaum zu kommen.
+- Die Wunschliste steht jetzt auf Heute, unter der Aufgabenliste, und verschwindet ganz, wenn sie leer ist.
+- Der Vermerk „unklar“ an Vermehrungsvorschlägen heißt jetzt „geraten“ und verweist auf die Nachfrage bei der KI. Er sagt damit, was er meint.
+- Beim Ändern der Raumgröße wird die Einrichtung des Raums geleert — Fläche, Wände, Fenster, Möbel und Stellplätze. Vorher steht eine Abfrage, die aufzählt, was entfällt. Die Pflanzen selbst bleiben in der Sammlung.
+
+### Behoben
+- Der Grundriss stand nie ganz mittig. Die Begrenzung des Bildausschnitts verschob ihn um genau eine Randbreite nach links oben, und bei voller Übersicht fielen beide Grenzen zusammen, sodass die Verschiebung nicht mehr wegging. Auch „Zoom zurücksetzen“ landete deshalb nicht in der Mitte.
+
+---
+
 ## 2.1 — 23. August 2026
 **Verlässliche Zahlen, ehrliche Hinweise**
 
