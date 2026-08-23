@@ -5473,15 +5473,6 @@ function papierkorbRender(){
       </div>
     </div>
 
-    <div class="dok-stufe" id="dok-s4" hidden>
-      <h3><span class="dok-nr">4</span> Einschätzung</h3>
-      <details class="dok-rueck">
-        <summary>Vier Rückfragen — sie trennen ähnliche Ursachen</summary>
-        <div id="dok-fragen"></div>
-      </details>
-      <div id="dok-ergebnis"></div>
-    </div>
-
     <div class="kibox dok-stufe" id="dok-ki-zeile" hidden>
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
       <div class="kizeile">
@@ -5505,11 +5496,21 @@ function papierkorbRender(){
       </label>
       <div class="pastebox" id="dok-paste-box" hidden>
         <textarea id="dok-paste" placeholder="ZUSTAND: …&#10;BEFUND: …&#10;MASSNAHMEN: …"></textarea>
-        <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button></div>
+        <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button>
+          <button id="btn-dok-leeren" type="button">Feld leeren</button></div>
       </div>
+    </div>
+    <div class="dok-stufe" id="dok-s4" hidden>
+      <h3><span class="dok-nr">4</span> Einschätzung</h3>
+      <details class="dok-rueck" id="dok-rueck">
+        <summary>Vier Rückfragen — sie trennen ähnliche Ursachen</summary>
+        <div id="dok-fragen"></div>
+      </details>
       <div id="dok-abgleich-hinweis"></div>
       <div id="dok-abgleich"></div>
+      <div id="dok-ergebnis"></div>
     </div>
+
     </div>
   </section>
 
@@ -6144,8 +6145,26 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.2';
+const FASSUNG = '2.3';
 const PATCHNOTES = [
+  {
+    nr: '2.3', datum: '2026-08-23', titel: 'Der Pflanzendoktor, neu sortiert',
+    neu: [
+      'Der Rundgang zählt jetzt das, was bei der jeweiligen Art wirklich zählt: bei der Venusfliegenfalle neue Fallen, bei Schlauchpflanzen und Kannenpflanzen neue Schläuche, bei Orchideen und Sukkulenten neue Triebe, bei Bromelien Kindel. Bei Kräutern, Gemüse und Einjährigen entfällt der Zähler — die schieben täglich Blätter, gezählt sagt das nichts.',
+      'Im Antwortfeld des Doktors gibt es einen Knopf „Feld leeren“.'
+    ],
+    besser: [
+      'Auf dem KI-Weg zeigt Schritt 4 jetzt die Einschätzung aus der Antwort — Zustand, Befund, Gießhinweis, Maßnahmen — statt eines Fragebogens, der nach einer KI-Antwort nichts mehr eingrenzt. Die vier Rückfragen erscheinen dort nicht mehr.',
+      'Der Abgleich mit der Karte steht jetzt in Schritt 4 statt versteckt in Schritt 3, und nach dem Übernehmen bleibt sichtbar, wie viele Angaben geschrieben wurden.',
+      'Der Rundgang zeigt keinen Gießhinweis mehr. Er ist ein Kontrollgang, kein Gießgang.'
+    ],
+    behoben: [
+      'Auf dem KI-Weg erschien Schritt 4 zwischen Schritt 2 und Schritt 3. Die Reihenfolge im Aufbau war vertauscht.',
+      'Wer aus dem Rundgang über „Stimmt was nicht“ in den Doktor sprang, sah Schritt 2 nicht: die Pflanze war gesetzt, der Ablauf stand aber noch auf Schritt 1.',
+      'Der Gießmodus nahm Pflanzen mit, die erst in zwei Tagen dran sind. Er führt jetzt nur noch durch das, was heute oder überfällig ist. Die Vorwarnung auf der Karte bleibt.',
+      'Die Lichtstufe „Schatten“ fehlte in der Zeichenerklärung.'
+    ]
+  },
   {
     nr: '2.2', datum: '2026-08-23', titel: 'Aufgeräumt, getrennt, nachgefragt',
     neu: [
@@ -6714,6 +6733,7 @@ function iconRow(p){ return `<span class="icons">${icoSonne(p)}${icoWasser(p)}${
       ${reihe(SVG.sonneVoll,'Volle Sonne', SONNE.voll.lang)}
       ${reihe(SVG.sonneHell,'Hell', SONNE.hell.lang)}
       ${reihe(SVG.sonneIndir,'Hell indirekt', SONNE.indirekt.lang)}
+      ${reihe(SVG.schatten,'Schatten', SONNE.schatten.lang)}
      </div>
      <div class="legend-grp"><h5>Wasser</h5>
       <div class="legend-row"><span class="ico wet">${tropfen(4)}</span><span><b>S</b> — Anstau, Untersetzer dauerhaft gefüllt</span></div>
@@ -9082,6 +9102,9 @@ document.addEventListener('click', e=>{
       n = dokVorschlaege.length;
       dokVorschlaege = [];
       if(typeof dokAbgleichZeichnen === 'function') dokAbgleichZeichnen();
+      const ziel = document.getElementById('dok-abgleich');
+      if(ziel) ziel.innerHTML = `<p class="allgut">${n}
+        ${n === 1 ? 'Angabe wurde' : 'Angaben wurden'} in die Karte geschrieben.</p>`;
       render();
     }
     if(typeof dokKiHinweis === 'function') dokKiHinweis(
@@ -10292,7 +10315,10 @@ function giessListe(){
     .map(p=>({p, st:giessStatus(p)}))
     /* Pflanzen in der Gießpause kommen bewusst mit: der Modus soll
        gerade dort bremsen, wo man sonst aus Gewohnheit gießt. */
-    .filter(x=>['over','soon','unbekannt','stopp'].includes(x.st.stand))
+    /* „bald fällig" ist eine Warnung auf der Karte, kein Auftrag. In den
+       Gießmodus kommt nur, was heute oder überfällig ist. */
+    .filter(x=>['over','unbekannt','stopp'].includes(x.st.stand)
+             || (x.st.stand === 'soon' && x.st.rest <= 0))
     .sort((a,b)=>{
       const w = s=>s.stand==='over'?0:(s.stand==='soon'?1:(s.stand==='unbekannt'?2:3));
       return w(a.st)-w(b.st) || (a.st.rest??99)-(b.st.rest??99);
@@ -11650,6 +11676,7 @@ let dokSchritt = 1;         // 1 Pflanze · 2 Weg · 3 Merkmale oder KI · 4 Ein
 let dokWeg = null;          // 'ki' oder 'selbst'
 let dokGruppe = 0;          // welche Symptomgruppe offen ist
 let dokKiFertig = false;    // ist auf dem KI-Weg eine Antwort eingelesen?
+let dokKiDaten = null;      // die gelesene Antwort, für die Einschätzung
 
 const DOK_SCHRITTE = ['Pflanze', 'Weg', 'Merkmale', 'Einschätzung'];
 
@@ -11661,7 +11688,10 @@ function dokZeigen(){
     'dok-s3': dokSchritt >= 3 && !ki,
     'dok-ki-zeile': dokSchritt >= 3 && ki,
     'dok-s4': dokSchritt >= 4 || (dokSchritt >= 3 && !ki && dokSymptome.size > 0)
-              || (ki && dokKiFertig)
+              || (ki && dokKiFertig),
+    /* Liegt eine KI-Antwort vor, sind die Merkmalsfragen gegenstandslos —
+       eingegrenzt wurde schon. */
+    'dok-rueck': !ki
   };
   Object.keys(sichtbar).forEach(id=>{
     const el = document.getElementById(id); if(el) el.hidden = !sichtbar[id];
@@ -11702,8 +11732,42 @@ function dokAufbau(){
     }</div></div>`).join('');
 }
 
+function dokKiErgebnisHTML(d){
+  const p = dokPflanze ? allePflanzen().find(x=>x.id===dokPflanze) : null;
+  const z = d.zustand ? zustandRaten(d.zustand) : null;
+  const zd = z ? zustandDef(z) : null;
+  const schritte = d.schritte
+    ? d.schritte.split('\n').map(z2=>z2.split('|')[1] || z2.split('|')[0] || z2)
+        .map(x=>x.trim()).filter(Boolean) : [];
+  return `<div class="dg top">
+    <div class="dg-kopf">
+      <span class="dg-rang">Einschätzung der KI</span>
+      <span class="dg-wert">${esc(d.sicher ? 'Sicherheit ' + d.sicher : 'ohne Angabe')}</span>
+    </div>
+    <h4>${esc((zd && zd.name) || d.zustand || 'Kein Zustand genannt')}</h4>
+    ${d.befund ? `<p class="dg-text">${esc(d.befund)}</p>` : ''}
+    ${d.giessen ? `<p class="dg-passt">Gießen: ${esc(d.giessen)}</p>` : ''}
+    ${d.verw ? `<p class="dg-passt">Verwechselbar mit: ${esc(d.verw)}</p>` : ''}
+    ${schritte.length ? `<p class="dg-schritt-kopf">Was jetzt zu tun ist</p>
+      <ol class="dg-schritte">${schritte.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+    ${p ? `<div class="tools">
+      ${z && z !== 'gesund' ? `<button data-do="dok-zustand-ki" data-z="${esc(z)}">Zustand „${esc((zd||{}).name||'')}“ setzen</button>` : ''}
+      <button data-do="dok-neu">Noch einmal von vorn</button>
+    </div>` : '<p class="dg-hinweis">Ohne gewählte Pflanze bleibt die Einschätzung nur hier stehen.</p>'}
+  </div>`;
+}
+
 function dokErgebnis(){
   const ziel = $('#dok-ergebnis');
+  /* Auf dem KI-Weg ist die Einschätzung die Antwort, nicht das Ergebnis
+     eines Fragebogens. Der Merkmalsweg bleibt unverändert. */
+  if(dokWeg === 'ki'){
+    ziel.innerHTML = dokKiDaten
+      ? dokKiErgebnisHTML(dokKiDaten)
+      : '<p class="allgut">Sobald du die Antwort oben eingefügt und übernommen hast, steht hier die Einschätzung.</p>';
+    dokZeigen();
+    return;
+  }
   if(!dokSymptome.size){
     ziel.innerHTML = '<p class="allgut">Wähle oben an, was dir auffällt. Je mehr Angaben, desto genauer wird die Einschätzung.</p>';
     dokZeigen();
@@ -11879,6 +11943,30 @@ document.addEventListener('click', e=>{
     dokKiHinweis('Zustand gesetzt. Die Gießempfehlung ist damit angepasst.', 'ok');
     return;
   }
+  if(btn.dataset.do === 'dok-zustand-ki'){
+    if(!dokPflanze) return;
+    zustandSetzen(dokPflanze, btn.dataset.z);
+    render(); dokErgebnis();
+    dokKiHinweis('Zustand gesetzt. Die Gießempfehlung ist damit angepasst.', 'ok');
+    if(btn.dataset.z === 'schaedlinge'){
+      const box = document.getElementById('dok-abgleich-hinweis');
+      if(box) box.innerHTML = `<div class="dok-unsicher"><b>Schädlingsbefall — trennen?</b>
+        Drei Wochen getrennt aufstellen hält den Befall von der übrigen Sammlung fern.
+        <div class="tools"><button class="haupt" data-do="quar-an" data-p="${dokPflanze}">Quarantäne setzen</button>
+        <button data-do="uns-weg">Nicht nötig</button></div></div>`;
+    }
+    return;
+  }
+  if(btn.dataset.do === 'dok-neu'){
+    dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null;
+    dokSymptome.clear(); dokAntworten = {};
+    const f = document.getElementById('dok-paste'); if(f) f.value = '';
+    ['dok-abgleich','dok-abgleich-hinweis'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.innerHTML = '';
+    });
+    dokKiHinweis(''); dokAufbau(); dokZeigen(); dokErgebnis();
+    return;
+  }
   if(btn.dataset.do === 'quar-an'){
     zustandSetzen(btn.dataset.p, 'quarantaene');
     const box = document.getElementById('dok-abgleich-hinweis'); if(box) box.innerHTML = '';
@@ -11913,7 +12001,8 @@ document.addEventListener('click', e=>{
   if(btn.dataset.do === 'doktor-fuer'){
     e.stopPropagation();
     dokPflanze = btn.dataset.p;
-    dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokSymptome.clear(); dokAntworten = {};
+    dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null;
+    dokSymptome.clear(); dokAntworten = {};
     ansichtZeigen('doktor');
     dokAufbau(); dokZeigen(); dokErgebnis();
     window.scrollTo({top:0, behavior:'smooth'});
@@ -11948,7 +12037,8 @@ document.addEventListener('click', e=>{
   const g = e.target.closest('[data-dokg]');
   if(g){ dokGruppe = parseInt(g.dataset.dokg,10) || 0; dokAufbau(); dokErgebnis(); return; }
   const b = e.target.closest('[data-do]');
-  if(b && b.dataset.do === 'dok-zurueck'){ dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokZeigen(); }
+  if(b && b.dataset.do === 'dok-zurueck'){
+    dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null; dokZeigen(); }
 });
 $('#dok-ki-text') && ($('#dok-ki-text').value = '');
 $('#btn-dok-ki').onclick = ()=>{
@@ -12105,6 +12195,14 @@ if(dokDatei) dokDatei.onchange = async ()=>{
   render();
 };
 
+{
+  const leer = document.getElementById('btn-dok-leeren');
+  if(leer) leer.onclick = ()=>{
+    const f = document.getElementById('dok-paste');
+    if(f){ f.value = ''; f.focus(); }
+    dokKiHinweis('Feld geleert. Neue Antwort einfügen.', '');
+  };
+}
 $('#btn-dok-paste').onclick = ()=>{
   const roh = $('#dok-paste').value;
   const d = geminiLesen(roh);
@@ -12157,6 +12255,7 @@ $('#btn-dok-paste').onclick = ()=>{
   } else {
     teile.push('Keine Pflanze gewählt — die Antwort steht nur hier');
   }
+  dokKiDaten = d;
   unsicherZeigen('#dok-abgleich-hinweis', d, 'dok');
   dokKiHinweis(teile.join(' · ') + '.', 'ok');
   dokWeiterZurEinschaetzung();
@@ -12827,6 +12926,31 @@ function inTrennung(p){
   const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
   return !!(z && z.def && z.def.trennen);
 }
+/* Was hier gezählt wird, hängt von der Art ab. Bei Karnivoren ist die
+   neue Falle die Einheit, bei Orchideen und Bromelien der Trieb.
+   Schnellwachsende Kräuter und Einjährige zählt niemand sinnvoll —
+   dort verschwindet der Zähler. */
+function zuwachsArt(p){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  const typ = String((b ? b.typ : p && p.typ) || '');
+  const bot = String((b ? b.bot : p && p.botanisch) || '');
+  const kl  = p && p.klasse;
+
+  if(kl === 'S' || /Karnivore/i.test(typ)){
+    if(/Pinguicula|Drosera/i.test(bot)) return {zaehlen:true, eins:'Neues Blatt', kurz:'Blatt'};
+    if(/Sarracenia|Nepenthes|Cephalotus|Heliamphora/i.test(bot))
+      return {zaehlen:true, eins:'Neuer Schlauch', kurz:'Schlauch'};
+    return {zaehlen:true, eins:'Neue Falle', kurz:'Falle'};
+  }
+  if(/Orchidee/i.test(typ)) return {zaehlen:true, eins:'Neuer Trieb', kurz:'Trieb'};
+  if(/Bromelie/i.test(typ)) return {zaehlen:true, eins:'Neues Kindel', kurz:'Kindel'};
+  if(/Kaktus|Sukkulente/i.test(typ)) return {zaehlen:true, eins:'Neuer Trieb', kurz:'Trieb'};
+  /* Kräuter, Gemüse und Einjährige schieben täglich Blätter — ein
+     Strichzähler sagt dort nichts über den Zustand. */
+  if(/Kraut|Nutzpflanze|Gemüse|Einjährig/i.test(typ)) return {zaehlen:false};
+  return {zaehlen:true, eins:'Neues Blatt', kurz:'Blatt'};
+}
+
 function rundgangListe(){
   const e = rgEinst();
   const takt = rhythmusJetzt();
@@ -12897,15 +13021,13 @@ function rgZeichnen(){
     <p class="gm-art">${esc(p.art)}</p>
     <p class="gm-lage">${seit == null ? 'Noch nie vermerkt' : (seit === 0 ? 'Heute schon angesehen' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'}`)}${z.code!=='gesund'?' · '+esc(z.def.name):''}</p>
     <p class="gm-wo">${esc(wo)}</p>
-    ${(()=>{ const h = giessHinweisFuer(p);
-             return `<p class="gm-hinweis${h.warn?' warn':''}">${esc(h.text)}</p>`; })()}
 
     ${e.stufe !== 'blick' ? `
-    <div class="rg-zaehler">
+    ${zuwachsArt(p).zaehlen ? `<div class="rg-zaehler">
       <button class="rg-pm" data-rg="blatt-weg">−</button>
-      <span class="rg-wert"><b>${blattLog(p.id).length}</b><i>Blätter gezählt</i></span>
+      <span class="rg-wert"><b>${blattLog(p.id).length}</b><i>${esc(zuwachsArt(p).kurz)} gezählt</i></span>
       <button class="rg-pm" data-rg="blatt-plus">+</button>
-    </div>
+    </div>` : ''}
     <div class="rg-chips">
       ${(e.knoepfe||[]).filter(k=>!['blatt','blatt_weg'].includes(k)).map(k=>EREIGNIS_ARTEN[k]
         ? `<button class="stat-chip ${EREIGNIS_ARTEN[k].ton}" data-rg="ev:${k}">${esc(EREIGNIS_ARTEN[k].name)}</button>` : '').join('')}
@@ -12921,7 +13043,7 @@ function rgZeichnen(){
 
   $('#rg-knoepfe').innerHTML = e.stufe === 'blick'
     ? `<button class="gm-ja" data-rg="gut">Alles gut</button>
-       <button class="gm-nein" data-rg="blatt-plus-weiter">Neues Blatt</button>
+       ${zuwachsArt(p).zaehlen ? `<button class="gm-nein" data-rg="blatt-plus-weiter">${esc(zuwachsArt(p).eins)}</button>` : ''}
        <button class="gm-spaeter" data-rg="doktor">Stimmt was nicht</button>`
     : `<button class="gm-ja" data-rg="weiter">Weiter</button>
        <button class="gm-nein" data-rg="doktor">Stimmt was nicht</button>
@@ -12960,8 +13082,16 @@ document.addEventListener('click', e=>{
   if(a === 'doktor'){
     rgBeenden();
     if(typeof dokPflanze !== 'undefined'){
-      dokPflanze = p.id; ansichtZeigen('doktor');
-      if(typeof dokAufbau === 'function'){ dokAufbau(); dokErgebnis(); }
+      /* Wie beim Knopf auf der Karte: Pflanze setzen und bei Schritt 2
+         anfangen. Ohne das blieb der Doktor auf Schritt 1 stehen und
+         die Wegwahl tauchte nie auf. */
+      dokPflanze = p.id;
+      dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null;
+      dokSymptome.clear(); dokAntworten = {};
+      ansichtZeigen('doktor');
+      if(typeof dokAufbau === 'function') dokAufbau();
+      if(typeof dokZeigen === 'function') dokZeigen();
+      if(typeof dokErgebnis === 'function') dokErgebnis();
       window.scrollTo({top:0, behavior:'smooth'});
     }
     return;

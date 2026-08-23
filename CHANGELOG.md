@@ -4,6 +4,26 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.3 — 23. August 2026
+**Der Pflanzendoktor, neu sortiert**
+
+### Neu
+- Der Rundgang zählt jetzt das, was bei der jeweiligen Art wirklich zählt: bei der Venusfliegenfalle neue Fallen, bei Schlauchpflanzen und Kannenpflanzen neue Schläuche, bei Orchideen und Sukkulenten neue Triebe, bei Bromelien Kindel. Bei Kräutern, Gemüse und Einjährigen entfällt der Zähler — die schieben täglich Blätter, gezählt sagt das nichts.
+- Im Antwortfeld des Doktors gibt es einen Knopf „Feld leeren“.
+
+### Besser
+- Auf dem KI-Weg zeigt Schritt 4 jetzt die Einschätzung aus der Antwort — Zustand, Befund, Gießhinweis, Maßnahmen — statt eines Fragebogens, der nach einer KI-Antwort nichts mehr eingrenzt. Die vier Rückfragen erscheinen dort nicht mehr.
+- Der Abgleich mit der Karte steht jetzt in Schritt 4 statt versteckt in Schritt 3, und nach dem Übernehmen bleibt sichtbar, wie viele Angaben geschrieben wurden.
+- Der Rundgang zeigt keinen Gießhinweis mehr. Er ist ein Kontrollgang, kein Gießgang.
+
+### Behoben
+- Auf dem KI-Weg erschien Schritt 4 zwischen Schritt 2 und Schritt 3. Die Reihenfolge im Aufbau war vertauscht.
+- Wer aus dem Rundgang über „Stimmt was nicht“ in den Doktor sprang, sah Schritt 2 nicht: die Pflanze war gesetzt, der Ablauf stand aber noch auf Schritt 1.
+- Der Gießmodus nahm Pflanzen mit, die erst in zwei Tagen dran sind. Er führt jetzt nur noch durch das, was heute oder überfällig ist. Die Vorwarnung auf der Karte bleibt.
+- Die Lichtstufe „Schatten“ fehlte in der Zeichenerklärung.
+
+---
+
 ## 2.2 — 23. August 2026
 **Aufgeräumt, getrennt, nachgefragt**
 
