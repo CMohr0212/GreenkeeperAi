@@ -4,6 +4,36 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.1 — 23. August 2026
+**Verlässliche Zahlen, ehrliche Hinweise**
+
+### Neu
+- Wasserkultur und Hydrokultur als eigene Gießarten. Wer eine Pflanze darauf umstellt, bekommt keinen Gießrhythmus mehr, sondern einen Wechselrhythmus — sieben Tage im Sommer, zehn im Winter bei reiner Wasserkultur, zehn bis sechzehn bei Blähton oder Pon. Der Knopf heißt dann „Wasser gewechselt“ statt „Gegossen“.
+- Der Substratrechner kennt beide. Für die Wasserkultur rechnet er keine Mischung, sondern nennt Gefäß, Wasserstand und Wechselrhythmus; für die Hydrokultur mischt er weiter, sperrt aber alles Organische — im stehenden Wasser verrottet es und nimmt den Wurzeln den Sauerstoff.
+- Das Erinnerungsintervall für die Sicherung ist einstellbar: minus, Zahl, plus, zwischen einem und sechzig Tagen. Die Zahl lässt sich auch antippen und überschreiben.
+
+### Besser
+- Die Erklärungen heißen jetzt App Tour. „Erklärungen“ sagte nicht, wozu der Menüpunkt gut ist.
+- Die App Tour erscheint sofort statt nach einer knappen Sekunde. Statt eines pauschalen Sicherheitsabstands wartet sie genau so lange, bis das Ziel wirklich auf dem Bildschirm steht.
+- Der Gießhinweis wird für jede Pflanze einzeln gebildet — aus Gießklasse, Gießart, Zustand, Standort und Jahreszeit. Vorher stand bei jeder Pflanze derselbe Satz. Karnivoren bekommen jetzt den Anstau-Hinweis statt einer Fingerprobe, die bei dauerhaft nassem Substrat nichts messen kann.
+- Der Rundgang zeigt denselben Hinweis. Bisher stand dort gar keiner.
+- Der Pflanzendoktor führt auf dem KI-Weg bis zur Einschätzung. Bisher endete dieser Weg ohne Abschluss, egal was man tat.
+- Kein Hinweis im Doktor bleibt mehr ohne Ausweg stehen — auch nicht bei leerem Feld oder wenn keine Pflanze gewählt ist.
+- Ein Foto, das im Doktor hinzugefügt wird, meldet jetzt, in wessen Galerie es gelandet ist.
+- Die Ansicht-Einstellungen laufen untereinander in einer Spalte, ohne die Texte, die schon hinter dem Info-Knopf stehen.
+- „Wer kommt dran“ verschwindet aus den Rundgang-Einstellungen, wenn die Obergrenze auf null steht.
+- „Als App installieren“ verschwindet, sobald die App installiert ist.
+- Der Knopf ⤢ im Grundriss heißt jetzt „Zoom zurücksetzen“ — das ist es, was er tut.
+- „Als Text anzeigen“ ist aus der Sicherung verschwunden.
+
+### Behoben
+- Zwei Pflanzen derselben Art konnten unterschiedliche Gießintervalle bekommen. Das Intervall stand als Kopie in der Pflanze und blieb stehen, wenn der Pflanzendoktor die Gießklasse änderte — die Karte zeigte dann eine Klasse, gerechnet wurde mit einer anderen. Das Intervall kommt jetzt immer aus der Gießklasse. Alte Kopien werden beim Rechnen erkannt und verworfen.
+- Der Feuchtigkeitsbalken auf der Pflanzenkarte erschien doppelt. Er war in Wahrheit einer, aber so hoch wie die ganze Karte, und die Schnellleiste verdeckte seine Mitte.
+- „Sicherung teilen“ blieb als Knopf stehen, auch wenn das Teilen auf dem Gerät gar nicht funktioniert. Schlägt es fehl, verschwindet er und der Weg über Herunterladen wird erklärt.
+- Widersprüchliche Angaben zur Erinnerung: an zwei Stellen stand „alle zwei Wochen“, tatsächlich waren es fünf Tage.
+
+---
+
 ## 2.0 — 22. August 2026
 **Erklärungen für die ganze App**
 

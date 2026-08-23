@@ -36,31 +36,6 @@ header.top{padding:44px 0 18px;border-bottom:1.5px solid var(--ink)}
 h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2rem);line-height:.92;letter-spacing:-.03em;margin:0 0 14px}
 .sub{max-width:54ch;margin:0;color:var(--peat);font-size:var(--t-xl)}
 
-.scale-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px 16px;
-  flex-wrap:wrap;margin-bottom:10px;width:100%;background:none;border:0;padding:0;
-  cursor:pointer;color:inherit;text-align:left;font:inherit}
-.scale-head .caret{display:inline-block;transition:transform .18s}
-.scale-sec.zu .scale-head .caret{transform:rotate(-90deg)}
-.scale-sec.zu #scale-body{display:none}
-.scale-hint{font-family:var(--f-body);font-size:var(--t-s);color:var(--peat);margin:0 0 4px}
-
-.scale-title{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);letter-spacing:-.01em;margin:0}
-.scale-note{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);letter-spacing:.04em}
-.scale{position:relative;height:138px;margin:14px 4px 0}
-.scale-track{position:absolute;left:0;right:0;bottom:40px;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--water) 0%,#6E8F84 38%,#B0A483 70%,#C8B48E 100%)}
-.scale-ticks{position:absolute;left:0;right:0;bottom:18px;display:flex;justify-content:space-between}
-.tick{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;color:var(--peat);text-transform:uppercase}
-.tick:last-child{text-align:right}
-.pin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:0;padding:0;cursor:pointer;color:inherit;animation:rise .5s cubic-bezier(.2,.8,.3,1) backwards}
-@keyframes rise{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
-.pin-label{font-family:var(--f-data);font-size:var(--t-mono);font-weight:600;letter-spacing:.03em;white-space:nowrap;
-  background:var(--paper);padding:1px 5px;border-radius:3px;max-width:34vw;overflow:hidden;
-  text-overflow:ellipsis;box-shadow:0 0 0 2px var(--paper)}
-@keyframes rise{from{opacity:0;transform:translateX(-50%) translateY(10px)}}
-.pin-stem{width:1.5px;height:14px;background:var(--ink);opacity:.5}
-.pin-dot{width:13px;height:13px;border-radius:50%;background:var(--paper);border:2.5px solid var(--ink);margin-bottom:-6px;transition:transform .18s}
-.pin:hover .pin-dot,.pin:focus-visible .pin-dot{transform:scale(1.35)}
-.pin:focus-visible{outline:2px solid var(--water);outline-offset:4px;border-radius:4px}
 
 .controls{padding:20px 0 18px;border-bottom:1px solid var(--line);background:var(--paper);z-index:30}
 .search{width:100%;padding:11px 14px;border:1.5px solid var(--ink);border-radius:2px;background:transparent;font-family:var(--f-body);font-size:var(--t-l);color:var(--ink)}
@@ -102,7 +77,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .flags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .flag{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:100px;border:1px solid currentColor}
 .f-safe{color:var(--moss)} .f-tox{color:var(--terra)} .f-cls{color:var(--water)}
-.bar{height:5px;background:rgba(31,35,32,.1);border-radius:3px;margin-top:12px;overflow:hidden}
+.bar{display:block;height:5px;background:rgba(31,35,32,.1);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--water);border-radius:3px}
 
 .detail{padding:0 18px 22px;display:none;border-top:1px solid var(--line)}
@@ -207,8 +182,6 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .tools button.haupt:hover,button.haupt:hover{background:#41627f}
 .tools button.loeschen,button.loeschen{border-color:var(--terra);color:var(--terra)}
 .tools button.loeschen:hover{background:var(--terra);color:#fff}
-#exportbox{width:100%;min-height:150px;margin-top:12px;font-family:var(--f-data);font-size:var(--t-mono);
-  padding:11px;border:1px solid var(--line);border-radius:3px;background:var(--sand);color:var(--ink)}
 
 /* ---- Icons & Legende ---- */
 .icons{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:10px}
@@ -353,6 +326,8 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 /* ---- Formular ---- */
 .formwrap{border:1px solid var(--line);border-radius:3px;background:var(--sand);padding:16px;margin-top:14px;display:none}
 .formwrap.on{display:block}
+.mh-spalte{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.mh-spalte > label{width:100%;margin:0}
 .fgrid{display:grid;gap:12px}
 @media(min-width:640px){.fgrid{grid-template-columns:1fr 1fr}}
 .fgrid label{display:block}
@@ -586,8 +561,6 @@ body{padding-bottom:76px}
 /* ── Feste Überschrift mit i-Knopf (Heute, Anlegen) ── */
 .sm-kopf-fest{display:flex;align-items:center;gap:10px}
 .sm-kopf-fest h2{flex:1;min-width:0;margin:0}
-.scale-head{padding-right:6px}
-.scale-i{margin-left:8px;vertical-align:middle}
 
 /* ── Schwebender Knopf: neue Pflanze ── */
 #fab-neu{position:fixed;right:18px;z-index:45;width:58px;height:58px;border-radius:50%;
@@ -1038,6 +1011,17 @@ body.liste .card.open .card-id,body.liste .card.open .icons,body.liste .card.ope
 body.liste .card.open .icons{display:flex}
 body.liste .card.open .card-btn{padding:14px 16px;align-items:flex-start}
 body.liste .card.open .thumb{width:64px;height:64px;flex:0 0 64px}
+.aqua{border:1px solid var(--line);border-radius:4px;padding:16px;background:var(--sand)}
+.aqua h3{margin:0 0 10px}
+.aqua-liste{margin:0 0 12px;padding-left:1.15em}
+.aqua-liste li{margin-bottom:7px;font-size:var(--t-m);line-height:1.55}
+.aqua-takt{margin:0 0 10px;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.04em}
+.takt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.takt .lab{font-size:var(--t-s);color:var(--peat)}
+.takt-pm{width:38px;height:38px;font-size:1.15rem;line-height:1;padding:0;flex:0 0 auto}
+.takt-zahl{width:64px;text-align:center;font:inherit;font-size:var(--t-l);padding:7px 4px;
+  border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink)}
+.takt-zahl:focus{outline:2px solid var(--water);outline-offset:-1px}
 .erinnerung{border:1px solid var(--terra);border-left-width:4px;border-radius:4px;padding:12px 14px;margin-bottom:14px;background:var(--paper)}
 .erinnerung p{margin:0 0 9px;font-size:var(--t-m);line-height:1.55}
 
@@ -1606,10 +1590,18 @@ function erreichbarFuer(stufe, tier){
 }
 
 const KLASSEN = {
-  S:{name:"Karnivoren",kurz:"Anstau, dauerhaft nass",feuchte:100,sommer:"Untersetzer dauerhaft 1–2 cm gefüllt",winter:"Untersetzer leer, nur leicht feucht"},
-  A:{name:"Durstig",kurz:"gleichmäßig feucht",feuchte:75,sommer:"alle 2–4 Tage",winter:"alle 5–8 Tage"},
-  B:{name:"Normal",kurz:"obere 2–3 cm antrocknen",feuchte:45,sommer:"alle 7–10 Tage",winter:"alle 10–14 Tage"},
-  C:{name:"Kakteenmodus",kurz:"komplett durchtrocknen",feuchte:14,sommer:"alle 14–21 Tage",winter:"alle 4–8 Wochen"}
+  S:{name:"Karnivoren",kurz:"Anstau, dauerhaft nass",feuchte:100,sommer:"Untersetzer dauerhaft 1–2 cm gefüllt",winter:"Untersetzer leer, nur leicht feucht",
+     probe:"Keine Fingerprobe. Wasserstand im Untersetzer ansehen: ein bis drei Zentimeter kalkfreies Wasser, das Substrat bleibt durchgehend nass.",
+     probeWinter:"Winterruhe: Anstau flacher halten, etwa einen halben Zentimeter. Nicht trocken werden lassen."},
+  A:{name:"Durstig",kurz:"gleichmäßig feucht",feuchte:75,sommer:"alle 2–4 Tage",winter:"alle 5–8 Tage",
+     probe:"Oberfläche antippen. Fühlt sie sich nur klamm an, ist es schon Zeit — diese Gruppe verzeiht kein Durchtrocknen.",
+     probeWinter:"Auch im Winter nie ganz austrocknen lassen, aber vor dem Gießen den Finger einen Zentimeter tief prüfen."},
+  B:{name:"Normal",kurz:"obere 2–3 cm antrocknen",feuchte:45,sommer:"alle 7–10 Tage",winter:"alle 10–14 Tage",
+     probe:"Finger zwei bis drei Zentimeter tief ins Substrat. Trocken heißt gießen, feucht heißt warten.",
+     probeWinter:"Im Winter tiefer prüfen und im Zweifel einen Tag länger warten."},
+  C:{name:"Kakteenmodus",kurz:"komplett durchtrocknen",feuchte:14,sommer:"alle 14–21 Tage",winter:"alle 4–8 Wochen",
+     probe:"Finger tief hinein oder Topf anheben. Erst gießen, wenn der Ballen bis unten trocken und der Topf spürbar leicht ist.",
+     probeWinter:"In der Ruhezeit fast gar nicht. Nur gießen, wenn Blätter schrumpelig und ledrig werden."}
 };
 
 const PFLANZEN = [];
@@ -4141,7 +4133,11 @@ const VERBOTEN = {
   karnivore: ['pflanzerde','anzuchterde','wurmhumus','gartenerde','moorbeeterde','rindenhumus',
               'kohle','zeolith','vermiculit','kokoshum','kokoschips','seramis','blaehton'],
   sauer:     ['kohle','zeolith'],
-  orchidee:  ['gartenerde','pflanzerde','sand','vermiculit']
+  orchidee:  ['gartenerde','pflanzerde','sand','vermiculit'],
+  /* In der Hydrokultur darf nichts Organisches liegen — es verrottet
+     im stehenden Wasser und nimmt den Wurzeln den Sauerstoff. */
+  hydro:     ['pflanzerde','anzuchterde','wurmhumus','gartenerde','moorbeeterde','rindenhumus',
+              'kokoshum','kokoschips','rinde','torf','weisstorf','sand']
 };
 
 /* Zielprofile. gewicht steuert, worauf es besonders ankommt. */
@@ -4185,6 +4181,24 @@ const ZIELE = {
   bromelie: {name:'Bromelien', wasser:4.5, luft:8, naehr:1.5, ph:5.0,
     gewicht:{luft:4, wasser:2, naehr:2, ph:1},
     text:'Sie nehmen Wasser über den Trichter auf, die Wurzeln halten vor allem fest. Fast nur Struktur.'},
+  wasserkultur: {name:'Wasserkultur — nur Wasser, kein Substrat', wasser:10, luft:0, naehr:0, ph:6.5, ohneMischung:true,
+    text:'Hier gibt es nichts zu mischen: die Wurzeln stehen im Wasser. Was zählt, sind Gefäß, Wasserstand und Wechselrhythmus.',
+    anleitung:[
+      'Gefäß aus Glas oder undurchsichtigem Kunststoff, mindestens so hoch, dass ein Drittel der Wurzeln über dem Wasser bleibt.',
+      'Wasserstand knapp unter den Wurzelhals — der Übergang von Trieb zu Wurzel bleibt trocken, sonst fault er.',
+      'Zimmerwarmes Wasser. Kaltes Leitungswasser bremst die Wurzeln für Tage.',
+      'Beim Wechsel Gefäß ausspülen, Wurzeln abspülen, braune oder weiche Wurzeln abschneiden.',
+      'Dünger nur als Hydrodünger und höchstens in Viertelstärke — normaler Blumendünger versalzt das Wasser.'],
+    wechsel:'alle 7 Tage im Sommer, alle 10 im Winter'},
+  hydrokultur: {name:'Hydrokultur — Blähton oder Pon (auch Semi-Hydro)', wasser:3, luft:9, naehr:0.5, ph:6.5, sperre:'hydro',
+    gewicht:{luft:5, wasser:2, naehr:2, ph:1},
+    text:'Nicht Erde und nicht reines Wasser, sondern ein Zwischenweg: ein inertes Korn hält die Pflanze fest, das Wasser steht darunter. Blähton grob, Pon feiner und schwerer. Im englischen Sprachraum heißt dasselbe Verfahren Semi-Hydro.',
+    anleitung:[
+      'Kulturtopf mit Wasserstandsanzeiger in ein wasserdichtes Übergefäß.',
+      'Auffüllen erst, wenn der Anzeiger auf „Minimum“ steht — dann bis „Optimal“, nie höher.',
+      'Alle zwei bis drei Monate mit klarem Wasser durchspülen, sonst reichern sich Salze im Korn an.',
+      'Nur Hydrodünger verwenden; im Blähton gibt es nichts, was normalen Dünger puffert.'],
+    wechsel:'auffüllen etwa alle 10 bis 16 Tage'},
   standard: {name:'Zimmerpflanzen allgemein', wasser:6.5, luft:5, naehr:4, ph:6.0,
     gewicht:{wasser:3, luft:3, naehr:2, ph:1},
     text:'Ausgewogen: genug Speicher für eine Woche, genug Luft gegen Staunässe.'}
@@ -4193,6 +4207,9 @@ const ZIELE = {
 /* Welche Gruppe passt zu dieser Pflanze? */
 function zielFuer(p){
   if(!p) return 'standard';
+  const ga = (typeof giessartVon === 'function') ? giessartVon(p) : null;
+  if(ga === 'wasser') return 'wasserkultur';
+  if(ga === 'hydro')  return 'hydrokultur';
   const b = (typeof bibVon === 'function') ? bibVon(p) : null;
   const typ = (b ? b.typ : p.typ) || '';
   const fam = (b ? b.fam : p.familie) || '';
@@ -4832,13 +4849,22 @@ const GIESSARTEN = {
   unten:   {name:'Von unten',
     kurz:'Wasser nur in den Untersetzer. Nichts auf Blätter oder Blattherz gießen.'},
   anstau:  {name:'Anstau',
-    kurz:'Untersetzer dauerhaft 1–2 cm gefüllt halten. Nie ganz austrocknen lassen.'}
+    kurz:'Untersetzer dauerhaft 1–2 cm gefüllt halten. Nie ganz austrocknen lassen.'},
+  /* Kein Gießen, sondern ein Wechsel. Der Rhythmus hängt nicht an der
+     Gießklasse, sondern daran, wie schnell Wasser abstirbt. */
+  wasser:  {name:'Wasserkultur',
+    kurz:'Wasser wechseln statt gießen: Gefäß ausspülen, Wurzeln abspülen, braune oder weiche Wurzeln entfernen, frisches zimmerwarmes Wasser bis knapp unter den Wurzelhals.',
+    wechsel:[7,10], tat:'Wasser gewechselt'},
+  hydro:   {name:'Hydrokultur (Blähton)',
+    kurz:'Blähton oder Pon: Wasserstand am Anzeiger auf „Optimal“ halten, erst nachfüllen, wenn er auf „Minimum“ steht. Alle paar Monate durchspülen, damit sich keine Salze anreichern.',
+    wechsel:[10,16], tat:'Wasserstand aufgefüllt'}
 };
 const GIESSART_STANDARD = 'durch';
 
 /* Vorschlag aus dem, was die App ohnehin weiß. */
 function giessartRaten(p){
   const typ = String(p.typ || '').toLowerCase();
+  if(/wasserkultur|hydrokultur|hydrokultur/.test(typ)) return 'wasser';
   const kl  = p.klasse;
   if(kl === 'S' || /karnivore|sumpf/.test(typ))      return 'anstau';
   if(/orchidee/.test(typ))                            return 'tauchen';
@@ -4851,6 +4877,11 @@ function giessartVon(p){
   return (g && GIESSARTEN[g]) ? g : giessartRaten(p);
 }
 function giessartName(p){ return GIESSARTEN[giessartVon(p)].name; }
+/* Wortwahl der Tat: gegossen, gewechselt oder aufgefüllt. */
+function giessTat(p){
+  const a = GIESSARTEN[giessartVon(p)];
+  return (a && a.tat) ? a.tat : 'Gegossen';
+}
 function giessartText(p){ return GIESSARTEN[giessartVon(p)].kurz; }
 
 const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','notiz','frostMin','giessart','wichtig','raum','stellplatz'];
@@ -5048,7 +5079,7 @@ function papierkorbRender(){
       <p class="wk-lead">Ein letzter Hinweis, der wichtigste von allen:</p>
       <p class="wk-warnung">Alles liegt nur in diesem Browser. Wird er aufgeräumt oder das
         Gerät gewechselt, ist alles weg. Lade regelmäßig eine Sicherung herunter — unter
-        „Mehr“, ganz oben. Die App erinnert dich alle zwei Wochen daran.</p>
+        „Mehr“, ganz oben. Die App erinnert dich von allein daran, sobald es zu lange her ist.</p>
 
       <div class="wk-install" id="wk-install" hidden>
         <p class="wk-frage">Gleich als App einrichten?</p>
@@ -5484,7 +5515,7 @@ function papierkorbRender(){
         <span class="vb-trenn"></span>
         <button class="vb-w" data-zoom="rein" title="Näher">+</button>
         <button class="vb-w" data-zoom="raus" title="Weiter weg">−</button>
-        <button class="vb-w" data-zoom="fit" title="Alles zeigen">⤢</button>
+        <button class="vb-w" data-zoom="fit" id="btn-zoom-fit" title="Zoom zurücksetzen" aria-label="Zoom zurücksetzen">⤢</button>
         <span class="vb-trenn"></span>
         <button class="vb-w vb-zu" id="btn-vollbild-zu" title="Vollbild verlassen">×</button>
       </div>
@@ -5543,15 +5574,24 @@ function papierkorbRender(){
       <p class="wz-hilfe" hidden>Alle Daten liegen ausschließlich auf diesem Gerät — nichts davon liegt auf einem fremden Rechner. Eine Sicherung ist eine einzige Datei mit allem darin: Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Lade sie ab und zu herunter und lege sie irgendwo ab, wo du sie wiederfindest. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. „Alles zurücksetzen“ löscht den gesamten Bestand und lässt sich nicht rückgängig machen.</p>
     <p class="sub" id="storage-state"></p>
     <p class="sub" id="storage-size"></p>
+    <p class="sub" id="teilen-ersatz" hidden>Teilen hat auf diesem Gerät nicht funktioniert — meist ist
+      die Sicherung mit vielen Fotos zu groß dafür. Nimm „Sicherung herunterladen“; die Datei liegt
+      danach im Download-Ordner und lässt sich von dort über das Teilen-Symbol des Systems weitergeben.</p>
     <div class="tools">
       <button id="btn-download" class="haupt">Sicherung herunterladen</button>
       <button id="btn-teilen" hidden>Sicherung teilen</button>
       <button id="btn-import">Sicherung laden</button>
-      <button id="btn-export">Als Text anzeigen</button>
       <button id="btn-reset" class="loeschen">Alles zurücksetzen</button>
     </div>
+    <div class="takt" id="sicher-takt">
+      <span class="lab">Erinnern, wenn seit</span>
+      <button class="takt-pm" data-takt="-" aria-label="Weniger Tage">−</button>
+      <input class="takt-zahl" id="sicher-takt-zahl" type="number" inputmode="numeric"
+             min="1" max="60" aria-label="Tage bis zur Erinnerung">
+      <button class="takt-pm" data-takt="+" aria-label="Mehr Tage">+</button>
+      <span class="lab" id="sicher-takt-wort">Tagen nicht gesichert wurde</span>
+    </div>
     <input type="file" id="import-file" accept="application/json,.json" hidden>
-    <textarea id="exportbox" hidden readonly aria-label="Sicherung als Text"></textarea>
     </div>
   </section>
 
@@ -5654,7 +5694,7 @@ function papierkorbRender(){
         <span class="fhint" id="rg-rhythmus-text"></span></label>
       <label><span class="lab">Höchstens pro Durchgang</span><input id="rg-max" type="number" min="0" max="99" step="1">
         <span class="fhint">0 heißt: alle auf einmal.</span></label>
-      <label><span class="lab">Wer kommt dran</span><select id="rg-wer">
+      <label id="rg-wer-feld"><span class="lab">Wer kommt dran</span><select id="rg-wer">
         <option value="faellig">Nur die länger nicht angesehenen</option>
         <option value="alle">Alle Pflanzen</option>
         <option value="zustand">Nur die mit einem Zustand</option>
@@ -5682,32 +5722,34 @@ function papierkorbRender(){
     </div>
     <div class="wz-in" id="mh-in-ansicht" hidden>
       <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht. Der einfache Modus blendet alles aus, was man am Anfang nicht braucht — der Grundriss, die Gießart-Auswahl und der Blattzähler verschwinden, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren: sobald du den Haken wieder wegnimmst, ist alles unverändert da. Pflegehinweise sind die kleinen grauen Kästen auf den Pflanzenkarten — etwa wenn an einem Platz deutlich weniger Sonne ankommt, als die Art gewohnt ist. Sie verbieten nichts und ändern nichts, sie sagen nur Bescheid. Einzelne lassen sich mit dem × wegklicken, mit dem Haken hier verschwinden sie alle.</p>
-    <label class="fspan check">
-      <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
-    <label class="fspan check">
-      <input type="checkbox" id="ans-einfach"> <span class="lab" style="display:inline">Einfacher Modus</span></label>
-    <p class="fhint" id="einfach-text"></p>
-    <label class="fspan check">
-      <input type="checkbox" id="ans-hinweise"> <span class="lab" style="display:inline">Pflegehinweise auf den Karten</span></label>
-    <p class="fhint" id="hinweise-text"></p>
+    <div class="mh-spalte">
+      <label class="fspan check">
+        <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
+      <label class="fspan check">
+        <input type="checkbox" id="ans-einfach"> <span class="lab" style="display:inline">Einfacher Modus</span></label>
+      <label class="fspan check">
+        <input type="checkbox" id="ans-hinweise"> <span class="lab" style="display:inline">Pflegehinweise auf den Karten</span></label>
+    </div>
+    <p class="fhint" id="einfach-text" hidden></p>
+    <p class="fhint" id="hinweise-text" hidden></p>
     </div>
   </section>
 
   <section data-ans="mehr" class="plan mh" id="tour-sec" data-mh="tour">
-    <h2 class="wz-h2">Erklärungen</h2>
+    <h2 class="wz-h2">App Tour</h2>
     <div class="wz-kopfzeile">
       <button class="wz-kopf" data-mh-go="tour" aria-expanded="false" aria-controls="mh-in-tour">
-        <span class="wz-t">Erklärungen</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-mh-info="tour" aria-expanded="false" aria-label="Wozu sind die Erklärungen da?">i</button>
+        <span class="wz-t">App Tour</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="tour" aria-expanded="false" aria-label="Wozu ist die App Tour da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-tour" hidden>
-      <p class="wz-hilfe" hidden>Beim ersten Öffnen eines Bereichs legt sich eine kurze Erklärung über die Seite: der Rest verblasst, ein Pfeil zeigt auf das, worum es gerade geht. Jede Erklärung lässt sich mit „Überspringen“ oder dem × sofort schließen und mit „Zurück“ noch einmal durchblättern — ein versehentlich weggetippter Schritt ist also nicht verloren. Von allein kommt eine Erklärung kein zweites Mal. Hier stehen alle Kapitel zum erneuten Ansehen.</p>
+      <p class="wz-hilfe" hidden>Beim ersten Öffnen eines Bereichs legt sich ein kurzes Kapitel der App Tour über die Seite: der Rest verblasst, ein Pfeil zeigt auf das, worum es gerade geht. Jedes Kapitel lässt sich mit „Überspringen“ oder dem × sofort schließen und mit „Zurück“ noch einmal durchblättern — ein versehentlich weggetippter Schritt ist also nicht verloren. Von allein kommt ein Kapitel kein zweites Mal. Hier stehen alle Kapitel zum erneuten Ansehen.</p>
       <div id="tour-liste"></div>
       <div class="tools">
-        <button id="btn-tour-alle">Alle Erklärungen zurücksetzen</button>
+        <button id="btn-tour-alle">Alle Kapitel zurücksetzen</button>
       </div>
       <label class="fspan check">
-        <input type="checkbox" id="tour-aus"> <span class="lab" style="display:inline">Erklärungen abschalten</span></label>
+        <input type="checkbox" id="tour-aus"> <span class="lab" style="display:inline">App Tour abschalten</span></label>
       <p class="fhint" id="tour-aus-text"></p>
     </div>
   </section>
@@ -5915,8 +5957,36 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.0';
+const FASSUNG = '2.1';
 const PATCHNOTES = [
+  {
+    nr: '2.1', datum: '2026-08-23', titel: 'Verlässliche Zahlen, ehrliche Hinweise',
+    neu: [
+      'Wasserkultur und Hydrokultur als eigene Gießarten. Wer eine Pflanze darauf umstellt, bekommt keinen Gießrhythmus mehr, sondern einen Wechselrhythmus — sieben Tage im Sommer, zehn im Winter bei reiner Wasserkultur, zehn bis sechzehn bei Blähton oder Pon. Der Knopf heißt dann „Wasser gewechselt“ statt „Gegossen“.',
+      'Der Substratrechner kennt beide. Für die Wasserkultur rechnet er keine Mischung, sondern nennt Gefäß, Wasserstand und Wechselrhythmus; für die Hydrokultur mischt er weiter, sperrt aber alles Organische — im stehenden Wasser verrottet es und nimmt den Wurzeln den Sauerstoff.',
+      'Das Erinnerungsintervall für die Sicherung ist einstellbar: minus, Zahl, plus, zwischen einem und sechzig Tagen. Die Zahl lässt sich auch antippen und überschreiben.'
+    ],
+    besser: [
+      'Die Erklärungen heißen jetzt App Tour. „Erklärungen“ sagte nicht, wozu der Menüpunkt gut ist.',
+      'Die App Tour erscheint sofort statt nach einer knappen Sekunde. Statt eines pauschalen Sicherheitsabstands wartet sie genau so lange, bis das Ziel wirklich auf dem Bildschirm steht.',
+      'Der Gießhinweis wird für jede Pflanze einzeln gebildet — aus Gießklasse, Gießart, Zustand, Standort und Jahreszeit. Vorher stand bei jeder Pflanze derselbe Satz. Karnivoren bekommen jetzt den Anstau-Hinweis statt einer Fingerprobe, die bei dauerhaft nassem Substrat nichts messen kann.',
+      'Der Rundgang zeigt denselben Hinweis. Bisher stand dort gar keiner.',
+      'Der Pflanzendoktor führt auf dem KI-Weg bis zur Einschätzung. Bisher endete dieser Weg ohne Abschluss, egal was man tat.',
+      'Kein Hinweis im Doktor bleibt mehr ohne Ausweg stehen — auch nicht bei leerem Feld oder wenn keine Pflanze gewählt ist.',
+      'Ein Foto, das im Doktor hinzugefügt wird, meldet jetzt, in wessen Galerie es gelandet ist.',
+      'Die Ansicht-Einstellungen laufen untereinander in einer Spalte, ohne die Texte, die schon hinter dem Info-Knopf stehen.',
+      '„Wer kommt dran“ verschwindet aus den Rundgang-Einstellungen, wenn die Obergrenze auf null steht.',
+      '„Als App installieren“ verschwindet, sobald die App installiert ist.',
+      'Der Knopf ⤢ im Grundriss heißt jetzt „Zoom zurücksetzen“ — das ist es, was er tut.',
+      '„Als Text anzeigen“ ist aus der Sicherung verschwunden.'
+    ],
+    behoben: [
+      'Zwei Pflanzen derselben Art konnten unterschiedliche Gießintervalle bekommen. Das Intervall stand als Kopie in der Pflanze und blieb stehen, wenn der Pflanzendoktor die Gießklasse änderte — die Karte zeigte dann eine Klasse, gerechnet wurde mit einer anderen. Das Intervall kommt jetzt immer aus der Gießklasse. Alte Kopien werden beim Rechnen erkannt und verworfen.',
+      'Der Feuchtigkeitsbalken auf der Pflanzenkarte erschien doppelt. Er war in Wahrheit einer, aber so hoch wie die ganze Karte, und die Schnellleiste verdeckte seine Mitte.',
+      '„Sicherung teilen“ blieb als Knopf stehen, auch wenn das Teilen auf dem Gerät gar nicht funktioniert. Schlägt es fehl, verschwindet er und der Weg über Herunterladen wird erklärt.',
+      'Widersprüchliche Angaben zur Erinnerung: an zwei Stellen stand „alle zwei Wochen“, tatsächlich waren es fünf Tage.'
+    ]
+  },
   {
     nr: '2.0', datum: '2026-08-22', titel: 'Erklärungen für die ganze App',
     neu: [
@@ -6482,8 +6552,36 @@ function tagPruefen(){
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) tagPruefen(); });
 setInterval(tagPruefen, 300000);
 
+/* Das Intervall gehört zur Gießklasse. Früher stand in p.intervall eine
+   beim Anlegen gezogene Kopie — änderte der Pflanzendoktor die Klasse,
+   blieb die Kopie stehen und zwei feldgleiche Pflanzen bekamen
+   verschiedene Zahlen. Jetzt ist die Klasse die Quelle; ein eigener
+   Wert gilt nur noch, wenn er ausdrücklich von ihr abweicht. */
+/* Wasser- und Hydrokultur folgen keinem Gießintervall — dort zählt,
+   wie schnell das Wasser kippt, nicht wie schnell Erde abtrocknet. */
+function wechselIntervall(p){
+  const g = (typeof giessartVon === 'function') ? giessartVon(p) : null;
+  const a = g && typeof GIESSARTEN !== 'undefined' ? GIESSARTEN[g] : null;
+  return (a && a.wechsel) ? a.wechsel : null;
+}
+function intervallBasis(p){
+  const w = wechselIntervall(p);
+  if(w) return w;
+  const ausKlasse = (typeof KLASSE_IV !== 'undefined' && KLASSE_IV[p.klasse]) || null;
+  const eigen = Array.isArray(p.intervall) && p.intervall.length === 2
+             && p.intervall.every(x=>typeof x === 'number' && x > 0) ? p.intervall : null;
+  if(!ausKlasse) return eigen || [8,12];
+  if(!eigen) return ausKlasse;
+  /* Stammt der eigene Wert aus irgendeiner Klassentabelle, ist er nur
+     eine alte Kopie und wird verworfen. Nur echte Handarbeit bleibt. */
+  const istKopie = Object.keys(KLASSE_IV).some(k=>
+    KLASSE_IV[k][0] === eigen[0] && KLASSE_IV[k][1] === eigen[1]);
+  return istKopie ? ausKlasse : eigen;
+}
 function intervallVon(p){
-  const iv = p.intervall || [8,12];
+  const w = wechselIntervall(p);
+  if(w) return sommer() ? w[0] : w[1];
+  const iv = intervallBasis(p);
   let basis = sommer() ? iv[0] : iv[1];
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
   if(z && z.def && z.def.f && z.def.f !== 1) basis = Math.max(1, Math.round(basis * z.def.f));
@@ -7032,7 +7130,7 @@ function schnellLeiste(p){
       <b>${esc(lage)}</b>${z.code!=='gesund'?` · ${esc(z.def.name)}`:''}${offeneAufgaben?` · ${offeneAufgaben} offen`:''}
     </div>
     <div class="schnell-btns">
-      <button class="sb sb-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute gegossen ✓':'Gegossen'}</button>
+      <button class="sb sb-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute erledigt ✓':giessTat(p)}</button>
       <button class="sb" data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
       <button class="sb" data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
       <button class="sb" data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
@@ -7734,7 +7832,25 @@ function sicherungStempel(){
    Sicherung mehr heruntergeladen wurde und tatsächlich Daten da sind.
    Fünf statt vierzehn Tage: der Browserspeicher kann jederzeit und ohne
    Vorwarnung geleert werden, zwei Wochen Verlust wären zu viel. */
-const SICHER_TAGE = 5;
+const SICHER_TAGE_STD = 5;
+const SICHER_MIN = 1, SICHER_MAX = 60;
+function sicherTage(){
+  const v = parseInt(S.sicherTage, 10);
+  return (v >= SICHER_MIN && v <= SICHER_MAX) ? v : SICHER_TAGE_STD;
+}
+function sicherTageSetzen(v){
+  v = parseInt(v, 10);
+  if(!(v >= SICHER_MIN)) v = SICHER_MIN;
+  if(v > SICHER_MAX) v = SICHER_MAX;
+  S.sicherTage = v; sichern();
+  if(typeof sicherTakteZeichnen === 'function') sicherTakteZeichnen();
+  if(typeof sicherungStempel === 'function') sicherungStempel();
+  if(typeof render === 'function') render();
+  return v;
+}
+/* Der frühere feste Wert bleibt als Name erhalten, damit vorhandene
+   Aufrufe weiter lesen — er liefert jetzt nur die Einstellung. */
+Object.defineProperty(window, 'SICHER_TAGE', {get: sicherTage, configurable:true});
 function sicherungFaellig(){
   const daten = (S.eigene||[]).length
     + Object.keys(S.water||{}).length
@@ -7771,6 +7887,25 @@ function sicherungHinweis(){
     /* Nur für diese Sitzung wegklicken, nicht dauerhaft abschalten. */
     el.remove();
   };
+}
+
+function sicherTakteZeichnen(){
+  const inp = document.getElementById('sicher-takt-zahl');
+  if(inp && document.activeElement !== inp) inp.value = sicherTage();
+  const w = document.getElementById('sicher-takt-wort');
+  if(w) w.textContent = (sicherTage() === 1 ? 'Tag' : 'Tagen') + ' nicht gesichert wurde';
+}
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-takt]'); if(!b) return;
+  sicherTageSetzen(sicherTage() + (b.dataset.takt === '+' ? 1 : -1));
+});
+{
+  const inp = document.getElementById('sicher-takt-zahl');
+  if(inp){
+    inp.addEventListener('change', ()=>{ inp.value = sicherTageSetzen(inp.value); });
+    inp.addEventListener('blur',   ()=>{ inp.value = sicherTageSetzen(inp.value); });
+  }
+  sicherTakteZeichnen();
 }
 
 /* Ein Name für beide Wege — Herunterladen und Teilen. Ohne Datum,
@@ -7842,12 +7977,30 @@ async function sicherungTeilen(knopf){
   }catch(e){
     /* Abbrechen im Teilen-Fenster ist kein Fehler und braucht keine Meldung. */
     if(e && e.name === 'AbortError') return;
+    /* Der Browser meldet zwar canShare, scheitert aber am Anhang —
+       auf Android mit vielen Fotos ist die Datei schlicht zu groß.
+       Ein Knopf, der zweimal nicht geht, gehört weg statt stehen. */
+    S.teilenDefekt = 1; sichern();
+    teilenKnopfPruefen();
     if(knopf){ knopf.textContent = 'Hat nicht geklappt'; setTimeout(()=>knopf.textContent = alt, 2200); }
+    const m = document.getElementById('teilen-ersatz');
+    if(m) m.hidden = false;
   }
 }
-if(teilenMoeglich()){
+/* Blendet Teilen-Knopf und Ersatzhinweis passend zur Lage. */
+function teilenKnopfPruefen(){
+  const geht = !S.teilenDefekt && teilenMoeglich();
+  const bt = document.getElementById('btn-teilen');
+  if(bt) bt.hidden = !geht;
+  const st = document.getElementById('sich-teilen');
+  if(st) st.hidden = !geht;
+  const m = document.getElementById('teilen-ersatz');
+  if(m) m.hidden = !S.teilenDefekt;
+}
+{
   const bt = $('#btn-teilen');
-  if(bt){ bt.hidden = false; bt.onclick = ()=>sicherungTeilen(bt); }
+  if(bt) bt.onclick = ()=>sicherungTeilen(bt);
+  teilenKnopfPruefen();
 }
 
 /* ── Speicher gegen Aufräumen sichern ────────────────────────
@@ -7887,7 +8040,7 @@ $('#import-file').onchange = ()=>{
       sichern();
       /* Bricht die Anzeige aus irgendeinem Grund ab, sind die Daten trotzdem
          schon geschrieben. Dann lieber neu laden als halb gezeichnet dastehen. */
-      try{ render(); if(typeof skala === 'function') skala(); }
+      try{ render(); }
       catch(zeichenFehler){
         console.error(zeichenFehler);
         alert('Sicherung geladen. Die Seite wird einmal neu aufgebaut.');
@@ -7902,10 +8055,6 @@ $('#import-file').onchange = ()=>{
   };
   fr.readAsText(f);
   $('#import-file').value = '';
-};
-$('#btn-export').onclick = ()=>{
-  const box = $('#exportbox'); box.hidden = !box.hidden;
-  if(!box.hidden){ box.value = JSON.stringify(S, null, 2); box.select(); }
 };
 $('#btn-reset').onclick = async ()=>{
   if(!confirm('Alle eigenen Änderungen zurücksetzen? Das betrifft Haken, Gießeinträge, eigene Fotos und selbst angelegte Pflanzen.')) return;
@@ -7928,37 +8077,9 @@ function planTabellen(){
   }).join('');
   $('#alarme').innerHTML = ALARME.map(([a,b,c])=>`<tr><td>${esc(a)}</td><td>${esc(b)}</td><td>${esc(c)}</td></tr>`).join('');
 }
-function skala(){
-  const sorted = allePflanzen().slice().sort((a,b)=>KLASSEN[b.klasse].feuchte-KLASSEN[a.klasse].feuchte);
-  const seen = {};
-  /* Wie hoch stapeln sich die Marken an der dichtesten Stelle? */
-  const stapel = {};
-  sorted.forEach(p=>{ const f = KLASSEN[p.klasse].feuchte; stapel[f] = (stapel[f]||0)+1; });
-  const hoch = Math.max(0, ...Object.values(stapel)) - 1;
-  /* Balken und Marken hängen beide an der Unterkante, die Skala
-     wächst nach oben, wenn sich viele Marken stapeln. */
-  const skalaEl = document.querySelector('.scale');
-  if(skalaEl) skalaEl.style.height = Math.max(138, 96 + hoch*30) + 'px';
-  /* Stehen mehrere Marken übereinander, wandern die Namen abwechselnd
-     nach links und rechts. Sonst liegen sie alle auf derselben Senkrechten
-     und überdecken die Stiele der darunterliegenden Marken. */
-  const pinZiel = document.getElementById('pins');
-  if(!pinZiel) return;
-  pinZiel.innerHTML = sorted.map((p,i)=>{
-    const f = KLASSEN[p.klasse].feuchte;
-    const off = (seen[f] = (seen[f]||0)+1) - 1;
-    const left = Math.min(90, Math.max(10, 100-f));
-    let schub = left >= 68 ? -46 : (left <= 32 ? 46 : 0);
-    if(stapel[f] > 1 && !schub) schub = off % 2 ? 34 : -34;
-    else if(stapel[f] > 1) schub += off % 2 ? 12 : -12;
-    return `<button class="pin" style="left:${left}%;bottom:${48+off*30}px;animation-delay:${i*45}ms" data-go="${p.id}">
-      <span class="pin-label" style="transform:translateX(${schub}%)">${esc(kurz(p))}</span><span class="pin-stem"></span><span class="pin-dot"></span></button>`;
-  }).join('');
-}
 
 statusText();
 render();
-skala();
 
 
 /* ══════════════════ Sammelaktion je Raum ══════════════════
@@ -8199,7 +8320,7 @@ function wkFertig(mitTutorial){
      einfach auf der Karte stehen; der Knopf dort holt es spaeter. */
   if(typeof ansichtZeigen === 'function') ansichtZeigen('heute');
   if(mitTutorial && typeof tourStart === 'function' && typeof tourNoetig === 'function'){
-    if(tourNoetig('einricht')) setTimeout(()=>tourStart('einricht'), 300);
+    if(tourNoetig('einricht')) requestAnimationFrame(()=>tourStart('einricht'));
   }
 }
 
@@ -8266,7 +8387,7 @@ if(typeof fotosVorbereiten === 'function') fotosVorbereiten();
 if(typeof sicherungHinweis === 'function') sicherungHinweis();
 /* Die Skala muss jedem Zu- und Abgang folgen, nicht nur dem Start */
 const _renderVorherSkala = render;
-render = function(){ _renderVorherSkala(); skala(); };
+render = function(){ _renderVorherSkala(); };
 $('#q').addEventListener('input', render);
 
 </script>
@@ -8625,6 +8746,8 @@ document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
   if(b.dataset.do === 'uns-weg'){
     const box = b.closest('.dok-unsicher'); if(box) box.remove();
+    if(typeof dokWeiterZurEinschaetzung === 'function'
+       && typeof dokWeg !== 'undefined' && dokWeg === 'ki') dokWeiterZurEinschaetzung();
     return;
   }
   if(b.dataset.do !== 'uns-weiter') return;
@@ -8646,6 +8769,7 @@ document.addEventListener('click', e=>{
            + (n === 1 ? ' Angabe steht' : ' Angaben stehen')
            + ' jetzt in der Karte. Bitte kurz kontrollieren.')
         : 'Trotz unklarer Bestimmung übernommen. Zustand, Befund und Maßnahmen stehen in der Karte — bitte kurz kontrollieren.', 'ok');
+    if(typeof dokWeiterZurEinschaetzung === 'function') dokWeiterZurEinschaetzung();
   } else {
     const meld = document.getElementById('paste-meld');
     if(meld){
@@ -9191,7 +9315,7 @@ function planKarteHTML(p){
       <h4>${esc(nice(p))}</h4>
       <p class="pk-zeile">${esc(wo)}${u ? ' · ' + esc(licht) : ''}</p>
       <p class="pk-zeile">${esc(wasser)}${z.code!=='gesund'?' · '+esc(z.def.name):''}${p.giftig===true?' · giftig für Katzen':''}</p>
-      <div class="tools"><button class="haupt" data-do="giessen" data-p="${p.id}">Gegossen</button></div>
+      <div class="tools"><button class="haupt" data-do="giessen" data-p="${p.id}">${giessTat(p)}</button></div>
     </div>`;
   }
   return `<div class="pk">
@@ -9821,16 +9945,55 @@ function gmZeichnen(){
     <p class="gm-lage ${st.stand==='over'||st.stand==='stopp'?'warn':''}">${esc(lage)}${st.letzte?` · zuletzt vor ${st.tage} ${st.tage===1?'Tag':'Tagen'}`:''}</p>
     ${stopp>0
       ? `<p class="gm-hinweis warn"><b>Nicht gießen.</b> Wegen „${esc(z.def.name)}“ noch ${stopp} ${stopp===1?'Tag':'Tage'} trocken lassen.</p>`
-      : `<p class="gm-hinweis">${esc(kl.probe || 'Erst die Fingerprobe: zwei Zentimeter tief prüfen.')}</p>`}
+      : `<p class="gm-hinweis">${esc(giessHinweisFuer(p).text)}</p>`}
     ${z.code!=='gesund' && stopp<=0 ? `<p class="gm-zustand">${esc(z.def.name)} — ${esc(z.def.kurz||'')}</p>` : ''}
     <p class="gm-wo">${esc(gmStandort(p))}</p>`;
 
   $('#gm-knoepfe').innerHTML = stopp > 0
     ? `<button class="gm-nein" data-gm="nein">Verstanden, nicht gegossen</button>`
-    : `<button class="gm-ja" data-gm="ja">Gegossen</button>
+    : `<button class="gm-ja" data-gm="ja">${giessTat(p)}</button>
        <button class="gm-nein" data-gm="nein">Noch feucht</button>
        <button class="gm-spaeter" data-gm="spaeter">Später</button>`;
   $('#gm-fort').style.width = ((gmIndex)/gmListe.length*100).toFixed(1)+'%';
+}
+
+/* Ein Satz, der zu genau dieser Pflanze passt. Reihenfolge nach
+   Dringlichkeit: was gerade verboten ist, dann die Probe für ihre
+   Klasse, dann die Art der Wassergabe, dann der Standort. */
+function giessHinweisFuer(p){
+  const kl = (typeof KLASSEN !== 'undefined' && KLASSEN[p.klasse]) || {};
+  const z  = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  const winter = (typeof sommer === 'function') ? !sommer() : false;
+  const teile = [];
+
+  if(typeof stoppRest === 'function' && stoppRest(p) > 0){
+    const t = stoppRest(p);
+    return { warn:true, text:'Jetzt gar nicht gießen. Noch ' + t + (t===1?' Tag':' Tage')
+      + ' komplett trocken stehen lassen' + (z && z.code!=='gesund' ? ' — ' + z.def.name.toLowerCase() : '') + '.' };
+  }
+
+  /* Wasserkultur hat keine Erde, also auch keine Probe. */
+  const art = (typeof giessartVon === 'function') ? giessartVon(p) : null;
+  if(art && GIESSARTEN[art] && GIESSARTEN[art].wechsel)
+    return { warn:false, text: GIESSARTEN[art].kurz };
+
+  const probe = winter ? (kl.probeWinter || kl.probe) : kl.probe;
+  if(probe) teile.push(probe);
+
+  if(art && typeof GIESSARTEN !== 'undefined' && GIESSARTEN[art] && p.klasse !== 'S')
+    teile.push(GIESSARTEN[art].kurz);
+
+  if(z && z.code !== 'gesund' && z.def && z.def.f && z.def.f !== 1)
+    teile.push(z.def.f > 1
+      ? 'Wegen „' + z.def.name + '“ braucht sie gerade weniger Wasser als sonst.'
+      : 'Wegen „' + z.def.name + '“ braucht sie gerade mehr Wasser als sonst.');
+
+  if(p.sonne === 'voll' && !winter && p.klasse !== 'S')
+    teile.push('Voller Sonne ausgesetzt — an heißen Tagen trocknet sie schneller aus, als der Rhythmus vorgibt.');
+  else if(winter && p.frostMin != null)
+    teile.push('Kühl überwinternde Pflanzen verbrauchen wenig. Im Zweifel einen Tag später.');
+
+  return { warn:false, text: teile.join(' ') };
 }
 
 function gmStandort(p){
@@ -10815,10 +10978,6 @@ function einfachSetzen(an){
        aber unsichtbarer Block zurück. */
     if(S.wzOffen === 'grundriss'){ S.wzOffen = null; }
   }
-  const txt = document.getElementById('einfach-text');
-  if(txt) txt.textContent = an
-    ? 'Grundriss, Gießart und Blattzähler sind ausgeblendet, der Rundgang läuft mit drei Knöpfen. Deine Daten bleiben vollständig erhalten.'
-    : 'Blendet Grundriss, Gießart-Auswahl und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Jederzeit umschaltbar, es geht nichts verloren.';
   sichern();
 }
 /* ── Pflegehinweise ein oder aus ─────────────────────────────
@@ -10827,12 +10986,14 @@ function einfachSetzen(an){
    will, setzt sie unten zurück. */
 function hinweiseSetzen(an){
   S.pflegehinweise = !!an;
+  /* Erklärt wird der Schalter hinter dem Info-Knopf. Hier steht nur,
+     was dort nicht stehen kann: wie viele Hinweise weggeklickt sind. */
   const txt = document.getElementById('hinweise-text');
   const weg = Object.keys(S.hinweisWeg || {}).length;
-  if(txt) txt.textContent = an
-    ? ('Kleine Kästen auf den Karten, etwa wenn ein Platz weniger Sonne bekommt, als die Art gewohnt ist. Sie ändern nichts von selbst.'
-       + (weg ? ' ' + weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : ''))
-    : 'Aus. Auf den Karten erscheinen keine Pflegehinweise mehr. Warnungen — Giftigkeit, Quarantäne, Wasserqualität — bleiben davon unberührt.';
+  if(txt){
+    txt.hidden = !(an && weg);
+    txt.textContent = weg ? weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : '';
+  }
   sichern();
   if(typeof render === 'function') render();
 }
@@ -10854,10 +11015,10 @@ einfachSetzen(!!S.einfach);
   const txt = document.getElementById('hinweise-text');
   const an = S.pflegehinweise !== false;
   const weg = Object.keys(S.hinweisWeg || {}).length;
-  if(txt) txt.textContent = an
-    ? ('Kleine Kästen auf den Karten, etwa wenn ein Platz weniger Sonne bekommt, als die Art gewohnt ist. Sie ändern nichts von selbst.'
-       + (weg ? ' ' + weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : ''))
-    : 'Aus. Auf den Karten erscheinen keine Pflegehinweise mehr. Warnungen — Giftigkeit, Quarantäne, Wasserqualität — bleiben davon unberührt.';
+  if(txt){
+    txt.hidden = !(an && weg);
+    txt.textContent = weg ? weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : '';
+  }
 })();
 if(S.ansichtAlles) ANS_ALLE = true;
 ansichtZeigen(S.ansicht || 'heute', false);
@@ -11089,6 +11250,7 @@ let dokAntworten = {};
 let dokSchritt = 1;         // 1 Pflanze · 2 Weg · 3 Merkmale oder KI · 4 Einschätzung
 let dokWeg = null;          // 'ki' oder 'selbst'
 let dokGruppe = 0;          // welche Symptomgruppe offen ist
+let dokKiFertig = false;    // ist auf dem KI-Weg eine Antwort eingelesen?
 
 const DOK_SCHRITTE = ['Pflanze', 'Weg', 'Merkmale', 'Einschätzung'];
 
@@ -11100,6 +11262,7 @@ function dokZeigen(){
     'dok-s3': dokSchritt >= 3 && !ki,
     'dok-ki-zeile': dokSchritt >= 3 && ki,
     'dok-s4': dokSchritt >= 4 || (dokSchritt >= 3 && !ki && dokSymptome.size > 0)
+              || (ki && dokKiFertig)
   };
   Object.keys(sichtbar).forEach(id=>{
     const el = document.getElementById(id); if(el) el.hidden = !sichtbar[id];
@@ -11107,7 +11270,7 @@ function dokZeigen(){
   const bahn = document.getElementById('dok-fortschritt');
   if(bahn) bahn.innerHTML = DOK_SCHRITTE.map((n,i)=>{
     const nr = i+1;
-    const fertig = nr < dokSchritt || (nr===4 && dokSymptome.size);
+    const fertig = nr < dokSchritt || (nr===4 && (dokSymptome.size || dokKiFertig));
     return `<li class="${nr===dokSchritt?'jetzt':''}${fertig?' fertig':''}">${esc(n)}</li>`;
   }).join('');
   document.querySelectorAll('[data-dokweg]').forEach(b=>b.classList.toggle('on', b.dataset.dokweg===dokWeg));
@@ -11207,6 +11370,20 @@ function dokPromptBauen(){
   return zeilen.join('\n');
 }
 
+/* Grundsatz für den ganzen Doktor: keine Warnung ohne Ausweg. Jeder
+   Knopf, der einen Hinweis wegräumt, bringt den Ablauf auch weiter —
+   sonst steht der Nutzer vor einem geschlossenen Kasten und weiß nicht,
+   was als Nächstes passieren soll. */
+function dokWeiterZurEinschaetzung(){
+  dokKiFertig = true;
+  dokSchritt = Math.max(dokSchritt, 4);
+  if(typeof dokZeigen === 'function') dokZeigen();
+  if(typeof dokErgebnis === 'function') dokErgebnis();
+  const ziel = document.getElementById('dok-s4');
+  if(ziel && !ziel.hidden && ziel.scrollIntoView)
+    ziel.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function dokKiHinweis(txt, ton){
   const el = $('#dok-ki-hinweis');
   el.className = 'kihinweis' + (ton ? ' ' + ton : '');
@@ -11240,7 +11417,7 @@ document.addEventListener('click', e=>{
     const box = document.getElementById('dok-abgleich-hinweis');
     if(box) box.innerHTML = '';
     dokKiHinweis('Der Text steht jetzt als Befund in den Notizen.', 'ok');
-    render(); return;
+    render(); dokWeiterZurEinschaetzung(); return;
   }
   if(btn.dataset.do === 'ab-weg'){
     dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
@@ -11308,7 +11485,7 @@ document.addEventListener('click', e=>{
   if(btn.dataset.do === 'doktor-fuer'){
     e.stopPropagation();
     dokPflanze = btn.dataset.p;
-    dokSchritt = 2; dokWeg = null; dokSymptome.clear(); dokAntworten = {};
+    dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokSymptome.clear(); dokAntworten = {};
     ansichtZeigen('doktor');
     dokAufbau(); dokZeigen(); dokErgebnis();
     window.scrollTo({top:0, behavior:'smooth'});
@@ -11343,7 +11520,7 @@ document.addEventListener('click', e=>{
   const g = e.target.closest('[data-dokg]');
   if(g){ dokGruppe = parseInt(g.dataset.dokg,10) || 0; dokAufbau(); dokErgebnis(); return; }
   const b = e.target.closest('[data-do]');
-  if(b && b.dataset.do === 'dok-zurueck'){ dokSchritt = 2; dokWeg = null; dokZeigen(); }
+  if(b && b.dataset.do === 'dok-zurueck'){ dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokZeigen(); }
 });
 $('#dok-ki-text') && ($('#dok-ki-text').value = '');
 $('#btn-dok-ki').onclick = ()=>{
@@ -11456,10 +11633,15 @@ const dokDatei = document.getElementById('dok-datei');
 if(dokDatei) dokDatei.onchange = async ()=>{
   if(!dokDatei.files || !dokDatei.files.length) return;
   if(!dokPflanze){ dokKiHinweis('Wähle oben zuerst eine Pflanze aus.', 'warn'); dokDatei.value = ''; return; }
+  const n = dokDatei.files.length;
   await fotosHinzu(dokPflanze, Array.from(dokDatei.files), 'doktor');
   const t = document.getElementById('dok-foto-txt');
   if(t) t.textContent = 'Foto hinzugefügt ✓ — noch eines?';
   dokDatei.value = '';
+  const p = allePflanzen().find(x=>x.id===dokPflanze);
+  dokKiHinweis((n===1?'Foto liegt':'Fotos liegen') + ' jetzt in der Galerie von „'
+    + (p ? nice(p) : 'dieser Pflanze') + '“. Profilbild wird es nicht — Doktorfotos zeigen meist Schäden.', 'ok');
+  render();
 };
 
 $('#btn-dok-paste').onclick = ()=>{
@@ -11471,13 +11653,20 @@ $('#btn-dok-paste').onclick = ()=>{
        zu bleiben, lässt sich der Text als Befund in die Notizen legen. */
     dokKiHinweis('Aus dem Text ließ sich nichts herauslesen. Bitte die ganze Antwort hereinkopieren.', 'warn');
     const box = document.getElementById('dok-abgleich-hinweis');
-    if(box) box.innerHTML = roh.trim() && dokPflanze
-      ? `<div class="dok-unsicher"><b>Keine Felder gefunden.</b>
+    if(box) box.innerHTML = !roh.trim()
+      ? `<div class="dok-unsicher"><b>Das Feld ist leer.</b>
+          Kopiere die ganze Antwort des Dienstes herein — auch wenn sie in freier Prosa kommt.
+          <div class="tools"><button data-do="uns-weg">Ohne Übernahme weiter</button></div></div>`
+      : !dokPflanze
+      ? `<div class="dok-unsicher"><b>Keine Pflanze gewählt.</b>
+          Die Antwort lässt sich nur in eine Karte schreiben, wenn oben eine Pflanze ausgewählt ist.
+          Die Einschätzung bekommst du trotzdem.
+          <div class="tools"><button data-do="uns-weg">Ohne Übernahme weiter</button></div></div>`
+      : `<div class="dok-unsicher"><b>Keine Felder gefunden.</b>
           Vermutlich hat der Dienst frei geantwortet statt im vorgegebenen Aufbau — oft mit dem
           Hinweis, dass das Foto nicht reicht. Der Text lässt sich trotzdem als Befund sichern.
           <div class="tools"><button class="haupt" data-do="dok-roh">Text als Befund in die Notizen</button>
-          <button data-do="uns-weg">Hinweis ausblenden</button></div></div>`
-      : '';
+          <button data-do="uns-weg">Ohne Übernahme weiter</button></div></div>`;
     return;
   }
   const teile = [];
@@ -11504,6 +11693,7 @@ $('#btn-dok-paste').onclick = ()=>{
   }
   unsicherZeigen('#dok-abgleich-hinweis', d, 'dok');
   dokKiHinweis(teile.join(' · ') + '.', 'ok');
+  dokWeiterZurEinschaetzung();
 };
 
 dokAufbau();
@@ -11642,6 +11832,23 @@ function subErgebnis(){
   const ziel = ZIELE[subZiel] || ZIELE.standard;
   const v = vorrat();
   $('#sub-ziel-text').innerHTML = `<p class="sub">${esc(ziel.text)}</p>`;
+
+  /* Wasserkultur hat kein Substrat. Statt einer Mischung braucht es
+     hier Gefäß, Wasserstand und Wechselrhythmus. */
+  if(ziel.ohneMischung){
+    const liter = topfLiter(subTopf);
+    $('#sub-mischung').innerHTML = `<div class="aqua">
+      <h3>Wasserkultur einrichten</h3>
+      <ul class="aqua-liste">${ziel.anleitung.map(z=>`<li>${esc(z)}</li>`).join('')}</ul>
+      <p class="aqua-takt"><b>Wechsel:</b> ${esc(ziel.wechsel)}</p>
+      <p class="sub">Ein Gefäß in der Größe deines ${subTopf} cm-Topfes fasst rund
+        ${liter.toFixed(1).replace('.',',')} Liter. Gefüllt wird davon etwa die Hälfte —
+        der obere Teil der Wurzeln braucht Luft.</p>
+      <p class="sub">Eine Pflanze mit der Gießart „Wasserkultur“ meldet sich von selbst zum Wechsel,
+        genau wie andere zum Gießen.</p></div>`;
+    $('#sub-warnungen').innerHTML = '';
+    return;
+  }
 
   if(!v.length){
     $('#sub-mischung').innerHTML = optimumHTML([])
@@ -12126,6 +12333,8 @@ function rgZeichnen(){
     <p class="gm-art">${esc(p.art)}</p>
     <p class="gm-lage">${seit == null ? 'Noch nie vermerkt' : (seit === 0 ? 'Heute schon angesehen' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'}`)}${z.code!=='gesund'?' · '+esc(z.def.name):''}</p>
     <p class="gm-wo">${esc(wo)}</p>
+    ${(()=>{ const h = giessHinweisFuer(p);
+             return `<p class="gm-hinweis${h.warn?' warn':''}">${esc(h.text)}</p>`; })()}
 
     ${e.stufe !== 'blick' ? `
     <div class="rg-zaehler">
@@ -12232,6 +12441,10 @@ function rgEinstellungenAufbau(){
   if(box) box.innerHTML = Object.keys(EREIGNIS_ARTEN)
     .filter(k=>!['gesehen','foto','notiz'].includes(k))
     .map(k=>`<button class="sym${(e.knoepfe||[]).includes(k)?' on':''}" data-rgk="${k}">${esc(EREIGNIS_ARTEN[k].name)}</button>`).join('');
+  /* Steht die Obergrenze auf null, kommt niemand dran — dann ist die
+     Frage, wer drankäme, gegenstandslos. */
+  const werFeld = document.getElementById('rg-wer-feld');
+  if(werFeld) werFeld.hidden = Number(e.max) === 0;
   const hin = document.getElementById('rg-stufe-text');
   if(hin) hin.textContent = STUFEN[e.stufe].text;
   const rh = document.getElementById('rg-rhythmus-text');
@@ -12334,17 +12547,13 @@ let installEreignis = null;
 window.addEventListener('beforeinstallprompt', e=>{
   e.preventDefault();
   installEreignis = e;
-  const k = document.getElementById('btn-installieren');
-  if(k){ k.hidden = false; }
-  const box = document.getElementById('install-sec');
-  if(box) box.hidden = false;
+  if(typeof installStatus === 'function') installStatus();
   if(typeof installAngebot === 'function') installAngebot();
 });
 window.addEventListener('appinstalled', ()=>{
   installEreignis = null;
-  const box = document.getElementById('install-sec');
-  if(box) box.hidden = true;
   S.installiert = true; sichern();
+  if(typeof installStatus === 'function') installStatus();
   if(typeof installAngebot === 'function') installAngebot();
 });
 
@@ -12354,12 +12563,9 @@ function installStatus(){
   const knopf = document.getElementById('btn-installieren');
   const eigenstaendig = eigenstaendigGestartet();
 
-  if(eigenstaendig){
-    box.hidden = false;
-    if(knopf) knopf.hidden = true;
-    if(text) text.textContent = 'Läuft als installierte App. Aktualisierungen kommen von selbst, sobald eine neue Fassung veröffentlicht ist.';
-    return;
-  }
+  /* Ist sie schon installiert, hat der Block nichts mehr zu sagen —
+     dann verschwindet er ganz statt eine Selbstverständlichkeit zu melden. */
+  if(eigenstaendig){ box.hidden = true; return; }
   if(!IM_NETZ){
     box.hidden = false;
     if(knopf) knopf.hidden = true;
@@ -12382,8 +12588,11 @@ function installStatus(){
 function eigenstaendigGestartet(){
   try{
     if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    if(window.matchMedia && window.matchMedia('(display-mode: minimal-ui)').matches) return true;
+    if(window.matchMedia && window.matchMedia('(display-mode: window-controls-overlay)').matches) return true;
   }catch(e){}
-  return window.navigator.standalone === true;
+  if(window.navigator.standalone === true) return true;
+  return !!(S && S.installiert);
 }
 function installMoeglich(){
   return IM_NETZ && !eigenstaendigGestartet() && !S.installiert;
@@ -12607,8 +12816,7 @@ const TOUR_KAPITEL = {
     schritte: ()=>[
       { ziel: ()=>document.getElementById('gm-inhalt'),
         titel: 'Eine nach der anderen',
-        text: 'Oben läuft ein Balken mit, der zeigt, wie weit du bist. In der Mitte steht die Pflanze, die gerade dran ist — mit Bild, Standort und der Gießart, die zu ihr passt.',
-        warte: 300 },
+        text: 'Oben läuft ein Balken mit, der zeigt, wie weit du bist. In der Mitte steht die Pflanze, die gerade dran ist — mit Bild, Standort und der Gießart, die zu ihr passt.' },
       { ziel: ()=>document.getElementById('gm-knoepfe'),
         titel: 'Gegossen, übersprungen, noch feucht',
         text: '„Noch feucht“ ist kein Überspringen: die App merkt sich das und verlängert den Abstand für diese Pflanze. So lernt der Rhythmus mit, statt jedes Mal danebenzuliegen.' }
@@ -12620,8 +12828,7 @@ const TOUR_KAPITEL = {
     schritte: ()=>[
       { ziel: ()=>document.getElementById('rg-inhalt'),
         titel: 'Die ganze Sammlung der Reihe nach',
-        text: 'Anders als der Gießmodus geht der Rundgang alle Pflanzen durch, nicht nur die fälligen. Damit fällt auf, was sonst monatelang unbeachtet in der Ecke steht.',
-        warte: 300 },
+        text: 'Anders als der Gießmodus geht der Rundgang alle Pflanzen durch, nicht nur die fälligen. Damit fällt auf, was sonst monatelang unbeachtet in der Ecke steht.' },
       { ziel: ()=>document.getElementById('rg-knoepfe'),
         titel: 'Was unterwegs erfasst wird',
         text: 'Welche Knöpfe hier stehen, entscheidest du unter „Mehr“ › Rundgang: nur ein kurzer Blick, dazu Blattzahl und Ereignisse, oder zusätzlich ein Foto. Je weniger, desto schneller geht es.' }
@@ -12634,8 +12841,7 @@ const TOUR_KAPITEL = {
       { vor: ()=>ansichtZeigen('werkzeuge'),
         ziel: ()=>document.querySelector('#doktor-sec .wz-kopfzeile'),
         titel: 'Drei Werkzeuge, eines offen',
-        text: 'Der Pflanzendoktor sucht die Ursache, wenn etwas nicht stimmt. Substrat mischen rechnet die Mischung und die Menge für deinen Topf. Räume und Grundriss zeichnet deine Wohnung und rechnet daraus das Licht an jedem Platz. Jedes erklärt sich, sobald du es öffnest.',
-        warte: 300 }
+        text: 'Der Pflanzendoktor sucht die Ursache, wenn etwas nicht stimmt. Substrat mischen rechnet die Mischung und die Menge für deinen Topf. Räume und Grundriss zeichnet deine Wohnung und rechnet daraus das Licht an jedem Platz. Jedes erklärt sich, sobald du es öffnest.' }
     ]
   },
 
@@ -12715,7 +12921,7 @@ const TOUR_KAPITEL = {
         titel: 'Wenn es zu viel ist',
         text: 'Unter Ansicht liegt der einfache Modus: er blendet Grundriss, Gießart und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Es geht dabei nichts verloren, der Haken lässt sich jederzeit wieder wegnehmen.' },
       { ziel: ()=>document.querySelector('[data-mh="tour"] .wz-kopfzeile'),
-        titel: 'Und hier stehen diese Erklärungen',
+        titel: 'Und hier steht die App Tour',
         text: 'Jedes Kapitel lässt sich noch einmal ansehen, alle zusammen zurücksetzen oder ganz abschalten. Die übrigen Abschnitte hier erklären sich über ihr i.' }
     ]
   },
@@ -12729,7 +12935,7 @@ const TOUR_KAPITEL = {
         warte: 320 },
       { ziel: ()=>document.getElementById('btn-download'),
         titel: 'Eine Datei mit allem darin',
-        text: 'Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. Die App erinnert alle zwei Wochen daran.' },
+        text: 'Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. Wie oft die App daran erinnert, stellst du hier selbst ein.' },
       { ziel: ()=>document.getElementById('btn-reset'),
         titel: 'Der rote Knopf',
         text: '„Alles zurücksetzen“ löscht den gesamten Bestand samt Fotos und lässt sich nicht rückgängig machen. Vorher eine Sicherung herunterladen.' }
@@ -12930,6 +13136,19 @@ function tourText(){
 }
 
 /* ── Ablauf ──────────────────────────────── */
+/* Statt eines pauschalen Sicherheitsabstands: kurz in den Bildaufbau
+   hineinhorchen, bis das Ziel vermessbar ist. Wer sofort da ist, wird
+   sofort gezeigt; wer nach 700 ms nicht auftaucht, gilt als nicht da. */
+function tourWartenAufZiel(schritt, fertig){
+  const start = Date.now();
+  const grenze = Math.max(300, schritt && schritt.warte ? schritt.warte * 2 : 700);
+  (function schauen(){
+    const el = tourZiel(schritt);
+    if(el || Date.now() - start > grenze){ fertig(el); return; }
+    requestAnimationFrame(schauen);
+  })();
+}
+
 function tourGehe(i, richtung){
   if(!tourLauf) return;
   const ri = (richtung === -1) ? -1 : 1;
@@ -12941,14 +13160,16 @@ function tourGehe(i, richtung){
   try{ if(typeof s.vor === 'function') s.vor(); }
   catch(e){ console.warn('Tutorial:', e); }
 
-  setTimeout(()=>{
+  tourWartenAufZiel(s, el=>{
     if(!tourLauf || tourLauf.schritte[tourLauf.i] !== s) return;
-    const el = tourZiel(s);
     /* Gibt es das Ziel hier nicht — leerer Bereich, Knopf ohne
-       Teilen-Funktion —, still weitergehen statt ins Leere zu zeigen. */
+       Teilen-Funktion —, still weitergehen statt ins Leere zu zeigen.
+       Beim letzten Schritt hieße „weiter" aber: Kapitel beenden. Dann
+       lieber ohne Ausschnitt stehen bleiben, bis der Nutzer selbst
+       weitertippt — sonst blendet sich die Tour von allein aus. */
     if(!el){
       const n = tourLauf.i + ri;
-      if(n < 0){ tourText(); tourMalen(); return; }
+      if(n < 0 || n >= tourLauf.schritte.length){ tourText(); tourMalen(); return; }
       tourGehe(n, ri);
       return;
     }
@@ -12959,7 +13180,7 @@ function tourGehe(i, richtung){
     }catch(e){}
     tourText();
     tourMalen();
-  }, s.warte || 100);
+  });
 }
 
 function tourTaktStart(){
@@ -13055,11 +13276,11 @@ function tourAnsichtPruefen(name){
   if(tourLauf) return;
   let hat = 0;
   try{ hat = allePflanzen().length; }catch(e){ hat = 0; }
-  if(name === 'werkzeuge' && tourNoetig('werkzeuge')){ setTimeout(()=>tourStart('werkzeuge'), 360); return; }
-  if(name === 'mehr' && tourNoetig('mehr')){ setTimeout(()=>tourStart('mehr'), 360); return; }
+  if(name === 'werkzeuge' && tourNoetig('werkzeuge')){ tourStart('werkzeuge'); return; }
+  if(name === 'mehr' && tourNoetig('mehr')){ tourStart('mehr'); return; }
   if(!hat) return;
-  if(name === 'sammlung' && tourNoetig('sammlung')) setTimeout(()=>tourStart('sammlung'), 360);
-  else if(name === 'heute' && tourNoetig('heute'))  setTimeout(()=>tourStart('heute'), 360);
+  if(name === 'sammlung' && tourNoetig('sammlung')) tourStart('sammlung');
+  else if(name === 'heute' && tourNoetig('heute'))  tourStart('heute');
 }
 const _ansichtVorherTour = ansichtZeigen;
 ansichtZeigen = function(name, merken){
@@ -13071,9 +13292,12 @@ ansichtZeigen = function(name, merken){
 /* Beim ersten Öffnen eines Werkzeugs, eines Mehr-Blocks, des
    Vermehren-Blocks oder der Zeichenfläche. Ausdrücklich auch dann,
    wenn der Sprung von einer Pflanzenkarte aus kam. */
-function tourNachOeffnen(key, verzug){
+/* Der Verzug ist weg: tourGehe wartet selbst darauf, dass das Ziel
+   vermessbar ist. Ein Bildaufbau-Rahmen genügt, damit der eben
+   geöffnete Bereich überhaupt im Baum steht. */
+function tourNachOeffnen(key){
   if(!tourNoetig(key)) return;
-  setTimeout(()=>{ if(tourNoetig(key)) tourStart(key); }, verzug || 420);
+  requestAnimationFrame(()=>{ if(tourNoetig(key)) tourStart(key); });
 }
 if(typeof werkzeugOeffnen === 'function'){
   const _wzVorherTour = werkzeugOeffnen;
@@ -13100,7 +13324,7 @@ if(typeof grOeffnen === 'function'){
   const _grVorherTour = grOeffnen;
   grOeffnen = function(raumId){
     _grVorherTour(raumId);
-    tourNachOeffnen('plan', 520);
+    tourNachOeffnen('plan');
   };
 }
 /* Gießmodus und Rundgang starten nicht immer — ohne Fälliges bleibt
@@ -13110,7 +13334,7 @@ if(typeof gmStarten === 'function'){
   gmStarten = function(){
     _gmVorherTour();
     const el = document.getElementById('giessmodus');
-    if(el && !el.hidden) tourNachOeffnen('giessmodus', 520);
+    if(el && !el.hidden) tourNachOeffnen('giessmodus');
   };
 }
 if(typeof rgStarten === 'function'){
@@ -13118,7 +13342,7 @@ if(typeof rgStarten === 'function'){
   rgStarten = function(){
     _rgVorherTour();
     const el = document.getElementById('rundgang');
-    if(el && !el.hidden) tourNachOeffnen('rundgang', 520);
+    if(el && !el.hidden) tourNachOeffnen('rundgang');
   };
 }
 /* Die beiden Startknoepfe halten noch die alte Funktion fest — sie
@@ -13156,8 +13380,8 @@ function tourListeZeichnen(){
   if(schalter) schalter.checked = !!t.aus;
   const txt = document.getElementById('tour-aus-text');
   if(txt) txt.textContent = t.aus
-    ? 'Aus. Es erscheint keine Erklärung mehr von allein. Über „ansehen“ lässt sich trotzdem jederzeit eine holen.'
-    : 'Jede Erklärung erscheint genau einmal, beim ersten Mal in ihrem Bereich.';
+    ? 'Aus. Die App Tour meldet sich nicht mehr von allein. Über „ansehen“ lässt sich trotzdem jederzeit ein Kapitel holen.'
+    : 'Jedes Kapitel erscheint genau einmal, beim ersten Mal in seinem Bereich.';
 }
 
 document.addEventListener('click', e=>{
@@ -13177,7 +13401,7 @@ document.addEventListener('click', e=>{
       return;
     }
     ansichtZeigen('heute');
-    setTimeout(()=>tourStart('einricht'), 320);
+    requestAnimationFrame(()=>tourStart('einricht'));
     return;
   }
   tourStart(k);
