@@ -5,7 +5,7 @@
    nächsten Öffnen die neue Fassung.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'greenkeeperai-v17';
+const VERSION = 'greenkeeperai-v19';
 const DATEIEN = [
   './',
   './index.html',

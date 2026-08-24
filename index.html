@@ -19,6 +19,9 @@
   --t-xl:1.05rem;  /* kleine Überschriften */
   /* Abstände */
   --a-1:4px; --a-2:8px; --a-3:12px; --a-4:16px; --a-5:22px; --a-6:32px;
+  /* Werden beim Aufbau aus der echten Leistenhöhe gesetzt. Hier stehen
+     sie, damit die Leisten auch dann sitzen, wenn das Skript später kommt. */
+  --leiste-oben:0px; --schnell-oben:0px;
 
   /* --ink-2 ist die gedämpfte Zweitfarbe für Hinweise, Zustandsmarken
      und Formulartexte. Sie wurde an 82 Stellen benutzt, war aber nie
@@ -594,7 +597,18 @@ body.gm-offen #fab-neu{display:none}
 .ab-wert{flex:1;min-width:0}
 .ab-alt{color:var(--peat);text-decoration:line-through}
 .ab-weg{flex:0 0 auto;background:none;border:0;font:inherit;font-size:var(--t-l);
-  color:var(--peat);cursor:pointer;line-height:1;padding:0 4px}
+  color:var(--peat);cursor:pointer;line-height:1;padding:0 4px;
+  min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+/* Die Giftfrage im Doktor: eigener Kasten, weil sie nicht wie die
+   übrigen Angaben einfach übernommen werden darf. */
+.giftblock{margin:var(--a-3) 0;border:1px solid var(--line);border-left-width:4px;
+  border-radius:4px;padding:12px 14px}
+.giftblock.warn{border-color:var(--terra);background:rgba(180,80,40,.07)}
+.giftblock.unklar{border-color:#B08A3A;background:rgba(176,138,58,.09)}
+.giftblock.ok{border-color:var(--moss);background:rgba(61,90,52,.06)}
+.giftblock h4{margin:0 0 5px;font-family:var(--f-display);font-size:var(--t-l)}
+.giftblock p{margin:0;font-size:var(--t-m);line-height:1.45}
+.giftblock .tools{margin-top:10px}
 /* ── Topfeinschätzung und Maßnahmen zur Auswahl ─────────── */
 .topfbox{margin-top:var(--a-3);border-left:3px solid var(--water);padding:12px 14px;
   background:color-mix(in srgb, var(--water) 7%, transparent)}
@@ -984,9 +998,9 @@ body.gm-offen{overflow:hidden}
 /* Ungeprüft ist nicht dasselbe wie unbedenklich: eigener, gelber Kasten,
    damit niemand aus fehlender Angabe auf Sicherheit schließt. */
 .warnbox.unklar{border-color:#B08A3A;background:rgba(176,138,58,.09)}
-.warnbox.unklar p{color:#7A5E1E}
+.warnbox.unklar p{color:#654C15}
 .warnbox.unklar .pruef{display:inline-block;margin-top:4px;font-weight:600;
-  font-size:var(--t-s);color:#7A5E1E;text-decoration:underline}
+  font-size:var(--t-s);color:#654C15;text-decoration:underline}
 
 /* Pflegehinweise: bewusst leiser als die Warnungen. Grau statt rot,
    ohne Ausrufezeichen, mit einem × zum Wegräumen. */
@@ -1540,13 +1554,19 @@ const TIERARTEN = {
 /* Regeln auf Ebene der Pflanzenfamilie oder Gattung. Sie greifen der
    Reihe nach; die erste passende gewinnt. */
 const GIFT_REGELN = [
+  /* Muss ganz oben stehen. Der Palmfarn ist kein Farn und keine Palme,
+     aber sein Name und sein Aussehen legen beides nahe. Stünde er
+     weiter unten, würde ihn die Regel für Palmengewächse abfangen und
+     eine tödlich giftige Pflanze bekäme Entwarnung. */
+  { pruef:/Cycas|Zamia|Encephalartos|Palmfarn|Sagopalme|Brotpalmfarn/i,
+    familie:/Palmfarngewächse|Cycadaceae|Zamiaceae/i,
+    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
+    grund:'Cycasin schädigt die Leber. Schon ein bis zwei Samen können für einen Hund tödlich sein. Sofort tierärztlich behandeln lassen.' },
+
   { pruef:/^(Lilium|Hemerocallis)/i,
     wirkung:{katze:'schwer', hund:'leicht', nager:'schwer', vogel:'schwer'},
     grund:'Für Katzen lebensgefährlich — schon Pollen oder Blumenwasser können die Nieren zerstören. Bei Hunden bleibt es meist beim Magen-Darm-Aufruhr.' },
 
-  { pruef:/^Cycas|Sagopalme/i,
-    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
-    grund:'Alle Teile giftig, die Samen am stärksten. Ein bis zwei Samen können bei Hunden zu Leberversagen führen.' },
 
   { pruef:/^Persea|Avocado/i,
     wirkung:{katze:'leicht', hund:'leicht', nager:'schwer', vogel:'schwer'},
@@ -1600,18 +1620,444 @@ const GIFT_REGELN = [
     wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
     grund:'Echte Palmen gelten als unbedenklich. Achtung: Die Sagopalme ist keine echte Palme und hochgiftig.' },
 
-  /* Der Palmfarn (Cycas) ist kein Farn und die häufigste tödliche
-     Zimmerpflanzenvergiftung beim Hund. Er darf hier nicht mit
-     hineinrutschen, deshalb steht er als eigene Regel davor. */
-  { pruef:/Cycas|Zamia|Encephalartos|Palmfarn|Sagopalme|Brotpalmfarn/i,
-    familie:/Palmfarngewächse|Cycadaceae|Zamiaceae/i,
-    wirkung:{katze:'schwer', hund:'schwer', nager:'schwer', vogel:'schwer'},
-    grund:'Cycasin schädigt die Leber. Schon ein bis zwei Samen können für einen Hund tödlich sein. Sofort tierärztlich behandeln lassen.' },
-
   { familie:/Polypodiaceae|Nephrolepis|Schwertfarn|Streifenfarn|Saumfarn|Tüpfelfarn|Moosfarn|Frauenhaarfarn|Rippenfarn|(?:^|[^a-zäöü])Farngewächse/i,
     wirkung:{katze:'keine', hund:'keine', nager:'keine', vogel:'keine'},
     grund:'Echte Farne wie der Schwertfarn gelten als unbedenklich. Der Palmfarn ist kein Farn und davon ausgenommen.' }
 ];
+
+/* ══════════════════ Giftigkeit je Art ══════════════════
+   Eine Zeile je Bibliotheksart. Kein Raten aus Gattung oder Familie:
+   was hier steht, ist für genau diese Art nachgeschlagen.
+
+   Aufbau: [Katze, Hund, Nager, Vogel, Beleg, Textbaustein]
+
+   Stufen — dieselben vier wie in GIFT_STUFEN, dazu 'u':
+     0 = keine (unbedenklich)   1 = leicht   2 = mittel
+     3 = schwer                 u = unklar (ungeprüft, wird als Warnung geführt)
+
+   Beleg:
+     A  = ASPCA-Giftpflanzenliste, Eintrag für genau diese Art oder Gattung
+     A2 = ASPCA plus eine zweite unabhängige Quelle
+     F  = Fachliteratur oder Giftdatenbank (Uni Zürich, kaninchenwiese,
+          birds-online), keine ASPCA-Angabe vorhanden
+     K  = keine Artangabe für diese Tierart. Aus dem Wirkstoff konservativ
+          nach oben abgeleitet — nie nach unten. Entwarnung gibt es hier nie.
+
+   Grundsatz für Nager und Vögel: Wo keine belegte Angabe vorliegt, steht
+   'u'. Eine fehlende Quelle ist keine Entwarnung. Wirkt ein Gift
+   systemisch (Herzglykoside, Alkaloide, Cycasin, Colchicin), wird die
+   Stufe wegen des geringen Körpergewichts eher angehoben als gesenkt.
+
+   Widersprechen sich zwei Quellen, gilt die schärfere Angabe und der
+   Widerspruch steht im Text. */
+
+const GIFT_TEXTE = {
+  oxalat:
+    'Unlösliche Calciumoxalat-Nadeln in allen Pflanzenteilen. Sie bohren sich beim Kauen in Maul, Zunge und Rachen: sofortiges Brennen, Speicheln, Schluckbeschwerden, in schweren Fällen Schwellung des Kehlkopfs. Der Schmerz setzt so schnell ein, dass die meisten Tiere von selbst aufhören — gefährlich wird es, wenn die Schwellung die Atemwege verlegt.',
+  oxalat_stark:
+    'Besonders hoher Gehalt an Calciumoxalat-Nadeln, dazu proteolytische Enzyme. Neben dem sofortigen Brennen im Maul kommt es häufiger als bei den übrigen Aronstabgewächsen zu starker Schwellung von Zunge und Rachen. Der englische Name Dumbcane kommt von der vorübergehenden Stimmlosigkeit.',
+  oxalat_knolle:
+    'Calciumoxalat-Nadeln in allen Teilen, in der Knolle am stärksten. Ausgegrabene oder umgestoßene Knollen sind das eigentliche Risiko.',
+  saponin_steroid:
+    'Steroidsaponine reizen Schleimhäute und Magen-Darm-Trakt: Speicheln, Erbrechen, Durchfall, Appetitlosigkeit. Bei Katzen kommen erweiterte Pupillen vor. Selten schwer, aber unangenehm und langwierig.',
+  saponin_efeu:
+    'Falcarinol und Hederasaponine. Neben Erbrechen und Durchfall sind Bauchschmerzen und Schwäche beschrieben; der Saft reizt außerdem die Haut. Die Beeren sind deutlich giftiger als die Blätter.',
+  milchsaft_ficus:
+    'Der weiße Milchsaft enthält Ficin und Ficusin. Er reizt Maul und Magen und macht die Haut lichtempfindlich. Meist bleibt es bei Speicheln und Erbrechen.',
+  milchsaft_euphorbia:
+    'Der Milchsaft enthält Diterpenester und ätzt. Kontakt mit dem Auge kann die Hornhaut dauerhaft schädigen; verschluckt führt er zu Brennen, Erbrechen und blutigem Durchfall. Bei Kleintieren wiegt schon eine geringe Menge schwer.',
+  bufadienolid:
+    'Bufadienolide sind herzwirksame Gifte. Neben Erbrechen und Durchfall kommt es zu Herzrhythmusstörungen, Schwäche und Zittern; bei größeren Mengen ist der Verlauf lebensbedrohlich. Sofort tierärztlich behandeln lassen.',
+  herzglykosid:
+    'Herzwirksame Glykoside in allen Pflanzenteilen, auch in getrocknetem Material und im Blumenwasser. Sie stören den Herzrhythmus. Schon kleine Mengen sind ernst; Erbrechen, Durchfall, Schwäche und Kreislaufversagen sind beschrieben. Immer ein Notfall.',
+  amaryllis_alkaloid:
+    'Lycorin und verwandte Alkaloide, in Zwiebel und Knolle am stärksten. Erbrechen, Speicheln, Durchfall, Bauchschmerzen; bei größeren Mengen Zittern, Blutdruckabfall und Krämpfe.',
+  tulipalin:
+    'Tulipalin A und B, in Zwiebel und Knolle konzentriert. Reizt Maul und Magen-Darm-Trakt, führt zu Speicheln, Erbrechen und Durchfall. Größere Mengen Zwiebelmaterial können Kreislauf und Atmung beeinträchtigen.',
+  lilie_niere:
+    'Für Katzen lebensgefährlich: schon Pollen, ein abgebissenes Blatt oder das Blumenwasser können ein akutes Nierenversagen auslösen. Der Wirkstoff ist bis heute nicht identifiziert, ein Gegenmittel gibt es nicht — es zählt jede Stunde. Bei Hunden bleibt es meist beim Magen-Darm-Aufruhr.',
+  colchicin_frei:
+    'Bei Hunden und Nagern bleibt es meist bei Erbrechen und Durchfall. Für Katzen gilt dieselbe Nierengefahr wie bei den echten Lilien.',
+  cycasin:
+    'Cycasin schädigt die Leber. Ein bis zwei Samen können für einen Hund tödlich sein; Erbrechen, blutiger Durchfall, Gelbsucht und Leberversagen folgen oft erst nach Stunden. Häufigste tödliche Zimmerpflanzenvergiftung beim Hund. Sofort in die Klinik, auch ohne Symptome.',
+  taxin:
+    'Taxine wirken unmittelbar auf das Herz. Alle Teile außer dem roten Samenmantel sind hochgiftig, auch getrocknet. Der Tod tritt oft ohne Vorzeichen ein. Für alle Tierarten und für Menschen lebensgefährlich.',
+  grayanotoxin:
+    'Grayanotoxine stören die Reizleitung an Nerven und Herz. Wenige Blätter reichen für Erbrechen, Speicheln, Schwäche, Herzrhythmusstörungen und Krämpfe. Für alle vier Tierarten ein Notfall.',
+  allium:
+    'Schwefelverbindungen zerstören die roten Blutkörperchen. Die Blutarmut zeigt sich oft erst Tage später an Schwäche, blassen Schleimhäuten und dunklem Urin. Katzen sind deutlich empfindlicher als Hunde. Gilt frisch, getrocknet und gekocht.',
+  aetheroel:
+    'Ätherische Öle und Phenole. Katzen können sie in der Leber kaum abbauen, deshalb reagieren sie empfindlicher als Hunde: Speicheln, Erbrechen, Durchfall, bei größeren Mengen Zittern und Schwäche. Vögel reagieren zusätzlich auf die verdunstenden Öle.',
+  furocumarin:
+    'Furocumarine machen die Haut lichtempfindlich; nach Kontakt und Sonne entstehen Rötung und Blasen. Verschluckt kommen Erbrechen und Durchfall dazu, bei Katzen auch Zittern und Kälteempfindlichkeit.',
+  pyrrolizidin:
+    'Pyrrolizidin-Alkaloide schädigen die Leber, und zwar kumulativ: viele kleine Mengen wirken wie eine große. Der Schaden zeigt sich erst spät und ist dann nicht mehr umkehrbar.',
+  sesquiterpen:
+    'Sesquiterpenlactone und Pyrethrine. Erbrechen, Durchfall, Speicheln, Appetitlosigkeit; bei Kontakt Hautreizung. Bei Katzen kommen Koordinationsstörungen vor.',
+  saponin_begonie:
+    'Lösliche Oxalate und Saponine, in der Knolle am stärksten. Brennen im Maul, Speicheln, Erbrechen, Schluckbeschwerden.',
+  saponin_cyclamen:
+    'Triterpensaponine, in der Knolle vielfach höher konzentriert als im Blatt. Blattfraß bleibt meist bei Erbrechen; eine angefressene Knolle führt zu Herzrhythmusstörungen und Krämpfen.',
+  koffein:
+    'Koffein und verwandte Methylxanthine, vor allem in den roten Früchten. Unruhe, Herzrasen, Zittern, erhöhte Temperatur. Vögel und Nager reagieren wegen ihres Gewichts besonders heftig.',
+  solanin:
+    'Solanin und Tomatin in Blättern, Stängeln und unreifen Früchten. Die reife Frucht ist unbedenklich, das Grün nicht: Speicheln, Erbrechen, Durchfall, Verwirrtheit, verlangsamter Herzschlag.',
+  glykosid_convallaria:
+    'Herzglykoside in allen Teilen, auch im Vasenwasser. Erbrechen, Herzrhythmusstörungen, Krampfanfälle, Blutdruckabfall. Für alle vier Tierarten lebensgefährlich.',
+  digitalis:
+    'Digitalisglykoside. Wenige Blätter oder Blüten können den Herzschlag lebensbedrohlich verlangsamen. Für alle vier Tierarten ein Notfall.',
+  lectin:
+    'Lektine und Blausäureglykoside in rohen Hülsen und Samen. Roh gefressen kommt es zu Erbrechen, Durchfall und Schwäche.',
+  gerbstoff:
+    'Gerb- und Bitterstoffe reizen den Magen-Darm-Trakt. Meist bleibt es bei Erbrechen und Durchfall.',
+  saponin_buxus:
+    'Steroidalkaloide, vor allem Buxin. Erbrechen, Durchfall, Koordinationsstörungen; größere Mengen führen zu Krämpfen und Atemlähmung.',
+  hydrangin:
+    'Cyanogene Glykoside in Blättern, Blüten und Knospen. Sie setzen im Magen Blausäure frei: Erbrechen, Durchfall, Bauchschmerzen, bei größeren Mengen Atemnot.',
+  thujon:
+    'Thujon in Nadeln und Zweigen. Erbrechen, Durchfall, Krämpfe, Leber- und Nierenschäden. Auch das Schnittgut bleibt giftig.',
+  lonicera:
+    'Die Beeren enthalten Xylostein und Saponine. Erbrechen, Durchfall, bei größeren Mengen Krämpfe. Die Datenlage ist dünn, deshalb im Zweifel außer Reichweite.',
+  lobelin:
+    'Lobelin wirkt wie ein schwaches Nikotin. Erbrechen, Speicheln, Zittern, Schwäche; größere Mengen beeinträchtigen die Atmung.',
+  wicke:
+    'Aminopropionitril in Samen und Hülsen. Wiederholte Aufnahme schädigt Nerven und Bindegewebe; akut kommt es zu Erbrechen und Schwäche.',
+  ipomoea:
+    'Die Samen enthalten Lysergsäureamide. Erbrechen, Durchfall, Verwirrtheit, Halluzinationen, erweiterte Pupillen. Blätter und Blüten sind deutlich schwächer.',
+  oxalsaeure_loeslich:
+    'Lösliche Oxalate binden Kalzium im Blut. Bei kleinen Mengen bleibt es bei Erbrechen und Zittern; größere Mengen belasten die Nieren.',
+  saponin_hosta:
+    'Saponine in allen Teilen. Erbrechen, Durchfall, Appetitlosigkeit, Trägheit.',
+  aloin:
+    'Aloin und verwandte Anthrachinone im gelben Saft direkt unter der Blattrinde. Sie wirken stark abführend: Erbrechen, Durchfall, Trägheit, rötlicher Urin. Das klare Gel im Blattinneren ist der harmlose Teil.',
+  agave:
+    'Der Saft enthält Calciumoxalat-Nadeln und Saponine und reizt Haut und Schleimhäute. Dazu kommen die harten Blattspitzen als mechanische Verletzungsgefahr.',
+  crassula:
+    'Die ASPCA führt den Geldbaum als giftig für Katzen und Hunde: Erbrechen, Trägheit, Koordinationsstörungen, seltener ein verlangsamter Herzschlag. Der Wirkstoff ist bis heute nicht identifiziert — deshalb lässt sich auch keine ungefährliche Menge angeben.',
+  tradescantia:
+    'Der Saft reizt Haut und Schleimhäute und löst bei Hunden häufig eine juckende Dermatitis an Bauch und Pfoten aus. Verschluckt kommt es zu Erbrechen und Durchfall.',
+  coleus:
+    'Ätherische Öle, vor allem Diterpene. Erbrechen, Durchfall, Appetitlosigkeit; bei Hautkontakt Rötung. Bei Katzen ist die Empfindlichkeit höher.',
+  gardenia:
+    'Geniposid und Genipin in Frucht und Blatt. Erbrechen, Durchfall, Nesselsucht.',
+  gepr_frei:
+    'Die ASPCA führt diese Art ausdrücklich als ungiftig für Katzen und Hunde. Große Mengen Pflanzenmaterial können wie bei jeder Pflanze den Magen verstimmen — eine Vergiftung ist daraus nicht zu erwarten.',
+  gepr_frei_futter:
+    'Ungiftig für alle vier Tierarten. Die Art wird in den Futterlisten für Nager und Ziervögel ausdrücklich als geeignet geführt.',
+  gepr_frei_kaktus:
+    'Ungiftig. Das eigentliche Risiko sind die Stacheln oder Glochiden: sie setzen sich in Maul, Pfoten und Augen fest und müssen tierärztlich entfernt werden.',
+  gepr_frei_karnivore:
+    'Karnivoren sind für Wirbeltiere ungiftig — die Fallen fangen Insekten und können einem Tier nichts anhaben. Das Risiko liegt woanders: Karnivorensubstrat und das Gießwasser sind es nicht wert, dass ein Tier daran knabbert.',
+  apocynaceae_k:
+    'Hundsgiftgewächs. Die ASPCA führt genau diese Art nicht, wohl aber ihre nächsten Verwandten Oleander und Adenium — die Familie bildet herzwirksame Glykoside und einen reizenden Milchsaft. Bis eine Angabe für diese Art vorliegt, wird sie wie giftig behandelt. Das ist eine Ableitung, keine Messung.',
+  ungeklaert:
+    'Die Quellen widersprechen sich oder es liegt für keine Tierart eine belastbare Angabe vor. Bis das geklärt ist, wie giftig behandeln und außer Reichweite stellen.'
+};
+
+/* [Katze, Hund, Nager, Vogel, Beleg, Textbaustein] */
+const GIFT_ARTEN = {
+
+/* ── Aronstabgewächse ─────────────────────────────────────
+   Alle über Calciumoxalat. ASPCA führt jede dieser Gattungen
+   ausdrücklich; Nager und Vögel sind nicht eigens untersucht, der
+   Wirkmechanismus ist aber rein mechanisch und gilt für jedes Maul. */
+'Epipremnum aureum':                  [2,2,2,2,'A2','oxalat'],
+"Epipremnum aureum 'Marble Queen'":   [2,2,2,2,'A2','oxalat'],
+'Epipremnum pinnatum':                [2,2,2,2,'A','oxalat'],
+'Philodendron hederaceum':            [2,2,2,2,'A2','oxalat'],
+'Philodendron hederaceum Brasil':     [2,2,2,2,'A2','oxalat'],
+'Philodendron erubescens':            [2,2,2,2,'A','oxalat'],
+'Philodendron bipinnatifidum':        [2,2,2,2,'A','oxalat'],
+'Philodendron gloriosum':             [2,2,2,2,'A','oxalat'],
+'Monstera deliciosa':                 [2,2,2,2,'A2','oxalat'],
+'Monstera adansonii':                 [2,2,2,2,'A','oxalat'],
+'Rhaphidophora tetrasperma':          [2,2,2,2,'K','oxalat'],
+'Scindapsus pictus':                  [2,2,2,2,'A','oxalat'],
+'Syngonium podophyllum':              [2,2,2,2,'A2','oxalat'],
+'Zamioculcas zamiifolia':             [2,2,2,2,'A2','oxalat'],
+'Spathiphyllum wallisii':             [2,2,2,2,'A2','oxalat'],
+'Anthurium andraeanum':               [2,2,2,2,'A2','oxalat'],
+'Anthurium clarinervium':             [2,2,2,2,'A','oxalat'],
+'Aglaonema commutatum':               [2,2,2,2,'A','oxalat'],
+'Dieffenbachia seguine':              [3,3,3,3,'A2','oxalat_stark'],
+'Alocasia amazonica':                 [2,2,2,2,'A2','oxalat'],
+'Alocasia zebrina':                   [2,2,2,2,'A','oxalat'],
+'Colocasia esculenta':                [3,3,3,3,'A2','oxalat_stark'],
+'Caladium bicolor':                   [3,3,3,3,'A2','oxalat_knolle'],
+'Zantedeschia aethiopica':            [2,2,2,2,'A2','oxalat_knolle'],
+
+/* ── Maulbeergewächse ─────────────────────────────────── */
+'Ficus elastica':                     [1,1,2,2,'A2','milchsaft_ficus'],
+'Ficus lyrata':                       [1,1,2,2,'A','milchsaft_ficus'],
+'Ficus benjamina':                    [1,1,2,2,'A2','milchsaft_ficus'],
+'Ficus microcarpa':                   [1,1,2,2,'A','milchsaft_ficus'],
+'Ficus carica':                       [1,1,2,2,'A2','milchsaft_ficus'],
+
+/* ── Spargelgewächse ──────────────────────────────────── */
+'Dracaena marginata':                 [2,2,2,'u','A2','saponin_steroid'],
+'Dracaena fragrans':                  [2,2,2,'u','A2','saponin_steroid'],
+'Dracaena trifasciata':               [2,2,2,'u','A2','saponin_steroid'],
+"Dracaena trifasciata 'Laurentii'":   [2,2,2,'u','A2','saponin_steroid'],
+"Dracaena trifasciata 'Zeylanica'":   [2,2,2,'u','A2','saponin_steroid'],
+"Dracaena trifasciata 'Golden Hahnii'":[2,2,2,'u','A2','saponin_steroid'],
+'Dracaena angolensis':                [2,2,2,'u','A','saponin_steroid'],
+'Chlorophytum comosum':               [0,0,0,0,'A2','gepr_frei_futter'],
+'Aspidistra elatior':                 [0,0,'u','u','A','gepr_frei'],
+'Beaucarnea recurvata':               [0,0,'u','u','A','gepr_frei'],
+'Yucca elephantipes':                 [2,2,2,'u','A2','saponin_steroid'],
+'Asparagus densiflorus':              [2,2,2,2,'A2','saponin_steroid'],
+'Agave americana':                    [2,2,2,2,'F','agave'],
+'Hyacinthus orientalis':              [3,3,3,3,'A2','tulipalin'],
+'Muscari armeniacum':                 [2,2,2,2,'F','tulipalin'],
+'Convallaria majalis':                [3,3,3,3,'A2','glykosid_convallaria'],
+'Hosta':                              [2,2,2,'u','A2','saponin_hosta'],
+
+/* ── Araliengewächse ──────────────────────────────────── */
+'Schefflera arboricola':              [2,2,2,2,'A2','oxalat'],
+'Fatsia japonica':                    [2,2,2,2,'A2','saponin_efeu'],
+'Hedera helix':                       [2,2,3,3,'A2','saponin_efeu'],
+
+/* ── Pfeffer-, Brennnessel-, Akanthusgewächse ─────────── */
+'Peperomia obtusifolia':              [0,0,'u','u','A2','gepr_frei'],
+'Peperomia argyreia':                 [0,0,'u','u','A','gepr_frei'],
+'Pilea peperomioides':                [0,0,'u','u','A2','gepr_frei'],
+'Soleirolia soleirolii':              [0,0,'u','u','F','gepr_frei'],
+'Fittonia albivenis':                 [0,0,'u','u','A2','gepr_frei'],
+
+/* ── Commelina-, Lippenblütler (Zimmer) ───────────────── */
+'Tradescantia zebrina':               [1,2,1,1,'A2','tradescantia'],
+'Tradescantia fluminensis':           [1,2,1,1,'A2','tradescantia'],
+'Plectranthus scutellarioides':       [2,2,2,2,'A2','coleus'],
+
+/* ── Rötegewächse ─────────────────────────────────────── */
+'Coffea arabica':                     [2,2,3,3,'A2','koffein'],
+'Gardenia jasminoides':               [2,2,2,'u','A2','gardenia'],
+'Nertera granadensis':                ['u','u','u','u','-','ungeklaert'],
+
+/* ── Malven-, Sauergras- ──────────────────────────────── */
+'Sparrmannia africana':               ['u','u','u','u','-','ungeklaert'],
+'Cyperus alternifolius':              ['u','u','u','u','-','ungeklaert'],
+'Hibiscus rosa-sinensis':             [0,0,0,0,'A2','gepr_frei_futter'],
+
+/* ── Gesnerien-, Pfeilwurzgewächse ────────────────────── */
+'Aeschynanthus radicans':             [0,0,'u','u','A','gepr_frei'],
+'Saintpaulia ionantha':               [0,0,'u','u','A2','gepr_frei'],
+'Streptocarpus':                      [0,0,'u','u','A','gepr_frei'],
+'Goeppertia orbifolia':               [0,0,0,0,'A2','gepr_frei_futter'],
+'Goeppertia makoyana':                [0,0,0,0,'A2','gepr_frei_futter'],
+'Goeppertia lancifolia':              [0,0,0,0,'A2','gepr_frei_futter'],
+'Maranta leuconeura':                 [0,0,0,0,'A2','gepr_frei_futter'],
+'Ctenanthe burle-marxii':             [0,0,'u','u','A','gepr_frei'],
+'Stromanthe sanguinea':               [0,0,'u','u','A','gepr_frei'],
+
+/* ── Sukkulenten ──────────────────────────────────────── */
+'Aloe vera':                          [2,2,2,2,'A2','aloin'],
+'Aloe arborescens':                   [2,2,2,2,'A2','aloin'],
+'Haworthiopsis attenuata':            [0,0,'u','u','A2','gepr_frei'],
+'Haworthia cooperi':                  [0,0,'u','u','A','gepr_frei'],
+'Gasteria':                           [0,0,'u','u','A','gepr_frei'],
+'Crassula ovata':                     [2,2,2,2,'A2','crassula'],
+'Portulacaria afra':                  [0,0,'u','u','A2','gepr_frei'],
+'Kalanchoe blossfeldiana':            [3,3,3,3,'A2','bufadienolid'],
+'Kalanchoe tomentosa':                [3,3,3,3,'A2','bufadienolid'],
+'Kalanchoe thyrsiflora':              [3,3,3,3,'A2','bufadienolid'],
+'Cotyledon orbiculata':               [3,3,3,3,'F','bufadienolid'],
+'Echeveria elegans':                  [0,0,'u','u','A2','gepr_frei'],
+'Sedum morganianum':                  [0,0,'u','u','A2','gepr_frei'],
+'Sedum acre':                         [1,1,'u','u','F','gerbstoff'],
+'Sedum telephium':                    [0,0,'u','u','F','gepr_frei'],
+'Sempervivum tectorum':               [0,0,'u','u','F','gepr_frei'],
+'Aeonium arboreum':                   [0,0,'u','u','F','gepr_frei'],
+'Senecio rowleyanus':                 [2,2,3,3,'A2','pyrrolizidin'],
+'Curio herreanus':                    [2,2,3,3,'A2','pyrrolizidin'],
+'Lithops':                            [0,0,'u','u','F','gepr_frei'],
+'Ceropegia woodii':                   [0,0,'u','u','A2','gepr_frei'],
+'Hoya carnosa':                       [0,0,'u','u','A2','gepr_frei'],
+'Hoya kerrii':                        [0,0,'u','u','A2','gepr_frei'],
+
+/* ── Wolfsmilchgewächse ───────────────────────────────── */
+'Euphorbia trigona':                  [2,2,3,3,'A2','milchsaft_euphorbia'],
+'Euphorbia milii':                    [2,2,3,3,'A2','milchsaft_euphorbia'],
+'Euphorbia pulcherrima':              [1,1,2,2,'A2','milchsaft_euphorbia'],
+
+/* ── Kakteen ──────────────────────────────────────────── */
+'Schlumbergera truncata':             [0,0,'u','u','A2','gepr_frei'],
+'Hatiora gaertneri':                  [0,0,'u','u','A2','gepr_frei'],
+'Rhipsalis baccifera':                [0,0,'u','u','A','gepr_frei'],
+'Epiphyllum anguliger':               [0,0,'u','u','A','gepr_frei'],
+'Mammillaria':                        [0,0,'u','u','A2','gepr_frei_kaktus'],
+'Echinocactus grusonii':              [0,0,'u','u','A','gepr_frei_kaktus'],
+'Opuntia microdasys':                 [0,0,'u','u','A2','gepr_frei_kaktus'],
+'Echinopsis':                         [0,0,'u','u','A','gepr_frei_kaktus'],
+'Cereus repandus':                    [0,0,'u','u','A','gepr_frei_kaktus'],
+'Gymnocalycium mihanovichii':         [0,0,'u','u','A','gepr_frei_kaktus'],
+
+/* ── Palmen und Palmfarn ──────────────────────────────── */
+'Chamaedorea elegans':                [0,0,0,0,'A2','gepr_frei_futter'],
+'Howea forsteriana':                  [0,0,0,0,'A2','gepr_frei_futter'],
+'Dypsis lutescens':                   [0,0,0,0,'A2','gepr_frei_futter'],
+'Chamaerops humilis':                 [0,0,'u','u','A','gepr_frei'],
+'Trachycarpus fortunei':              [0,0,'u','u','F','gepr_frei'],
+'Cycas revoluta':                     [3,3,3,3,'A2','cycasin'],
+
+/* ── Farne ────────────────────────────────────────────── */
+'Nephrolepis exaltata':               [0,0,0,0,'A2','gepr_frei_futter'],
+'Asplenium nidus':                    [0,0,'u','u','A2','gepr_frei'],
+'Adiantum raddianum':                 [0,0,'u','u','A2','gepr_frei'],
+'Platycerium bifurcatum':             [0,0,'u','u','A2','gepr_frei'],
+'Phlebodium aureum':                  [0,0,'u','u','A','gepr_frei'],
+'Selaginella martensii':              [0,0,'u','u','F','gepr_frei'],
+
+/* ── Karnivoren ───────────────────────────────────────── */
+'Dionaea muscipula':                  [0,0,'u','u','F','gepr_frei_karnivore'],
+'Sarracenia purpurea':                [0,0,'u','u','F','gepr_frei_karnivore'],
+'Sarracenia flava':                   [0,0,'u','u','F','gepr_frei_karnivore'],
+'Drosera capensis':                   [0,0,'u','u','F','gepr_frei_karnivore'],
+'Nepenthes':                          [0,0,'u','u','F','gepr_frei_karnivore'],
+'Pinguicula':                         [0,0,'u','u','F','gepr_frei_karnivore'],
+'Utricularia':                        [0,0,'u','u','F','gepr_frei_karnivore'],
+
+/* ── Orchideen und Bromelien ──────────────────────────── */
+'Phalaenopsis':                       [0,0,0,0,'A2','gepr_frei_futter'],
+'Dendrobium nobile':                  [0,0,'u','u','A','gepr_frei'],
+'Cattleya':                           [0,0,'u','u','A','gepr_frei'],
+'Oncidium':                           [0,0,'u','u','A','gepr_frei'],
+'Cymbidium':                          [0,0,'u','u','A','gepr_frei'],
+'Paphiopedilum':                      [0,0,'u','u','A','gepr_frei'],
+'Guzmania lingulata':                 [0,0,'u','u','A2','gepr_frei'],
+'Vriesea splendens':                  [0,0,'u','u','A','gepr_frei'],
+'Tillandsia':                         [0,0,'u','u','A2','gepr_frei'],
+'Ananas comosus':                     [0,0,'u','u','A2','gepr_frei'],
+
+/* ── Blühende Zimmerpflanzen ──────────────────────────── */
+'Cyclamen persicum':                  [3,3,3,3,'A2','saponin_cyclamen'],
+'Begonia maculata':                   [2,2,2,2,'A2','saponin_begonie'],
+'Begonia rex':                        [2,2,2,2,'A2','saponin_begonie'],
+'Begonia rex-cultorum':               [2,2,2,2,'A2','saponin_begonie'],
+'Begonia x hiemalis':                 [2,2,2,2,'A2','saponin_begonie'],
+'Rhododendron simsii':                [3,3,3,3,'A2','grayanotoxin'],
+'Jasminum polyanthum':                [0,0,'u','u','A2','gepr_frei'],
+'Stephanotis floribunda':             [2,2,2,2,'K','apocynaceae_k'],
+'Clivia miniata':                     [3,3,3,3,'A2','amaryllis_alkaloid'],
+'Hippeastrum':                        [3,3,3,3,'A2','amaryllis_alkaloid'],
+'Camellia japonica':                  [0,0,'u','u','A2','gepr_frei'],
+'Bougainvillea glabra':               [0,0,'u','u','F','gepr_frei'],
+'Passiflora caerulea':                ['u','u','u','u','-','ungeklaert'],
+
+/* ── Küchenkräuter ────────────────────────────────────────
+   Hier steckten die meisten Fehler in der alten Bibliothek: mehrere
+   Küchenkräuter stehen bei der ASPCA ausdrücklich auf der Giftliste
+   und waren als unbedenklich geführt. */
+'Ocimum basilicum':                   [0,0,0,0,'A2','gepr_frei_futter'],
+'Petroselinum crispum':               [2,2,2,2,'A2','furocumarin'],
+'Coriandrum sativum':                 [0,0,'u','u','A2','gepr_frei'],
+'Anethum graveolens':                 [0,0,'u','u','A2','gepr_frei'],
+'Levisticum officinale':              [2,2,2,2,'A2','furocumarin'],
+'Rosmarinus officinalis':             [0,0,'u','u','A2','gepr_frei'],
+'Thymus vulgaris':                    [0,0,'u','u','A2','gepr_frei'],
+'Thymus serpyllum':                   [0,0,'u','u','A','gepr_frei'],
+'Salvia officinalis':                 [0,0,'u','u','A2','gepr_frei'],
+'Origanum vulgare':                   [2,2,2,2,'A2','aetheroel'],
+'Origanum majorana':                  [2,2,2,2,'A2','aetheroel'],
+'Satureja hortensis':                 [0,0,'u','u','F','gepr_frei'],
+'Mentha × piperita':                  [2,2,2,2,'A2','aetheroel'],
+'Mentha spicata':                     [2,2,2,2,'A2','aetheroel'],
+'Melissa officinalis':                [0,0,'u','u','F','gepr_frei'],
+'Nepeta cataria':                     [1,1,'u','u','A2','aetheroel'],
+'Allium schoenoprasum':               [3,3,3,3,'A2','allium'],
+'Allium sativum':                     [3,3,3,3,'A2','allium'],
+'Allium fistulosum':                  [3,3,3,3,'A2','allium'],
+'Artemisia dracunculus':              [2,2,2,2,'A2','aetheroel'],
+'Laurus nobilis':                     [2,2,2,2,'A2','aetheroel'],
+'Lavandula angustifolia':             [2,2,2,2,'A2','aetheroel'],
+'Lavandula stoechas':                 [2,2,2,2,'A2','aetheroel'],
+'Eruca vesicaria':                    [0,0,0,0,'A2','gepr_frei_futter'],
+'Cymbopogon citratus':                [2,2,2,2,'A2','aetheroel'],
+'Aloysia citrodora':                  [2,2,2,2,'A2','aetheroel'],
+'Stevia rebaudiana':                  [0,0,'u','u','F','gepr_frei'],
+'Perilla frutescens':                 ['u','u','u','u','-','ungeklaert'],
+'Salvia nemorosa':                    [0,0,'u','u','F','gepr_frei'],
+
+/* ── Gemüse und Obst ──────────────────────────────────── */
+'Solanum lycopersicum':               [2,2,2,2,'A2','solanin'],
+'Capsicum annuum':                    [2,2,2,2,'A2','solanin'],
+'Solanum melongena':                  [2,2,2,2,'A2','solanin'],
+'Cucumis sativus':                    [0,0,0,0,'A2','gepr_frei_futter'],
+'Cucurbita pepo':                     [0,0,0,0,'A2','gepr_frei_futter'],
+'Phaseolus vulgaris':                 [2,2,2,2,'F','lectin'],
+'Pisum sativum':                      [1,1,1,1,'F','lectin'],
+'Fragaria × ananassa':                [0,0,0,0,'A2','gepr_frei_futter'],
+'Rubus idaeus':                       [0,0,0,0,'A2','gepr_frei_futter'],
+'Vaccinium corymbosum':               [0,0,0,0,'A2','gepr_frei_futter'],
+'Ribes rubrum':                       [0,0,'u','u','F','gepr_frei'],
+'Lactuca sativa':                     [0,0,0,0,'A2','gepr_frei_futter'],
+'Spinacia oleracea':                  [1,1,1,1,'F','oxalsaeure_loeslich'],
+'Raphanus sativus':                   [0,0,0,0,'A2','gepr_frei_futter'],
+'Daucus carota':                      [0,0,0,0,'A2','gepr_frei_futter'],
+'Beta vulgaris':                      [0,0,0,0,'A2','gepr_frei_futter'],
+
+/* ── Kübel und Gehölze ────────────────────────────────── */
+'Citrus limon':                       [2,2,2,2,'A2','furocumarin'],
+'Citrus sinensis':                    [2,2,2,2,'A2','furocumarin'],
+'Citrus × limonia':                   [2,2,2,2,'A2','furocumarin'],
+'Olea europaea':                      [0,0,'u','u','A2','gepr_frei'],
+'Nerium oleander':                    [3,3,3,3,'A2','herzglykosid'],
+'Punica granatum':                    [0,0,'u','u','A2','gepr_frei'],
+'Buxus sempervirens':                 [3,3,3,3,'A2','saponin_buxus'],
+'Hydrangea macrophylla':              [2,2,3,3,'A2','hydrangin'],
+'Fargesia murielae':                  [0,0,0,0,'A2','gepr_frei_futter'],
+'Lonicera nitida':                    [2,2,2,2,'F','lonicera'],
+'Rosa':                               [0,0,0,0,'A2','gepr_frei_futter'],
+'Taxus baccata':                      [3,3,3,3,'A2','taxin'],
+'Thuja occidentalis':                 [3,3,3,3,'F','thujon'],
+
+/* ── Balkonblumen ─────────────────────────────────────── */
+'Pelargonium peltatum':               [2,2,2,2,'A2','aetheroel'],
+'Pelargonium zonale':                 [2,2,2,2,'A2','aetheroel'],
+'Petunia':                            [0,0,'u','u','A2','gepr_frei'],
+'Calibrachoa':                        [0,0,'u','u','A2','gepr_frei'],
+'Surfinia':                           [0,0,'u','u','A2','gepr_frei'],
+'Fuchsia':                            [0,0,'u','u','A2','gepr_frei'],
+'Bidens ferulifolia':                 [0,0,'u','u','F','gepr_frei'],
+'Sutera cordata':                     [0,0,'u','u','F','gepr_frei'],
+'Lobelia erinus':                     [2,2,2,2,'A2','lobelin'],
+'Viola × wittrockiana':               [0,0,0,0,'A2','gepr_frei_futter'],
+'Tropaeolum majus':                   [0,0,0,0,'A2','gepr_frei_futter'],
+'Tagetes patula':                     [1,1,1,1,'A2','sesquiterpen'],
+'Calendula officinalis':              ['u','u','u','u','-','ungeklaert'],
+'Antirrhinum majus':                  [0,0,'u','u','A2','gepr_frei'],
+'Zinnia elegans':                     [0,0,'u','u','A2','gepr_frei'],
+'Helianthus annuus':                  [0,0,0,0,'A2','gepr_frei_futter'],
+'Dahlia':                             [2,2,2,2,'A2','sesquiterpen'],
+'Osteospermum':                       [0,0,'u','u','F','gepr_frei'],
+'Verbena':                            [0,0,'u','u','F','gepr_frei'],
+'Argyranthemum frutescens':           [2,2,2,2,'A2','sesquiterpen'],
+'Dipladenia':                         [2,2,2,2,'K','apocynaceae_k'],
+'Lathyrus odoratus':                  [2,2,2,2,'A2','wicke'],
+'Ipomoea tricolor':                   [2,2,2,2,'A2','ipomoea'],
+'Impatiens walleriana':               [0,0,'u','u','A2','gepr_frei'],
+
+/* ── Zwiebelblumen ────────────────────────────────────── */
+'Tulipa':                             [3,3,3,3,'A2','tulipalin'],
+'Narcissus pseudonarcissus':          [3,3,3,3,'A2','amaryllis_alkaloid'],
+'Crocus':                             [2,2,2,2,'A2','tulipalin'],
+'Galanthus nivalis':                  [3,3,3,3,'A2','amaryllis_alkaloid'],
+'Lilium':                             [3,1,3,3,'A2','lilie_niere'],
+'Hemerocallis':                       [3,1,2,2,'A2','colchicin_frei'],
+'Digitalis purpurea':                 [3,3,3,3,'A2','digitalis'],
+
+/* ── Stauden, Gräser, Bodendecker ─────────────────────── */
+'Echinacea purpurea':                 [0,0,'u','u','F','gepr_frei'],
+'Heuchera':                           [0,0,'u','u','A2','gepr_frei'],
+'Trifolium repens':                   [0,0,0,0,'A2','gepr_frei_futter'],
+'Oxalis triangularis':                [2,2,2,2,'A2','oxalsaeure_loeslich'],
+'Avena sativa':                       [0,0,0,0,'A2','gepr_frei_futter'],
+'Hordeum vulgare':                    [0,0,0,0,'A2','gepr_frei_futter'],
+'Festuca glauca':                     [0,0,0,0,'A2','gepr_frei_futter'],
+'Carex':                              [0,0,'u','u','F','gepr_frei'],
+'Vinca minor':                        [3,3,3,3,'A2','herzglykosid']
+
+};
 
 /* Stufen und wie ernst sie zu nehmen sind. */
 const GIFT_STUFEN = {
@@ -1631,37 +2077,157 @@ const ERREICHBARKEIT = {
   sicher: {name:'Gesichert oder geschlossen', hoehe:9999, text:'für kein Tier erreichbar'}
 };
 
-/* Giftbewertung einer Pflanze für eine Tierart. Erst die Regeln, dann
-   als Rückfall das alte Katzenfeld — damit bestehende Einträge und
-   selbst angelegte Pflanzen weiter funktionieren. */
-/* Hat der Nutzer die Giftfrage selbst beantwortet? Nur eine
-   ausdrückliche Eingabe zählt, nicht ein aus der Bibliothek
-   übernommener Wert. */
-function giftEigenVon(p){
-  if(!p || p.giftEigen !== true) return null;
-  if(p.giftig === true  || p.giftig === 1) return true;
-  if(p.giftig === false || p.giftig === 0) return false;
-  return null;
+/* ══════════════════ Giftbewertung ══════════════════
+   Der Giftwert einer Pflanze wird EINMAL bestimmt — beim Anlegen — und
+   dann als p.gift an der Pflanze gespeichert. Karte, Filter, Grundriss,
+   Rundgang, Urlaubszettel und Warnkasten lesen ausschließlich diesen
+   einen Wert. Damit kann es keine zwei Stellen mehr geben, die
+   unterschiedlich urteilen.
+
+   p.gift = {
+     tiere:  {katze, hund, nager, vogel}   Stufen aus GIFT_STUFEN
+     grund:  Text
+     quelle: 'art' | 'gattung' | 'familie' | 'nutzer' | 'ki' | 'altbestand'
+     datum:  ISO-Datum der letzten Festlegung
+     status: 'fest' | 'ungeprüft' | 'strittig'
+     alt:    bei 'strittig' die mildere Angabe, die widersprochen hat
+   }
+
+   'fest' gibt es nur aus der Artentabelle und aus einer eigenen Eingabe.
+   Alles andere ist ungeprüft und wird beim nächsten Doktorbesuch
+   abgefragt. */
+
+const GIFT_TIERE = ['katze','hund','nager','vogel'];
+const GIFT_CODES = {0:'keine', 1:'leicht', 2:'mittel', 3:'schwer', u:'unklar'};
+
+function giftStufeVon(code){ return GIFT_CODES[code] || 'unklar'; }
+function giftRang(stufe){ return (GIFT_STUFEN[stufe] || {}).rang || 0; }
+/* Die schärfere von zwei Stufen. 'unklar' hat Rang 1 und schlägt damit
+   'keine' — eine fehlende Angabe ist keine Entwarnung. */
+function giftSchaerfer(a, b){ return giftRang(b) > giftRang(a) ? b : a; }
+
+/* Eine Angabe aus der Artentabelle in die gespeicherte Form bringen. */
+function giftAusArt(bot){
+  const e = GIFT_ARTEN[String(bot || '').trim()];
+  if(!e) return null;
+  const tiere = {};
+  GIFT_TIERE.forEach((t, i) => tiere[t] = giftStufeVon(e[i]));
+  return {tiere, grund: GIFT_TEXTE[e[5]] || '', beleg: e[4],
+          quelle:'art', status:'fest'};
 }
 
+/* Ermittelt den Giftwert einmalig. Nur die Artentabelle und eine eigene
+   Eingabe gelten als geprüft; Gattung und Familie sind Vorschläge und
+   bleiben ausdrücklich ungeprüft, bis jemand nachsieht. */
+function giftErmitteln(p){
+  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
+    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+
+  const ausArt = giftAusArt(p && p.botanisch) || giftAusArt(p && p.bib);
+  if(ausArt) return Object.assign(ausArt, {datum: heute});
+
+  const tiere = {};
+  let grund = '', quelle = 'familie';
+
+  const gat = (typeof gattungVon === 'function') ? gattungVon(p) : null;
+  if(gat && gat.gift){
+    GIFT_TIERE.forEach(t => tiere[t] = gat.gift[t] || 'unklar');
+    grund = gat.giftGrund || '';
+    quelle = 'gattung';
+  } else {
+    const bot = ((p && p.botanisch) || '') + ' ' + ((p && p.art) || '');
+    const fam = (typeof familieVon === 'function') ? familieVon(p) : ((p && p.familie) || '');
+    let treffer = null;
+    for(const r of GIFT_REGELN){
+      if((r.pruef && r.pruef.test(bot)) || (r.familie && r.familie.test(fam))){ treffer = r; break; }
+    }
+    if(treffer){
+      GIFT_TIERE.forEach(t => tiere[t] = treffer.wirkung[t] || 'unklar');
+      grund = treffer.grund;
+    } else {
+      GIFT_TIERE.forEach(t => tiere[t] = 'unklar');
+      grund = 'Für diese Art liegt keine geprüfte Angabe vor.';
+      quelle = 'leer';
+    }
+  }
+  return {tiere, grund, beleg:'-', quelle, datum: heute, status:'ungeprüft'};
+}
+
+/* Der gespeicherte Wert. Fehlt er — Bestandspflanze aus einer Fassung
+   vor 2.7 —, wird er hier einmal gebaut und mitgegeben. Geschrieben
+   wird dabei nicht: das erledigt giftMigrieren beim Start. */
+function giftVon(p){
+  if(p && p.gift && p.gift.tiere) return p.gift;
+  return giftMigrationsWert(p);
+}
+
+/* Bestandspflanzen: der alte Wert wird übernommen, nie abgeschwächt.
+   Stand eine Pflanze auf giftig, bleibt sie giftig — auch wenn die
+   Artentabelle sie nicht führt. Der Eintrag gilt aber als ungeprüft
+   und wird beim nächsten Doktorbesuch abgefragt. */
+function giftMigrationsWert(p){
+  const neu = giftErmitteln(p);
+  const altGiftig = (p && (p.giftig === true  || p.giftig === 1));
+  const altSicher = (p && (p.giftig === false || p.giftig === 0));
+  const eigen = (p && p.giftEigen === true);
+
+  if(altGiftig){
+    /* Nie milder als vorher: die alte Warnung wird auf mindestens
+       'mittel' angehoben, für alle vier Tierarten. */
+    GIFT_TIERE.forEach(t => neu.tiere[t] = giftSchaerfer(neu.tiere[t], 'mittel'));
+    if(neu.quelle !== 'art'){
+      neu.quelle = eigen ? 'nutzer' : 'altbestand';
+      neu.status = 'ungeprüft';
+      neu.grund = eigen
+        ? 'Von dir als giftig für Katzen eingetragen, bevor es die Artentabelle gab. Die Angabe gilt weiter — sie ist nur noch nicht gegengeprüft.'
+        : 'Aus deinem bisherigen Stand übernommen: diese Pflanze war als giftig geführt. Die Angabe gilt weiter, ist aber noch nicht gegen eine Quelle geprüft.';
+    }
+    return neu;
+  }
+  if(altSicher && neu.quelle !== 'art'){
+    /* Eine alte Entwarnung wird nicht übernommen — sie stammte aus
+       einer Regel, die genau dafür nicht gut genug war. Sie wird zu
+       'ungeprüft', also zur Warnung, nicht zur Entwarnung. */
+    neu.status = 'ungeprüft';
+    return neu;
+  }
+  return neu;
+}
+
+/* Beim Start einmal über die Sammlung: fehlende p.gift ergänzen. */
+function giftMigrieren(){
+  let n = 0;
+  (S.eigene || []).forEach(p => {
+    if(p.gift && p.gift.tiere) return;
+    p.gift = giftMigrationsWert(p);
+    delete p.giftig; delete p.giftEigen;
+    n++;
+  });
+  Object.keys(S.edits || {}).forEach(id => {
+    const e = S.edits[id];
+    if(!e || (e.gift && e.gift.tiere)) return;
+    if(e.giftig === undefined && e.giftEigen === undefined) return;
+    const basis = (typeof PFLANZEN !== 'undefined')
+      ? (PFLANZEN.find(x => x.id === id) || {}) : {};
+    e.gift = giftMigrationsWert(Object.assign({}, basis, e));
+    delete e.giftig; delete e.giftEigen;
+    n++;
+  });
+  if(n) sichern();
+  return n;
+}
+
+/* Die eine Auskunft für eine Tierart. Signatur unverändert, damit alle
+   Aufrufer gleich bleiben. */
 function giftFuer(p, tier){
-  /* Rangfolge: eigene Angabe, dann Gattung, dann Familie, dann das
-     alte Bibliotheksfeld. Wer selbst „giftig“ einträgt, bekommt keine
-     Entwarnung mehr aus einer Regel. */
-  const selbst = giftEigenVon(p);
-  if(selbst !== null && tier === 'katze')
-    return {stufe: selbst ? 'mittel' : 'keine',
-            grund: selbst
-              ? 'Von dir als giftig für Katzen eingetragen. Deine Angabe geht der Bibliothek vor.'
-              : 'Von dir als katzensicher eingetragen. Deine Angabe geht der Bibliothek vor.',
-            quelle:'eigen'};
-  const erg = giftRegelFuer(p, tier);
-  /* Eigene Warnung für Katzen: bei den anderen Tierarten wird daraus
-     keine Entwarnung, sondern höchstens „ungeprüft“. */
-  if(selbst === true && erg.stufe === 'keine')
-    return {stufe:'unklar', quelle:'eigen',
-            grund:'Du hast diese Pflanze als giftig für Katzen eingetragen. Für diese Tierart liegt keine geprüfte Angabe vor — im Zweifel außer Reichweite stellen.'};
-  return erg;
+  const g = giftVon(p) || {};
+  const t = tier || 'katze';
+  const stufe = (g.tiere && g.tiere[t]) || 'unklar';
+  let grund = g.grund || 'Für diese Art liegt keine geprüfte Angabe vor.';
+  if(g.status === 'strittig')
+    grund = 'Zwei Quellen widersprechen sich. Bis das geklärt ist, gilt hier die strengere Angabe. ' + grund;
+  return {stufe, grund, quelle: g.quelle || 'leer',
+          status: g.status || 'ungeprüft', beleg: g.beleg || '-'};
 }
 
 /* Einheitliche Ja/Nein/Unklar-Auskunft. Alles, was filtert, listet
@@ -1670,41 +2236,102 @@ function giftFuer(p, tier){
 function istGiftig(p, tier){
   const g = giftFuer(p, tier || 'katze');
   if(g.stufe === 'unklar') return null;
-  return ((GIFT_STUFEN[g.stufe] || {}).rang || 0) > 0;
+  return giftRang(g.stufe) > 0;
 }
 
-function giftRegelFuer(p, tier){
-  const bot = (p.botanisch || '') + ' ' + (p.art || '');
-  /* Eine Gattung, für die eine geprüfte Angabe vorliegt, schlägt die
-     Familienregel. Familien sind grobe Raster: Hundsgiftgewächse
-     enthalten den schwer giftigen Oleander und die harmlose Hoya. */
-  const gat = (typeof gattungVon === 'function') ? gattungVon(p) : null;
-  if(gat && gat.gift && gat.gift[tier])
-    return {stufe: gat.gift[tier], grund: gat.giftGrund || '', quelle:'gattung'};
-  /* Ohne Familienangabe greift keine der Familienregeln. Bei selbst
-     angelegten Sammlerpflanzen ist das Feld fast immer leer, deshalb
-     springt hier die Gattungstabelle ein. */
-  const fam = (typeof familieVon === 'function') ? familieVon(p) : (p.familie || '');
-  for(const r of GIFT_REGELN){
-    const treffer = (r.pruef && r.pruef.test(bot)) || (r.familie && r.familie.test(fam));
-    if(treffer) return {stufe: r.wirkung[tier] || 'unklar', grund: r.grund, quelle:'regel'};
+/* Wird die Giftfrage beim nächsten Doktorbesuch abgefragt? */
+function giftPruefungFaellig(p){
+  const g = giftVon(p) || {};
+  return g.status !== 'fest';
+}
+
+/* Eigene Eingabe aus dem Auswahlfeld „Für Katzen“. Sie ist die einzige
+   Angabe außer der Artentabelle, die als geprüft gilt — und die einzige,
+   die entwarnen darf. Verschärfen gilt für alle vier Tierarten:
+   was für die Katze giftig ist, ist es für einen Wellensittich erst
+   recht. Entwarnen gilt nur, wo keine Quelle widerspricht. */
+function giftEigenSetzen(p, wert){
+  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
+    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+  const basis = giftErmitteln(p);
+  const tiere = {};
+
+  if(wert === 'ja'){
+    GIFT_TIERE.forEach(t => tiere[t] = giftSchaerfer(basis.tiere[t], 'mittel'));
+    const widerspricht = basis.quelle === 'art' && giftRang(basis.tiere.katze) === 0;
+    return {tiere, quelle:'nutzer', status:'fest', datum:heute, beleg:'eigen',
+            grund:'Von dir als giftig eingetragen. Deine Angabe gilt für alle Tierarten — '
+                + 'was einer Katze schadet, schadet einem kleineren Tier erst recht.'
+                + (widerspricht
+                   ? ' Die hinterlegte Quelle führt diese Art als unbedenklich; eine Warnung '
+                     + 'kann aber nie schaden, deshalb bleibt es bei deiner Angabe.'
+                   : '')};
   }
-  /* Keine Regel gegriffen: das vorhandene Katzenfeld übertragen. */
-  if(p.giftig === true || p.giftig === 1){
-    return {stufe: tier === 'katze' ? 'mittel' : 'unklar',
-            grund: tier === 'katze'
-              ? 'Als für Katzen giftig hinterlegt.'
-              : 'Für Katzen als giftig hinterlegt. Für diese Tierart liegt keine geprüfte Angabe vor — im Zweifel außer Reichweite stellen.',
-            quelle:'feld'};
+  if(wert === 'nein'){
+    /* Widerspricht eine geprüfte Artangabe, wird sie nicht überschrieben.
+       Der Widerspruch wird sichtbar gemacht und es gilt die schärfere. */
+    if(basis.quelle === 'art' && giftRang(basis.tiere.katze) > 0){
+      return Object.assign({}, basis, {status:'strittig', datum:heute,
+        alt:{quelle:'nutzer', wert:'unbedenklich'},
+        grund:'Du hast diese Pflanze als unbedenklich eingetragen, die hinterlegte '
+            + 'Quelle sagt etwas anderes. Bis das geklärt ist, gilt hier die strengere '
+            + 'Angabe. ' + basis.grund});
+    }
+    GIFT_TIERE.forEach(t => tiere[t] = 'keine');
+    return {tiere, quelle:'nutzer', status:'fest', datum:heute, beleg:'eigen',
+            grund:'Von dir als unbedenklich eingetragen. Für diese Art liegt keine '
+                + 'Quelle vor, die dem widerspricht.'};
   }
-  if(p.giftig === false || p.giftig === 0){
-    return {stufe: tier === 'katze' ? 'keine' : 'unklar',
-            grund: tier === 'katze'
-              ? 'Als katzensicher hinterlegt.'
-              : 'Für Katzen als unbedenklich hinterlegt. Für diese Tierart liegt keine geprüfte Angabe vor.',
-            quelle:'feld'};
+  /* „unbekannt“: zurück auf die ermittelte Angabe. */
+  return basis;
+}
+
+/* Eine neue Auskunft — aus dem Pflanzendoktor oder beim Anlegen —
+   gegen den gespeicherten Stand halten. Übernommen wird nur, was
+   verschärft. Eine KI darf nie entwarnen: sie kennt die Pflanze nicht,
+   sie liest ein Foto. Widerspricht sie nach unten, wird der Eintrag
+   strittig und die strengere Angabe gilt weiter. */
+function giftAbgleichen(p, neuWert, quelle){
+  if(neuWert !== true && neuWert !== false) return null;
+  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
+    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+  const jetzt = giftVon(p) || giftErmitteln(p);
+  const stufe = jetzt.tiere.katze;
+  /* 'unklar' ist weder giftig noch unbedenklich. Es zählt beim Warnen
+     wie eine Warnung, darf hier aber nicht als „war schon giftig“
+     durchgehen — sonst gilt eine unbekannte Art schon als bestätigt. */
+  const warGiftig = stufe !== 'keine' && stufe !== 'unklar';
+  const warFrei   = stufe === 'keine';
+
+  if(neuWert === true){
+    if(warGiftig)
+      return {ergebnis:'bestaetigt',
+              gift: Object.assign({}, jetzt, {datum:heute, status:'fest'})};
+    const tiere = {};
+    GIFT_TIERE.forEach(t => tiere[t] = giftSchaerfer(jetzt.tiere[t], 'mittel'));
+    return {ergebnis:'verschaerft',
+            gift:{tiere, quelle: quelle || 'ki', status:'ungeprüft', datum:heute, beleg:'-',
+                  grund:'Bei der Nachfrage kam heraus, dass diese Pflanze giftig ist. '
+                      + 'Die Angabe wurde übernommen — bitte bei Gelegenheit gegenprüfen.'}};
   }
-  return {stufe:'unklar', grund:'Für diese Art liegt keine geprüfte Angabe vor.', quelle:'leer'};
+
+  /* neuWert === false: eine Entwarnung. Die gibt es hier nie. */
+  if(warFrei)
+    return {ergebnis:'bestaetigt',
+            gift: Object.assign({}, jetzt, {datum:heute,
+              status: jetzt.quelle === 'art' ? 'fest' : jetzt.status})};
+  if(warGiftig)
+    return {ergebnis:'strittig',
+            gift: Object.assign({}, jetzt, {status:'strittig', datum:heute,
+              alt:{quelle: quelle || 'ki', wert:'unbedenklich'},
+              grund:'Die Nachfrage hat diese Pflanze als unbedenklich bezeichnet, der '
+                  + 'hinterlegte Stand sagt etwas anderes. Eine Auskunft am Foto darf keine '
+                  + 'Entwarnung geben — bis das geklärt ist, gilt hier die strengere Angabe. '
+                  + jetzt.grund})};
+  /* War 'unklar' und die Nachfrage sagt unbedenklich: das bleibt
+     unklar. Eine Lücke wird nicht durch eine Fotoeinschätzung
+     geschlossen. */
+  return {ergebnis:'bleibtOffen', gift:null};
 }
 
 /* Für ungeprüfte Angaben: fertiger Suchlink, damit man in einem Klick
@@ -2927,7 +3554,7 @@ Schreibe deine gesamte Antwort in einen einzigen Codeblock: eine Zeile mit drei 
 Im Codeblock gilt:
 - Eine Zeile je Schlüsselwort, in der Reihenfolge der Liste unten.
 - Aufbau jeder Zeile: SCHLUESSELWORT, Doppelpunkt, Leerzeichen, Wert.
-- Alle sechzehn Schlüsselwörter müssen vorkommen, jedes genau einmal. Danach folgen ein bis drei MASSNAHME-Zeilen.
+- Alle sechzehn Schlüsselwörter müssen vorkommen, jedes genau einmal. Danach folgen ein bis drei VERMEHRUNG-Zeilen und ein bis drei MASSNAHME-Zeilen.
 - Keine Sternchen, keine Rauten, keine Bindestriche am Zeilenanfang, keine Nummerierung, keine Überschriften, keine Emojis, keine Leerzeilen, keine Fettschrift.
 - Kein Wert bleibt leer. Weißt du etwas nicht, schreib genau: unbekannt
 - Schreib die Werte auf Deutsch.
@@ -3219,6 +3846,7 @@ function geminiLesen(txt){
   if(alsJson) return alsJson;
   const raus = {};
   let letztes = null;
+  const doppelt = [];
   quelle.split(/\r?\n/).forEach(roh=>{
     /* Vor dem Abräumen merken, ob die Zeile wie eine Überschrift
        aussieht: „### Zustand“ oder eine Zeile, die komplett fett
@@ -3240,6 +3868,12 @@ function geminiLesen(txt){
         const wert = m[2].trim();
         /* Mehrere MASSNAHME-Zeilen sind der Normalfall des neuen
            Formats. Sie dürfen sich nicht gegenseitig überschreiben. */
+        /* Doppelt belegte Felder gingen bisher lautlos an den letzten
+           Treffer. Der Prompt verlangt Einmaligkeit; dass sie verletzt
+           wurde, ist die einzige Information, die dabei verloren geht. */
+        if(feld !== 'schritte' && feld !== 'vermehrung' && raus[feld] && wert
+           && raus[feld] !== wert && doppelt.indexOf(m[1].trim()) < 0)
+          doppelt.push(m[1].trim());
         if((feld === 'schritte' || feld === 'vermehrung') && raus[feld] && wert)
           raus[feld] = raus[feld] + '\n' + wert;
         else if(/^(ja|nein|yes|no)$/i.test(wert))
@@ -3267,6 +3901,14 @@ function geminiLesen(txt){
     if(istUeberschrift){ letztes = null; return; }
     /* Abschiedsfloskel: ab hier kommt nichts Verwertbares mehr. */
     if(FLOSKEL.test(zeile)){ letztes = null; return; }
+    /* Bricht die Antwort mitten im nächsten Schlüsselwort ab, steht dort
+       ein Bruchstück in Versalien ohne Doppelpunkt — „KATZ“. Das ist
+       keine Fortsetzung, sondern der Rest einer abgeschnittenen Zeile.
+       Vorher landete es im botanischen Namen: „Epipremnum aureum KATZ“,
+       und damit griff kein Bibliothekstreffer mehr. */
+    if(/^[A-ZÄÖÜ]{2,11}$/.test(zeile) && !/^(OK|JA|NEIN)$/.test(zeile)){
+      letztes = null; return;
+    }
     /* Fortsetzungszeile dem zuletzt erkannten Feld anhängen */
     if(letztes){
       raus[letztes] = (raus[letztes] ? raus[letztes] + ' ' : '') + zeile;
@@ -3285,6 +3927,7 @@ function geminiLesen(txt){
       delete raus[k];
     if(!raus[k]) delete raus[k];
   });
+  if(doppelt.length) raus.__doppelt = doppelt;
   return raus;
 }
 
@@ -3370,7 +4013,7 @@ function pflanzeAusWahl(wert){
     if(!a) return null;
     return {id:wert, nurBib:true, name:a.de, art:a.de, botanisch:a.bot, familie:a.fam,
             klasse:a.klasse, sonne:a.licht, typ:a.typ, bib:a.bot,
-            giftig: a.giftig===1 ? true : (a.giftig===0 ? false : 'unbekannt'),
+            gift: giftAusArt(a.bot) || null,
             frostMin:a.frost, duenger:a.duenger, raum:'', stellplatz:'',
             todo:[], log:[], notiz:''};
   }
@@ -4372,6 +5015,8 @@ function ersatzHTML(fehlendeIds, vorrat){
 
 /* Zutaten, die niemals zu einer Pflanzengruppe passen */
 const VERBOTEN = {
+  karnivore_epi: ['pflanzerde','anzuchterde','wurmhumus','gartenerde','moorbeeterde','rindenhumus',
+    'kokoshumus','kompost','hornspaene','kalk','urgesteinsmehl','tongranulat'],
   karnivore: ['pflanzerde','anzuchterde','wurmhumus','gartenerde','moorbeeterde','rindenhumus',
               'kohle','zeolith','vermiculit','kokoshum','kokoschips','seramis','blaehton'],
   sauer:     ['kohle','zeolith'],
@@ -4387,6 +5032,9 @@ const ZIELE = {
   karnivore: {name:'Karnivoren', wasser:7, luft:5, naehr:0, ph:4.0, sperre:'karnivore',
     gewicht:{naehr:6, ph:4, wasser:2, luft:1},
     text:'Nährstofffrei und sauer. Jede gedüngte Erde tötet sie innerhalb von Wochen. Klassisch: zwei Teile ungedüngter Weißtorf auf einen Teil gewaschener Quarzsand.'},
+  karnivore_epi: {name:'Aufsitzende Karnivoren', wasser:6, luft:7.5, naehr:0, ph:4.5, sperre:'karnivore',
+    gewicht:{naehr:6, luft:4, ph:3, wasser:1},
+    text:'Kannenpflanzen wachsen in der Natur auf Ästen, nicht im Moor. Sie brauchen dasselbe nährstofffreie Wasser wie die übrigen Karnivoren, aber ein deutlich luftigeres Substrat — reiner Torf verdichtet und die Wurzeln faulen.'},
   orchidee: {name:'Aufsitzende Orchideen', wasser:3.5, luft:8.5, naehr:1.5, ph:5.5, sperre:'orchidee',
     gewicht:{luft:5, wasser:2, naehr:2, ph:1},
     text:'Sie wachsen in der Natur auf Ästen, nicht in Erde. Es geht fast nur um Luft: grobe Rinde, dazu etwas Speichermasse.'},
@@ -4457,7 +5105,16 @@ function zielFuer(p){
   const fam = (b ? b.fam : p.familie) || (typeof familieVon === 'function' ? familieVon(p) : '') || '';
   const bot = (b ? b.bot : p.botanisch) || '';
   const kl  = p.klasse || (b ? b.klasse : 'B');
-  if(/Karnivore/i.test(typ)) return 'karnivore';
+  /* Nepenthes ist Karnivore und Epiphyt zugleich. Ein Torf-Sand-Gemisch
+     ist ihr zu schwer und zu wenig luftig — sie verliert darin über
+     Monate die Wurzeln. Die Gattungstabelle weiß das über die Marke
+     „epiphyt“; gefragt wurde bisher nur der Typ. */
+  if(/Karnivore/i.test(typ)){
+    const gk = (typeof gattungVon === 'function') ? gattungVon(p) : null;
+    const epi = (gk && gk.m && gk.m.indexOf('epiphyt') >= 0)
+      || /Nepenthes|Heliamphora/i.test(bot);
+    return epi ? 'karnivore_epi' : 'karnivore';
+  }
   if(/Orchidee/i.test(typ)) return 'orchidee';
   if(/Bromelie/i.test(typ)) return 'bromelie';
   if(/Vaccinium|Camellia|Rhododendron|Hydrangea|Gardenia/i.test(bot)) return 'sauer';
@@ -4669,6 +5326,8 @@ const SUBSTRAT_WARNUNGEN = [
 const REZEPTE = {
   karnivore: {teile:{weisstorf:3, sand:1, perlit:1},
     text:'Ungedüngter Weißtorf als Basis, Quarzsand und Perlit halten ihn locker. Nur mit Regen- oder Osmosewasser gießen.'},
+  karnivore_epi: {teile:{weisstorf:2, rinde:2, perlit:2},
+    text:'Deutlich luftiger als die Moormischung: Weißtorf oder besser lebendes Sphagnum, dazu grobe Rinde und Perlit zu gleichen Teilen. Auch hier nur Regen- oder Osmosewasser.'},
   orchidee: {teile:{rinde:5, blaehton:2, kohle:1},
     text:'Fast reine Struktur. Die Rinde gibt Halt, Blähton hält die Kanäle offen, Kohle hält das Ganze frisch.'},
   sukkulent: {teile:{pflanzerde:2, bims:3, kies:2, sand:1},
@@ -4949,6 +5608,19 @@ function vermehrungFuer(p){
   if(/Aloe|Haworthia|Gasteria|Agave|Yucca|Ananas/i.test(bot))
     dazu('kindel', 'sehr gut', 'Sie schiebt Kindel am Fuß. Blattstecklinge funktionieren hier nicht — die Blätter faulen nur.');
   if(/Sukkulente|Kaktus/i.test(typ)) dazu('kopfsteckling', 'gut', 'Schnittfläche unbedingt erst antrocknen lassen.');
+  /* Sperren stehen bewusst am Ende: was hier steht, kann keine der
+     Regeln davor wieder hereinholen. Vorher hing das an der
+     Reihenfolge — der Aizoaceae-Zweig verhinderte den Blattsteckling,
+     die Typregel eine Zeile später brachte den Kopfsteckling zurück.
+     Ein Lithops hat aber keinen Kopf, den man schneiden könnte. */
+  const sperren = [];
+  if(/Aizoaceae|Mittagsblumengewächse/i.test(fam)
+     || /Lithops|Conophytum|Pleiospilos|Fenestraria|Argyroderma/i.test(bot))
+    sperren.push('kopfsteckling', 'blatt_sukkulent', 'stammstueck');
+  if(/Nepenthes/i.test(bot)) sperren.push('teilung');
+  if(/Chlorophytum/i.test(bot)) sperren.push('kopfsteckling', 'stammstueck');
+  if(/Cycas|Zamia|Encephalartos/i.test(bot)) sperren.push('teilung', 'kopfsteckling', 'blatt_sukkulent');
+
   if(/Alocasia|Colocasia|Zamioculcas|Calathea|Goeppertia|Maranta|Ctenanthe|Stromanthe/i.test(bot))
     dazu('rhizomteilung', 'sehr gut', 'Die Knolle oder das Rhizom mit Austrieb teilen.');
   /* „Palmfarn“ enthält „Farn“, ist aber keiner: er bildet keinen Horst
@@ -4960,6 +5632,8 @@ function vermehrungFuer(p){
   if(/Bromelie/i.test(typ)) dazu('kindel', 'sehr gut', 'Die Mutter stirbt nach der Blüte ohnehin, die Kindel übernehmen.');
   if(/Nepenthes/i.test(bot))
     dazu('kopfsteckling', 'gut', 'Bei Kannenpflanzen der Standardweg: Triebstück mit zwei bis drei Blättern, Blätter halbieren, warm und sehr feucht in Sphagnum bewurzeln.');
+  if(/Nepenthes/i.test(bot))
+    dazu('kopfsteckling', 'gut', 'Kannenpflanzen lassen sich als Kopf- oder Stammsteckling vermehren. Zwei bis drei Blätter am Trieb lassen, in feuchtes Sphagnum stecken, warm und geschlossen halten.');
   if(/Karnivore/i.test(typ)){
     dazu('teilung', 'gut', 'Nur mit Regenwasser arbeiten und ausschließlich in ungedüngtes Torfsubstrat setzen.');
     dazu('aussaat', 'mäßig', 'Langwierig, aber bei Karnivoren üblich. Kalt keimend, Geduld über Monate.');
@@ -4982,9 +5656,13 @@ function vermehrungFuer(p){
     dazu('kopfsteckling', 'geraten', 'Zu dieser Art liegt keine Regel vor — der Kopfsteckling ist der Versuch mit der besten Aussicht. Über „Bei der KI nachfragen“ oben bekommst du eine Auskunft zu genau dieser Art.');
     dazu('teilung', 'geraten', 'Falls sie mehrere Triebe aus dem Boden schiebt, ist Teilung meist der sicherste Weg.');
   }
+  /* Erst jetzt die Sperren anwenden — unabhängig davon, welche Regel
+     die Methode hereingebracht hat. */
+  let raus = treffer.filter(t => sperren.indexOf(t.id) < 0);
+  if(!raus.length) raus = treffer.filter(t => t.id === 'aussaat');
   const rang = {'sehr gut':0, 'gut':1, 'mäßig':2, 'geraten':3, 'schwierig':4};
-  treffer.sort((a,b2)=>rang[a.eignung]-rang[b2.eignung]);
-  return treffer;
+  raus.sort((a,b2)=>rang[a.eignung]-rang[b2.eignung]);
+  return raus;
 }
 
 /* Passt die Jahreszeit? */
@@ -5164,15 +5842,23 @@ function giessTat(p){
 }
 function giessartText(p){ return GIESSARTEN[giessartVon(p)].kurz; }
 
-const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','notiz','frostMin','giessart','wichtig','raum','stellplatz'];
+const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','gift','notiz','frostMin','giessart','wichtig','raum','stellplatz'];
 
 function aenderungen(id){ return (S.edits||{})[id] || null; }
 function aenderungSetzen(id, felder){
   if(!S.edits) S.edits = {};
-  /* Eine von Hand gesetzte Giftangabe wird als solche vermerkt —
-     nur dann schlägt sie später die Bibliotheks- und Familienregeln. */
-  if(Object.prototype.hasOwnProperty.call(felder, 'giftig'))
-    felder = Object.assign({}, felder, {giftEigen: felder.giftig === true || felder.giftig === false});
+  /* Die Giftfrage hat einen eigenen Weg: sie wird nicht als Rohwert
+     abgelegt, sondern durch giftEigenSetzen geschickt. Nur so kann eine
+     eigene Eingabe verschärfen, ohne eine geprüfte Quelle zu
+     überschreiben — und nur so kann keine KI-Antwort sich als eigene
+     Angabe ausgeben. */
+  if(Object.prototype.hasOwnProperty.call(felder, 'giftig')){
+    const roh = felder.giftig;
+    const wert = roh === true ? 'ja' : (roh === false ? 'nein' : 'unbekannt');
+    const vorher = allePflanzen().find(x => x.id === id) || {};
+    felder = Object.assign({}, felder, {gift: giftEigenSetzen(vorher, wert)});
+    delete felder.giftig;
+  }
   const eigen = (S.eigene||[]).find(p=>p.id===id);
   if(eigen){ Object.assign(eigen, felder); }
   else { S.edits[id] = Object.assign({}, S.edits[id], felder); }
@@ -5195,7 +5881,9 @@ function bearbeitenHTML(p){
 function bearbeitenInnenHTML(p){
   const eigen = !!(S.eigene||[]).find(x=>x.id===p.id);
   const geaendert = !eigen && !!aenderungen(p.id);
-  const gift = p.giftig === true ? 'ja' : (p.giftig === false ? 'nein' : 'unbekannt');
+  const gEig = giftVon(p);
+  const gift = (gEig.quelle === 'nutzer' && gEig.status === 'fest')
+    ? (giftRang(gEig.tiere.katze) > 0 ? 'ja' : 'nein') : 'unbekannt';
   return `
     <div class="fgrid">
       <label><span class="lab">Name</span><input data-e="name" data-p="${p.id}" value="${esc(p.name==='Name offen'?'':p.name||'')}" placeholder="z. B. Rudi"></label>
@@ -5678,6 +6366,7 @@ function papierkorbRender(){
         <div id="dok-fragen"></div>
       </details>
       <div id="dok-abgleich-hinweis"></div>
+      <div id="dok-gift"></div>
       <div id="dok-abgleich"></div>
       <div id="dok-massnahmen"></div>
       <div id="dok-ergebnis"></div>
@@ -6277,9 +6966,9 @@ function papierkorbRender(){
 
 <div id="lightbox" role="dialog" aria-modal="true" aria-label="Foto in groß"><img alt=""></div>
 
-<div id="foto-modal" class="modal" hidden>
+<div id="foto-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="foto-modal-titel" hidden>
   <div class="modal-box">
-    <h3>Foto löschen?</h3>
+    <h3 id="foto-modal-titel">Foto löschen?</h3>
     <p>Das Bild verschwindet aus der Galerie dieser Pflanze. Rückgängig geht das nicht.</p>
     <div class="tools">
       <button id="foto-loeschen" class="haupt">Löschen</button>
@@ -6288,15 +6977,15 @@ function papierkorbRender(){
   </div>
 </div>
 
-<div id="gift-modal" class="modal" hidden>
+<div id="gift-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gift-titel" hidden>
   <div class="modal-box">
     <h3 id="gift-titel">Achtung, giftig für Katzen</h3>
-    <p id="gift-text"></p>
+    <p id="gift-text" style="white-space:pre-line"></p>
     <div class="tools"><button id="gift-ok">Verstanden</button></div>
   </div>
 </div>
 
-<div id="neu-modal" class="modal" hidden>
+<div id="neu-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="neu-titel" hidden>
   <div class="modal-box neu-box">
     <h3 id="neu-titel">Was ist neu</h3>
     <div id="neu-inhalt"></div>
@@ -6329,8 +7018,53 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.6';
+const FASSUNG = '2.8';
 const PATCHNOTES = [
+  {
+    nr: '2.8', datum: '2026-08-24', titel: 'Was die Prüfung noch gefunden hat',
+    neu: [
+      'Der Urlaubszettel führt jetzt auch die Pflanzen auf, deren Giftigkeit ungeprüft ist — unter „sicherheitshalber wie giftig behandeln“. Bisher stand da nur, was sicher giftig ist; wer die Sammlung nicht kennt, erfuhr vom Rest nichts.',
+      'Kannenpflanzen bekommen eine eigene Substratmischung. Sie sind Karnivoren und wachsen trotzdem auf Ästen, nicht im Moor — im reinen Torfgemisch verdichtet der Ballen und die Wurzeln faulen.'
+    ],
+    besser: [
+      'Der Text „Kein Leitungswasser, Kalk bringt Karnivoren um“ stand bei jeder Pflanze der Gießklasse S. Das Zyperngras steht in derselben Klasse, ist aber keine Karnivore und verträgt Leitungswasser — es bekommt jetzt einen eigenen Anstau-Hinweis.',
+      'Kommt ein Schlüsselwort in der KI-Antwort zweimal vor, steht das jetzt als Hinweis dabei, statt dass lautlos die letzte Angabe gewinnt.',
+      'Der Kasten „Potenziell giftig — ungeprüft“ war der am schlechtesten lesbare Text der App. Die Schrift ist nachgedunkelt.',
+      'Ein Befund, der schon in den Notizen steht, wird beim nochmaligen Einfügen nicht ein zweites Mal angehängt. Dasselbe gilt für „Nachsehen, ob sich … erholt“.',
+      '„Passend, kein Umtopfen nötig“ landet nicht mehr als Notiz in der Karte.'
+    ],
+    behoben: [
+      '„Stand vor dem Laden zurückholen“ löschte sämtliche Fotos. Der beiseitegelegte Stand enthielt keine Bilder — die liegen getrennt gespeichert —, und beim Zurückholen wurde der Bildspeicher damit geleert. Wer die falsche Sicherung geladen hatte und zurückwollte, verlor alle Fotos, die eigenen wie die aus der Datei.',
+      'Der Pflanzendoktor nannte dem Modell vierzehn Schlüsselwörter und listete fünfzehn, sobald die Topffrage entfiel. Die Zahl wird jetzt aus der Feldliste selbst gelesen.',
+      'Ein Lithops bekam den Kopfsteckling empfohlen. Lebende Steine haben keinen Kopf, den man schneiden könnte — wer der Empfehlung folgte, halbierte die Pflanze. Dasselbe galt für die Teilung bei Kannenpflanzen und den Kopfsteckling bei der Grünlilie.',
+      'Brach eine Antwort mitten im nächsten Schlüsselwort ab, hängte sich das Bruchstück an den botanischen Namen: „Epipremnum aureum KATZ“. Damit griff kein Bibliothekstreffer mehr.',
+      '„Substrat nie ganz austrocknen lassen“ ergab keine Gießklasse — die Prüfung suchte nach „trocken“, im Wort steht aber „trockn“.',
+      'Im Gießverlauf stand „1 Tage“.'
+    ]
+  },
+  {
+    nr: '2.7', datum: '2026-08-24', titel: 'Die Giftfrage, neu beantwortet',
+    neu: [
+      'Die Giftigkeit steht jetzt für jede der 248 Bibliotheksarten einzeln fest — nachgeschlagen für Katze, Hund, Nager und Vogel, mit Begründung und Quellenangabe. Vorher wurde sie aus der Gattung oder der Pflanzenfamilie geraten, und eine Familie kann den Oleander und die harmlose Wachsblume enthalten.',
+      'Jede Pflanze trägt ihre Giftangabe jetzt bei sich, statt dass sie bei jeder Anzeige neu berechnet wird. Karte, Filter, Grundriss, Rundgang, Urlaubszettel und Warnkasten lesen denselben Wert — sie können gar nicht mehr auseinanderlaufen.',
+      'Jede Angabe hat einen Stand: geprüft, ungeprüft oder strittig. Was nicht geprüft ist, fragt der Pflanzendoktor beim nächsten Besuch ab.'
+    ],
+    besser: [
+      'Eine KI-Antwort kann eine Pflanze nur noch als giftig eintragen, nie als unbedenklich. Eine Einschätzung am Foto ist keine Quelle für eine Entwarnung.',
+      'Deine eigene Angabe unter „Für Katzen“ gilt jetzt für alle vier Tierarten. Was einer Katze schadet, schadet einem Wellensittich erst recht.',
+      'Widersprechen sich zwei Angaben, gilt die strengere, und der Widerspruch steht mit dabei — statt dass eine von beiden stillschweigend gewinnt.',
+      'Die Giftwarnung nach dem Anlegen nennt jetzt die Stufe und den Grund, statt bei jeder Pflanze denselben Satz zu zeigen.',
+      'Foto-löschen, Giftwarnung und „Was ist neu“ sind für Tastatur und Sprachausgabe abgegrenzt wie die übrigen Vollbildfenster.'
+    ],
+    behoben: [
+      'Ein Palmfarn, bei dem als Familie „Palmengewächse“ eingetragen war, bekam Entwarnung für alle vier Tierarten — mit einem Text, der die Sagopalme sogar als hochgiftig erwähnte. Er ist die häufigste tödliche Zimmerpflanzenvergiftung beim Hund.',
+      'Stand im Grund der KI-Antwort irgendwo „harmlos“ oder „unbedenklich“, kippte die ganze Aussage: „giftig für Katzen, für Menschen harmlos“ wurde als katzensicher eingetragen. Jetzt zählt, was zuerst steht.',
+      'Der Knopf „Alles übernehmen“ im Pflanzendoktor verbuchte die KI-Antwort als deine eigene Angabe. Sie überstimmte danach jede geprüfte Quelle, und im Kasten stand „von dir eingetragen“.',
+      'Jede aus der Bibliothek angelegte Pflanze galt als selbst eingetragen. Oleander, Palmfarn, Lilie und Kalanchoe standen danach als „giftig“ statt „stark giftig“ in der Karte, und die Begründung — bei der Lilie der Hinweis auf Nierenversagen — verschwand.',
+      'Liebstöckel, Estragon, Zitronenverbene und Margerite standen als unbedenklich in der Bibliothek, obwohl die ASPCA sie führt. Katzenminze, Mauerpfeffer und Spinat sind jetzt als leicht giftig eingestuft, Shiso als ungeklärt.',
+      'Der ×-Knopf am Abgleich im Pflanzendoktor war am Handy kaum zu treffen.'
+    ]
+  },
   {
     nr: '2.6', datum: '2026-08-24', titel: 'Was auf dem Foto zu sehen sein muss',
     neu: [
@@ -6732,6 +7466,11 @@ function grundwerteErgaenzen(){
    'weg','ereignisse','gesehen','orte'].forEach(k=>{
     if(!S[k] || typeof S[k] !== 'object' || Array.isArray(S[k])) S[k] = {};
   });
+  /* Bestandspflanzen aus einer Fassung vor 2.7 bekommen hier einmalig
+     ihren festen Giftwert. Übernommen wird der alte Stand, nie
+     abgeschwächt — und als ungeprüft markiert, damit der Doktor ihn
+     beim nächsten Besuch abfragt. */
+  if(typeof giftMigrieren === 'function') giftMigrieren();
 }
 
 function laden(){
@@ -6954,7 +7693,7 @@ function icoWasser(p){
 }
 function icoKatze(p){
   /* Dieselbe Auskunft wie Filter, Warnkasten und Urlaubszettel. */
-  const g = (typeof istGiftig === 'function') ? istGiftig(p, 'katze') : (p.giftig === true);
+  const g = istGiftig(p, 'katze');
   if(g === null) return `<span class="ico" title="Noch nicht geprüft">${SVG.katzeGift}ungeprüft</span>`;
   return g
     ? `<span class="ico warn" title="Giftig für Katzen">${SVG.katzeGift}giftig</span>`
@@ -7626,11 +8365,28 @@ function giessAbschnitt(p){
 /* ── Warnungen ───────────────────────────────────────────────
    Das, was man wissen muss, bevor man irgendetwas tut. Steht ganz
    oben in der Karte, über den Reitern, und ist nie weggeklappt. */
+/* Karnivore oder nur Sumpfpflanze? Beide stehen im Anstau, brauchen
+   aber unterschiedliches Wasser. */
+function istKarnivore(p){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  const typ = (b ? b.typ : (p ? p.typ : '')) || '';
+  const bot = ((p && p.botanisch) || '') + ' ' + ((p && p.art) || '');
+  return /Karnivore|Fleischfressend/i.test(typ)
+      || /Dionaea|Sarracenia|Drosera|Nepenthes|Pinguicula|Utricularia|Darlingtonia|Cephalotus|Heliamphora/i.test(bot);
+}
+
 function warnungenHTML(p){
   const w = [];
 
-  if(p.klasse === 'S')
-    w.push('<b>Kein Leitungswasser.</b> Nur Regen- oder destilliertes Wasser. Kalk und Salze bringen Karnivoren um.');
+  /* Klasse S heißt Anstau, nicht Karnivore. Das Zyperngras steht in
+     derselben Klasse, verträgt Leitungswasser aber problemlos — es
+     bekam bisher das Verbot samt Karnivoren-Begründung. */
+  if(p.klasse === 'S'){
+    if(istKarnivore(p))
+      w.push('<b>Kein Leitungswasser.</b> Nur Regen- oder destilliertes Wasser. Kalk und Salze bringen Karnivoren um.');
+    else
+      w.push('<b>Dauerhaft im Anstau.</b> Im Untersetzer steht immer Wasser. Das ist hier richtig so — bei jeder anderen Pflanze wäre es Staunässe.');
+  }
 
   const tiere = (typeof meineTiere === 'function') ? meineTiere() : [];
   const betroffen = [], ungeprueft = [];
@@ -8202,6 +8958,7 @@ document.addEventListener('click', e=>{
     fotoLoeschZiel = {id: btn.dataset.p, k: btn.dataset.k};
     fotoMenuOffen = null;
     $('#foto-modal').hidden = false;
+    if(typeof fensterAuf === 'function') fensterAuf($('#foto-modal'));
     return;
   }
 
@@ -8659,16 +9416,30 @@ function vorherZeigen(){
 }
 vorherZeigen();
 const _btnVorher = document.getElementById('btn-vorher');
-if(_btnVorher) _btnVorher.onclick = ()=>{
+if(_btnVorher) _btnVorher.onclick = async ()=>{
   let roh = null;
   try{ roh = localStorage.getItem(KEY + ':vorher'); }catch(e){}
   if(!roh){ vorherZeigen(); return; }
-  if(!confirm('Den Stand von vor dem Laden zurückholen? Die zuletzt geladene Sicherung wird dabei ersetzt.')) return;
+  let ohneFotos = false;
+  try{ ohneFotos = localStorage.getItem(KEY + ':vorherOhneFotos') === '1'; }catch(e){}
+  if(!confirm('Den Stand von vor dem Laden zurückholen?\n\n'
+      + 'Die zuletzt geladene Sicherung wird dabei ersetzt — auch ihre Fotos.'
+      + (ohneFotos
+         ? '\n\nACHTUNG: Für den alten Stand konnten die Fotos nicht mit beiseitegelegt werden, '
+           + 'der Speicher war zu voll. Sie sind danach weg.'
+         : ''))) return;
   try{
     S = Object.assign(LEERSTAND(), JSON.parse(roh));
+    /* Fotos gehören zum Stand und müssen mit zurück. Fehlen sie im
+       beiseitegelegten Stand, bleibt der Bildspeicher unangetastet,
+       statt ihn zu leeren. */
+    if(!S.fotos || !Object.keys(S.fotos).length){
+      try{ const da = await fotoLesen(); if(da) S.fotos = da; }catch(e){}
+    }
     grundwerteErgaenzen();
     FOTOS_BEREIT = true;
     localStorage.removeItem(KEY + ':vorher');
+    try{ localStorage.removeItem(KEY + ':vorherOhneFotos'); }catch(e){}
     sichern();
     vorherZeigen();
     render();
@@ -8689,8 +9460,18 @@ $('#import-file').onchange = ()=>{
       const einwand = sicherungPruefen(daten);
       if(einwand) throw new Error(einwand);
       if(!confirm('Sicherung laden? Der aktuelle Stand in diesem Browser wird ersetzt.')) return;
-      /* Den bisherigen Stand einmal beiseitelegen, bevor er verschwindet. */
-      try{ localStorage.setItem(KEY + ':vorher', localStorage.getItem(KEY) || ''); }catch(e){}
+      /* Den bisherigen Stand einmal beiseitelegen, bevor er verschwindet.
+         Wichtig: im kleinen Speicher stehen die Fotos nicht mehr — die
+         liegen getrennt. Beiseitegelegt wird deshalb der Arbeitsstand
+         samt Bildern, sonst holt „Zurückholen“ eine Sammlung ohne ein
+         einziges Foto zurück und löscht dabei auch noch die aus der
+         geladenen Datei. */
+      try{ localStorage.setItem(KEY + ':vorher', JSON.stringify(S)); }catch(e){
+        /* Passt der Stand mit Bildern nicht in den kleinen Speicher,
+           kommt wenigstens der Rest hinein — und der Hinweis dazu. */
+        try{ localStorage.setItem(KEY + ':vorher', localStorage.getItem(KEY) || ''); }catch(e2){}
+        try{ localStorage.setItem(KEY + ':vorherOhneFotos', '1'); }catch(e2){}
+      }
       delete daten.__app; delete daten.__fassung; delete daten.__gesichert;
       S = Object.assign(LEERSTAND(), daten);
       grundwerteErgaenzen();
@@ -8912,13 +9693,18 @@ function aufgabenAusMassnahmen(pflanzeId, liste, herkunft){
     bestand.add(text.toLowerCase());
     neu++;
   });
-  /* Nachschauen, ob es geholfen hat — sonst gerät die Sache in Vergessenheit. */
-  if(neu){
+  /* Nachschauen, ob es geholfen hat — sonst gerät die Sache in Vergessenheit.
+     Steht der Punkt schon auf der Liste, kommt kein zweiter dazu: nach drei
+     Doktorbesuchen standen sonst drei gleichlautende Zeilen da, ohne dass
+     man unterscheiden konnte, welche zu welchem Besuch gehört. */
+  const nachText = 'Nachsehen, ob sich ' + (p ? nice(p) : 'die Pflanze') + ' erholt';
+  if(neu && !bestand.has(nachText.toLowerCase())){
     S.added[pflanzeId].push({
       id: 'a-' + Date.now() + '-nach',
-      text: 'Nachsehen, ob sich ' + (p ? nice(p) : 'die Pflanze') + ' erholt',
+      text: nachText,
       wann:'woche', quelle: herkunft || 'ki', angelegt: iso(HEUTE)
     });
+    bestand.add(nachText.toLowerCase());
     neu++;
   }
   sichern();
@@ -9175,9 +9961,14 @@ let artManuell = false;       // bewusst ohne Bibliothek angelegt
 const KLASSE_IV = {S:[2,14], A:[3,6], B:[8,12], C:[17,42]};
 
 function bibZeile(a, merkmal){
-  const gift = a.giftig===1 ? '<span class="tag gift">giftig</span>'
-    : a.giftig===0 ? '<span class="tag safe">katzensicher</span>'
-    : '<span class="tag">ungeklärt</span>';
+  /* Die Marke kommt aus der Artentabelle, nicht mehr aus dem alten
+     Bibliotheksfeld — sonst zeigt die Liste etwas anderes als die
+     Karte, die daraus entsteht. */
+  const ga = giftAusArt(a.bot);
+  const st = ga ? ga.tiere.katze : 'unklar';
+  const gift = st === 'keine' ? '<span class="tag safe">katzensicher</span>'
+    : st === 'unklar' ? '<span class="tag">ungeklärt</span>'
+    : `<span class="tag gift">${esc((GIFT_STUFEN[st]||{}).wort || 'giftig')}</span>`;
   return `<button class="bibrow" type="button" data-bib="${esc(a.bot)}">
     <b>${esc(a.de)}</b><i>${esc(a.bot)}${a.en?' · '+esc(a.en):''}</i>
     ${merkmal?`<em>${esc(merkmal)}</em>`:''}
@@ -9199,7 +9990,12 @@ function artWaehlen(bot){
   $('#f-bot').value = a.bot;
   $('#f-klasse').value = a.klasse;
   $('#f-sonne').value = a.licht;
-  $('#f-giftig').value = a.giftig===1 ? 'ja' : (a.giftig===0 ? 'nein' : 'unbekannt');
+  /* Das Feld bleibt auf „unbekannt“: es ist für DEINE Angabe da, nicht
+     für die der Bibliothek. Die steht ohnehin schon in der Artentabelle
+     und wird beim Anlegen von selbst übernommen. Stünde hier ein Wert
+     vorbelegt, würde jede neue Pflanze so gespeichert, als hätte man
+     die Frage selbst beantwortet. */
+  $('#f-giftig').value = 'unbekannt';
   if(!$('#f-typ').value.trim()) $('#f-typ').value = a.typ;
 
   const verw = verwechslungFuer(a.bot);
@@ -9216,7 +10012,8 @@ function artWaehlen(bot){
   $('#bib-gewaehlt').hidden = false;
 
   zustandListe(a);
-  if(a.giftig===1) giftWarnen(a.de);
+  { const ga = giftAusArt(a.bot);
+    if(ga && giftRang(ga.tiere.katze) > 0) giftWarnen(a.de, ga); }
 }
 
 function artFreitext(){
@@ -9254,11 +10051,22 @@ function zustandHinweis(){
 }
 
 /* ── Giftwarnung ─────────────────────────────────────────── */
-function giftWarnen(name){
-  $('#gift-text').textContent = name + ' ist für Katzen giftig. Außerhalb der Reichweite aufstellen — Hängeampel, geschlossenes Regal oder ein Raum, in den die Katzen nicht kommen. Auch abgefallene Blätter aufsammeln.';
+function giftWarnen(name, ga){
+  const st = ga && ga.tiere ? ga.tiere.katze : 'mittel';
+  const wort = (GIFT_STUFEN[st] || {}).wort || 'giftig';
+  const kopf = document.getElementById('gift-titel');
+  if(kopf) kopf.textContent = 'Achtung, ' + wort + ' für Katzen';
+  $('#gift-text').textContent = name + ' ist für Katzen ' + wort
+    + '. Außerhalb der Reichweite aufstellen — Hängeampel, geschlossenes Regal oder '
+    + 'ein Raum, in den die Katzen nicht kommen. Auch abgefallene Blätter aufsammeln.'
+    + (ga && ga.grund ? '\n\n' + ga.grund : '');
   $('#gift-modal').hidden = false;
+  if(typeof fensterAuf === 'function') fensterAuf($('#gift-modal'));
 }
-$('#gift-ok').onclick = ()=>{ $('#gift-modal').hidden = true; };
+$('#gift-ok').onclick = ()=>{
+  $('#gift-modal').hidden = true;
+  if(typeof fensterZu === 'function') fensterZu();
+};
 
 /* ══════════════════ Was sich geändert hat ══════════════════ */
 
@@ -9302,6 +10110,7 @@ function neuFensterZeigen(eintrag){
   document.getElementById('neu-titel').textContent = 'Neu in Fassung ' + eintrag.nr;
   document.getElementById('neu-inhalt').innerHTML = patchEintragHTML(eintrag, false);
   modal.hidden = false;
+  if(typeof fensterAuf === 'function') fensterAuf(modal);
 }
 
 function fassungPruefen(){
@@ -9316,7 +10125,10 @@ function fassungPruefen(){
   if(eintrag) neuFensterZeigen(eintrag);
 }
 
-$('#neu-ok').onclick = ()=>{ $('#neu-modal').hidden = true; };
+$('#neu-ok').onclick = ()=>{
+  $('#neu-modal').hidden = true;
+  if(typeof fensterZu === 'function') fensterZu();
+};
 $('#neu-alle').onclick = ()=>{
   $('#neu-modal').hidden = true;
   ansichtZeigen('mehr');
@@ -9330,7 +10142,10 @@ $('#gift-modal').addEventListener('click', e=>{ if(e.target.id==='gift-modal') $
 
 /* ── Foto löschen: erst fragen, dann handeln ────────────── */
 let fotoLoeschZiel = null;
-function fotoLoeschEnde(){ fotoLoeschZiel = null; $('#foto-modal').hidden = true; }
+function fotoLoeschEnde(){
+  fotoLoeschZiel = null; $('#foto-modal').hidden = true;
+  if(typeof fensterZu === 'function') fensterZu();
+}
 $('#foto-behalten').onclick = ()=>{ fotoLoeschEnde(); render(); };
 $('#foto-modal').addEventListener('click', e=>{ if(e.target.id==='foto-modal'){ fotoLoeschEnde(); render(); } });
 $('#foto-loeschen').onclick = ()=>{
@@ -9455,9 +10270,18 @@ $('#btn-paste-los').onclick = ()=>{
     uebernommen.push('Art übernommen, aber nicht in der Bibliothek gefunden');
     const licht = lichtRaten(d.licht);
     if(licht) $('#f-sonne').value = licht;
+    /* Eine Auskunft am Foto darf verschärfen, aber nie entwarnen —
+       deshalb wird nur „giftig“ übernommen. Sagt die Antwort
+       „unbedenklich“, bleibt das Feld auf „unbekannt“ und die Pflanze
+       läuft als ungeprüft in die Sammlung, statt eine Entwarnung
+       mitzubringen, die niemand geprüft hat. */
     const gift = giftRaten(d.katzen);
-    if(gift === true) $('#f-giftig').value = 'ja';
-    else if(gift === false) $('#f-giftig').value = 'nein';
+    if(gift === true){
+      $('#f-giftig').value = 'ja';
+      uebernommen.push('Als giftig übernommen');
+    } else if(gift === false){
+      uebernommen.push('Die Antwort nennt sie unbedenklich — das wird nicht ungeprüft übernommen');
+    }
   }
   /* Das Namensfeld ist für Spitznamen da und bleibt frei. Ohne Eintrag
      zeigt die Karte ohnehin „Botanisch (deutscher Name)“. */
@@ -9639,9 +10463,9 @@ function klasseRaten(text){
   /* „keinesfalls trocken werden lassen“ ist das Gegenteil von
      Kakteenmodus. Verneinungen deshalb vor dem C-Zweig abfangen. */
   const verneint = /\b(nicht|nie|niemals|keines?falls|ohne|vermeide[nt]?)\b/.test(t);
-  if(!verneint && /kakt|sukkul|durchtrock|sparsam|trocken/.test(t)) return 'C';
+  if(!verneint && /kakt|sukkul|durchtrock|sparsam|trockn|trocken/.test(t)) return 'C';
   if(/durstig|feucht|viel wasser|hoch/.test(t)) return 'A';
-  if(verneint && /trocken/.test(t)) return 'A';
+  if(verneint && /trockn|trocken/.test(t)) return 'A';
   if(/normal|mittel|standard/.test(t)) return 'B';
   return null;
 }
@@ -9713,8 +10537,7 @@ $('#btn-neu-save').onclick = async ()=>{
     id, eigen:true, name: name || 'Name offen', art: art || 'Unbestimmt',
     botanisch: $('#f-bot').value.trim() || (a ? a.bot : ''),
     familie: a ? a.fam : '', klasse: kl,
-    giftig: gift==='ja' ? true : (gift==='nein' ? false : 'unbekannt'),
-    giftEigen: gift==='ja' || gift==='nein',
+    gift: null,   /* gleich unten gesetzt, sobald Art und Familie stehen */
     raum: $('#f-raum').value || '',
     stellplatz: $('#f-stellplatz').value || '',
     typ: $('#f-typ').value.trim() || (a ? a.typ : 'Ohne Angabe'),
@@ -9728,6 +10551,12 @@ $('#btn-neu-save').onclick = async ()=>{
     giessart: $('#f-giessart').value || '',
     wichtig: $('#f-wichtig').value.trim()
   };
+  /* Der Giftwert wird genau hier festgelegt und danach nur noch gelesen.
+     Steht die Art in der Tabelle, gilt sie als geprüft; sonst ist der
+     Wert ein Vorschlag und wird beim nächsten Doktorbesuch abgefragt.
+     Eine eigene Eingabe im Auswahlfeld legt sich darüber. */
+  p.gift = (gift === 'ja' || gift === 'nein')
+    ? giftEigenSetzen(p, gift) : giftErmitteln(p);
   S.eigene.push(p);
   const zc = $('#f-zustand').value;
   if(zc && zc !== 'gesund') zustandSetzen(id, zc);
@@ -9778,7 +10607,7 @@ document.addEventListener('change', e=>{
   const id = sel.dataset.zsel;
   zustandSetzen(id, sel.value);
   const p = allePflanzen().find(x=>x.id===id);
-  if(p && p.giftig===true && sel.value==='gesund'){ /* keine Warnung nötig */ }
+  if(p && istGiftig(p, 'katze') === true && sel.value==='gesund'){ /* keine Warnung nötig */ }
   render();
 });
 document.addEventListener('click', e=>{
@@ -11129,7 +11958,7 @@ function verlaufHTML(p){
     const h = (v/max)*H;
     const ton = v > ziel*1.4 ? 'zu-lang' : (v < ziel*0.6 ? 'zu-kurz' : 'passt');
     return `<rect class="vb ${ton}" x="${(i*bw+bw*0.15).toFixed(1)}" y="${(H-h).toFixed(1)}"
-      width="${(bw*0.7).toFixed(1)}" height="${h.toFixed(1)}" rx="1"><title>${v} Tage</title></rect>`;
+      width="${(bw*0.7).toFixed(1)}" height="${h.toFixed(1)}" rx="1"><title>${v} ${v === 1 ? 'Tag' : 'Tage'}</title></rect>`;
   }).join('');
   const schnitt = Math.round(zeig.reduce((a,b)=>a+b,0)/zeig.length);
   const urteil = schnitt > ziel*1.3 ? 'im Schnitt später als vorgesehen'
@@ -11824,13 +12653,20 @@ function ubTextBauen(plan, o){
   }
   /* Die Giftwarnung stand bisher nur auf dem gedruckten Zettel. Wer die
      Kurzfassung verschickt, muss sie genauso bekommen. */
-  const giftig = plan.giessen.concat(plan.unsicher, plan.pause)
-    .filter(e => istGiftig(e.p, 'katze') === true)
-    .map(e => nice(e.p));
+  const alleP = plan.giessen.concat(plan.unsicher, plan.pause);
+  const giftig = alleP.filter(e => istGiftig(e.p, 'katze') === true).map(e => nice(e.p));
   if(giftig.length){
     z.push('');
     z.push('GIFTIG — VON KINDERN UND TIEREN FERNHALTEN');
     Array.from(new Set(giftig)).forEach(n => z.push('  - ' + n));
+  }
+  /* Was ungeprüft ist, fehlte bisher ganz. Die App sagt dem Besitzer
+     „im Zweifel wie giftig behandeln“ — dem Vertreter sagte sie nichts. */
+  const offen = alleP.filter(e => istGiftig(e.p, 'katze') === null).map(e => nice(e.p));
+  if(offen.length){
+    z.push('');
+    z.push('UNGEPRÜFT — SICHERHEITSHALBER WIE GIFTIG BEHANDELN');
+    Array.from(new Set(offen)).forEach(n => z.push('  - ' + n));
   }
   z.push('');
   z.push('Termin verpasst? Am nächsten Tag nachholen, kein Drama.');
@@ -12422,12 +13258,36 @@ function dokPromptBauen(){
   return zeilen.join('\n');
 }
 /* Schneidet die VERMEHRUNG-Zeilen aus dem Antwortformat heraus. */
+/* Die Zahl im Prompt wird nicht mehr von Hand heruntergezählt, sondern
+   aus der Feldliste selbst gelesen. Vorher liefen zwei Ersetzungen
+   hintereinander über denselben Text: die erste machte aus „sechzehn“
+   ein „fünfzehn“, die zweite zog sofort noch einmal ab. Der Prompt nannte
+   dann vierzehn Schlüsselwörter und listete fünfzehn. */
+const ZAHLWORT = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
+  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+
+function promptZahlSetzen(txt){
+  const t = String(txt);
+  /* Gezählt werden die Feldzeilen, die genau einmal vorkommen müssen —
+     also alles außer den mehrfach erlaubten VERMEHRUNG und MASSNAHME. */
+  const felder = new Set();
+  t.split('\n').forEach(z => {
+    const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
+    if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
+  });
+  const n = felder.size;
+  const wort = ZAHLWORT[n] || String(n);
+  return t.replace(/Alle \S+ Schlüsselwörter/g, 'Alle ' + wort + ' Schlüsselwörter');
+}
+
 function ohneVermehrung(txt){
-  return String(txt).split('\n').filter(z=>!/^VERMEHRUNG:/.test(z.trim())).join('\n')
-    .replace(' und jede VERMEHRUNG-Zeile genau vier senkrechte Striche', '')
-    .replace(' Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.',
-             ' Nur MASSNAHME darf mehrfach vorkommen.')
-    .replace('Alle sechzehn Schlüsselwörter', 'Alle fünfzehn Schlüsselwörter');
+  return promptZahlSetzen(
+    String(txt).split('\n').filter(z=>!/^VERMEHRUNG:/.test(z.trim())).join('\n')
+      .replace(' und jede VERMEHRUNG-Zeile genau vier senkrechte Striche', '')
+      .replace(' Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.',
+               ' Nur MASSNAHME darf mehrfach vorkommen.')
+      .replace(' Danach folgen ein bis drei VERMEHRUNG-Zeilen und ein bis drei MASSNAHME-Zeilen.',
+               ' Danach folgen ein bis drei MASSNAHME-Zeilen.'));
 }
 
 /* Wer gerade umgetopft hat, braucht keine Umtopfempfehlung. Jede
@@ -12435,8 +13295,7 @@ function ohneVermehrung(txt){
    Antwort ausschert. */
 function ohneTopf(txt){
   let t = String(txt).split('\n').filter(z=>!/^TOPF:/.test(z.trim())).join('\n');
-  t = t.replace('Alle sechzehn Schlüsselwörter', 'Alle fünfzehn Schlüsselwörter')
-       .replace('Alle fünfzehn Schlüsselwörter', 'Alle vierzehn Schlüsselwörter')
+  t = promptZahlSetzen(t)
        .replace('Hat jede MASSNAHME-Zeile und die TOPF-Zeile genau drei', 'Hat jede MASSNAHME-Zeile genau drei')
        .replace(', Topf und Untersetzer erkennbar waren', ' erkennbar waren')
        .replace(' Waren Topf, Topfrand und Untersetzer ganz im Bild?', '')
@@ -12554,6 +13413,19 @@ document.addEventListener('click', e=>{
   if(btn.dataset.do === 'ab-weg'){
     dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
     dokAbgleichZeichnen(); return;
+  }
+  if(btn.dataset.do === 'gift-nehmen' || btn.dataset.do === 'gift-strittig'){
+    if(dokPflanze && dokGiftLage && dokGiftLage.gift)
+      aenderungSetzen(dokPflanze, {gift: dokGiftLage.gift});
+    dokGiftLage = null;
+    const z = document.getElementById('dok-gift'); if(z) z.innerHTML = '';
+    dokKiHinweis('Giftangabe aktualisiert.', 'ok');
+    render(); return;
+  }
+  if(btn.dataset.do === 'gift-lassen'){
+    dokGiftLage = null;
+    const z = document.getElementById('dok-gift'); if(z) z.innerHTML = '';
+    return;
   }
   if(btn.dataset.do === 'ab-alle'){
     if(!dokPflanze || !dokVorschlaege.length) return;
@@ -12746,9 +13618,6 @@ const AB_FELDER = [
    ist:p=>p.klasse || '', zeig:v=>v + ' — ' + ((KLASSEN[v]||{}).kurz || '')},
   {feld:'sonne', name:'Licht', lies:d=>lichtRaten(d.licht),
    ist:p=>p.sonne || '', zeig:v=>(SONNE[v]||{}).text || v},
-  {feld:'giftig', name:'Katzen', lies:d=>giftRaten(d.katzen),
-   ist:p=>p.giftig === true ? true : (p.giftig === false ? false : ''),
-   zeig:v=>v === true ? 'Giftig' : 'Unbedenklich'},
   {feld:'wichtig', name:'Wichtig', lies:d=>
      (d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))) ? d.wichtig : null,
    ist:p=>p.wichtig || '', zeig:v=>v},
@@ -12803,15 +13672,31 @@ function vermehrungKiVon(p){
   return (v && Array.isArray(v.wege) && v.wege.length) ? v : null;
 }
 
-/* Reihenfolge ist hier alles. „unsicher“ enthält „sicher“, und
-   „sicher giftig“ auch — deshalb steht das Wort in keinem der beiden
-   Muster mehr, und die Verneinung wird zuerst geprüft. */
+/* Der Prompt verlangt: „Beginne mit giftig oder unbedenklich, danach
+   ein kurzer Grund.“ Genau so wird hier gelesen — nur der Anfang zählt.
+   Vorher wurde der ganze Satz durchsucht, und jede Begründung, in der
+   irgendwo „harmlos“ oder „unbedenklich“ stand, kippte die Aussage:
+   „giftig für Katzen, für Menschen harmlos“ wurde zu unbedenklich.
+   Widersprechen sich Anfang und Rest, gibt es keine Auskunft statt der
+   falschen. */
 function giftRaten(t){
-  if(!t) return null; const x = norm(t);
-  if(/\b(nicht|nie|kaum)\s+(giftig|toxisch)\b/.test(x)) return false;
-  if(/\bungiftig\b|\bunbedenklich\b|\bharmlos\b|\bkatzensicher\b/.test(x)) return false;
-  if(/\bgiftig\b|\btoxisch\b|\bgiftpflanze\b/.test(x)) return true;
-  return null;
+  if(!t) return null;
+  let x = ' ' + norm(t) + ' ';
+  /* Verneinungen zuerst zu einem eigenen Wort zusammenziehen. Sonst
+     zählt das „giftig“ in „nicht giftig“ als Gifttreffer. */
+  x = x.replace(/\b(nicht|nie|niemals|kaum)\s+(giftig|toxisch)\b/g, ' ohnegift ')
+       .replace(/\bungiftig\b|\bunbedenklich\b|\bharmlos\b|\bkatzensicher\b/g, ' ohnegift ');
+  const iGift = x.search(/\b(giftig|toxisch|giftpflanze)\b/);
+  const iFrei = x.search(/\bohnegift\b/);
+  if(iGift < 0 && iFrei < 0) return null;
+  if(iFrei < 0) return true;
+  if(iGift < 0) return false;
+  /* Beides kommt vor. Es gilt, was zuerst steht — der Prompt verlangt
+     ausdrücklich, mit dem Urteil zu beginnen. Eine Warnung mit
+     nachgeschobener Relativierung bleibt eine Warnung; eine Entwarnung
+     mit nachgeschobener Warnung ist keine Entwarnung mehr, sondern ein
+     Widerspruch und damit keine Auskunft. */
+  return iGift < iFrei ? true : null;
 }
 function frostRaten(t){
   if(!t) return null;
@@ -12835,6 +13720,74 @@ function dokMassnahmenZeigen(d){
   ziel.innerHTML = topfHTML(topf) + wahl;
   const kasten = ziel.querySelector('[data-mnwahl]');
   if(kasten){ kasten.dataset.pfl = dokPflanze; kasten.dataset.quelle = 'doktor'; }
+}
+
+/* Die Giftfrage läuft nicht über den normalen Abgleich. Sie kann nicht
+   einfach übernommen werden wie eine Gießklasse: eine Auskunft am Foto
+   darf verschärfen, aber nie entwarnen. Das Ergebnis steht deshalb in
+   einem eigenen Kasten mit eigenem Text. */
+let dokGiftLage = null;
+
+function dokGiftZeigen(d){
+  const ziel = document.getElementById('dok-gift');
+  if(!ziel) return;
+  dokGiftLage = null;
+  const p = dokPflanze ? allePflanzen().find(x => x.id === dokPflanze) : null;
+  if(!p){ ziel.innerHTML = ''; return; }
+  const g = giftVon(p);
+  const neu = giftRaten(d.katzen);
+  const lage = giftAbgleichen(p, neu, 'ki');
+
+  /* Steht die Angabe fest und die Nachfrage bestätigt sie, gibt es
+     nichts zu zeigen. */
+  if(g.status === 'fest' && (!lage || lage.ergebnis === 'bestaetigt')){
+    ziel.innerHTML = ''; return;
+  }
+
+  let ton = 'unklar', kopf = '', text = '', knopf = '';
+
+  if(!lage){
+    /* Keine verwertbare Aussage in der Antwort. */
+    if(g.status === 'fest'){ ziel.innerHTML = ''; return; }
+    kopf = 'Die Giftfrage ist für diese Pflanze noch offen';
+    text = g.grund + ' Die Antwort hat dazu nichts Verwertbares gesagt. '
+         + 'Du kannst die Frage in der Karte unter „Bearbeiten“ selbst beantworten.';
+  } else if(lage.ergebnis === 'verschaerft'){
+    ton = 'warn';
+    kopf = 'Neu: diese Pflanze ist giftig';
+    text = 'Bisher lag dazu nichts Belastbares vor. Die Nachfrage sagt, dass sie giftig ist — '
+         + 'das wird übernommen, weil eine Warnung nie schaden kann. Bitte bei Gelegenheit '
+         + 'an einer zweiten Stelle gegenprüfen.';
+    knopf = 'gift-nehmen';
+  } else if(lage.ergebnis === 'strittig'){
+    ton = 'warn';
+    kopf = 'Zwei Quellen widersprechen sich';
+    text = 'Die Nachfrage nennt diese Pflanze unbedenklich, der hinterlegte Stand sagt etwas '
+         + 'anderes. Eine Einschätzung am Foto darf keine Entwarnung geben — deshalb bleibt '
+         + 'es bei der strengeren Angabe. Wenn du sicher bist, dass sie unbedenklich ist, '
+         + 'trag das in der Karte unter „Bearbeiten“ ein.';
+    knopf = 'gift-strittig';
+  } else if(lage.ergebnis === 'bleibtOffen'){
+    kopf = 'Die Giftfrage bleibt offen';
+    text = 'Die Nachfrage nennt diese Pflanze unbedenklich, aber eine Einschätzung am Foto '
+         + 'ist keine Quelle für eine Entwarnung. Für diese Art liegt weiterhin nichts '
+         + 'Belastbares vor — sie wird bis auf Weiteres wie giftig behandelt. Wenn du es '
+         + 'nachgeschlagen hast, trag es in der Karte unter „Bearbeiten“ ein.';
+  } else {
+    ton = 'ok';
+    kopf = 'Die Giftangabe ist bestätigt';
+    text = 'Die Nachfrage kommt zum selben Ergebnis wie der hinterlegte Stand. Damit gilt die '
+         + 'Angabe ab jetzt als geprüft.';
+    knopf = 'gift-nehmen';
+  }
+
+  dokGiftLage = lage;
+  ziel.innerHTML = `<div class="giftblock ${esc(ton)}">
+    <h4>${esc(kopf)}</h4>
+    <p>${esc(text)}</p>
+    ${knopf ? `<div class="tools"><button class="haupt" data-do="${esc(knopf)}">Übernehmen</button>
+      <button data-do="gift-lassen">So lassen</button></div>` : ''}
+  </div>`;
 }
 
 function dokAbgleichZeigen(d){
@@ -12924,13 +13877,26 @@ $('#btn-dok-paste').onclick = ()=>{
     if(d.befund) notiz.push('Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + d.befund);
     if(d.giessen) notiz.push('Gießen: ' + d.giessen);
     const topf = topfLesen(d.topf);
-    if(topf && topf.empfehlung) notiz.push('Topf und Platz: ' + topf.groesse
+    /* „Passend, kein Umtopfen nötig“ ist eine gültige Auskunft, aber
+       keine Notiz — sonst sammeln sich nach drei Besuchen ohne Befund
+       drei Zeilen, die nichts sagen. */
+    const topfEgal = topf && topf.groesse === 'passend'
+      && /kein(e)?\s+umtopfen|nicht\s+n(ö|oe)tig|nichts\s+zu\s+tun/i.test(topf.empfehlung || '');
+    if(topf && topf.empfehlung && !topfEgal) notiz.push('Topf und Platz: ' + topf.groesse
       + (topf.material ? ', ' + topf.material : '') + ', ' + topf.ablauf + '. ' + topf.empfehlung);
     if(notiz.length){
       const p = allePflanzen().find(x=>x.id===dokPflanze);
       const alt = (p.notiz||'').trim();
-      aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '') + notiz.join('\n')});
-      teile.push('Befund in die Notizen');
+      /* Wer dieselbe Antwort noch einmal einfügt — weil die erste
+         abgeschnitten war, weil er die Ansicht gewechselt hat —, soll
+         den Befund nicht zweimal in den Notizen stehen haben. */
+      const block = notiz.join('\n');
+      if(alt.indexOf(block) >= 0){
+        teile.push('Befund stand schon in den Notizen');
+      } else {
+        aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '') + block});
+        teile.push('Befund in die Notizen');
+      }
     }
     /* Die Maßnahmen wandern nicht mehr von selbst auf die Liste,
        sondern stehen unten mit einem Haken zur Auswahl. */
@@ -12940,6 +13906,7 @@ $('#btn-dok-paste').onclick = ()=>{
         (KI_DIENSTE[$('#dok-dienst').value] || {}).name);
       if(n) teile.push(n + (n === 1 ? ' Vermehrungsweg' : ' Vermehrungswege') + ' gemerkt');
     }
+    dokGiftZeigen(d);
     dokAbgleichZeigen(d);
     render();
   } else {
@@ -13522,7 +14489,7 @@ function ablegerAnlegen(mutterId, methodeId){
     name:'Ableger von ' + nice(mutter),
     art: mutter.art, botanisch: mutter.botanisch || (b ? b.bot : ''),
     familie: mutter.familie || (b ? b.fam : ''),
-    klasse: mutter.klasse, giftig: mutter.giftig,
+    klasse: mutter.klasse, gift: giftVon(mutter),
     raum: mutter.raum || '', stellplatz: mutter.stellplatz || '', typ: mutter.typ, sonne: mutter.sonne,
     frostMin: mutter.frostMin, duenger: mutter.duenger,
     /* Nur ein von Hand gesetzter Rhythmus wandert mit. Sonst gilt der

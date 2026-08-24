@@ -4,6 +4,55 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.8 — 24. August 2026
+**Was die Prüfung noch gefunden hat**
+
+### Neu
+- Der Urlaubszettel führt jetzt auch die Pflanzen auf, deren Giftigkeit ungeprüft ist — unter „sicherheitshalber wie giftig behandeln“. Bisher stand da nur, was sicher giftig ist; wer die Sammlung nicht kennt, erfuhr vom Rest nichts.
+- Kannenpflanzen bekommen eine eigene Substratmischung. Sie sind Karnivoren und wachsen trotzdem auf Ästen, nicht im Moor — im reinen Torfgemisch verdichtet der Ballen und die Wurzeln faulen.
+
+### Besser
+- Der Text „Kein Leitungswasser, Kalk bringt Karnivoren um“ stand bei jeder Pflanze der Gießklasse S. Das Zyperngras steht in derselben Klasse, ist aber keine Karnivore und verträgt Leitungswasser — es bekommt jetzt einen eigenen Anstau-Hinweis.
+- Kommt ein Schlüsselwort in der KI-Antwort zweimal vor, steht das jetzt als Hinweis dabei, statt dass lautlos die letzte Angabe gewinnt.
+- Der Kasten „Potenziell giftig — ungeprüft“ war der am schlechtesten lesbare Text der App. Die Schrift ist nachgedunkelt.
+- Ein Befund, der schon in den Notizen steht, wird beim nochmaligen Einfügen nicht ein zweites Mal angehängt. Dasselbe gilt für „Nachsehen, ob sich … erholt“.
+- „Passend, kein Umtopfen nötig“ landet nicht mehr als Notiz in der Karte.
+
+### Behoben
+- „Stand vor dem Laden zurückholen“ löschte sämtliche Fotos. Der beiseitegelegte Stand enthielt keine Bilder — die liegen getrennt gespeichert —, und beim Zurückholen wurde der Bildspeicher damit geleert. Wer die falsche Sicherung geladen hatte und zurückwollte, verlor alle Fotos, die eigenen wie die aus der Datei.
+- Der Pflanzendoktor nannte dem Modell vierzehn Schlüsselwörter und listete fünfzehn, sobald die Topffrage entfiel. Die Zahl wird jetzt aus der Feldliste selbst gelesen.
+- Ein Lithops bekam den Kopfsteckling empfohlen. Lebende Steine haben keinen Kopf, den man schneiden könnte — wer der Empfehlung folgte, halbierte die Pflanze. Dasselbe galt für die Teilung bei Kannenpflanzen und den Kopfsteckling bei der Grünlilie.
+- Brach eine Antwort mitten im nächsten Schlüsselwort ab, hängte sich das Bruchstück an den botanischen Namen: „Epipremnum aureum KATZ“. Damit griff kein Bibliothekstreffer mehr.
+- „Substrat nie ganz austrocknen lassen“ ergab keine Gießklasse — die Prüfung suchte nach „trocken“, im Wort steht aber „trockn“.
+- Im Gießverlauf stand „1 Tage“.
+
+---
+
+## 2.7 — 24. August 2026
+**Die Giftfrage, neu beantwortet**
+
+### Neu
+- Die Giftigkeit steht jetzt für jede der 248 Bibliotheksarten einzeln fest — nachgeschlagen für Katze, Hund, Nager und Vogel, mit Begründung und Quellenangabe. Vorher wurde sie aus der Gattung oder der Pflanzenfamilie geraten, und eine Familie kann den Oleander und die harmlose Wachsblume enthalten.
+- Jede Pflanze trägt ihre Giftangabe jetzt bei sich, statt dass sie bei jeder Anzeige neu berechnet wird. Karte, Filter, Grundriss, Rundgang, Urlaubszettel und Warnkasten lesen denselben Wert — sie können gar nicht mehr auseinanderlaufen.
+- Jede Angabe hat einen Stand: geprüft, ungeprüft oder strittig. Was nicht geprüft ist, fragt der Pflanzendoktor beim nächsten Besuch ab.
+
+### Besser
+- Eine KI-Antwort kann eine Pflanze nur noch als giftig eintragen, nie als unbedenklich. Eine Einschätzung am Foto ist keine Quelle für eine Entwarnung.
+- Deine eigene Angabe unter „Für Katzen“ gilt jetzt für alle vier Tierarten. Was einer Katze schadet, schadet einem Wellensittich erst recht.
+- Widersprechen sich zwei Angaben, gilt die strengere, und der Widerspruch steht mit dabei — statt dass eine von beiden stillschweigend gewinnt.
+- Die Giftwarnung nach dem Anlegen nennt jetzt die Stufe und den Grund, statt bei jeder Pflanze denselben Satz zu zeigen.
+- Foto-löschen, Giftwarnung und „Was ist neu“ sind für Tastatur und Sprachausgabe abgegrenzt wie die übrigen Vollbildfenster.
+
+### Behoben
+- Ein Palmfarn, bei dem als Familie „Palmengewächse“ eingetragen war, bekam Entwarnung für alle vier Tierarten — mit einem Text, der die Sagopalme sogar als hochgiftig erwähnte. Er ist die häufigste tödliche Zimmerpflanzenvergiftung beim Hund.
+- Stand im Grund der KI-Antwort irgendwo „harmlos“ oder „unbedenklich“, kippte die ganze Aussage: „giftig für Katzen, für Menschen harmlos“ wurde als katzensicher eingetragen. Jetzt zählt, was zuerst steht.
+- Der Knopf „Alles übernehmen“ im Pflanzendoktor verbuchte die KI-Antwort als deine eigene Angabe. Sie überstimmte danach jede geprüfte Quelle, und im Kasten stand „von dir eingetragen“.
+- Jede aus der Bibliothek angelegte Pflanze galt als selbst eingetragen. Oleander, Palmfarn, Lilie und Kalanchoe standen danach als „giftig“ statt „stark giftig“ in der Karte, und die Begründung — bei der Lilie der Hinweis auf Nierenversagen — verschwand.
+- Liebstöckel, Estragon, Zitronenverbene und Margerite standen als unbedenklich in der Bibliothek, obwohl die ASPCA sie führt. Katzenminze, Mauerpfeffer und Spinat sind jetzt als leicht giftig eingestuft, Shiso als ungeklärt.
+- Der ×-Knopf am Abgleich im Pflanzendoktor war am Handy kaum zu treffen.
+
+---
+
 ## 2.6 — 24. August 2026
 **Was auf dem Foto zu sehen sein muss**
 
