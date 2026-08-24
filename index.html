@@ -2098,6 +2098,11 @@ const ERREICHBARKEIT = {
    abgefragt. */
 
 const GIFT_TIERE = ['katze','hund','nager','vogel'];
+/* Eigenes Datum, ohne Rückgriff auf iso() oder HEUTE. Beides steht
+   weiter unten in der Datei; ein Zugriff von hier aus wirft, solange
+   die Zeile noch nicht gelaufen ist — und `typeof` fängt das bei
+   const nicht ab. */
+function giftHeute(){ return new Date().toISOString().slice(0, 10); }
 const GIFT_CODES = {0:'keine', 1:'leicht', 2:'mittel', 3:'schwer', u:'unklar'};
 
 function giftStufeVon(code){ return GIFT_CODES[code] || 'unklar'; }
@@ -2120,8 +2125,7 @@ function giftAusArt(bot){
    Eingabe gelten als geprüft; Gattung und Familie sind Vorschläge und
    bleiben ausdrücklich ungeprüft, bis jemand nachsieht. */
 function giftErmitteln(p){
-  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
-    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+  const heute = giftHeute();
 
   const ausArt = giftAusArt(p && p.botanisch) || giftAusArt(p && p.bib);
   if(ausArt) return Object.assign(ausArt, {datum: heute});
@@ -2213,7 +2217,10 @@ function giftMigrieren(){
     delete e.giftig; delete e.giftEigen;
     n++;
   });
-  if(n) sichern();
+  /* Bewusst kein sichern() hier. Beim Start sind die Fotos noch nicht
+     aus dem grossen Speicher geladen; ein Schreibvorgang würde sie
+     durch ein leeres Objekt ersetzen. Der nächste reguläre sichern()
+     nimmt die Migration mit. */
   return n;
 }
 
@@ -2251,8 +2258,7 @@ function giftPruefungFaellig(p){
    was für die Katze giftig ist, ist es für einen Wellensittich erst
    recht. Entwarnen gilt nur, wo keine Quelle widerspricht. */
 function giftEigenSetzen(p, wert){
-  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
-    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+  const heute = giftHeute();
   const basis = giftErmitteln(p);
   const tiere = {};
 
@@ -2293,8 +2299,7 @@ function giftEigenSetzen(p, wert){
    strittig und die strengere Angabe gilt weiter. */
 function giftAbgleichen(p, neuWert, quelle){
   if(neuWert !== true && neuWert !== false) return null;
-  const heute = (typeof iso === 'function' && typeof HEUTE !== 'undefined')
-    ? iso(HEUTE) : new Date().toISOString().slice(0, 10);
+  const heute = giftHeute();
   const jetzt = giftVon(p) || giftErmitteln(p);
   const stufe = jetzt.tiere.katze;
   /* 'unklar' ist weder giftig noch unbedenklich. Es zählt beim Warnen
@@ -7466,11 +7471,6 @@ function grundwerteErgaenzen(){
    'weg','ereignisse','gesehen','orte'].forEach(k=>{
     if(!S[k] || typeof S[k] !== 'object' || Array.isArray(S[k])) S[k] = {};
   });
-  /* Bestandspflanzen aus einer Fassung vor 2.7 bekommen hier einmalig
-     ihren festen Giftwert. Übernommen wird der alte Stand, nie
-     abgeschwächt — und als ungeprüft markiert, damit der Doktor ihn
-     beim nächsten Besuch abfragt. */
-  if(typeof giftMigrieren === 'function') giftMigrieren();
 }
 
 function laden(){
@@ -7561,6 +7561,12 @@ async function fotosVorbereiten(){
     FOTOS_BEREIT = true;
     if(ok) sichern();
   }
+  /* Erst hier, nicht in grundwerteErgaenzen(): die Migration braucht die
+     Gattungs- und Familienregeln, und sie darf erst schreiben, wenn die
+     Fotos aus dem grossen Speicher zurück sind. */
+  try{
+    if(typeof giftMigrieren === 'function' && giftMigrieren()) sichern();
+  }catch(e){ console.warn('Giftmigration übersprungen:', e); }
   if(typeof statusText === 'function') statusText();
   if(typeof render === 'function'){ try{ render(); }catch(e){ console.warn(e); } }
 }
