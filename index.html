@@ -7562,8 +7562,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.9';
+const FASSUNG = '2.9.10';
 const PATCHNOTES = [
+  {
+    nr: '2.9.10', datum: '2026-08-25', titel: 'Hin statt hingewiesen',
+    neu: [
+      '„Ansehen“ in der App Tour führt jetzt in den Bereich, um den es geht: der Gießmodus startet, das Werkzeug geht auf, eine Pflanzenkarte öffnet sich. Vorher stand nur Text neben einem Schirm, auf dem nichts davon zu sehen war.',
+      '„Noch feucht“ im Gießmodus setzt die Pflanze für heute ab. Sie kommt morgen wieder — vorher blieb sie sofort wieder auf der Liste stehen, als wäre nichts gewesen. Am Gießabstand ändert das nichts; der verschiebt sich erst, wenn die Rückmeldung mehrfach kommt.'
+    ],
+    besser: [
+      'Die Schnellzugriffe aus einer Pflanzenkarte — Doktor, Substrat, Vermehren, Platz — führen wieder zum Werkzeug. Sie öffneten es und schlossen es im selben Moment wieder.',
+      'Das Doktorkapitel der Tour begann nicht mehr bei Schritt 1, sondern sprang direkt auf 3. Die ersten beiden Schritte zeigten in ein Fenster, das gar nicht offen war.',
+      'Öffnet ein Schnellzugriff ein Werkzeug, steht es oben statt in der Mitte.'
+    ]
+  },
   {
     nr: '2.9.9', datum: '2026-08-25', titel: 'Erklärung und Karte',
     neu: [
@@ -8610,17 +8622,28 @@ function giessTermine(id){
   return [];
 }
 function giessLog(id){ return giessTermine(id).slice().sort().reverse(); }
+/* Wer im Giessmodus „Noch feucht" antippt, hat nachgesehen. Bis dahin
+   blieb die Pflanze trotzdem faellig und stand sofort wieder auf der
+   Liste. Die Meldung gilt jetzt fuer den laufenden Tag: morgen wird
+   erneut gefragt. Der Giessabstand selbst bleibt unberuehrt — der
+   aendert sich erst, wenn die Rueckmeldung mehrfach kommt. */
+function feuchtHeuteGemeldet(id){
+  const e = S.feuchtRueck && S.feuchtRueck[id];
+  return !!(e && e.zuletzt === iso(HEUTE));
+}
+
 function giessStatus(p){
   const log = giessLog(p.id);
   const iv = intervallVon(p);
-  if(typeof stoppRest === 'function' && stoppRest(p) > 0) return {stand:'stopp', iv, tage:log.length?tageSeit(log[0]):null, rest:null, letzte:log[0]};
-  if(!log.length) return {stand:'unbekannt', iv, tage:null, rest:null};
+  const feuchtHeute = feuchtHeuteGemeldet(p.id);
+  if(typeof stoppRest === 'function' && stoppRest(p) > 0) return {stand:'stopp', iv, feuchtHeute, tage:log.length?tageSeit(log[0]):null, rest:null, letzte:log[0]};
+  if(!log.length) return {stand:'unbekannt', iv, feuchtHeute, tage:null, rest:null};
   const t = tageSeit(log[0]);
   const rest = iv - t;
   /* Eine Stufe früher warnen: „bald fällig" greift schon zwei Tage
      vorher statt erst am Vortag. Lieber einen Tag zu früh nachsehen
      als einen zu spät. */
-  return {stand: rest<0 ? 'over' : (rest<=2 ? 'soon' : 'ok'), iv, tage:t, rest, letzte:log[0]};
+  return {stand: rest<0 ? 'over' : (rest<=2 ? 'soon' : 'ok'), iv, feuchtHeute, tage:t, rest, letzte:log[0]};
 }
 /* Ein zweites Antippen nahm den Eintrag früher stillschweigend zurück —
    ein Fehlgriff löschte den Gießvermerk, ohne dass man es merkte.
@@ -12963,6 +12986,7 @@ function giessListe(){
        gerade dort bremsen, wo man sonst aus Gewohnheit gießt. */
     /* „bald fällig" ist eine Warnung auf der Karte, kein Auftrag. In den
        Gießmodus kommt nur, was heute oder überfällig ist. */
+    .filter(x=>!x.st.feuchtHeute)
     .filter(x=>['over','unbekannt','stopp'].includes(x.st.stand)
              || (x.st.stand === 'soon' && x.st.rest <= 0))
     .sort((a,b)=>{
@@ -13136,16 +13160,18 @@ function schubSetzen(id, tage){
 function feuchtGemeldet(p){
   const id = p.id;
   const st = giessStatus(p);
-  /* Nur zählen, wenn die Pflanze überhaupt als fällig geführt wurde. */
-  if(st.stand !== 'over' && st.stand !== 'soon') return;
   const bisher = S.feuchtRueck[id] || {zahl:0, zuletzt:null};
   /* Am selben Tag nicht doppelt zählen. */
   if(bisher.zuletzt === iso(HEUTE)) return;
-  bisher.zahl = (bisher.zahl || 0) + 1;
+  /* Der Vermerk gilt immer — er nimmt die Pflanze für heute aus der
+     Liste. Auf den Gießabstand zahlt nur ein, was auch fällig war;
+     sonst würde eine Pflanze in der Gießpause den Abstand verschieben. */
+  const zaehlt = st.stand === 'over' || st.stand === 'soon';
+  if(zaehlt) bisher.zahl = (bisher.zahl || 0) + 1;
   bisher.zuletzt = iso(HEUTE);
   S.feuchtRueck[id] = bisher;
   sichern();
-  if(bisher.zahl >= FEUCHT_SCHWELLE) schubFragen(p);
+  if(zaehlt && bisher.zahl >= FEUCHT_SCHWELLE) schubFragen(p);
 }
 
 function schubFragen(p){
@@ -13294,7 +13320,13 @@ const ANSICHT_KOPF = {
 };
 
 function ansichtZeigen(name, merken){
-  if(WERKZEUGE.includes(name)){ werkzeugOeffnen(name); name = 'werkzeuge'; }
+  /* Das Werkzeugfenster wird erst am Ende geoeffnet. Vorher stand der
+     Aufruf hier oben — und die Zeile weiter unten, die bei einem
+     Reiterwechsel ein offenes Abschnittsfenster schliesst, machte es
+     sofort wieder zu. Genau daran scheiterte jeder Schnellzugriff aus
+     einer Karte heraus. */
+  let werkzeug = null;
+  if(WERKZEUGE.includes(name)){ werkzeug = name; name = 'werkzeuge'; }
   if(!ANSICHTEN.includes(name)) name = 'heute';
   S.ansicht = name;
   if(merken !== false) sichern();
@@ -13320,10 +13352,11 @@ function ansichtZeigen(name, merken){
   if(kopf) $('#kopf-titel').innerHTML = kopf[0];
   /* Ein Reiterwechsel schliesst ein offenes Abschnittsfenster —
      sonst stuende man hinter einem Fenster auf der falschen Seite. */
-  if(typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');
+  if(!werkzeug && typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');
   if(typeof sicherungStempel === 'function') sicherungStempel();
   if(name === 'sammlung') sammlungZeichnen();
   document.body.dataset.ansicht = name;
+  if(werkzeug) werkzeugOeffnen(werkzeug);
   if(typeof themeFarbe === 'function') themeFarbe();
   if(typeof fabZeichnen === 'function') fabZeichnen();
   zaehlerAktualisieren();
@@ -13403,6 +13436,12 @@ let _sekOffen = null;
 function sekAbschnitt(key){
   return document.querySelector('[data-wz="' + key + '"]')
       || document.querySelector('[data-mh="' + key + '"]');
+}
+
+/* Im Fenster scrollt der Rumpf, nicht die Seite. */
+function fensterHoch(){
+  const r = document.getElementById('sekm-rumpf');
+  if(r) r.scrollTop = 0;
 }
 
 function sektionOeffnen(key, ausloeser){
@@ -14792,8 +14831,7 @@ document.addEventListener('click', e=>{
     sichern();
     ansichtZeigen('grundriss');
     if(typeof planRender === 'function') planRender();
-    const sec = document.getElementById('zonen-sec');
-    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
+    fensterHoch();
     if(!(o && o.raum))
       setTimeout(()=>alert('Diese Pflanze hat noch keinen Platz. Raum öffnen, im Tab „Pflanzen“ unten antippen und dann in den Grundriss tippen.'), 350);
     return;
@@ -14805,7 +14843,7 @@ document.addEventListener('click', e=>{
     dokSymptome.clear(); dokAntworten = {};
     ansichtZeigen('doktor');
     dokAufbau(); dokZeigen(); dokErgebnis();
-    window.scrollTo({top:0, behavior:'smooth'});
+    fensterHoch();
     return;
   }
   if(btn.dataset.do === 'dok-zuruecksetzen'){
@@ -15489,7 +15527,7 @@ document.addEventListener('click', e=>{
     subZiel = zielFuer(pflanzeAusWahl(subPflanze));
     ansichtZeigen('substrat');
     subAufbau(); subErgebnis();
-    window.scrollTo({top:0, behavior:'smooth'});
+    fensterHoch();
   }
   if(b.dataset.do === 'sub-leeren'){ S.vorrat = []; sichern(); subAufbau(); subErgebnis(); }
   /* Fehlende Bestandteile in die vorhandene Wunschliste schieben —
@@ -15786,9 +15824,9 @@ document.addEventListener('click', e=>{
   if(b.dataset.do === 'vermehren-fuer'){
     e.stopPropagation();
     verPflanze = b.dataset.p; verMethode = null;
-    ansichtZeigen('sammlung');
+    sektionOeffnen('vermehren', b);
     verRender();
-    zuAbschnitt('vermehr-sec');
+    fensterHoch();
     return;
   }
   if(b.dataset.do === 'ver-anlegen'){
@@ -16371,6 +16409,7 @@ const TOUR_KAPITEL = {
   },
 
   sammlung: {
+    hin: ()=>{ ansichtZeigen('sammlung'); },
     name: 'Die Sammlung',
     danach: ()=>{ if(modalOffen('karte-modal') && tourNoetig('karte'))
                     tourStart('karte'); },
@@ -16396,6 +16435,7 @@ const TOUR_KAPITEL = {
   },
 
   karte: {
+    hin: ()=>{ ansichtZeigen('sammlung'); const p = allePflanzen()[0]; if(p) karteOeffnen(p.id); },
     name: 'Die Pflanzenkarte',
     schritte: ()=>[
       { fenster: 'karte-modal',
@@ -16421,6 +16461,7 @@ const TOUR_KAPITEL = {
   },
 
   heute: {
+    hin: ()=>{ ansichtZeigen('heute'); },
     name: 'Heute',
     schritte: ()=>[
       { vor: ()=>ansichtZeigen('heute'),
@@ -16448,6 +16489,7 @@ const TOUR_KAPITEL = {
   },
 
   giessmodus: {
+    hin: ()=>{ ansichtZeigen('heute'); if(typeof gmStarten === 'function') gmStarten(); },
     name: 'Gießmodus',
     schritte: ()=>[
       { fenster: 'giessmodus',
@@ -16462,6 +16504,7 @@ const TOUR_KAPITEL = {
   },
 
   rundgang: {
+    hin: ()=>{ ansichtZeigen('heute'); if(typeof rgStarten === 'function') rgStarten(); },
     name: 'Rundgang',
     schritte: ()=>[
       { fenster: 'rundgang',
@@ -16476,6 +16519,7 @@ const TOUR_KAPITEL = {
   },
 
   werkzeuge: {
+    hin: ()=>{ ansichtZeigen('werkzeuge'); },
     name: 'Die drei Werkzeuge',
     schritte: ()=>[
       { vor: ()=>ansichtZeigen('werkzeuge'),
@@ -16486,6 +16530,7 @@ const TOUR_KAPITEL = {
   },
 
   doktor: {
+    hin: ()=>{ sektionOeffnen('doktor'); },
     name: 'Pflanzendoktor',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16505,6 +16550,7 @@ const TOUR_KAPITEL = {
   },
 
   substrat: {
+    hin: ()=>{ sektionOeffnen('substrat'); },
     name: 'Substrat mischen',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16524,6 +16570,7 @@ const TOUR_KAPITEL = {
   },
 
   grundriss: {
+    hin: ()=>{ sektionOeffnen('grundriss'); },
     name: 'Räume und Grundriss',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16543,6 +16590,7 @@ const TOUR_KAPITEL = {
   },
 
   plan: {
+    hin: ()=>{ sektionOeffnen('grundriss'); if(typeof grStufe !== 'undefined' && S.raumAktiv){ grStufe = 'editor'; if(typeof planRender === 'function') planRender(); } },
     name: 'Die Zeichenfläche',
     schritte: ()=>[
       { ziel: ()=>document.querySelector('#gr-editor .gr-tabs'),
@@ -16559,6 +16607,7 @@ const TOUR_KAPITEL = {
   },
 
   mehr: {
+    hin: ()=>{ ansichtZeigen('mehr'); },
     name: 'Sichern und einstellen',
     schritte: ()=>[
       { vor: ()=>ansichtZeigen('mehr'),
@@ -16576,6 +16625,7 @@ const TOUR_KAPITEL = {
   },
 
   sicherung: {
+    hin: ()=>{ sektionOeffnen('sicherung'); },
     name: 'Sicherung',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16595,6 +16645,7 @@ const TOUR_KAPITEL = {
   },
 
   urlaub: {
+    hin: ()=>{ sektionOeffnen('urlaub'); },
     name: 'Urlaubszettel',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16614,6 +16665,7 @@ const TOUR_KAPITEL = {
   },
 
   vermehren: {
+    hin: ()=>{ sektionOeffnen('vermehren'); },
     name: 'Vermehren',
     schritte: ()=>[
       { fenster: 'sek-modal',
@@ -16866,11 +16918,29 @@ function tourTaktStart(){
 }
 function tourTaktStop(){ if(tourTakt){ clearInterval(tourTakt); tourTakt = null; } }
 
-function tourStart(key){
+/* Fuehrt in den Bereich, den das Kapitel erklaert. Ohne das zeigte
+   „ansehen" nur Text neben einem Schirm, auf dem nichts davon zu
+   sehen war — und Schritte, deren Ziel in einem geschlossenen Fenster
+   liegt, wurden uebersprungen. Beim Doktor blieb so nur Schritt 3. */
+let _tourSpringt = false;
+function tourHin(key){
+  const kap = TOUR_KAPITEL[key];
+  if(!kap || typeof kap.hin !== 'function') return false;
+  /* Der Sprung wechselt die Ansicht — und ein Ansichtswechsel startet
+     sonst wieder ein Kapitel, das erneut springt. Solange der Sprung
+     laeuft, haelt dieser Riegel das auf. */
+  _tourSpringt = true;
+  try{ kap.hin(); return true; }
+  catch(e){ return false; }
+  finally{ _tourSpringt = false; }
+}
+
+function tourStart(key, ohneSprung){
   const kap = TOUR_KAPITEL[key];
   if(!kap || tourLauf) return false;
   const t = tourZustand();
   if(t.aus) return false;
+  if(!ohneSprung) tourHin(key);
   let schritte = [];
   try{ schritte = kap.schritte() || []; }catch(e){ schritte = []; }
   if(!schritte.length){ tourErledigt(key); return false; }
@@ -16940,7 +17010,7 @@ document.addEventListener('keydown', e=>{
    wer dort zum ersten Mal landet, hat die Erklärung eher nötiger als
    jemand, der den Reiter absichtlich aufsucht. Wegtippen geht immer. */
 function tourAnsichtPruefen(name){
-  if(tourLauf) return;
+  if(tourLauf || _tourSpringt) return;
   let hat = 0;
   try{ hat = allePflanzen().length; }catch(e){ hat = 0; }
   if(name === 'werkzeuge' && tourNoetig('werkzeuge')){ tourStart('werkzeuge'); return; }
@@ -17071,7 +17141,12 @@ document.addEventListener('click', e=>{
     requestAnimationFrame(()=>tourStart('einricht'));
     return;
   }
-  tourStart(k);
+  /* Das Kapitelverzeichnis steht selbst in einem Fenster. Das muss
+     zu, bevor der Bereich aufgeht, auf den es zeigt. */
+  if(typeof modalOffen === 'function' && modalOffen('sek-modal')
+     && typeof _modalWeg === 'function') _modalWeg('sek-modal');
+  tourHin(k);
+  setTimeout(()=>tourStart(k, true), 260);
 });
 
 (function tourEinstellungen(){

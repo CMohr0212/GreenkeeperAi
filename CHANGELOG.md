@@ -4,6 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.10 — 25. August 2026
+**Hin statt hingewiesen**
+
+### Neu
+- „Ansehen“ in der App Tour führt jetzt in den Bereich, um den es geht: der Gießmodus startet, das Werkzeug geht auf, eine Pflanzenkarte öffnet sich. Vorher stand nur Text neben einem Schirm, auf dem nichts davon zu sehen war.
+- „Noch feucht“ im Gießmodus setzt die Pflanze für heute ab. Sie kommt morgen wieder — vorher blieb sie sofort wieder auf der Liste stehen, als wäre nichts gewesen. Am Gießabstand ändert das nichts; der verschiebt sich erst, wenn die Rückmeldung mehrfach kommt.
+
+### Besser
+- Die Schnellzugriffe aus einer Pflanzenkarte — Doktor, Substrat, Vermehren, Platz — führen wieder zum Werkzeug. Sie öffneten es und schlossen es im selben Moment wieder.
+- Das Doktorkapitel der Tour begann nicht mehr bei Schritt 1, sondern sprang direkt auf 3. Die ersten beiden Schritte zeigten in ein Fenster, das gar nicht offen war.
+- Öffnet ein Schnellzugriff ein Werkzeug, steht es oben statt in der Mitte.
+
+---
+
 ## 2.9.9 — 25. August 2026
 **Erklärung und Karte**
 
