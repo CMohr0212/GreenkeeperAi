@@ -28,8 +28,113 @@
      definiert — alles davon rendert sonst wie Fließtext.
      --moss und --terra sind nachgedunkelt: als Giftkennzeichnung in
      10 px standen sie auf Kartenhintergrund unter dem AA-Kontrast. */
-  --paper:#E6E7E2; --sand:#D6D7D0; --ink:#1F2320; --ink-2:#3D423C; --peat:#57503F;
-  --moss:#3D5A34; --terra:#8A3F26; --water:#2F5F70; --line:rgba(31,35,32,.16);
+  /* ══ Farbvertrag ══
+     Semantisch benannt, nie nach Aussehen: --gift ist in Botanisch rostrot
+     und spaeter in Terrarium orange. --rot waere nach einem Design gelogen.
+     Die alten Namen bleiben als Zweitnamen bestehen, damit die rund
+     siebenhundert vorhandenen var()-Aufrufe unveraendert weiterlaufen. */
+
+  /* Flaechen */
+  --fl-grund:#E6E7E2;      /* Seitenhintergrund */
+  --fl-karte:#ffffff;      /* Karten, Kacheln */
+  --fl-erhoben:#ffffff;    /* Modals, alles ueber der Seite */
+  --fl-tief:#D6D7D0;       /* Eingabefelder, eingelassene Flaechen */
+  --fl-akzent:#2F5F70;     /* betonte Flaechen, Hauptknoepfe */
+  --fl-bildleer:#c9cac3;   /* Platzhalter, solange kein Foto da ist */
+
+  /* Schrift */
+  --schrift:#1F2320;
+  --schrift-2:#3D423C;     /* Nebentext, Zustandsmarken */
+  --schrift-3:#57503F;     /* Beschriftungen */
+  --schrift-invers:#ffffff;
+
+  /* Kanten */
+  --linie:rgba(31,35,32,.16);
+  --linie-stark:rgba(31,35,32,.30);
+
+  /* Bedeutung */
+  --wasser:#2F5F70;
+  --wasser-tief:#41627f;
+  --gift:#8A3F26;
+  --sicher:#3D5A34;
+  --duenger:#B08A3A;
+  --duenger-tief:#654C15;
+  --unklar:#B08A3A;        /* Giftigkeit unbekannt - nicht dasselbe wie giftig */
+
+  /* Schwache Toene fuer Hinweisflaechen */
+  --ton-gift:rgba(180,80,40,.07);
+  --ton-sicher:rgba(79,114,69,.07);
+  --ton-wasser:rgba(47,95,112,.08);
+  --ton-unklar:rgba(176,138,58,.09);
+  --ton-alarm:rgba(166,85,58,.07);
+  --ton-ok:rgba(61,90,52,.06);
+  --ton-erde:rgba(178,90,58,.09);
+  --ton-blatt:rgba(120,140,110,.10);
+  --ton-still:rgba(31,35,32,.10);
+  --ton-tipp:rgba(0,0,0,.025);
+  --ton-tipp-hover:rgba(0,0,0,.06);
+  --ton-hover:rgba(31,35,32,.07);
+
+  /* Lichtstaerke, fuenf Stufen */
+  --licht-0:#e3e5e8; --licht-1:#e8e6dd; --licht-2:#f0e7c9;
+  --licht-3:#f7dfa0; --licht-4:#f6cf6d;
+
+  /* Schleier ueber der Seite */
+  --schleier:rgba(20,18,14,.62);
+  --schleier-tief:rgba(20,22,20,.93);
+  --schleier-tour:rgba(20,22,20,.58);
+  --schleier-foto:rgba(31,35,32,.72);
+  --schleier-punkte:rgba(20,18,14,.6);
+
+  /* Schatten */
+  --sch-leiste-ab:0 -2px 14px rgba(30,26,20,.07);
+  --sch-leiste-auf:0 2px 14px rgba(30,26,20,.05);
+  --sch-schwebend:0 4px 16px rgba(30,26,20,.22);
+  --sch-menue:0 4px 14px rgba(30,26,20,.2);
+  --sch-streifen:0 6px 20px rgba(30,26,20,.3);
+  --sch-klebt:0 6px 16px -8px rgba(30,26,20,.35);
+  --sch-schnell:0 6px 14px -10px rgba(30,26,20,.5);
+  --sch-tour:0 10px 30px rgba(20,18,14,.34);
+  --ring-wasser:0 2px 10px rgba(74,110,140,.28);
+  --ring-blatt:0 2px 10px rgba(94,124,74,.28);
+  --ring-tour:0 0 0 3px rgba(47,95,112,.6);
+
+  /* Zeichnung im Grundriss — eigene Gruppe, weil sie Pflanzen darstellt
+     und nicht die Oberflaeche. In einem dunklen Design muss sie mit,
+     gehoert aber nicht zu --gift oder --wasser. */
+  --z-blatt:#6c8a54;       /* helles Blattgruen */
+  --z-blatt-tief:#48603a;  /* dunkles Blattgruen */
+  --z-stamm:#8c7450;       /* Stamm, Holz */
+  --z-rispe:#8c7a50;       /* Bluetenstiel */
+  --z-bluete:#ce9eb6;      /* Orchideenbluete */
+  --z-bluete-2:#d69660;    /* Blueten allgemein */
+  --z-mitte:#f6cf6d;       /* Bluetenmitte */
+  --z-kanne:#b06a5c;       /* Karnivore, vorn */
+  --z-kanne-2:#9e5c50;     /* Karnivore, hinten */
+  --z-zwiebel:#c4a87c;
+  --z-papier:#faf7ef;      /* Aussparungen im Blatt */
+  --z-marke:#fffdf7;       /* Pflanzenmarke auf dem Plan */
+  --z-marke-rand:#cec7b7;
+  --z-kontur:#3a352c;
+  --z-schrift:#7a7264;
+  --z-gift:#b05638;
+  --z-ok:#5e7c4a;
+  --z-wand:#e8e4d8;
+  --z-boden:#e0dbcd;
+  --z-fenster:#6e9ac4;
+  --z-tuer:#b08a56;
+  --z-moebel:#8a8272;
+  --z-moebel-2:#d8d2c2;
+
+  /* Wirkung */
+  --glanz:none;
+  --dauer:180ms;
+
+  /* ── Zweitnamen: alter Bestand ── */
+  --paper:var(--fl-grund); --sand:var(--fl-tief); --ink:var(--schrift);
+  --ink-2:var(--schrift-2); --peat:var(--schrift-3);
+  --moss:var(--sicher); --terra:var(--gift); --water:var(--wasser);
+  --line:var(--linie);
   --f-display:'Bricolage Grotesque',system-ui,sans-serif;
   --f-body:'Newsreader',Georgia,serif;
   --f-data:'JetBrains Mono',ui-monospace,monospace;
@@ -78,13 +183,13 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .card.open{border-color:var(--ink);grid-column:1/-1}
 .card-btn{width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;display:flex;gap:0;align-items:stretch}
 .card-btn:focus-visible{outline:2px solid var(--water);outline-offset:-3px}
-.thumb{width:104px;flex:0 0 104px;background:#c9cac3 center/cover no-repeat;border-right:1px solid var(--line)}
+.thumb{width:104px;flex:0 0 104px;background:var(--fl-bildleer) center/cover no-repeat;border-right:1px solid var(--line)}
 .card-body{padding:16px 16px 15px;flex:1;min-width:0}
 .card-id{display:block;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;color:var(--peat)}
 .card-name{display:block;font-family:var(--f-display);font-weight:600;font-size:1.42rem;letter-spacing:-.02em;
   line-height:1.1;margin:3px 0 2px;overflow-wrap:anywhere;hyphens:auto}
 .card-bot{display:block;font-style:italic;font-size:var(--t-md);color:var(--peat);margin:0 0 11px;overflow-wrap:anywhere}
-.bar{display:block;height:5px;background:rgba(31,35,32,.1);border-radius:3px;margin-top:12px;overflow:hidden}
+.bar{display:block;height:5px;background:var(--ton-still);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--water);border-radius:3px}
 
 .detail{padding:0 18px 22px;display:none;border-top:1px solid var(--line)}
@@ -101,9 +206,9 @@ dl.spec dd{margin:0}
 .prob{border-left:2px solid var(--line);padding-left:13px;margin-bottom:12px}
 .prob b{display:block;font-family:var(--f-display);font-weight:600;font-size:var(--t-l)}
 .prob em{font-style:normal;color:var(--peat);font-size:var(--t-md)}
-.alert{border-left:3px solid var(--terra);background:rgba(166,85,58,.07);padding:12px 15px;margin:12px 0;border-radius:0 3px 3px 0}
-.alert.safe{border-left-color:var(--moss);background:rgba(79,114,69,.07)}
-.alert.info{border-left-color:var(--water);background:rgba(47,95,112,.08)}
+.alert{border-left:3px solid var(--terra);background:var(--ton-alarm);padding:12px 15px;margin:12px 0;border-radius:0 3px 3px 0}
+.alert.safe{border-left-color:var(--moss);background:var(--ton-sicher)}
+.alert.info{border-left-color:var(--water);background:var(--ton-wasser)}
 .alert strong{font-family:var(--f-display);font-weight:600}
 .todo{list-style:none;padding:0}
 .todo li{padding-left:24px;position:relative}
@@ -146,7 +251,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
   background:none;border:0;padding:3px 5px;cursor:pointer;color:var(--peat);
   font-family:var(--f-data);font-size:var(--t-mono);border-radius:3px;line-height:1
 }
-.ibtn:hover{color:var(--ink);background:rgba(31,35,32,.07)}
+.ibtn:hover{color:var(--ink);background:var(--ton-hover)}
 .ibtn:focus-visible{outline:2px solid var(--water);outline-offset:1px}
 .task-edit{width:100%;font-family:var(--f-body);font-size:var(--t-l);line-height:1.5;padding:7px 9px;
   border:1.5px solid var(--water);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical;min-height:62px}
@@ -185,10 +290,10 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 }
 .tools button:hover{border-color:var(--ink);color:var(--ink)}
 /* Drei Ränge: Hauptaktion gefüllt, Nebenaktion umrandet, Löschen rot */
-.tools button.haupt,button.haupt{background:var(--water);border-color:var(--water);color:#fff;font-weight:600}
-.tools button.haupt:hover,button.haupt:hover{background:#41627f}
+.tools button.haupt,button.haupt{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
+.tools button.haupt:hover,button.haupt:hover{background:var(--wasser-tief)}
 .tools button.loeschen,button.loeschen{border-color:var(--terra);color:var(--terra)}
-.tools button.loeschen:hover{background:var(--terra);color:#fff}
+.tools button.loeschen:hover{background:var(--terra);color:var(--schrift-invers)}
 
 /* ---- Icons & Legende ---- */
 .icons{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:10px}
@@ -237,7 +342,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .wk-liste b{display:block;font-family:var(--f-display);font-weight:600;font-size:var(--t-l)}
 .wk-liste span{display:block;font-size:var(--t-s);color:var(--peat);line-height:1.5;margin-top:2px}
 .wk-knoepfe{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
-.wk-haupt{background:var(--water);color:#fff;border:1px solid var(--water);
+.wk-haupt{background:var(--water);color:var(--schrift-invers);border:1px solid var(--water);
   padding:13px 24px;border-radius:3px;font-family:var(--f-data);font-size:var(--t-mono);
   letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .wk-neben{background:none;border:0;color:var(--peat);text-decoration:underline;
@@ -254,7 +359,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
   background:var(--sand);color:inherit;font:inherit;cursor:pointer}
 .wk-chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .wk-klein{font-size:var(--t-s);color:var(--peat);margin:16px 0 0}
-.wk-warnung{border-left:3px solid #B08A3A;background:var(--sand);padding:14px 16px;
+.wk-warnung{border-left:3px solid var(--unklar);background:var(--sand);padding:14px 16px;
   border-radius:3px;line-height:1.55;margin:0 0 24px}
 
 /* Angebot, die App einzurichten — im letzten Startschritt und als
@@ -277,7 +382,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .tier-wahl button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .sich-hinweis{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
   margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);
-  border-left:3px solid #B08A3A;border-radius:3px;background:var(--sand);
+  border-left:3px solid var(--unklar);border-radius:3px;background:var(--sand);
   font-family:var(--f-body);font-size:var(--t-s);color:var(--peat)}
 .sich-hinweis span{flex:1 1 220px;min-width:0}
 .sich-hinweis button{font-size:var(--t-s)}
@@ -301,7 +406,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .gal figure{margin:0;flex:0 0 auto}
 .gal figcaption{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);margin-top:4px;letter-spacing:.04em}
 .foto-del{
-  position:absolute;top:5px;right:5px;background:rgba(31,35,32,.72);color:#fff;border:0;
+  position:absolute;top:5px;right:5px;background:var(--schleier-foto);color:var(--schrift-invers);border:0;
   border-radius:3px;width:22px;height:22px;cursor:pointer;font-size:var(--t-xs);line-height:1;display:none
 }
 .gal figure{position:relative}
@@ -347,7 +452,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .fgrid input:focus,.fgrid select:focus,.fgrid textarea:focus{outline:2px solid var(--water);outline-offset:-1px}
 .fspan{grid-column:1/-1}
 
-#lightbox{position:fixed;inset:0;background:rgba(20,22,20,.93);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
+#lightbox{position:fixed;inset:0;background:var(--schleier-tief);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
 #lightbox.on{display:flex}
 #lightbox img{max-width:100%;max-height:100%;border-radius:3px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -401,7 +506,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .stich-q span{font-size:var(--t-m);color:var(--ink-2)}
 .stich-btns{display:flex;flex-wrap:wrap;gap:8px}
 .modal[hidden]{display:none}
-.modal{position:fixed;inset:0;z-index:60;background:rgba(20,18,14,.62);display:flex;align-items:center;justify-content:center;padding:22px}
+.modal{position:fixed;inset:0;z-index:60;background:var(--schleier);display:flex;align-items:center;justify-content:center;padding:22px}
 .modal-box{background:var(--paper);border:1px solid var(--terra);border-radius:5px;padding:20px;max-width:420px;width:100%}
 .modal-box h3{margin:0 0 9px;font-size:var(--t-xl);color:var(--terra)}
 .modal-box p{margin:0 0 14px;font-size:var(--t-md);line-height:1.6}
@@ -452,11 +557,11 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .zchip.gewaehlt{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .zleer{font-size:var(--t-xs);color:var(--ink-2)}
 .ztools{margin-top:5px;display:flex;gap:9px;font-size:var(--t-xs)}
-.sonne-0{background:#e3e5e8}
-.sonne-1{background:#e8e6dd}
-.sonne-2{background:#f0e7c9}
-.sonne-3{background:#f7dfa0}
-.sonne-4{background:#f6cf6d}
+.sonne-0{background:var(--licht-0)}
+.sonne-1{background:var(--licht-1)}
+.sonne-2{background:var(--licht-2)}
+.sonne-3{background:var(--licht-3)}
+.sonne-4{background:var(--licht-4)}
 @media(max-width:520px){.zreihe-in{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 
 /* ── Grundriss ───────────────────────────────────────────── */
@@ -506,7 +611,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 body{padding-bottom:76px}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;
   grid-template-columns:repeat(4,1fr);gap:0;background:var(--paper);
-  border-top:1px solid var(--line);box-shadow:0 -2px 14px rgba(30,26,20,.07);
+  border-top:1px solid var(--line);box-shadow:var(--sch-leiste-ab);
   padding-bottom:env(safe-area-inset-bottom)}
 .tabs button{position:relative;font:inherit;font-size:var(--t-xs);letter-spacing:.03em;
   padding:9px 2px 8px;border:0;background:none;color:var(--ink-2);cursor:pointer;
@@ -522,12 +627,12 @@ body{padding-bottom:76px}
 .tabs.flach .tab-z{display:none}
 .tabs button.on .tab-i{background:color-mix(in srgb, currentColor 14%, transparent)}
 .tab-z{position:absolute;top:4px;left:calc(50% + 7px);min-width:16px;height:16px;
-  border-radius:8px;background:var(--terra);color:#fff;font-size:var(--t-xs);line-height:16px;
+  border-radius:8px;background:var(--terra);color:var(--schrift-invers);font-size:var(--t-xs);line-height:16px;
   padding:0 4px;font-variant-numeric:tabular-nums}
 @media(min-width:760px){
   .tabs{position:sticky;top:0;bottom:auto;grid-template-columns:repeat(4,auto);
     justify-content:center;gap:4px;border-top:0;border-bottom:1px solid var(--line);
-    box-shadow:0 2px 14px rgba(30,26,20,.05)}
+    box-shadow:var(--sch-leiste-auf)}
   .tabs button{flex-direction:row;font-size:var(--t-s);padding:11px 16px}
   body{padding-bottom:0}
 }
@@ -573,7 +678,7 @@ body{padding-bottom:76px}
   bottom:calc(env(safe-area-inset-bottom) + 74px);
   display:flex;align-items:center;justify-content:center;
   background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);
-  box-shadow:0 4px 16px rgba(30,26,20,.22);cursor:pointer;padding:0}
+  box-shadow:var(--sch-schwebend);cursor:pointer;padding:0}
 #fab-neu svg{width:30px;height:30px}
 #fab-neu:active{transform:scale(.94)}
 #fab-neu[hidden]{display:none}
@@ -603,9 +708,9 @@ body.gm-offen #fab-neu{display:none}
    übrigen Angaben einfach übernommen werden darf. */
 .giftblock{margin:var(--a-3) 0;border:1px solid var(--line);border-left-width:4px;
   border-radius:4px;padding:12px 14px}
-.giftblock.warn{border-color:var(--terra);background:rgba(180,80,40,.07)}
-.giftblock.unklar{border-color:#B08A3A;background:rgba(176,138,58,.09)}
-.giftblock.ok{border-color:var(--moss);background:rgba(61,90,52,.06)}
+.giftblock.warn{border-color:var(--terra);background:var(--ton-gift)}
+.giftblock.unklar{border-color:var(--unklar);background:var(--ton-unklar)}
+.giftblock.ok{border-color:var(--moss);background:var(--ton-ok)}
 .giftblock h4{margin:0 0 5px;font-family:var(--f-display);font-size:var(--t-l)}
 .giftblock p{margin:0;font-size:var(--t-m);line-height:1.45}
 .giftblock .tools{margin-top:10px}
@@ -648,11 +753,11 @@ body.gm-offen #fab-neu{display:none}
 .gal figure{position:relative}
 .gal figure.ist-profil img{outline:2.5px solid var(--moss);outline-offset:-2.5px}
 .foto-punkte{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;
-  border:0;background:rgba(20,18,14,.6);color:#fff;font-size:14px;line-height:1;
+  border:0;background:var(--schleier-punkte);color:var(--schrift-invers);font-size:14px;line-height:1;
   cursor:pointer;padding:0;letter-spacing:1px}
 .foto-menu{position:absolute;top:34px;right:5px;z-index:5;min-width:170px;
   background:var(--paper);border:1px solid var(--ink);border-radius:4px;
-  box-shadow:0 4px 14px rgba(30,26,20,.2);overflow:hidden}
+  box-shadow:var(--sch-menue);overflow:hidden}
 .foto-menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
   font:inherit;font-size:var(--t-m);background:none;border:0;padding:10px 12px;cursor:pointer;color:var(--ink)}
 .foto-menu button + button{border-top:1px solid var(--line)}
@@ -660,7 +765,7 @@ body.gm-offen #fab-neu{display:none}
   display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
 .foto-profil-marke{position:absolute;bottom:5px;left:5px;font-family:var(--f-data);
   font-size:var(--t-mono);letter-spacing:.08em;text-transform:uppercase;
-  background:var(--moss);color:#fff;padding:2px 6px;border-radius:2px}
+  background:var(--moss);color:var(--schrift-invers);padding:2px 6px;border-radius:2px}
 
 /* ── Grundriss: Schritt 1 Raumliste, Schritt 2 Editor ── */
 .gr-karten{display:grid;gap:var(--a-2);margin-bottom:var(--a-3)}
@@ -827,11 +932,11 @@ header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 .u-tipp{color:var(--ink-2);font-size:var(--t-s)!important}
 .gm-start{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
   font:inherit;cursor:pointer;margin:0 0 16px;padding:15px 16px;border-radius:5px;
-  border:0;background:var(--water);color:#fff;box-shadow:0 2px 10px rgba(74,110,140,.28)}
+  border:0;background:var(--water);color:var(--schrift-invers);box-shadow:var(--ring-wasser)}
 .gm-start:active{transform:translateY(1px)}
 .gm-start-i{width:26px;height:26px;flex:0 0 auto;position:relative}
 .gm-start-i::before{content:'';position:absolute;left:50%;top:2px;width:15px;height:15px;
-  margin-left:-7.5px;background:#fff;border-radius:0 50% 50% 50%;transform:rotate(-45deg)}
+  margin-left:-7.5px;background:var(--schrift-invers);border-radius:0 50% 50% 50%;transform:rotate(-45deg)}
 .gm-start-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .gm-start-txt b{font-size:var(--t-l);font-weight:600}
 .gm-start-txt i{font-style:normal;font-size:var(--t-s);opacity:.82;overflow-wrap:anywhere}
@@ -863,7 +968,7 @@ body.gm-offen{overflow:hidden}
 .gm-bild{width:170px;height:170px;margin:0 auto 18px;border-radius:50%;overflow:hidden;background:var(--sand);display:flex;align-items:center;justify-content:center;border:1px solid var(--line)}
 .gm-bild img{width:100%;height:100%;object-fit:cover}
 .gm-kein{font-size:var(--t-s);color:var(--ink-2)}
-.gm-fertig{width:110px;height:110px;margin:0 auto 20px;border-radius:50%;background:var(--moss);color:#fff;font-size:3rem;line-height:110px}
+.gm-fertig{width:110px;height:110px;margin:0 auto 20px;border-radius:50%;background:var(--moss);color:var(--schrift-invers);font-size:3rem;line-height:110px}
 #gm-inhalt h3{margin:0 0 4px;font-size:1.5rem;font-family:var(--f-display);overflow-wrap:anywhere}
 .gm-art{margin:0 0 12px;color:var(--ink-2);font-size:var(--t-md);overflow-wrap:anywhere}
 .gm-lage{margin:0 0 14px;font-size:var(--t-l);font-weight:600}
@@ -874,7 +979,7 @@ body.gm-offen{overflow:hidden}
 .gm-wo{margin:12px 0 0;font-size:var(--t-s);color:var(--ink-2)}
 .gm-fuss{display:grid;gap:8px;padding:14px 18px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
 .gm-fuss button{font:inherit;font-size:var(--t-l);padding:16px;border-radius:4px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-.gm-fuss .gm-ja{background:var(--water);border-color:var(--water);color:#fff;font-weight:600}
+.gm-fuss .gm-ja{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 .gm-fuss .gm-spaeter{font-size:var(--t-m);padding:11px;color:var(--ink-2)}
 @media(min-width:520px){.gm-fuss{grid-template-columns:1fr 1fr}.gm-fuss .gm-spaeter{grid-column:1/-1}}
 
@@ -884,7 +989,7 @@ body.gm-offen{overflow:hidden}
 .v-svg{width:100%;height:52px;display:block}
 .v-svg .vb{fill:var(--water);opacity:.75}
 .v-svg .vb.zu-lang{fill:var(--terra)}
-.v-svg .vb.zu-kurz{fill:#8a8272}
+.v-svg .vb.zu-kurz{fill:var(--schrift-3)}
 .v-svg .v-ziel{stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;opacity:.55}
 .v-fuss{margin:6px 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.5}
 .w-reihe{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -942,7 +1047,7 @@ body.gm-offen{overflow:hidden}
 /* Wegblenden nur, solange die Leiste oben festgesetzt ist */
 .controls.fest.weg{transform:translateX(-50%) translateY(calc(-100% - 6px))}
 /* Zusammengeklappt nur im festgesetzten Zustand */
-.controls.klebt{box-shadow:0 6px 16px -8px rgba(30,26,20,.35);padding-top:9px;padding-bottom:9px}
+.controls.klebt{box-shadow:var(--sch-klebt);padding-top:9px;padding-bottom:9px}
 /* Angeheftet bleibt nur die Suche stehen, der Rest klappt weg */
 .controls.fest.klebt:not(.offen) .kurzweg{display:none}
 .controls.fest.klebt .such-zeile{display:flex;gap:8px;align-items:center}
@@ -961,14 +1066,14 @@ body.gm-offen{overflow:hidden}
 /* ── Karte: Schnellzugriff und Klappabschnitte ───────────── */
 .schnell{position:sticky;top:var(--schnell-oben,0px);z-index:12;background:var(--sand);
   border:1px solid var(--line);border-radius:4px;padding:11px 12px;margin:0 0 12px;
-  box-shadow:0 6px 14px -10px rgba(30,26,20,.5)}
+  box-shadow:var(--sch-schnell)}
 .schnell-lage{font-size:var(--t-m);line-height:1.45;margin-bottom:9px;overflow-wrap:anywhere}
 .schnell-lage.warn{color:var(--terra)}
 .schnell-btns{display:flex;flex-wrap:wrap;gap:6px}
 .sb{font:inherit;font-size:var(--t-m);padding:9px 13px;border:1px solid var(--line);border-radius:3px;
   background:var(--paper);color:var(--ink);cursor:pointer;flex:1 1 auto;min-width:82px}
 .sb:hover{border-color:var(--peat)}
-.sb-haupt{background:var(--water);border-color:var(--water);color:#fff;font-weight:600}
+.sb-haupt{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 .sb-haupt.erledigt{background:var(--moss);border-color:var(--moss)}
 .acc{border:1px solid var(--line);border-radius:4px;margin-bottom:8px;background:var(--paper);overflow:hidden}
 .acc>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:center;
@@ -991,21 +1096,21 @@ body.gm-offen{overflow:hidden}
 
 /* ── Warnungen und Karten-Reiter ─────────────────────────── */
 .warnbox{border:1px solid var(--terra);border-left-width:4px;border-radius:4px;
-  background:rgba(180,80,40,.07);padding:10px 12px;margin:0 0 12px}
+  background:var(--ton-gift);padding:10px 12px;margin:0 0 12px}
 .warnbox p{margin:0 0 6px;font-size:var(--t-m);line-height:1.45;color:var(--terra);font-weight:600;overflow-wrap:anywhere}
 .warnbox p:last-child{margin-bottom:0}
 
 /* Ungeprüft ist nicht dasselbe wie unbedenklich: eigener, gelber Kasten,
    damit niemand aus fehlender Angabe auf Sicherheit schließt. */
-.warnbox.unklar{border-color:#B08A3A;background:rgba(176,138,58,.09)}
-.warnbox.unklar p{color:#654C15}
+.warnbox.unklar{border-color:var(--unklar);background:var(--ton-unklar)}
+.warnbox.unklar p{color:var(--duenger-tief)}
 .warnbox.unklar .pruef{display:inline-block;margin-top:4px;font-weight:600;
-  font-size:var(--t-s);color:#654C15;text-decoration:underline}
+  font-size:var(--t-s);color:var(--duenger-tief);text-decoration:underline}
 
 /* Pflegehinweise: bewusst leiser als die Warnungen. Grau statt rot,
    ohne Ausrufezeichen, mit einem × zum Wegräumen. */
 .pflegehinweis{border:1px solid var(--line);border-radius:4px;
-  background:rgba(0,0,0,.025);padding:2px 4px 2px 10px;margin:0 0 12px}
+  background:var(--ton-tipp);padding:2px 4px 2px 10px;margin:0 0 12px}
 .ph-zeile{display:flex;align-items:flex-start;gap:6px;padding:7px 0;
   border-top:1px solid var(--line)}
 .ph-zeile:first-child{border-top:0}
@@ -1014,7 +1119,7 @@ body.gm-offen{overflow:hidden}
 .ph-text b{display:block;color:var(--ink);font-weight:600;margin-bottom:1px}
 .ph-weg{flex:0 0 auto;width:26px;height:26px;padding:0;border:0;background:none;
   color:var(--peat);font-size:17px;line-height:26px;cursor:pointer;border-radius:4px}
-.ph-weg:hover{background:rgba(0,0,0,.06);color:var(--ink)}
+.ph-weg:hover{background:var(--ton-tipp-hover);color:var(--ink)}
 
 /* Einfacher Modus: alles ausblenden, was Einsteiger nur bremst.
    Der Grundriss ist kein eigener Reiter, sondern ein Block auf der
@@ -1058,7 +1163,7 @@ body.einfach #zonen-sec{display:none!important}
 /* ── Gießplan als Häufungsgrafik ──────────────────────────── */
 .gp{margin:0 0 18px}
 .gp-sockel{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:9px 12px;margin-bottom:10px;
-  border:1px solid var(--terra);border-radius:4px;background:rgba(178,90,58,.09)}
+  border:1px solid var(--terra);border-radius:4px;background:var(--ton-erde)}
 .gp-sockel b{color:var(--terra)}
 .gp-sockel span{font-size:var(--t-xs);color:var(--peat)}
 .gp-balken{display:flex;align-items:flex-end;gap:2px;height:132px;overflow-x:auto;padding-bottom:2px}
@@ -1148,7 +1253,7 @@ body.einfach #zonen-sec{display:none!important}
   color:var(--terra);border:1px solid var(--terra);border-radius:2px;padding:1px 4px;white-space:nowrap}
 .sub-kaufen{margin:10px 0 0;font-size:var(--t-m);line-height:1.6}
 .sub-ersatz{margin:8px 0 0;padding:9px 12px;list-style:none;border-radius:4px;
-  background:rgba(120,140,110,.10);font-size:var(--t-m);line-height:1.55}
+  background:var(--ton-blatt);font-size:var(--t-m);line-height:1.55}
 .sub-ersatz li{margin:0 0 5px}
 .sub-ersatz li:last-child{margin-bottom:0}
 .sub-ersatz-kopf{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
@@ -1298,7 +1403,7 @@ body.einfach #zonen-sec{display:none!important}
 .start-weg li{margin-bottom:var(--a-1)}
 .start-fuss{margin:0;font-size:var(--t-s)!important;color:var(--ink-2)}
 /* ── Status und Rundgang ─────────────────────────────────── */
-.rg-start{background:var(--moss);box-shadow:0 2px 10px rgba(94,124,74,.28);margin-top:4px}
+.rg-start{background:var(--moss);box-shadow:var(--ring-blatt);margin-top:4px}
 .rg-start.leer{background:var(--sand);color:var(--ink-2);box-shadow:none;border:1px solid var(--line)}
 .rg-i::before{border-radius:2px;transform:rotate(0);width:14px;height:14px;margin-left:-7px;top:6px}
 .rg-start.leer .rg-i::before{background:var(--ink-2)}
@@ -1438,7 +1543,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .dok-g{font:inherit;font-size:var(--t-s);padding:8px 12px;border:1px solid var(--line);border-radius:100px;
   background:var(--paper);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .dok-g.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.dok-g span{background:var(--terra);color:#fff;border-radius:8px;min-width:16px;height:16px;
+.dok-g span{background:var(--terra);color:var(--schrift-invers);border-radius:8px;min-width:16px;height:16px;
   font-size:var(--t-mono);line-height:16px;text-align:center;padding:0 4px}
 .dok-gewaehlt{margin:var(--a-3) 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.55;overflow-wrap:anywhere}
 
@@ -1462,7 +1567,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #update-streifen{position:fixed;left:var(--a-3);right:var(--a-3);bottom:calc(76px + var(--a-3));z-index:90;
   background:var(--ink);color:var(--paper);border-radius:5px;padding:var(--a-3) var(--a-4);
   display:flex;align-items:center;gap:var(--a-2);flex-wrap:wrap;
-  box-shadow:0 6px 20px rgba(30,26,20,.3)}
+  box-shadow:var(--sch-streifen)}
 #update-streifen span{flex:1 1 140px;font-size:var(--t-m)}
 #update-streifen button{font:inherit;font-size:var(--t-s);padding:8px 12px;border-radius:3px;
   border:1px solid var(--paper);background:none;color:var(--paper);cursor:pointer}
@@ -1479,11 +1584,11 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
    dazu, wo nichts angetippt werden soll. */
 #tour[hidden]{display:none}
 #tour{position:fixed;inset:0;z-index:150;pointer-events:none}
-.tour-bl{position:fixed;background:rgba(20,22,20,.58);pointer-events:auto}
+.tour-bl{position:fixed;background:var(--schleier-tour);pointer-events:auto}
 #tour-deckel{position:fixed;background:none;pointer-events:auto;display:none}
 #tour.zu #tour-deckel{display:block}
 #tour-ring{position:fixed;border:2px solid var(--paper);border-radius:6px;
-  box-shadow:0 0 0 3px rgba(47,95,112,.6);pointer-events:none}
+  box-shadow:var(--ring-tour);pointer-events:none}
 #tour-ring[hidden]{display:none}
 #tour-pfeil{position:fixed;width:0;height:0;pointer-events:none;
   border-left:9px solid transparent;border-right:9px solid transparent}
@@ -1493,7 +1598,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-karte{position:fixed;left:50%;transform:translateX(-50%);
   width:min(460px,calc(100vw - 28px));background:var(--paper);
   border:1px solid var(--ink);border-radius:5px;pointer-events:auto;
-  padding:var(--a-4) var(--a-4) var(--a-3);box-shadow:0 10px 30px rgba(20,18,14,.34)}
+  padding:var(--a-4) var(--a-4) var(--a-3);box-shadow:var(--sch-tour)}
 #tour-nr{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
   text-transform:uppercase;color:var(--peat);margin:0 0 6px;padding-right:22px}
 #tour-titel{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);
@@ -1502,7 +1607,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-fuss{display:flex;gap:var(--a-2);align-items:center;flex-wrap:wrap}
 #tour-fuss button{font:inherit;font-size:var(--t-s);padding:9px 14px;border-radius:3px;
   border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-#tour-fuss button.haupt{background:var(--water);border-color:var(--water);color:#fff;font-weight:600}
+#tour-fuss button.haupt{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 #tour-fuss button[disabled]{opacity:.32;cursor:default}
 #tour-fuss button[hidden]{display:none}
 #tour-skip{margin-left:auto;border:0!important;background:none!important;
@@ -6965,7 +7070,7 @@ function papierkorbRender(){
     <path d="M12 12.4C12 7.6 9.6 4.6 5.3 4.1c-.4 5 1.9 8.3 6.7 8.3z"/>
     <path d="M12 16.2c0-3.6 2.2-5.8 5.7-6.1-.1 3.7-2.1 6.1-5.7 6.1z"/>
     <circle cx="18.6" cy="5.4" r="4.1" fill="var(--moss)" stroke="none"/>
-    <path d="M18.6 3.5v3.8M16.7 5.4h3.8" stroke="#fff" stroke-width="1.7"/>
+    <path d="M18.6 3.5v3.8M16.7 5.4h3.8" stroke="currentColor" stroke-width="1.7"/>
   </svg>
 </button>
 
@@ -7023,8 +7128,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.8';
+const FASSUNG = '2.9.1';
 const PATCHNOTES = [
+  {
+    nr: '2.9.1', datum: '2026-08-25', titel: 'Vorbereitung auf die drei Ansichten',
+    besser: [
+      'Unter der Oberfläche liegen die Farben jetzt an einer einzigen Stelle statt über die ganze Datei verstreut. Zu sehen ist davon nichts — es ist die Voraussetzung dafür, dass die App demnächst zwischen mehreren Designs umschalten kann.',
+      'Auch die Zeichnung im Grundriss folgt jetzt denselben Farbangaben: Blattgrün, Stamm, Blüten, Wände, Fenster und Türen. Damit kann der Plan später in einem dunklen Design mitgehen, statt weiß zu bleiben.',
+      'Der Urlaubszettel behält absichtlich feste Farben. Er wird auf weißes Papier gedruckt und soll sich nicht mit dem Design der App verändern.'
+    ]
+  },
   {
     nr: '2.8', datum: '2026-08-24', titel: 'Was die Prüfung noch gefunden hat',
     neu: [
@@ -10686,53 +10799,53 @@ sicherungStempel();
 /* Jede Form ist ein SVG-Ausschnitt in einem 40×40-Feld um 0,0 */
 const FORMEN = {
   rosette:  ()=>{ let s=''; for(let i=0;i<8;i++){ const a=i*45-90;
-    s += `<path d="M0 0 L${(Math.cos((a-11)*Math.PI/180)*15).toFixed(1)} ${(Math.sin((a-11)*Math.PI/180)*15).toFixed(1)} L${(Math.cos(a*Math.PI/180)*17).toFixed(1)} ${(Math.sin(a*Math.PI/180)*17).toFixed(1)} L${(Math.cos((a+11)*Math.PI/180)*15).toFixed(1)} ${(Math.sin((a+11)*Math.PI/180)*15).toFixed(1)} Z" fill="${i%2?'#6c8a54':'#48603a'}"/>`; }
+    s += `<path d="M0 0 L${(Math.cos((a-11)*Math.PI/180)*15).toFixed(1)} ${(Math.sin((a-11)*Math.PI/180)*15).toFixed(1)} L${(Math.cos(a*Math.PI/180)*17).toFixed(1)} ${(Math.sin(a*Math.PI/180)*17).toFixed(1)} L${(Math.cos((a+11)*Math.PI/180)*15).toFixed(1)} ${(Math.sin((a+11)*Math.PI/180)*15).toFixed(1)} Z" style="fill:${i%2?'var(--z-blatt)':'var(--z-blatt-tief)'}"/>`; }
     return s; },
-  schwert:  ()=>`<path d="M-8 12 L-11 3 L-8-13 L-5 3 Z" fill="#6c8a54"/>
-    <path d="M0 13 L-3 3 L0-16 L3 3 Z" fill="#48603a"/>
-    <path d="M8 12 L5 3 L8-12 L11 3 Z" fill="#6c8a54"/>`,
-  fenster:  ()=>`<ellipse cx="0" cy="-2" rx="14" ry="12" fill="#6c8a54"/>
-    <path d="M-15-7 L-3-6 L-15-2 Z M-15 1 L-3 2 L-15 6 Z M15-7 L3-6 L15-2 Z M15 1 L3 2 L15 6 Z" fill="#faf7ef"/>
-    <path d="M0 10 L0 16" stroke="#48603a" stroke-width="2.4"/>`,
-  ranke:    ()=>`<path d="M-15 4 Q-9-8-3 2 Q3 12 9 0 Q12-5 15-3" fill="none" stroke="#48603a" stroke-width="2.2"/>
-    <path d="M-12 3c-4-6 4-7 3-1 0 3-2 3-3 1z" fill="#6c8a54"/>
-    <path d="M-1 4c-4-6 4-7 3-1 0 3-2 3-3 1z" fill="#6c8a54"/>
-    <path d="M10-1c-4-6 4-7 3-1 0 3-2 3-3 1z" fill="#6c8a54"/>`,
-  farn:     ()=>{ let s='<path d="M0 15 L0-15" stroke="#48603a" stroke-width="2.2"/>';
+  schwert:  ()=>`<path d="M-8 12 L-11 3 L-8-13 L-5 3 Z" style="fill:var(--z-blatt)"/>
+    <path d="M0 13 L-3 3 L0-16 L3 3 Z" style="fill:var(--z-blatt-tief)"/>
+    <path d="M8 12 L5 3 L8-12 L11 3 Z" style="fill:var(--z-blatt)"/>`,
+  fenster:  ()=>`<ellipse cx="0" cy="-2" rx="14" ry="12" style="fill:var(--z-blatt)"/>
+    <path d="M-15-7 L-3-6 L-15-2 Z M-15 1 L-3 2 L-15 6 Z M15-7 L3-6 L15-2 Z M15 1 L3 2 L15 6 Z" style="fill:var(--z-papier)"/>
+    <path d="M0 10 L0 16" style="stroke:var(--z-blatt-tief)" stroke-width="2.4"/>`,
+  ranke:    ()=>`<path d="M-15 4 Q-9-8-3 2 Q3 12 9 0 Q12-5 15-3" fill="none" style="stroke:var(--z-blatt-tief)" stroke-width="2.2"/>
+    <path d="M-12 3c-4-6 4-7 3-1 0 3-2 3-3 1z" style="fill:var(--z-blatt)"/>
+    <path d="M-1 4c-4-6 4-7 3-1 0 3-2 3-3 1z" style="fill:var(--z-blatt)"/>
+    <path d="M10-1c-4-6 4-7 3-1 0 3-2 3-3 1z" style="fill:var(--z-blatt)"/>`,
+  farn:     ()=>{ let s='<path d="M0 15 L0-15" style="stroke:var(--z-blatt-tief)" stroke-width="2.2"/>';
     for(let i=0;i<6;i++){ const y=11-i*5, l=11-i*1.4;
-      s+=`<path d="M0 ${y} L${-l} ${y-3} M0 ${y} L${l} ${y-3}" stroke="#6c8a54" stroke-width="2.2" stroke-linecap="round"/>`; }
+      s+=`<path d="M0 ${y} L${-l} ${y-3} M0 ${y} L${l} ${y-3}" style="stroke:var(--z-blatt)" stroke-width="2.2" stroke-linecap="round"/>`; }
     return s; },
-  palme:    ()=>{ let s='<path d="M0 15 L0-2" stroke="#8c7450" stroke-width="3"/>';
+  palme:    ()=>{ let s='<path d="M0 15 L0-2" style="stroke:var(--z-stamm)" stroke-width="3"/>';
     [-155,-120,-90,-60,-25].forEach(w=>{ const a=w*Math.PI/180;
-      s+=`<path d="M0-2 Q${Math.cos(a)*8} ${Math.sin(a)*10-2} ${(Math.cos(a)*15).toFixed(1)} ${(Math.sin(a)*15-1).toFixed(1)}" fill="none" stroke="#6c8a54" stroke-width="3" stroke-linecap="round"/>`; });
+      s+=`<path d="M0-2 Q${Math.cos(a)*8} ${Math.sin(a)*10-2} ${(Math.cos(a)*15).toFixed(1)} ${(Math.sin(a)*15-1).toFixed(1)}" fill="none" style="stroke:var(--z-blatt)" stroke-width="3" stroke-linecap="round"/>`; });
     return s; },
-  kaktus:   ()=>`<rect x="-4.5" y="-15" width="9" height="30" rx="4.5" fill="#6c8a54"/>
-    <rect x="-13" y="-6" width="7" height="12" rx="3.5" fill="#48603a"/>
-    <rect x="6" y="-2" width="7" height="12" rx="3.5" fill="#48603a"/>`,
+  kaktus:   ()=>`<rect x="-4.5" y="-15" width="9" height="30" rx="4.5" style="fill:var(--z-blatt)"/>
+    <rect x="-13" y="-6" width="7" height="12" rx="3.5" style="fill:var(--z-blatt-tief)"/>
+    <rect x="6" y="-2" width="7" height="12" rx="3.5" style="fill:var(--z-blatt-tief)"/>`,
   kraut:    ()=>{ let s='';
-    [-9,0,9].forEach(dx=>{ s+=`<path d="M${dx*0.4} 15 L${dx}-9" stroke="#48603a" stroke-width="1.8"/>`;
-      for(let k=0;k<3;k++) s+=`<ellipse cx="${dx}" cy="${8-k*8}" rx="4" ry="2.8" fill="#6c8a54"/>`; });
+    [-9,0,9].forEach(dx=>{ s+=`<path d="M${dx*0.4} 15 L${dx}-9" style="stroke:var(--z-blatt-tief)" stroke-width="1.8"/>`;
+      for(let k=0;k<3;k++) s+=`<ellipse cx="${dx}" cy="${8-k*8}" rx="4" ry="2.8" style="fill:var(--z-blatt)"/>`; });
     return s; },
-  bluete:   ()=>{ let s='<path d="M0 15 L0-2" stroke="#48603a" stroke-width="2.2"/><ellipse cx="-7" cy="6" rx="5" ry="3" fill="#6c8a54"/><ellipse cx="7" cy="9" rx="5" ry="3" fill="#6c8a54"/>';
+  bluete:   ()=>{ let s='<path d="M0 15 L0-2" style="stroke:var(--z-blatt-tief)" stroke-width="2.2"/><ellipse cx="-7" cy="6" rx="5" ry="3" style="fill:var(--z-blatt)"/><ellipse cx="7" cy="9" rx="5" ry="3" style="fill:var(--z-blatt)"/>';
     for(let i=0;i<6;i++){ const a=i*60*Math.PI/180;
-      s+=`<circle cx="${(Math.cos(a)*6).toFixed(1)}" cy="${(-7+Math.sin(a)*6).toFixed(1)}" r="4.4" fill="#d69660"/>`; }
-    return s+'<circle cx="0" cy="-7" r="3.6" fill="#f6cf6d"/>'; },
+      s+=`<circle cx="${(Math.cos(a)*6).toFixed(1)}" cy="${(-7+Math.sin(a)*6).toFixed(1)}" r="4.4" style="fill:var(--z-bluete-2)"/>`; }
+    return s+'<circle cx="0" cy="-7" r="3.6" style="fill:var(--z-mitte)"/>'; },
   gras:     ()=>`<path d="M-9 15 Q-9 4-13-11 M-4 15 Q-4 2-6-13 M2 15 Q3 2 6-12 M7 15 Q8 5 13-8"
-    fill="none" stroke="#6c8a54" stroke-width="2.2" stroke-linecap="round"/>`,
-  karnivore:()=>`<path d="M0 15 L0 2" stroke="#48603a" stroke-width="2.2"/>
-    <path d="M0 3 L-12-7 L-6-12 L0-3 Z" fill="#b06a5c"/>
-    <path d="M0 3 L12-7 L6-12 L0-3 Z" fill="#9e5c50"/>
-    <path d="M6-11 L9-15 M9-9 L12-13" stroke="#48603a" stroke-width="1.6"/>`,
-  baum:     ()=>`<path d="M0 16 L0-1" stroke="#8c7450" stroke-width="3.4"/>
-    <ellipse cx="0" cy="-6" rx="14" ry="10" fill="#6c8a54"/>
-    <ellipse cx="-2" cy="-8" rx="7" ry="5.5" fill="#48603a"/>`,
-  orchidee: ()=>`<ellipse cx="-7" cy="11" rx="7" ry="3.2" fill="#48603a"/>
-    <ellipse cx="7" cy="12" rx="7" ry="3.2" fill="#48603a"/>
-    <path d="M0 9 Q10 2 9-11" fill="none" stroke="#8c7a50" stroke-width="2"/>
-    <circle cx="9" cy="-10" r="4.4" fill="#ce9eb6"/><circle cx="10" cy="-1" r="3.8" fill="#ce9eb6"/>
-    <circle cx="6" cy="6" r="3.2" fill="#ce9eb6"/>`,
-  zwiebel:  ()=>`<path d="M0 5 L-9-11 M0 5 L0-14 M0 5 L9-10" stroke="#6c8a54" stroke-width="3" stroke-linecap="round"/>
-    <ellipse cx="0" cy="10" rx="7" ry="6" fill="#c4a87c"/>`
+    fill="none" style="stroke:var(--z-blatt)" stroke-width="2.2" stroke-linecap="round"/>`,
+  karnivore:()=>`<path d="M0 15 L0 2" style="stroke:var(--z-blatt-tief)" stroke-width="2.2"/>
+    <path d="M0 3 L-12-7 L-6-12 L0-3 Z" style="fill:var(--z-kanne)"/>
+    <path d="M0 3 L12-7 L6-12 L0-3 Z" style="fill:var(--z-kanne-2)"/>
+    <path d="M6-11 L9-15 M9-9 L12-13" style="stroke:var(--z-blatt-tief)" stroke-width="1.6"/>`,
+  baum:     ()=>`<path d="M0 16 L0-1" style="stroke:var(--z-stamm)" stroke-width="3.4"/>
+    <ellipse cx="0" cy="-6" rx="14" ry="10" style="fill:var(--z-blatt)"/>
+    <ellipse cx="-2" cy="-8" rx="7" ry="5.5" style="fill:var(--z-blatt-tief)"/>`,
+  orchidee: ()=>`<ellipse cx="-7" cy="11" rx="7" ry="3.2" style="fill:var(--z-blatt-tief)"/>
+    <ellipse cx="7" cy="12" rx="7" ry="3.2" style="fill:var(--z-blatt-tief)"/>
+    <path d="M0 9 Q10 2 9-11" fill="none" style="stroke:var(--z-rispe)" stroke-width="2"/>
+    <circle cx="9" cy="-10" r="4.4" style="fill:var(--z-bluete)"/><circle cx="10" cy="-1" r="3.8" style="fill:var(--z-bluete)"/>
+    <circle cx="6" cy="6" r="3.2" style="fill:var(--z-bluete)"/>`,
+  zwiebel:  ()=>`<path d="M0 5 L-9-11 M0 5 L0-14 M0 5 L9-10" style="stroke:var(--z-blatt)" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="0" cy="10" rx="7" ry="6" style="fill:var(--z-zwiebel)"/>`
 };
 
 /* Typ oder Familie → Wuchsform */
@@ -10775,10 +10888,10 @@ const MASS = 1;            // Zeichnung rechnet direkt in Zentimetern
 function planSkala(){ const r = raum(); return Math.max(0.75, Math.min(3.2, r.sp*KACHEL/300)); }
 
 function farbeFuer(std, stufe){
-  if(pLicht === 'hell') return ['#dfe1e5','#e6e4dc','#eee9d4','#f4e0ac','#f6cf6d'][stufe];
-  if(pLicht === 'moment') return std ? '#f6cf6d' : '#dfe1e5';
-  return lichtFarbe(std) === 'sonne-4' ? '#f6cf6d' : lichtFarbe(std)==='sonne-3' ? '#f7dfa0'
-    : lichtFarbe(std)==='sonne-2' ? '#f0e7c9' : lichtFarbe(std)==='sonne-1' ? '#e8e6dd' : '#e3e5e8';
+  if(pLicht === 'hell') return ['var(--licht-0)','var(--licht-1)','var(--licht-2)','var(--licht-3)','var(--licht-4)'][stufe];
+  if(pLicht === 'moment') return std ? 'var(--licht-4)' : 'var(--licht-0)';
+  return lichtFarbe(std) === 'sonne-4' ? 'var(--licht-4)' : lichtFarbe(std)==='sonne-3' ? 'var(--licht-3)'
+    : lichtFarbe(std)==='sonne-2' ? 'var(--licht-2)' : lichtFarbe(std)==='sonne-1' ? 'var(--licht-1)' : 'var(--licht-0)';
 }
 function lichtWert(r, x, y, h){
   if(pLicht === 'moment')
@@ -10808,18 +10921,18 @@ function moebelForm(m, fuell){
         b = aufRaster(m.b)*MASS, t = aufRaster(m.t)*MASS;
   const art = MOEBEL_ARTEN[m.typ] || MOEBEL_ARTEN.boden;
   const sk = planSkala();
-  const stil = `fill="${fuell}" stroke="#3a352c" stroke-width="${1.4*sk}"`;
+  const stil = `style="fill:${fuell};stroke:var(--z-kontur)" stroke-width="${1.4*sk}"`;
   if(art.form === 'kreis') return `<ellipse cx="${x+b/2}" cy="${y+t/2}" rx="${b/2}" ry="${t/2}" ${stil}/>`;
   if(art.form === 'ampel') return `<circle cx="${x+b/2}" cy="${y+t/2}" r="${b/2}" ${stil} stroke-dasharray="${5*sk} ${4*sk}"/>`;
   if(art.form === 'turm') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="3" ${stil}/>
-    <rect x="${x+b*0.16}" y="${y+t*0.16}" width="${b*0.68}" height="${t*0.68}" fill="none" stroke="#3a352c" stroke-width="${sk}"/>
-    <rect x="${x+b*0.32}" y="${y+t*0.32}" width="${b*0.36}" height="${t*0.36}" fill="none" stroke="#3a352c" stroke-width="${sk}"/>`;
+    <rect x="${x+b*0.16}" y="${y+t*0.16}" width="${b*0.68}" height="${t*0.68}" style="fill:none;stroke:var(--z-kontur)" stroke-width="${sk}"/>
+    <rect x="${x+b*0.32}" y="${y+t*0.32}" width="${b*0.36}" height="${t*0.36}" style="fill:none;stroke:var(--z-kontur)" stroke-width="${sk}"/>`;
   if(art.form === 'stuhl') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="3" ${stil}/>
-    <rect x="${x+2}" y="${y}" width="${b-4}" height="${Math.max(3,t*0.2)}" fill="#7a7264"/>`;
+    <rect x="${x+2}" y="${y}" width="${b-4}" height="${Math.max(3,t*0.2)}" style="fill:var(--z-schrift)"/>`;
   if(art.form === 'sofa') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="5" ${stil}/>
-    <rect x="${x+2}" y="${y}" width="${b-4}" height="${t*0.26}" fill="#7a7264"/>
-    <rect x="${x}" y="${y}" width="${b*0.08}" height="${t}" fill="#7a7264"/>
-    <rect x="${x+b*0.92}" y="${y}" width="${b*0.08}" height="${t}" fill="#7a7264"/>`;
+    <rect x="${x+2}" y="${y}" width="${b-4}" height="${t*0.26}" style="fill:var(--z-schrift)"/>
+    <rect x="${x}" y="${y}" width="${b*0.08}" height="${t}" style="fill:var(--z-schrift)"/>
+    <rect x="${x+b*0.92}" y="${y}" width="${b*0.08}" height="${t}" style="fill:var(--z-schrift)"/>`;
   return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="3" ${stil}/>`;
 }
 
@@ -10838,12 +10951,12 @@ function grundrissSVG(){
     const an = kachelAn(r,x,y);
     const px = x*KACHEL*MASS, py = y*KACHEL*MASS, k = KACHEL*MASS;
     if(!an){
-      s += `<rect class="kachel aus" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" fill="#faf7ef" stroke="#e8e4d8" stroke-width="${0.8*sk}" stroke-dasharray="${4*sk} ${4*sk}"/>`;
+      s += `<rect class="kachel aus" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" style="fill:var(--z-papier);stroke:var(--z-wand)" stroke-width="${0.8*sk}" stroke-dasharray="${4*sk} ${4*sk}"/>`;
       continue;
     }
     const cx = (x+0.5)*KACHEL, cy = (y+0.5)*KACHEL;
     const wert = lichtWert(r, cx, cy, 0);
-    s += `<rect class="kachel" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" fill="${farbeFuer(wert, stufeFuer(r,cx,cy,0,wert))}" stroke="#e0dbcd" stroke-width="${0.8*sk}"/>`;
+    s += `<rect class="kachel" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" style="fill:${farbeFuer(wert, stufeFuer(r,cx,cy,0,wert))};stroke:var(--z-boden)" stroke-width="${0.8*sk}"/>`;
   }
 
   /* Wände und Öffnungen */
@@ -10852,12 +10965,12 @@ function grundrissSVG(){
     const p = {o:[px,py,px+kk,py], r:[px+kk,py,px+kk,py+kk],
                u:[px,py+kk,px+kk,py+kk], l:[px,py,px,py+kk]}[k.k];
     const art = k.art;
-    let farbe = '#3a352c', dicke = 6*sk, dash = '';
-    if(art==='fenster' || art==='bodenfenster'){ farbe = '#6e9ac4'; }
-    else if(art==='tuer'){ farbe = '#b08a56'; dash = ` stroke-dasharray="${8*sk} ${5*sk}"`; }
-    else if(art==='bruestung'){ farbe = '#8a8272'; dicke = 4*sk; dash = ` stroke-dasharray="${2.5*sk} ${3.5*sk}"`; }
-    else if(art==='offen'){ farbe = '#d8d2c2'; dicke = 2*sk; dash = ` stroke-dasharray="${2.5*sk} ${5*sk}"`; }
-    s += `<line class="kante" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" stroke="${farbe}" stroke-width="${dicke}" stroke-linecap="square"${dash}/>`;
+    let farbe = 'var(--z-kontur)', dicke = 6*sk, dash = '';
+    if(art==='fenster' || art==='bodenfenster'){ farbe = 'var(--z-fenster)'; }
+    else if(art==='tuer'){ farbe = 'var(--z-tuer)'; dash = ` stroke-dasharray="${8*sk} ${5*sk}"`; }
+    else if(art==='bruestung'){ farbe = 'var(--z-moebel)'; dicke = 4*sk; dash = ` stroke-dasharray="${2.5*sk} ${3.5*sk}"`; }
+    else if(art==='offen'){ farbe = 'var(--z-moebel-2)'; dicke = 2*sk; dash = ` stroke-dasharray="${2.5*sk} ${5*sk}"`; }
+    s += `<line class="kante" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" style="stroke:${farbe}" stroke-width="${dicke}" stroke-linecap="square"${dash}/>`;
     s += `<line class="kante-griff" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" stroke="transparent" stroke-width="${16*sk}"/>`;
     /* Ein Punkt markiert Kanten mit eigenen Maßen. */
     if(r.kantenMass && r.kantenMass[k.id]){
@@ -10887,18 +11000,18 @@ function grundrissSVG(){
     const form = FORMEN[formVon(p)] ? FORMEN[formVon(p)]() : FORMEN.bluete();
     s += `<g class="marke${gew?' gewaehlt':''}${warn?' warn':''}" data-pfl="${p.id}"
         transform="translate(${o.x*MASS},${o.y*MASS})">
-      <circle r="${13*sk}" fill="#fffdf7" stroke="${gift?'#b05638':'#5e7c4a'}" stroke-width="${2.4*sk}"/>
+      <circle r="${13*sk}" style="fill:var(--z-marke);stroke:${gift?'var(--z-gift)':'var(--z-ok)'}" stroke-width="${2.4*sk}"/>
       <g transform="scale(${0.48*sk})">${form}</g>
       <text y="${24*sk}" class="p-lab" font-size="${10*sk}">${esc(kurz(p)).slice(0,10)}</text>
-      ${warn?`<circle cx="${10*sk}" cy="${-10*sk}" r="${5*sk}" fill="#b05638"/><text x="${11*sk}" y="${-8*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
+      ${warn?`<circle cx="${10*sk}" cy="${-10*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${11*sk}" y="${-8*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
     </g>`;
   });
 
   /* Kompass */
   const a = (-r.drehung) * GRAD;
   s += `<g transform="translate(${W+10*sk},${-16*sk})" class="kompass">
-    <circle r="${14*sk}" fill="#fffdf7" stroke="#cec7b7" stroke-width="${sk}"/>
-    <line x1="${(-Math.sin(a)*9*sk).toFixed(1)}" y1="${(Math.cos(a)*9*sk).toFixed(1)}" x2="${(Math.sin(a)*10*sk).toFixed(1)}" y2="${(-Math.cos(a)*10*sk).toFixed(1)}" stroke="#b05638" stroke-width="${2.6*sk}"/>
+    <circle r="${14*sk}" style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
+    <line x1="${(-Math.sin(a)*9*sk).toFixed(1)}" y1="${(Math.cos(a)*9*sk).toFixed(1)}" x2="${(Math.sin(a)*10*sk).toFixed(1)}" y2="${(-Math.cos(a)*10*sk).toFixed(1)}" style="stroke:var(--z-gift)" stroke-width="${2.6*sk}"/>
     <text x="${(Math.sin(a)*20*sk).toFixed(1)}" y="${(-Math.cos(a)*20*sk+3.5*sk).toFixed(1)}" class="k-lab" font-size="${10*sk}">N</text></g>`;
   return s + '</svg>';
 }

@@ -4,6 +4,16 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.1 — 25. August 2026
+**Vorbereitung auf die drei Ansichten**
+
+### Besser
+- Unter der Oberfläche liegen die Farben jetzt an einer einzigen Stelle statt über die ganze Datei verstreut. Zu sehen ist davon nichts — die Darstellung ist Pixel für Pixel dieselbe. Es ist die Voraussetzung dafür, dass die App demnächst zwischen mehreren Designs umschalten kann.
+- Auch die Zeichnung im Grundriss folgt jetzt denselben Farbangaben: Blattgrün, Stamm, Blüten, Wände, Fenster und Türen. Damit kann der Plan später in einem dunklen Design mitgehen, statt weiß zu bleiben.
+- Der Urlaubszettel behält absichtlich feste Farben. Er wird auf weißes Papier gedruckt und soll sich nicht mit dem Design der App verändern.
+
+---
+
 ## 2.8 — 24. August 2026
 **Was die Prüfung noch gefunden hat**
 
