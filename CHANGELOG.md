@@ -4,6 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.15 — 26. August 2026
+**Erst mal geradeziehen**
+
+### Neu
+- Die Wetterzeile ist eine richtige Leiste geworden: Rahmen, Zeichnung der Wetterlage und die Lage zusätzlich als Wort — klar, teils bewölkt, bedeckt, Regen oder Schnee.
+
+### Besser
+- „Heute“ lief waagerecht über den Rand hinaus, man musste herauszoomen. Der große Gießknopf stand in einer Spalte neben den beiden kleinen, statt über ihnen.
+- Der Sicherungsstempel lag quer über der Überschrift und war auf dem Grün kaum zu lesen. Er steht jetzt als eigene Zeile darüber.
+- Vorschaubilder werden nicht mehr in die Länge gezogen. Im Zeilenblick wurde aus einem quadratischen Foto ein schmaler Streifen, sobald die Zeile hoch war.
+- Im Rasterblick stimmt die Kachelhöhe auch, bevor die Fotos geladen sind.
+
+---
+
 ## 2.9.14 — 25. August 2026
 **Eine Hauptsache**
 

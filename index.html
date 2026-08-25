@@ -453,7 +453,12 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .card.open{border-color:var(--ink);grid-column:1/-1}
 .card-btn{width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;display:flex;gap:0;align-items:stretch}
 .card-btn:focus-visible{outline:2px solid var(--water);outline-offset:-3px}
-.thumb{width:104px;flex:0 0 104px;background:var(--fl-bildleer) center/cover no-repeat;border-right:1px solid var(--line)}
+/* Das Vorschaubild ist ein <img>. Ohne object-fit zieht der Browser
+   es auf die Kachelform — bei einer hohen Zeile wurde aus einem
+   quadratischen Foto ein schmaler, gestreckter Streifen. */
+.thumb{width:104px;flex:0 0 104px;background:var(--fl-bildleer) center/cover no-repeat;
+  border-right:1px solid var(--line)}
+img.thumb{object-fit:cover;object-position:center}
 .card-body{padding:16px 16px 15px;flex:1;min-width:0}
 .card-id{display:block;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;color:var(--peat)}
 .card-name{display:block;font-family:var(--f-display);font-weight:600;font-size:1.42rem;letter-spacing:-.02em;
@@ -811,7 +816,21 @@ html.modal-offen, body.modal-offen{overflow:hidden}
 /* ── Wetter ───────────────────────────────────────────────────
    Eine Zeile, kein Kasten. Das Wetter ist Beiwerk zur Gieszfrage,
    nicht die Frage selbst. */
-.wt-linie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px;
+/* ── Die Wetterleiste ─────────────────────────────────────────
+   Vorher stand die Zeile blank auf dem Grund und sah aus wie
+   vergessener Text. Als Flaeche mit Rahmen und Zeichnung gehoert
+   sie sichtbar zur Seite. */
+.wt-leiste{display:flex;align-items:center;gap:11px;padding:11px 13px;
+  margin:0 0 10px;border-radius:var(--r-mittel);
+  background:var(--fl-karte);border:1px solid var(--linie);box-shadow:var(--schatten-1)}
+.wt-bild{flex:0 0 auto;width:22px;height:22px;display:block}
+.wt-bild svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste{
+  background:rgba(245,242,234,.10);border-color:var(--linie);box-shadow:none}
+html[data-design="terrarium"] .wt-leiste{box-shadow:var(--glanz)}
+html[data-design="klartext"] .wt-leiste{border-width:2px}
+.wt-linie{flex:1;min-width:0;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px;
   margin:0 0 8px;font-size:var(--t-s);color:var(--ink-2)}
 .wt-linie b{color:var(--ink);font-weight:600}
 .wt-linie .wt-alt{font-style:italic}
@@ -1101,12 +1120,17 @@ body{padding-bottom:76px}
 /* ── Kleiner Stempel: wann wurde zuletzt gesichert ──────────
    Steht bewusst winzig in der Ecke. Wer ihn antippt, landet bei der
    Sicherung; wer ihn nicht braucht, sieht ihn kaum. */
-.top{position:relative}
-.sich-stempel{position:absolute;top:0;right:0;z-index:2;border:0;background:none;padding:4px 0 4px 8px;
-  font:inherit;font-family:var(--f-data);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--peat);opacity:.75;cursor:pointer;text-align:right;line-height:1.3}
+/* Der Stempel lag frei ueber dem Kopf und schnitt in die
+   Ueberschrift. Auf dunklem Grund war er ausserdem kaum zu lesen.
+   Jetzt steht er als eigene Zeile darueber, in derselben Groesse
+   wie das Reiter-Etikett daneben. */
+.top{position:relative;display:flex;flex-direction:column}
+.sich-stempel{order:-1;align-self:flex-start;border:0;background:none;
+  padding:0 0 8px;margin:0;min-height:0;
+  font:inherit;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
+  text-transform:uppercase;color:var(--schrift-2);cursor:pointer;text-align:left;line-height:1.3}
 .sich-stempel[hidden]{display:none}
-.sich-stempel.alt{color:var(--terra);opacity:1}
+.sich-stempel.alt{color:var(--gift)}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
   line-height:1;cursor:pointer}
@@ -1696,6 +1720,7 @@ body.einfach #zonen-sec{display:none!important}
 /* Zeilen: kein Bild, eine Zeile je Pflanze. */
 .sam-zeilen .grid{display:block}
 .sam-zeilen .card{margin-bottom:-1px;border-radius:0}
+.sam-zeilen .card:not(.open) .thumb{align-self:flex-start;height:auto;aspect-ratio:1}
 .sam-zeilen .card:not(.open) .thumb,
 .sam-zeilen .card:not(.open) .icons,
 .sam-zeilen .card:not(.open) .bar,
@@ -1999,7 +2024,7 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
 .vmed-tipp{color:var(--ink-2)}
 
 .faellig-sec.leerstart>h2,.leerstart #heute-status,.leerstart #stichtage,
-.leerstart #raumknoepfe,.leerstart .heute-start{display:none}
+.leerstart .heute-start{display:none}
 .leerstart h2{display:none}
 /* Heute: eine Zeile Lage statt einer Liste, darunter die beiden
    Startknöpfe gleichwertig nebeneinander. */
@@ -2008,9 +2033,13 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
 .heute-lage b.hs-warn{color:var(--terra)}
 .heute-lage b.hs-grau{color:var(--ink-2)}
 .heute-lage.ruhig{color:var(--ink-2);font-style:italic}
-.heute-start{display:grid;grid-template-columns:1fr 1fr;gap:var(--a-2);margin-bottom:var(--a-3)}
+/* Die Zeile stand noch auf zwei Spalten aus der Zeit mit zwei gleich
+   grossen Knoepfen. Der Hauptknopf landete links, die beiden kleinen
+   als Block rechts — und weil der Block selbst zweispaltig ist, lief
+   die Seite waagerecht ueber den Rand hinaus. Man musste
+   herauszoomen, um sie ganz zu sehen. */
+.heute-start{display:block;margin-bottom:var(--a-3)}
 .heute-start .haupttat{width:100%}
-@media(max-width:380px){.heute-start{grid-template-columns:1fr}}
 
 .start{border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:var(--r-mittel);padding:var(--a-4);background:var(--paper)}
 .start h3{margin:0 0 var(--a-2);font-size:var(--t-xl);font-family:var(--f-display)}
@@ -7806,8 +7835,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.14';
+const FASSUNG = '2.9.15';
 const PATCHNOTES = [
+  {
+    nr: '2.9.15', datum: '2026-08-26', titel: 'Erst mal geradeziehen',
+    neu: [
+      'Die Wetterzeile ist eine richtige Leiste geworden: Rahmen, Zeichnung der Wetterlage und die Lage zusätzlich als Wort — klar, teils bewölkt, bedeckt, Regen oder Schnee.'
+    ],
+    besser: [
+      '„Heute“ lief waagerecht über den Rand hinaus, man musste herauszoomen. Der große Gießknopf stand in einer Spalte neben den beiden kleinen, statt über ihnen.',
+      'Der Sicherungsstempel lag quer über der Überschrift und war auf dem Grün kaum zu lesen. Er steht jetzt als eigene Zeile darüber.',
+      'Vorschaubilder werden nicht mehr in die Länge gezogen. Im Zeilenblick wurde aus einem quadratischen Foto ein schmaler Streifen, sobald die Zeile hoch war.',
+      'Im Rasterblick stimmt die Kachelhöhe auch, bevor die Fotos geladen sind.'
+    ]
+  },
   {
     nr: '2.9.14', datum: '2026-08-25', titel: 'Eine Hauptsache',
     neu: [
@@ -9821,7 +9862,7 @@ async function wetterHolen(){
   const w = wetterStand();
   if(w.lat == null || w.lon == null) return false;
   const u = WETTER_API + '?latitude=' + w.lat + '&longitude=' + w.lon
-    + '&current=temperature_2m'
+    + '&current=temperature_2m,weather_code'
     + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum'
     + '&forecast_days=2&timezone=auto';
   try{
@@ -9831,6 +9872,7 @@ async function wetterHolen(){
     const t = j.daily || {};
     w.daten = {
       jetzt: j.current ? j.current.temperature_2m : null,
+      lage:  j.current && j.current.weather_code != null ? j.current.weather_code : null,
       hoch:  t.temperature_2m_max ? t.temperature_2m_max[0] : null,
       tief:  t.temperature_2m_min ? t.temperature_2m_min[0] : null,
       regen: t.precipitation_sum ? t.precipitation_sum[0] : null,
@@ -9863,15 +9905,42 @@ function wetterRat(d){
   return '';
 }
 
+/* ── Wetterlage als Zeichnung ─────────────────────────────────
+   Open-Meteo liefert einen Zahlenschluessel (WMO). Er wird auf fuenf
+   Bilder zusammengefasst: klar, teils bewoelkt, bedeckt, Regen,
+   Schnee. Feiner waere Angeberei — zwischen „leichtem" und
+   „maessigem" Nieselregen entscheidet niemand anders ueber das
+   Giessen. Neben dem Bild steht die Lage immer auch als Wort. */
+const WETTER_BILD = {
+  klar: {wort:'klar', svg:'<circle cx="12" cy="12" r="4.2"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/>'},
+  teils:{wort:'teils bewölkt', svg:'<circle cx="9" cy="9" r="3.2"/><path d="M9 3v1.6M3 9h1.6M4.9 4.9l1.1 1.1M13.1 4.9 12 6"/><path d="M8.5 19h8.8a3.2 3.2 0 0 0 .3-6.4 4.6 4.6 0 0 0-8.8-.8A3.1 3.1 0 0 0 8.5 19z"/>'},
+  wolke:{wort:'bedeckt', svg:'<path d="M7.5 19h9.3a3.4 3.4 0 0 0 .3-6.8 4.9 4.9 0 0 0-9.4-.9A3.3 3.3 0 0 0 7.5 19z"/>'},
+  regen:{wort:'Regen', svg:'<path d="M7.5 15h9.3a3.4 3.4 0 0 0 .3-6.8 4.9 4.9 0 0 0-9.4-.9A3.3 3.3 0 0 0 7.5 15z"/><path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3"/>'},
+  schnee:{wort:'Schnee', svg:'<path d="M7.5 15h9.3a3.4 3.4 0 0 0 .3-6.8 4.9 4.9 0 0 0-9.4-.9A3.3 3.3 0 0 0 7.5 15z"/><path d="M9 19h.01M12.5 21h.01M16 19h.01"/>'}
+};
+
+function wetterLage(code){
+  if(code == null) return null;
+  if(code === 0 || code === 1) return WETTER_BILD.klar;
+  if(code === 2) return WETTER_BILD.teils;
+  if(code === 3 || code === 45 || code === 48) return WETTER_BILD.wolke;
+  if(code >= 71 && code <= 77) return WETTER_BILD.schnee;
+  if(code === 85 || code === 86) return WETTER_BILD.schnee;
+  if(code >= 51) return WETTER_BILD.regen;
+  return WETTER_BILD.wolke;
+}
+
 function wetterZeileHTML(){
   const w = wetterStand();
   if(!w.ort || !w.daten) return '';
   const d = w.daten;
   const alt = wetterAlter();
   const zahl = n => (n == null ? '—' : Math.round(n) + ' °C');
+  const lage = wetterLage(d.lage);
   const teile = [];
   teile.push('<b>' + esc(w.ort) + '</b>');
   if(d.jetzt != null) teile.push('<b>' + zahl(d.jetzt) + '</b>');
+  if(lage) teile.push(esc(lage.wort));
   if(d.hoch != null || d.tief != null) teile.push(zahl(d.tief) + ' bis ' + zahl(d.hoch));
   if(d.regen != null && d.regen > 0) teile.push(Math.round(d.regen) + ' mm Regen');
   const rat = wetterRat(d);
@@ -9883,7 +9952,11 @@ function wetterZeileHTML(){
       + new Date(w.stand).toLocaleString('de-DE', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'})
       + '</span>');
   }
-  return '<p class="wt-linie">' + teile.join(' · ') + '</p>';
+  const bild = lage
+    ? '<span class="wt-bild" aria-hidden="true"><svg viewBox="0 0 24 24">' + lage.svg + '</svg></span>'
+    : '';
+  return '<div class="wt-leiste">' + bild
+    + '<p class="wt-linie">' + teile.join(' · ') + '</p></div>';
 }
 
 function wetterEinstellungZeichnen(){
@@ -10043,9 +10116,22 @@ function rasterSpannen(){
   const karten = Array.prototype.slice.call(
     gitter.querySelectorAll(':scope > .card:not(.open)'));
   karten.forEach(k=>{ k.style.gridRowEnd = ''; });
+  /* Zwei Wege zur Hoehe, und der groessere gewinnt. Gemessen wird,
+     was dasteht — solange ein Foto noch nicht geladen ist, ist das
+     zu wenig. Gerechnet wird aus Spaltenbreite, zugeteiltem Format
+     und Texthoehe; das stimmt auch vor dem ersten Bild. */
+  const spalten = getComputedStyle(gitter).gridTemplateColumns.split(' ').length || 2;
+  const luecke = parseFloat(getComputedStyle(gitter).columnGap) || 0;
+  const breite = (gitter.clientWidth - luecke * (spalten - 1)) / spalten;
   const hoehen = karten.map(k=>{
     const stk = getComputedStyle(k);
-    return k.getBoundingClientRect().height + (parseFloat(stk.marginBottom) || 0);
+    const rand = parseFloat(stk.marginBottom) || 0;
+    const gemessen = k.getBoundingClientRect().height + rand;
+    const form = parseFloat(k.style.getPropertyValue('--bildhoehe')) || 1;
+    const koerper = k.querySelector('.card-body');
+    const gerechnet = breite * form
+      + (koerper ? koerper.getBoundingClientRect().height : 0) + rand;
+    return Math.max(gemessen, gerechnet);
   });
   karten.forEach((k, i)=>{
     if(!hoehen[i]) return;
