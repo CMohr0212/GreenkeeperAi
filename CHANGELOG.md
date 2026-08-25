@@ -4,6 +4,121 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.9 — 25. August 2026
+**Erklärung und Karte**
+
+### Neu
+- Die App Tour liegt jetzt über den Fenstern statt darunter. „Weiter“ führt wieder zum nächsten Erklärschritt — vorher fiel der Tipp auf den Knopf dahinter durch und sprang zur nächsten Pflanze, in den Doktor oder ganz heraus.
+- Der Schnellzugriff im Kartenfenster bleibt beim Blättern oben stehen.
+
+### Besser
+- Die Erklärschritte kennen die Fenster, in denen sie stehen. Wo ein Schritt früher auf einen Knopf zeigte, den es nach dem Umbau nicht mehr gibt, blieb die Tour hängen — bei „Pflanzendoktor“ etwa auf Schritt 3, ohne Weg vor oder zurück.
+- Die Abhakkästchen bei den Aufgaben sind wieder quadratisch. Eine Regel für Mindestgrößen von Knöpfen hatte sie in die Länge gezogen; die Trefffläche bleibt trotzdem groß.
+- „Zuklappen“ im Kartenfenster ist weg. „Fertig“ oben rechts tat dasselbe.
+
+---
+
+## 2.9.8 — 25. August 2026
+**Wetter**
+
+### Neu
+- Unter „Mehr › Wetter“ lässt sich ein Ort eintragen. Auf „Heute“ steht dann eine Zeile mit Temperatur, Tageshoch und -tief und angesagtem Regen — plus einem knappen Hinweis, wenn er sich lohnt: bei viel Regen, bei Hitze, bei Frost.
+- Die App verschiebt damit keine Gießabstände von allein. Sie sagt Bescheid, entschieden wird von dir.
+
+### Besser
+- Ohne eingetragenen Ort fragt die App nichts ab und die Zeile bleibt aus. Übertragen wird beim Suchen der Ortsname, danach nur noch die Koordinaten — nichts über dich, nichts über deine Pflanzen.
+- Ohne Netz steht der letzte bekannte Wert da, ab sechs Stunden mit dem Datum dabei. Keine Fehlermeldung, kein Hänger — aber auch keine Zahl, die so tut, als wäre sie von jetzt.
+
+---
+
+## 2.9.7 — 25. August 2026
+**Sehen, wofür man sich entscheidet**
+
+### Neu
+- Die Designwahl unter „Mehr › Ansicht“ zeigt jetzt zu jedem Design eine kleine Vorschau statt nur den Namen.
+
+### Besser
+- Die Vorschauen sind nicht gemalt, sondern aus denselben Farbwerten gebaut, die auch die App färben. Ändert sich ein Farbwert, ändert sich die Vorschau mit.
+
+---
+
+## 2.9.6 — 25. August 2026
+**Die Sammlung**
+
+### Neu
+- Jedes Design bringt eine eigene Vorbelegung für die Sammlung mit: Botanisch und Terrarium zeigen das Raster, Klartext eine Spalte mit großem Bild und großem Namen. Die Umschaltleiste bleibt — wer einmal umschaltet, behält seine Wahl auch nach einem Designwechsel.
+- Im Raster von Botanisch behält jedes Foto sein echtes Format. Ein hochkant fotografierter Bogenhanf steht hoch, eine breite Schale liegt breit.
+
+### Besser
+- Die Vorschaubilder werden erst geladen, wenn sie fast im Bild sind. Bei vierzig Pflanzen mit großen Fotos war das Scrollen auf schwachen Geräten spürbar zäh.
+
+---
+
+## 2.9.5 — 25. August 2026
+**Eine Pflanze, ein Bildschirm**
+
+### Neu
+- Eine Pflanze antippen öffnet sie jetzt als eigenes Fenster über den ganzen Bildschirm, statt die Karte in der Liste aufzuklappen.
+- Zwei Pfeile oben im Fenster führen zur vorigen und nächsten Pflanze — in der Reihenfolge, in der die Liste gerade sortiert und gefiltert ist.
+- Mit angeschlossener Tastatur blättern auch die Pfeiltasten, solange man nicht gerade in einem Feld tippt.
+
+### Besser
+- In Klartext gibt es im Kartenfenster keine Reiter mehr. Pflege, Standort und Verlauf stehen untereinander, jeweils mit Überschrift.
+- Der Zurück-Knopf des Handys schließt das Kartenfenster.
+
+---
+
+## 2.9.4 — 25. August 2026
+**Werkzeuge und Mehr öffnen als Fenster**
+
+### Neu
+- Die sechs Werkzeuge liegen jetzt als Kacheln nebeneinander und öffnen sich als Fenster über den ganzen Bildschirm. Vorher klappte immer nur eines auf, und wer das zweite wollte, musste erst das erste zuklappen.
+- Die elf Punkte unter „Mehr“ öffnen genauso. Kein Scrollen mehr an zugeklappten Zeilen vorbei.
+- Die Erklärungstexte stehen nicht mehr im Weg, sondern hinter einem „Wozu?“-Knopf oben im Fenster.
+- Der Zurück-Knopf des Handys schließt jetzt das offene Fenster, statt die App zu verlassen. Dasselbe gilt für die Wischgeste am Rand.
+- Esc schließt das oberste Fenster, ein Tippen daneben ebenfalls — außer bei Gießmodus, Rundgang, Urlaubszettel, Ersteinrichtung und den Werkzeugfenstern, wo ein versehentlicher Fingertipp sonst mitten in der Arbeit alles zumacht.
+
+### Besser
+- Solange ein Fenster offen ist, scrollt die Seite dahinter nicht mehr mit weg.
+- Der Hintergrund ist während eines offenen Fensters vollständig stillgelegt — nicht anklickbar, nicht per Tabulator erreichbar, für Vorlesesoftware nicht vorhanden. Bisher galt das nur für den Hauptbereich, nicht für die Reiterleiste.
+- Beim Öffnen springt der Vorleser auf die Überschrift des Fensters statt auf den ersten Knopf.
+- Beim Schließen kehrt der Fokus auf das Element zurück, das das Fenster geöffnet hat.
+- Halb ausgefüllte Formulare bleiben beim Öffnen und Schließen erhalten — der Inhalt wird verschoben, nicht neu aufgebaut.
+- „Alles auf einer Seite zeigen“ ist entfallen. Die Einstellung stammt aus der Zeit, als die Seiten kurz waren; mit Fenstern über die volle Höhe ergibt eine Endlosseite keinen Sinn mehr.
+
+---
+
+## 2.9.3 — 25. August 2026
+**Die Designs bekommen ihre Maße**
+
+### Neu
+- Knöpfe, Auswahlfelder und Eingabefelder haben jetzt überall eine Mindestgröße. In Klartext sind das 56 Pixel — mehr als der Standard verlangt, weil man mit zittrigen Händen bei 48 nur knapp trifft.
+- Klartext schreibt keine Versalien mehr und hält die Zeilen kurz genug, dass man beim Zurückspringen die nächste wiederfindet.
+
+### Besser
+- Die Ecken der Karten und Kästen folgen jetzt dem Design: Botanisch rundet deutlich weicher ab als bisher, Terrarium noch stärker, Klartext bleibt bewusst kantig — bei großer Schrift laufen weiche Ecken sonst ineinander.
+- Alle Schriftgrößen hängen jetzt an der Systemschriftgröße. Wer sie im Handy hochsetzt, sieht das bis in die kleinsten Etiketten der App.
+- Symbole, Fortschrittsbalken und der Urlaubszettel behalten ihre festen Maße. Ein Reitersymbol ist 20 Pixel groß — mit dem Kartenradius wäre daraus ein Klecks geworden, und der Zettel wird auf weißes Papier gedruckt.
+
+---
+
+## 2.9.2 — 25. August 2026
+**Drei Designs**
+
+### Neu
+- Unter „Mehr › Ansicht“ steht jetzt die Designwahl. Drei Stück: **Botanisch** ist der neue Standard — wärmeres Papierweiß, und die Reiter Heute und Mehr stehen auf Dunkelgrün. **Klartext** ist für schlechte Augen, wackelige Hände und grelles Sonnenlicht gemacht: große Schrift, große Knöpfe, schwarze Kanten, keine Bewegung. **Terrarium** ist durchgehend dunkel mit einem leuchtenden Grünton.
+- Die Wahl wird gemerkt und gilt sofort — ohne Neuladen und ohne Aufblitzen beim nächsten Öffnen.
+- Die Statusleiste des Handys färbt sich mit. Über einer dunklen Seite steht kein cremefarbener Streifen mehr.
+
+### Besser
+- Klartext schaltet jede Animation ab, auch wenn im Betriebssystem nichts eingestellt ist. Fenster sind da oder nicht da.
+- Das gewählte Design zeigt sich nicht nur an der Farbe, sondern zusätzlich am Haken und an der kräftigeren Schrift.
+
+### Hinweis
+- Die Größen — Knopfhöhen, Abstände, Kantenrundungen, Schriftgrößen — folgen noch nicht überall dem Design. Klartext hat schon die große Schrift, aber noch nicht die großen Knöpfe. Das kommt im nächsten Schritt.
+
+---
+
 ## 2.9.1 — 25. August 2026
 **Vorbereitung auf die drei Ansichten**
 

@@ -6,17 +6,34 @@
 <title>GreenkeeperAi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+/* Läuft vor allem anderen. Ohne das blitzt beim Öffnen kurz das
+   zuletzt gebaute Design auf, bevor das richtige gesetzt wird.
+   Der eigentliche Zustand liegt in einem grossen JSON — den hier
+   zu lesen und zu zerlegen wäre zu langsam. Deshalb steht der
+   Designname zusätzlich in einem eigenen, winzigen Schlüssel. */
+(function(){
+  var d = 'botanisch';
+  try{ var g = localStorage.getItem('gk-design');
+       if(g === 'klartext' || g === 'terrarium' || g === 'botanisch') d = g; }catch(e){}
+  document.documentElement.setAttribute('data-design', d);
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
   /* Schriftgrößen — eine Skala statt siebenunddreißig Einzelwerte */
-  --t-mono:10px;   /* Etiketten in Versalien */
-  --t-xs:.75rem;   /* Kleingedrucktes */
-  --t-s:.8rem;     /* Nebentext */
-  --t-m:.86rem;    /* Fließtext in Karten */
-  --t-md:.91rem;   /* betonter Fließtext */
-  --t-l:.97rem;    /* Bedienelemente */
-  --t-xl:1.05rem;  /* kleine Überschriften */
+  /* Die Skala steht in rem, nicht in px: nur so schlaegt eine
+     groessere Systemschrift bis in die kleinsten Etiketten durch.
+     Jedes Design fuellt sie neu — Klartext laesst nichts unter
+     18 px zu, die drei kleinsten Stufen fallen dort zusammen. */
+  --t-mono:.63rem;  /* Etiketten in Versalien */
+  --t-xs:.75rem;    /* Kleingedrucktes */
+  --t-s:.8rem;      /* Nebentext */
+  --t-m:.86rem;     /* Fließtext in Karten */
+  --t-md:.91rem;    /* betonter Fließtext */
+  --t-l:.97rem;     /* Bedienelemente */
+  --t-xl:1.05rem;   /* kleine Überschriften */
   /* Abstände */
   --a-1:4px; --a-2:8px; --a-3:12px; --a-4:16px; --a-5:22px; --a-6:32px;
   /* Werden beim Aufbau aus der echten Leistenhöhe gesetzt. Hier stehen
@@ -138,11 +155,207 @@
   --f-display:'Bricolage Grotesque',system-ui,sans-serif;
   --f-body:'Newsreader',Georgia,serif;
   --f-data:'JetBrains Mono',ui-monospace,monospace;
+
+  /* Grundschrift und Strichstaerke liegen ab hier ebenfalls in Tokens,
+     damit Klartext sie anheben kann, ohne 1.466 Einzelwerte anzufassen. */
+  --grundschrift:17px; --gewicht-text:300; --gewicht-titel:600;
+  --r-klein:3px; --r-mittel:4px; --r-gross:6px;
+  --tap:44px; --rand:20px;
+  --schatten-1:var(--sch-leiste-auf); --schatten-2:var(--sch-menue);
+  --zone-grund:var(--fl-grund);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   DIE DREI WERTETABELLEN
+
+   Ein Satz Namen, drei Fuellungen. Keine Komponente kennt ein
+   Design — sie liest nur ihre Tokens. Gesetzt wird an <html>.
+
+   Semantisch benannt, nie nach Aussehen: --gift ist in Botanisch
+   rostrot und in Terrarium orange. --rot waere gelogen.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── BOTANISCH — Standard, warm, papierartig ──────────────── */
+[data-design="botanisch"]{
+  --fl-grund:#F4F1E8; --fl-karte:#FBF9F3; --fl-erhoben:#FFFFFF; --fl-tief:#EDEAE0;
+  --fl-akzent:#3F5443; --fl-bildleer:#E1DDD0;
+  --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459; --schrift-invers:#EDF0E6;
+  --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
+  --wasser:#2C5A6B; --wasser-tief:#244855;
+  --gift:#7A3B22; --sicher:#2F5233;
+  --duenger:#6B4E12; --duenger-tief:#543D0E; --unklar:#7A5A12;
+  --grundschrift:1.125rem; --gewicht-text:400; --gewicht-titel:600;
+  --t-mono:.69rem; --t-xs:.81rem; --t-s:.88rem; --t-m:.94rem;
+  --t-md:1rem; --t-l:1.06rem; --t-xl:1.19rem;
+  --a-1:4px; --a-2:8px; --a-3:12px; --a-4:16px; --a-5:22px; --a-6:32px;
+  --r-klein:8px; --r-mittel:14px; --r-gross:22px;
+  --tap:44px; --rand:20px;
+  --dauer:180ms; --glanz:none;
+  --zone-grund:#2C3E33;
+}
+
+/* ── KLARTEXT — barrierefrei, alles hell, nichts blass ────── */
+[data-design="klartext"]{
+  --fl-grund:#FFFFFF; --fl-karte:#FFFDF7; --fl-erhoben:#FFFFFF; --fl-tief:#F2F0EA;
+  --fl-akzent:#00451C; --fl-bildleer:#E6E3DB;
+  --schrift:#000000; --schrift-2:#1A1A1A; --schrift-3:#1A1A1A; --schrift-invers:#FFFFFF;
+  --linie:#000000; --linie-stark:#000000;
+  --wasser:#003D5C; --wasser-tief:#002B40;
+  --gift:#8C1D00; --sicher:#00451C;
+  --duenger:#4A3400; --duenger-tief:#332400; --unklar:#4A3400;
+  --grundschrift:1.375rem; --gewicht-text:500; --gewicht-titel:800;
+  /* Nichts unter 18 px. Die drei kleinsten Stufen fallen zusammen. */
+  --t-mono:1.125rem; --t-xs:1.125rem; --t-s:1.125rem; --t-m:1.19rem;
+  --t-md:1.25rem; --t-l:1.25rem; --t-xl:1.5rem;
+  /* Abstaende mal 1.3 — weniger passt auf den Schirm, und genau
+     das ist gewollt. */
+  --a-1:5px; --a-2:10px; --a-3:16px; --a-4:21px; --a-5:29px; --a-6:42px;
+  /* Radien kleiner, nicht groesser: bei stark vergroesserter
+     Schrift laufen weiche Ecken ineinander. */
+  --r-klein:6px; --r-mittel:10px; --r-gross:14px;
+  /* 56 statt der geforderten 48: wer zittert, trifft mit 48 knapp. */
+  --tap:56px; --rand:20px;
+  --dauer:0s; --glanz:none;
+  --zone-grund:#FFFFFF;
+  /* Eine Schriftfamilie. Serifen und Versalien sind bei Sehschwaeche
+     und Legasthenie schwerer zu lesen. */
+  --f-display:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-body:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-data:'Bricolage Grotesque',system-ui,sans-serif;
+  /* Kein Grauton fuer Hinweisflaechen — sichtbare Kaesten statt Hauch. */
+  --ton-gift:rgba(140,29,0,.10); --ton-sicher:rgba(0,69,28,.10);
+  --ton-wasser:rgba(0,61,92,.10); --ton-unklar:rgba(74,52,0,.10);
+  --ton-alarm:rgba(140,29,0,.10); --ton-ok:rgba(0,69,28,.08);
+  --ton-erde:rgba(74,52,0,.10); --ton-blatt:rgba(0,69,28,.08);
+  --ton-still:rgba(0,0,0,.12); --ton-tipp:rgba(0,0,0,.05);
+  --ton-tipp-hover:rgba(0,0,0,.10); --ton-hover:rgba(0,0,0,.08);
+  --schleier:rgba(0,0,0,.72);
+}
+
+/* ── TERRARIUM — dunkles Gewaechshaus, ein Leuchtton ──────── */
+[data-design="terrarium"]{
+  --fl-grund:#0C1810; --fl-karte:#132218; --fl-erhoben:#18291D; --fl-tief:#081008;
+  --fl-akzent:#5EE6A0; --fl-bildleer:#1B2C21;
+  --schrift:#E4F0E4; --schrift-2:#A8BFAE; --schrift-3:#A8BFAE; --schrift-invers:#0C1810;
+  --linie:rgba(94,230,160,.22); --linie-stark:rgba(94,230,160,.50);
+  --wasser:#6FD3F0; --wasser-tief:#A2E4F7;
+  --gift:#FFB865; --sicher:#7BE88F;
+  --duenger:#E8D06A; --duenger-tief:#F0E09A; --unklar:#E8D06A;
+  --grundschrift:1.0625rem; --gewicht-text:400; --gewicht-titel:800;
+  --t-mono:.66rem; --t-xs:.75rem; --t-s:.81rem; --t-m:.88rem;
+  --t-md:.91rem; --t-l:.97rem; --t-xl:1.09rem;
+  --a-1:4px; --a-2:8px; --a-3:12px; --a-4:16px; --a-5:22px; --a-6:32px;
+  --r-klein:10px; --r-mittel:18px; --r-gross:28px;
+  --tap:44px; --rand:16px;
+  --dauer:220ms; --glanz:0 0 14px rgba(94,230,160,.45);
+  --zone-grund:#0C1810;
+  /* Zahlen in Monospace: Terrarium zeigt viele Messwerte, und
+     untereinander stehen sie nur so buendig. Keine Serifen. */
+  --f-display:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-body:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-data:'JetBrains Mono',ui-monospace,monospace;
+  /* Toene kehren sich um: auf dunklem Grund hellt eine Hinweisflaeche
+     auf, sie dunkelt nicht nach. */
+  --ton-gift:rgba(255,184,101,.12); --ton-sicher:rgba(123,232,143,.12);
+  --ton-wasser:rgba(111,211,240,.12); --ton-unklar:rgba(232,208,106,.12);
+  --ton-alarm:rgba(255,184,101,.12); --ton-ok:rgba(123,232,143,.10);
+  --ton-erde:rgba(232,208,106,.10); --ton-blatt:rgba(94,230,160,.10);
+  --ton-still:rgba(228,240,228,.12); --ton-tipp:rgba(228,240,228,.05);
+  --ton-tipp-hover:rgba(228,240,228,.10); --ton-hover:rgba(228,240,228,.08);
+  --schleier:rgba(4,10,6,.78); --schleier-tief:rgba(4,10,6,.95);
+  --schleier-tour:rgba(4,10,6,.66); --schleier-punkte:rgba(4,10,6,.7);
+  --licht-0:#1B2C21; --licht-1:#25341F; --licht-2:#3B4423;
+  --licht-3:#5A5A25; --licht-4:#7C6A22;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DUNKLE ZONEN
+
+   Nur Botanisch braucht sie: dort sind Heute und Mehr dunkel,
+   Sammlung und Werkzeuge hell. Terrarium ist ohnehin ganz dunkel,
+   Klartext hat gar keine Zonen.
+
+   Die Zone bindet dieselben Tokens neu. Sie sitzt auf .wrap und
+   nicht auf <body>, damit Leiste, Modals und Vollbilder unberuehrt
+   bleiben — die sollen in Botanisch creme bleiben.
+
+   Der Zonen-Container setzt color selbst. Das ist keine Feinheit:
+   color wird an der Wurzel aufgeloest und vererbt, das Neubinden
+   der Variablen in der Zone kaeme sonst zu spaet.
+   ══════════════════════════════════════════════════════════════ */
+html[data-design="botanisch"] body[data-ansicht="heute"],
+html[data-design="botanisch"] body[data-ansicht="mehr"]{background:var(--zone-grund)}
+
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap,
+html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
+  --fl-grund:#2C3E33; --fl-karte:#243328; --fl-erhoben:#35473B; --fl-tief:#22302A;
+  --fl-bildleer:#1E2A22;
+  --schrift:#F2F7F0; --schrift-2:#B4C7AC; --schrift-3:#B4C7AC;
+  --linie:rgba(237,240,230,.18); --linie-stark:rgba(237,240,230,.34);
+  --wasser:#8FBACC; --wasser-tief:#B6D5E1;
+  --gift:#E8A78C; --sicher:#A6CC97;
+  --duenger:#D9BC77; --duenger-tief:#EBD6A4; --unklar:#D9BC77;
+  --ton-gift:rgba(232,167,140,.12); --ton-sicher:rgba(166,204,151,.12);
+  --ton-wasser:rgba(143,186,204,.12); --ton-unklar:rgba(217,188,119,.12);
+  --ton-alarm:rgba(232,167,140,.12); --ton-ok:rgba(166,204,151,.10);
+  --ton-erde:rgba(217,188,119,.10); --ton-blatt:rgba(166,204,151,.10);
+  --ton-still:rgba(242,247,240,.12); --ton-tipp:rgba(242,247,240,.05);
+  --ton-tipp-hover:rgba(242,247,240,.10); --ton-hover:rgba(242,247,240,.08);
+  color:var(--schrift);
+  background:var(--fl-grund);
+}
+
+/* ── Trefferflaechen ──────────────────────────────────────────
+   --tap ist die Mindestgroesse. In Botanisch und Terrarium steht
+   er auf 44 px und greift nur dort, wo ein Knopf heute kleiner
+   waere; in Klartext auf 56, und dann trifft es fast alles.
+
+   Ausgenommen sind Knoepfe, die wie Text im Satz stehen
+   (.linkbtn) — dort waere eine Mindesthoehe ein Loch in der Zeile. */
+button:not(.linkbtn):not(.tick-btn), [role="button"], select,
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]){
+  min-height:var(--tap);
+}
+/* Das Abhakkaestchen ist ein Knopf und wurde von der Regel darueber
+   auf Tap-Hoehe gezogen — 19 breit, 44 hoch, also ein Rechteck. Es
+   bleibt quadratisch; die Trefflaeche liegt unsichtbar darum. */
+.tick-btn{position:relative;min-height:0}
+.tick-btn::before{content:'';position:absolute;inset:-12px}
+html[data-design="klartext"] .chip,
+html[data-design="klartext"] label.check{min-height:var(--tap)}
+html[data-design="klartext"] input[type="checkbox"],
+html[data-design="klartext"] input[type="radio"]{width:26px;height:26px}
+html[data-design="klartext"] .tick-btn{width:26px;height:26px}
+
+/* Klartext: eine Schriftfamilie, kein Versalienetikett, ruhigere
+   Zeilen und eine Zeilenlaenge, die man nicht verliert.
+   Versalien sind bei Sehschwaeche und Legasthenie schwerer zu
+   lesen — deshalb faellt hier jedes Etikett auf normale Schreibung
+   zurueck, auch das der Werkzeugueberschriften. */
+html[data-design="klartext"] body{line-height:1.7}
+html[data-design="klartext"] .wrap{max-width:46rem}
+html[data-design="klartext"] .wrap *,
+html[data-design="klartext"] .wk *,
+html[data-design="klartext"] .modal *,
+html[data-design="klartext"] #giessmodus *,
+html[data-design="klartext"] #rundgang *,
+html[data-design="klartext"] .tabs *,
+html[data-design="klartext"] .tabs{text-transform:none!important;letter-spacing:normal!important}
+
+/* Klartext laesst nichts wackeln — unabhaengig von der
+   Systemeinstellung. Fenster sind da oder nicht da. */
+html[data-design="klartext"] *,
+html[data-design="klartext"] *::before,
+html[data-design="klartext"] *::after{
+  transition-duration:0s!important; animation-duration:0s!important;
+  animation-delay:0s!important; scroll-behavior:auto!important;
+}
+
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;font-weight:300}
-.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);
+  font-size:var(--grundschrift);line-height:1.6;font-weight:var(--gewicht-text)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 var(--rand)}
 
 header.top{padding:44px 0 18px;border-bottom:1.5px solid var(--ink)}
 .eyebrow{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--peat);margin:0 0 10px}
@@ -151,7 +364,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 
 
 .controls{padding:20px 0 18px;border-bottom:1px solid var(--line);background:var(--paper);z-index:30}
-.search{width:100%;padding:11px 14px;border:1.5px solid var(--ink);border-radius:2px;background:transparent;font-family:var(--f-body);font-size:var(--t-l);color:var(--ink)}
+.search{width:100%;padding:11px 14px;border:1.5px solid var(--ink);border-radius:var(--r-klein);background:transparent;font-family:var(--f-body);font-size:var(--t-l);color:var(--ink)}
 .search::placeholder{color:var(--peat);opacity:.75}
 .search:focus{outline:2px solid var(--water);outline-offset:1px}
 .ctrl-row{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:11px}
@@ -179,7 +392,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .card,.card-btn{min-width:0}
 .card-body{min-width:0;flex:1 1 auto}
 @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
-.card{background:var(--sand);border:1px solid var(--line);border-radius:3px;overflow:clip;transition:border-color .18s}
+.card{background:var(--sand);border:1px solid var(--line);border-radius:var(--r-klein);overflow:clip;transition:border-color .18s}
 .card.open{border-color:var(--ink);grid-column:1/-1}
 .card-btn{width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;display:flex;gap:0;align-items:stretch}
 .card-btn:focus-visible{outline:2px solid var(--water);outline-offset:-3px}
@@ -195,7 +408,7 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .detail{padding:0 18px 22px;display:none;border-top:1px solid var(--line)}
 .card.open .detail{display:block}
 .gal{display:flex;gap:8px;margin:18px 0 4px;overflow-x:auto;padding-bottom:4px}
-.gal img{height:160px;width:auto;border-radius:3px;border:1px solid var(--line);cursor:zoom-in;flex:0 0 auto}
+.gal img{height:160px;width:auto;border-radius:var(--r-klein);border:1px solid var(--line);cursor:zoom-in;flex:0 0 auto}
 .detail h3{font-family:var(--f-data);font-size:var(--t-mono);font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--peat);margin:24px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--line)}
 .detail p{margin:0 0 11px}
 .detail ul{margin:0 0 11px;padding-left:20px}
@@ -236,8 +449,8 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .task:last-child{border-bottom:0}
 .task.done .task-text{color:var(--peat);text-decoration:line-through;text-decoration-thickness:1px}
 .tick-btn{
-  flex:0 0 auto;margin-top:2px;width:19px;height:19px;padding:0;border:1.5px solid var(--peat);
-  border-radius:3px;background:transparent;cursor:pointer;line-height:1;
+  flex:0 0 auto;margin-top:2px;width:22px;height:22px;padding:0;border:1.5px solid var(--peat);
+  border-radius:5px;background:transparent;cursor:pointer;line-height:1;
   display:flex;align-items:center;justify-content:center;color:transparent;font-size:var(--t-xs);transition:.15s
 }
 .tick-btn:hover{border-color:var(--ink)}
@@ -249,12 +462,12 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .task:hover .task-act,.task:focus-within .task-act{opacity:1}
 .ibtn{
   background:none;border:0;padding:3px 5px;cursor:pointer;color:var(--peat);
-  font-family:var(--f-data);font-size:var(--t-mono);border-radius:3px;line-height:1
+  font-family:var(--f-data);font-size:var(--t-mono);border-radius:var(--r-klein);line-height:1
 }
 .ibtn:hover{color:var(--ink);background:var(--ton-hover)}
 .ibtn:focus-visible{outline:2px solid var(--water);outline-offset:1px}
 .task-edit{width:100%;font-family:var(--f-body);font-size:var(--t-l);line-height:1.5;padding:7px 9px;
-  border:1.5px solid var(--water);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical;min-height:62px}
+  border:1.5px solid var(--water);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);resize:vertical;min-height:62px}
 .done-wrap{margin-top:8px}
 .done-head{
   background:none;border:0;padding:6px 0;cursor:pointer;color:var(--peat);
@@ -268,13 +481,13 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .done-wrap.closed .tasks{display:none}
 .addbar{display:flex;gap:7px;margin-top:9px}
 .addbar input{
-  flex:1;min-width:0;padding:8px 11px;border:1px solid var(--line);border-radius:3px;background:transparent;
+  flex:1;min-width:0;padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:transparent;
   font-family:var(--f-body);font-size:var(--t-l);color:var(--ink)
 }
 .addbar input:focus{outline:2px solid var(--water);outline-offset:-1px;border-color:var(--water)}
 .addbar button{
   font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;
-  padding:8px 14px;border:1.5px solid var(--ink);border-radius:3px;background:var(--ink);
+  padding:8px 14px;border:1.5px solid var(--ink);border-radius:var(--r-klein);background:var(--ink);
   color:var(--paper);cursor:pointer
 }
 .addbar button:hover{background:transparent;color:var(--ink)}
@@ -303,7 +516,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .drops{display:inline-flex;gap:1.5px}
 .drops svg{width:9px;height:13px;flex:0 0 9px}
 .drops .off{opacity:.22}
-.legend{border:1px solid var(--line);border-radius:3px;margin:16px 0 0;background:var(--sand)}
+.legend{border:1px solid var(--line);border-radius:var(--r-klein);margin:16px 0 0;background:var(--sand)}
 .legend-head{
   width:100%;background:none;border:0;padding:11px 14px;cursor:pointer;text-align:left;color:var(--peat);
   font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;display:flex;gap:8px;align-items:center
@@ -343,12 +556,12 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .wk-liste span{display:block;font-size:var(--t-s);color:var(--peat);line-height:1.5;margin-top:2px}
 .wk-knoepfe{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
 .wk-haupt{background:var(--water);color:var(--schrift-invers);border:1px solid var(--water);
-  padding:13px 24px;border-radius:3px;font-family:var(--f-data);font-size:var(--t-mono);
+  padding:13px 24px;border-radius:var(--r-klein);font-family:var(--f-data);font-size:var(--t-mono);
   letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .wk-neben{background:none;border:0;color:var(--peat);text-decoration:underline;
   cursor:pointer;font:inherit;font-size:var(--t-s);padding:8px 4px}
 .wk-wahl{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
-.wk-gross{flex:1 1 130px;padding:16px 14px;border:1px solid var(--line);border-radius:3px;
+.wk-gross{flex:1 1 130px;padding:16px 14px;border:1px solid var(--line);border-radius:var(--r-klein);
   background:var(--sand);color:inherit;font:inherit;font-size:var(--t-l);cursor:pointer}
 .wk-gross[aria-pressed="true"]{border-color:var(--ink);background:var(--paper);
   box-shadow:inset 0 0 0 1px var(--ink)}
@@ -360,14 +573,14 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .wk-chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .wk-klein{font-size:var(--t-s);color:var(--peat);margin:16px 0 0}
 .wk-warnung{border-left:3px solid var(--unklar);background:var(--sand);padding:14px 16px;
-  border-radius:3px;line-height:1.55;margin:0 0 24px}
+  border-radius:var(--r-klein);line-height:1.55;margin:0 0 24px}
 
 /* Angebot, die App einzurichten — im letzten Startschritt und als
    schmales Band auf „Heute“, solange sie noch im Browser läuft. */
-.wk-install{border:1px solid var(--line);border-radius:3px;padding:14px 16px;margin:0 0 24px}
+.wk-install{border:1px solid var(--line);border-radius:var(--r-klein);padding:14px 16px;margin:0 0 24px}
 .wk-install .wk-klein{margin:0}
 .wk-install-knopf{display:block;width:100%;margin-top:12px;flex:none}
-.inst-band{border:1px solid var(--line);border-left:3px solid var(--moss);border-radius:3px;
+.inst-band{border:1px solid var(--line);border-left:3px solid var(--moss);border-radius:var(--r-klein);
   padding:12px 14px;margin:0 0 var(--a-3);background:color-mix(in srgb, var(--moss) 6%, transparent)}
 .inst-band[hidden]{display:none}
 .inst-band b{display:block;font-family:var(--f-display);font-size:var(--t-l);margin-bottom:3px}
@@ -382,7 +595,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .tier-wahl button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .sich-hinweis{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;
   margin:14px 0 0;padding:12px 14px;border:1px solid var(--line);
-  border-left:3px solid var(--unklar);border-radius:3px;background:var(--sand);
+  border-left:3px solid var(--unklar);border-radius:var(--r-klein);background:var(--sand);
   font-family:var(--f-body);font-size:var(--t-s);color:var(--peat)}
 .sich-hinweis span{flex:1 1 220px;min-width:0}
 .sich-hinweis button{font-size:var(--t-s)}
@@ -392,7 +605,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .water-state{min-width:0}
 .water-btn{
   font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;
-  padding:9px 15px;border:1.5px solid var(--water);border-radius:3px;background:var(--water);
+  padding:9px 15px;border:1.5px solid var(--water);border-radius:var(--r-klein);background:var(--water);
   color:var(--paper);cursor:pointer;display:inline-flex;align-items:center;gap:7px
 }
 .water-btn:hover{background:transparent;color:var(--water)}
@@ -407,13 +620,13 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .gal figcaption{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);margin-top:4px;letter-spacing:.04em}
 .foto-del{
   position:absolute;top:5px;right:5px;background:var(--schleier-foto);color:var(--schrift-invers);border:0;
-  border-radius:3px;width:22px;height:22px;cursor:pointer;font-size:var(--t-xs);line-height:1;display:none
+  border-radius:var(--r-klein);width:22px;height:22px;cursor:pointer;font-size:var(--t-xs);line-height:1;display:none
 }
 .gal figure{position:relative}
 .gal figure:hover .foto-del{display:block}
 .foto-add{
   display:inline-flex;align-items:center;justify-content:center;height:160px;width:118px;flex:0 0 118px;
-  border:1.5px dashed var(--peat);border-radius:3px;color:var(--peat);cursor:pointer;
+  border:1.5px dashed var(--peat);border-radius:var(--r-klein);color:var(--peat);cursor:pointer;
   font-family:var(--f-data);font-size:var(--t-mono);text-align:center;padding:8px;line-height:1.5
 }
 .foto-add:hover{border-color:var(--ink);color:var(--ink)}
@@ -421,7 +634,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 
 /* ---- Stammbaum ---- */
 .tree{display:grid;gap:18px}
-.branch{border:1px solid var(--line);border-radius:3px;background:var(--sand);padding:15px 16px}
+.branch{border:1px solid var(--line);border-radius:var(--r-klein);background:var(--sand);padding:15px 16px}
 .branch-top{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);margin:0 0 3px}
 .branch-sub{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--peat);margin:0 0 12px}
 .kids{list-style:none;margin:0;padding:0 0 0 4px}
@@ -436,7 +649,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .kid-note{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);display:block}
 
 /* ---- Formular ---- */
-.formwrap{border:1px solid var(--line);border-radius:3px;background:var(--sand);padding:16px;margin-top:14px;display:none}
+.formwrap{border:1px solid var(--line);border-radius:var(--r-klein);background:var(--sand);padding:16px;margin-top:14px;display:none}
 .formwrap.on{display:block}
 .mh-spalte{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
 .mh-spalte > label{width:100%;margin:0}
@@ -445,7 +658,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .fgrid label{display:block}
 .fgrid span.lab,.zslider span.lab{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--peat);display:block;margin-bottom:4px}
 .fgrid input,.fgrid select,.fgrid textarea{
-  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:3px;background:var(--paper);
+  width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);
   font-family:var(--f-body);font-size:var(--t-l);color:var(--ink)
 }
 .fgrid textarea{min-height:74px;resize:vertical}
@@ -458,12 +671,12 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ── Bibliothek, Zustände, Melden ─────────────────────────── */
-.bibbox{border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:18px;background:var(--sand)}
+.bibbox{border:1px solid var(--line);border-radius:var(--r-mittel);padding:14px;margin-bottom:18px;background:var(--sand)}
 .bibhint{font-size:var(--t-m);line-height:1.5;color:var(--ink-2);margin:0 0 10px}
 .bibfeld{display:flex;gap:8px;align-items:stretch}
-.bibfeld input{flex:1;min-width:0;font:inherit;font-size:var(--t-l);padding:10px 12px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+.bibfeld input{flex:1;min-width:0;font:inherit;font-size:var(--t-l);padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .bibfeld button{white-space:nowrap;flex:0 0 auto}
-.biblist{margin-top:8px;max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:3px;background:var(--paper)}
+.biblist{margin-top:8px;max-height:340px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper)}
 .biblist .bibgrp{position:sticky;top:0;background:var(--sand);font-size:var(--t-xs);letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-bottom:1px solid var(--line);color:var(--ink-2)}
 .bibrow{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 12px;cursor:pointer;font:inherit;color:var(--ink)}
 .bibrow:last-child{border-bottom:0}
@@ -471,10 +684,10 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .bibrow b{display:block;font-size:var(--t-l);overflow-wrap:anywhere}
 .bibrow i{display:block;font-size:var(--t-s);color:var(--ink-2);overflow-wrap:anywhere}
 .bibrow em{display:block;font-size:var(--t-xs);color:var(--ink-2);font-style:normal;margin-top:3px}
-.bibrow .tag{display:inline-block;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:2px;margin-top:5px;margin-right:5px;border:1px solid var(--line)}
+.bibrow .tag{display:inline-block;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;padding:1px 6px;border-radius:var(--r-klein);margin-top:5px;margin-right:5px;border:1px solid var(--line)}
 .bibrow .tag.gift{color:var(--terra);border-color:var(--terra)}
 .bibrow .tag.safe{color:var(--moss);border-color:var(--moss)}
-.bibpick{margin-top:10px;border:1px solid var(--moss);border-radius:3px;padding:11px 13px;background:var(--paper)}
+.bibpick{margin-top:10px;border:1px solid var(--moss);border-radius:var(--r-klein);padding:11px 13px;background:var(--paper)}
 .bibpick h4{margin:0 0 4px;font-size:var(--t-l)}
 .bibpick p{margin:0 0 6px;font-size:var(--t-m);color:var(--ink-2);line-height:1.5}
 .bibpick .verw{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
@@ -482,23 +695,23 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .bibpick .verw button{display:block;text-align:left;margin:0 0 4px}
 .bibtools{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
 .pastebox{margin-top:11px}
-.pastebox textarea{width:100%;min-height:130px;font:inherit;font-size:var(--t-md);padding:10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical}
+.pastebox textarea{width:100%;min-height:130px;font:inherit;font-size:var(--t-md);padding:10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);resize:vertical}
 .pastemeld{margin:8px 0 0;font-size:var(--t-m);color:var(--moss)}
 .pastemeld.warn{color:var(--terra)}
 .fhint{display:block;font-size:var(--t-s);color:var(--ink-2);line-height:1.5;margin-top:5px}
 .linkbtn{background:none;border:0;padding:0;font:inherit;font-size:inherit;color:var(--water);text-decoration:underline;cursor:pointer}
 
-.zbadge{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:2px 6px;margin-top:6px;color:var(--ink-2);max-width:100%;overflow-wrap:anywhere}
+.zbadge{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs);letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);border-radius:var(--r-klein);padding:2px 6px;margin-top:6px;color:var(--ink-2);max-width:100%;overflow-wrap:anywhere}
 .zbadge svg{width:12px;height:12px;flex:0 0 auto}
 .zbadge.warn{color:var(--terra);border-color:var(--terra)}
 .zbadge.good{color:var(--moss);border-color:var(--moss)}
-.zustand{border:1px solid var(--line);border-radius:3px;padding:12px;margin:8px 0 4px;background:var(--sand)}
+.zustand{border:1px solid var(--line);border-radius:var(--r-klein);padding:12px;margin:8px 0 4px;background:var(--sand)}
 .zsel{display:block}
-.zsel select{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+.zsel select{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .ztext{font-size:var(--t-m);line-height:1.6;margin:9px 0 0;color:var(--ink-2)}
 .zstopp{font-size:var(--t-m);line-height:1.55;margin:9px 0 0;color:var(--terra)}
 .zvor,.zbis{font-size:var(--t-s);margin:8px 0 0;color:var(--ink-2)}
-.stich{border:1px solid var(--terra);border-radius:4px;padding:13px;margin-top:12px;background:var(--paper)}
+.stich{border:1px solid var(--terra);border-radius:var(--r-mittel);padding:13px;margin-top:12px;background:var(--paper)}
 .stich h3{margin:0 0 9px;font-size:var(--t-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--terra)}
 .stich-row{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
 .stich-row:first-of-type{border-top:0;padding-top:0;margin-top:0}
@@ -507,7 +720,7 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .stich-btns{display:flex;flex-wrap:wrap;gap:8px}
 .modal[hidden]{display:none}
 .modal{position:fixed;inset:0;z-index:60;background:var(--schleier);display:flex;align-items:center;justify-content:center;padding:22px}
-.modal-box{background:var(--paper);border:1px solid var(--terra);border-radius:5px;padding:20px;max-width:420px;width:100%}
+.modal-box{background:var(--paper);border:1px solid var(--terra);border-radius:var(--r-mittel);padding:20px;max-width:420px;width:100%}
 .modal-box h3{margin:0 0 9px;font-size:var(--t-xl);color:var(--terra)}
 .modal-box p{margin:0 0 14px;font-size:var(--t-md);line-height:1.6}
 .neu-box{max-width:460px;max-height:80vh;display:flex;flex-direction:column}
@@ -533,8 +746,126 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 @media(max-width:420px){.bibfeld{flex-wrap:wrap}.bibfeld button{width:100%}}
 
 [hidden]{display:none!important}
+
+/* Solange ein Fenster offen ist, scrollt die Seite dahinter nicht
+   mit. Ohne das verliert man beim Schliessen die Stelle. */
+html.modal-offen, body.modal-offen{overflow:hidden}
+
+/* ── Wetter ───────────────────────────────────────────────────
+   Eine Zeile, kein Kasten. Das Wetter ist Beiwerk zur Gieszfrage,
+   nicht die Frage selbst. */
+.wt-linie{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px;
+  margin:0 0 8px;font-size:var(--t-s);color:var(--ink-2)}
+.wt-linie b{color:var(--ink);font-weight:600}
+.wt-linie .wt-alt{font-style:italic}
+.wt-linie .wt-rat{color:var(--ink)}
+.wt-zeile{display:flex;gap:8px;margin:4px 0 10px}
+.wt-zeile input{flex:1 1 auto;min-width:0}
+.wt-treffer{display:grid;gap:6px;margin:0 0 12px}
+.wt-treffer button{width:100%;min-height:var(--tap);text-align:left;cursor:pointer;
+  padding:9px 12px;font:inherit;font-size:var(--t-s);
+  border:1px solid var(--line);border-radius:var(--r-klein);
+  background:var(--fl-karte);color:var(--ink)}
+.wt-stand{font-size:var(--t-s);color:var(--ink-2);margin:0 0 10px}
+.wt-weg{min-height:var(--tap);padding:0 14px;cursor:pointer;font:inherit;
+  font-size:var(--t-s);border:1px solid var(--line);border-radius:var(--r-klein);
+  background:var(--fl-erhoben);color:var(--ink)}
+
+/* ── Abschnittsfenster ────────────────────────────────────────
+   Volle Hoehe, fester Kopf, eigener Scrollbereich. Ein Werkzeug
+   ist eine Aufgabe; sie bekommt den ganzen Schirm. */
+.sekm{position:fixed;inset:0;z-index:120;display:flex;flex-direction:column;
+  background:var(--fl-grund);color:var(--schrift)}
+.sekm-kopf{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  padding:8px var(--rand);background:var(--fl-karte);
+  border-bottom:1.5px solid var(--linie-stark)}
+.sekm-titel{flex:1 1 auto;min-width:0;margin:0;font-family:var(--f-display);
+  font-weight:var(--gewicht-titel);font-size:var(--t-xl);line-height:1.2}
+.sekm-titel:focus-visible{outline:2px solid var(--water);outline-offset:3px}
+.sekm-i,.sekm-zu{flex:0 0 auto;min-height:var(--tap);padding:0 13px;cursor:pointer;
+  font:inherit;font-size:var(--t-s);border:1px solid var(--line);
+  border-radius:var(--r-klein);background:var(--fl-erhoben);color:var(--ink)}
+.sekm-zu{font-weight:600;border-color:var(--linie-stark)}
+.sekm-i[aria-expanded="true"]{background:var(--ton-tipp);border-color:var(--linie-stark)}
+.sekm-rumpf{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:16px var(--rand) calc(28px + env(safe-area-inset-bottom))}
+.sekm-rumpf > .wz-in{display:block}
+
+.sekm-fest{flex:0 0 auto;padding:9px var(--rand);background:var(--fl-karte);
+  border-bottom:1.5px solid var(--linie-stark)}
+.sekm-fest:empty{display:none}
+.sekm-fest .schnell{position:static;margin:0;padding:0;border:0;
+  background:none;box-shadow:none;border-radius:0}
+
+/* Im Kartenfenster braucht die Karte selbst keinen eigenen Rahmen
+   mehr — das Fenster ist der Rahmen. */
+#karte-rumpf > .card{border:0;background:none;box-shadow:none;margin:0;padding:0}
+#karte-rumpf .card-btn{display:none}
+#karte-vor,#karte-zurueck{min-width:var(--tap);padding:0;font-size:var(--t-xl);line-height:1}
+#karte-vor[disabled],#karte-zurueck[disabled]{opacity:.35;cursor:default}
+.sekm-zaehler{flex:0 0 auto;font-family:var(--f-data);font-size:var(--t-mono);
+  color:var(--ink-2);white-space:nowrap}
+
+/* Klartext kennt keine Reiter im Fenster: alles steht untereinander,
+   jeder Abschnitt mit seiner Ueberschrift. Nichts ist versteckt. */
+.kstapel-h{margin:22px 0 8px;font-family:var(--f-display);
+  font-weight:var(--gewicht-titel);font-size:var(--t-l);
+  padding-bottom:5px;border-bottom:1.5px solid var(--linie-stark)}
+.kstapel-h:first-child{margin-top:0}
+
+/* ── Werkzeuge als Kachelgitter ───────────────────────────────
+   Vorher eine Ziehharmonika: ein Block offen, die anderen als
+   Zeile darunter. Wer das zweite Werkzeug wollte, musste erst das
+   erste zuklappen. Jetzt liegen alle sechs nebeneinander. */
+.kachelgitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:10px;margin:0 0 22px}
+.kachelgitter.ans-aus{display:none}
+.kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none}
+.kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
+.kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
+.kachelgitter .wz-kopf{display:flex;flex-direction:column;justify-content:flex-end;
+  align-items:flex-start;gap:4px;width:100%;height:100%;min-height:88px;
+  padding:14px 13px;text-align:left;cursor:pointer;font:inherit;
+  background:var(--fl-karte);color:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-mittel);
+  box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
+.kachelgitter .wz-kopf:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.kachelgitter .wz-t{font-family:var(--f-display);font-weight:var(--gewicht-titel);
+  font-size:var(--t-l);line-height:1.25}
+.kachelgitter .wz-p{align-self:flex-end;color:var(--ink-2)}
+
+/* Mehr bleibt eine Liste — elf Punkte als Kacheln waeren ein
+   Suchbild, untereinander liest man sie in einem Zug. */
+section[data-mh] .wz-i{display:none}
+section[data-mh] .wz-kopf{width:100%;min-height:var(--tap);cursor:pointer}
+
+/* ── Designwahl unter Mehr › Ansicht ──────────────────────────
+   Vorlaeufiger Platz. Das richtige Ansicht-Fenster mit den
+   Miniaturen kommt spaeter; bis dahin soll der Wechsel auf dem
+   Geraet pruefbar sein. */
+.dsn-lab{display:block;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin:0 0 7px}
+.dsn-wahl{display:grid;gap:10px;margin-bottom:14px}
+.dsn-schau{flex:0 0 auto;width:74px;height:74px;border-radius:var(--r-klein);
+  border:1px solid var(--linie);overflow:hidden;display:block}
+.dsn-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px}
+.dsn-btn{display:flex;flex-direction:row;align-items:center;gap:12px;
+  width:100%;min-height:var(--tap);text-align:left;cursor:pointer;
+  padding:11px 13px;border:1px solid var(--line);border-radius:var(--r-mittel);
+  background:var(--fl-karte);color:var(--ink);font:inherit;
+  font-size:var(--t-l);transition:border-color var(--dauer)}
+.dsn-btn i{font-style:normal;font-size:var(--t-s);color:var(--ink-2)}
+.dsn-btn:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+/* Gewaehlt wird nicht ueber Farbe allein angezeigt: Haken und
+   kraeftigere Schrift tragen, die Farbe kommt obendrauf. */
+.dsn-btn[aria-pressed="true"]{border-color:var(--linie-stark);border-width:2px;
+  padding:10px 12px;font-weight:600;background:var(--ton-blatt)}
+.dsn-btn b{font-weight:inherit}
+.dsn-btn[aria-pressed="true"] b::before{content:'✓ '}
+.dsn-btn[aria-pressed="false"] b::before{content:'';display:inline-block;width:1.1em}
+
 /* ── Zonenplan ────────────────────────────────────────────── */
-.zregler{border:1px solid var(--line);border-radius:4px;padding:13px;margin:14px 0;background:var(--sand)}
+.zregler{border:1px solid var(--line);border-radius:var(--r-mittel);padding:13px;margin:14px 0;background:var(--sand)}
 .zregler .tools{margin-bottom:10px}
 .zregler .tools button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .zslider{display:block;margin-bottom:9px}
@@ -543,15 +874,15 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .zreihe{margin-bottom:9px}
 .zreihe-lab{display:block;font-size:var(--t-xs);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
 .zreihe-in{display:grid;gap:6px}
-.zkachel{min-height:52px;border:1px dashed var(--line);border-radius:3px;padding:4px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.zkachel{min-height:52px;border:1px dashed var(--line);border-radius:var(--r-klein);padding:4px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .zleer2{color:var(--line);font-size:var(--t-xl);text-align:center;line-height:44px}
-.zplatz{border:1px solid var(--line);border-radius:3px;padding:7px 8px;min-width:0}
+.zplatz{border:1px solid var(--line);border-radius:var(--r-klein);padding:7px 8px;min-width:0}
 .zplatz.ziel{outline:2px dashed var(--water);outline-offset:1px;cursor:pointer}
 .zkopf b{display:block;font-size:var(--t-m);overflow-wrap:anywhere;line-height:1.3}
 .zhoehe{display:block;font-size:var(--t-xs);color:var(--ink-2);overflow-wrap:anywhere}
 .zlicht{display:block;font-size:var(--t-xs);margin-top:3px;font-variant-numeric:tabular-nums}
 .zchips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
-.zchip{font:inherit;font-size:var(--t-xs);padding:3px 7px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--ink);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.zchip{font:inherit;font-size:var(--t-xs);padding:3px 7px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
 .zchip.gift{border-color:var(--terra);color:var(--terra)}
 .zchip.safe{border-color:var(--moss);color:var(--moss)}
 .zchip.gewaehlt{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -566,14 +897,14 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 
 /* ── Grundriss ───────────────────────────────────────────── */
 .raumleiste{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.raumleiste select{flex:1;min-width:120px;font:inherit;font-size:var(--t-l);padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+.raumleiste select{flex:1;min-width:120px;font:inherit;font-size:var(--t-l);padding:9px 10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .raumgrid{margin-bottom:14px}
 .fgrid label.check{display:flex;flex-direction:row;align-items:center;gap:9px}
 .fgrid label.check input[type=checkbox]{width:19px;height:19px;flex:0 0 auto;margin:0;accent-color:var(--moss)}
 .fgrid label.check .lab{margin:0}
 .raumgrid input[type=range]{width:100%;accent-color:var(--terra);margin-top:5px}
 .pleiste{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
-.pleiste button{font:inherit;font-size:var(--t-s);padding:7px 11px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);cursor:pointer}
+.pleiste button{font:inherit;font-size:var(--t-s);padding:7px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);cursor:pointer}
 .pleiste button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .mchip{font-size:var(--t-xs)!important}
 #p-info{margin:4px 0 12px;font-size:var(--t-m);color:var(--ink-2);line-height:1.55}
@@ -627,7 +958,7 @@ body{padding-bottom:76px}
 .tabs.flach .tab-z{display:none}
 .tabs button.on .tab-i{background:color-mix(in srgb, currentColor 14%, transparent)}
 .tab-z{position:absolute;top:4px;left:calc(50% + 7px);min-width:16px;height:16px;
-  border-radius:8px;background:var(--terra);color:var(--schrift-invers);font-size:var(--t-xs);line-height:16px;
+  border-radius:var(--r-gross);background:var(--terra);color:var(--schrift-invers);font-size:var(--t-xs);line-height:16px;
   padding:0 4px;font-variant-numeric:tabular-nums}
 @media(min-width:760px){
   .tabs{position:sticky;top:0;bottom:auto;grid-template-columns:repeat(4,auto);
@@ -690,7 +1021,7 @@ body.gm-offen #fab-neu{display:none}
 
 /* ── Doktor: Foto und Feldabgleich ── */
 .dok-foto{display:block;margin:var(--a-3) 0 0;padding:14px;text-align:center;cursor:pointer;
-  border:1.5px dashed var(--line);border-radius:4px;font-size:var(--t-m);color:var(--ink-2)}
+  border:1.5px dashed var(--line);border-radius:var(--r-mittel);font-size:var(--t-m);color:var(--ink-2)}
 .abgleich{margin-top:var(--a-3);border-left:3px solid var(--moss);padding:12px 14px;
   background:color-mix(in srgb, var(--moss) 7%, transparent)}
 .abgleich h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
@@ -707,7 +1038,7 @@ body.gm-offen #fab-neu{display:none}
 /* Die Giftfrage im Doktor: eigener Kasten, weil sie nicht wie die
    übrigen Angaben einfach übernommen werden darf. */
 .giftblock{margin:var(--a-3) 0;border:1px solid var(--line);border-left-width:4px;
-  border-radius:4px;padding:12px 14px}
+  border-radius:var(--r-mittel);padding:12px 14px}
 .giftblock.warn{border-color:var(--terra);background:var(--ton-gift)}
 .giftblock.unklar{border-color:var(--unklar);background:var(--ton-unklar)}
 .giftblock.ok{border-color:var(--moss);background:var(--ton-ok)}
@@ -722,7 +1053,7 @@ body.gm-offen #fab-neu{display:none}
 .topfbox h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
 .topfbox .spec{margin:0}
 
-.mn-wahl{margin-top:var(--a-3);border:1px solid var(--line);border-radius:4px;padding:12px 14px}
+.mn-wahl{margin-top:var(--a-3);border:1px solid var(--line);border-radius:var(--r-mittel);padding:12px 14px}
 .mn-wahl h4{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-l)}
 .mn-wahl>.sub{margin:0 0 8px}
 .mn-zeile{display:flex;align-items:flex-start;gap:10px;padding:9px 0;
@@ -738,7 +1069,7 @@ body.gm-offen #fab-neu{display:none}
 .mn-meld{margin:8px 0 0;font-size:var(--t-s);color:var(--moss)}
 
 /* Ohne die richtigen Aufnahmen kann die KI die Hälfte nicht beurteilen. */
-.fotokrit{margin:var(--a-3) 0;border:1px dashed var(--line);border-radius:4px;
+.fotokrit{margin:var(--a-3) 0;border:1px dashed var(--line);border-radius:var(--r-mittel);
   padding:11px 13px;background:var(--sand)}
 .fotokrit b{font-weight:600}
 .fotokrit>b{display:block;font-family:var(--f-display);font-size:var(--t-m);margin-bottom:6px}
@@ -756,12 +1087,12 @@ body.gm-offen #fab-neu{display:none}
   border:0;background:var(--schleier-punkte);color:var(--schrift-invers);font-size:14px;line-height:1;
   cursor:pointer;padding:0;letter-spacing:1px}
 .foto-menu{position:absolute;top:34px;right:5px;z-index:5;min-width:170px;
-  background:var(--paper);border:1px solid var(--ink);border-radius:4px;
+  background:var(--paper);border:1px solid var(--ink);border-radius:var(--r-mittel);
   box-shadow:var(--sch-menue);overflow:hidden}
 .foto-menu button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
   font:inherit;font-size:var(--t-m);background:none;border:0;padding:10px 12px;cursor:pointer;color:var(--ink)}
 .foto-menu button + button{border-top:1px solid var(--line)}
-.foto-kaest{flex:0 0 auto;width:15px;height:15px;border:1.5px solid var(--ink);border-radius:2px;
+.foto-kaest{flex:0 0 auto;width:15px;height:15px;border:1.5px solid var(--ink);border-radius:var(--r-klein);
   display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1}
 .foto-profil-marke{position:absolute;bottom:5px;left:5px;font-family:var(--f-data);
   font-size:var(--t-mono);letter-spacing:.08em;text-transform:uppercase;
@@ -770,13 +1101,13 @@ body.gm-offen #fab-neu{display:none}
 /* ── Grundriss: Schritt 1 Raumliste, Schritt 2 Editor ── */
 .gr-karten{display:grid;gap:var(--a-2);margin-bottom:var(--a-3)}
 .gr-karte{display:block;width:100%;text-align:left;font:inherit;cursor:pointer;
-  border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:4px;
+  border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:var(--r-mittel);
   padding:13px 15px;background:var(--paper);min-height:60px}
 .gr-karte b{display:block;font-family:var(--f-display);font-size:var(--t-l);margin-bottom:3px}
 .gr-karte span{font-size:var(--t-m);color:var(--ink-2)}
 .gr-zurueck{display:flex;align-items:center;gap:10px;margin-bottom:var(--a-3)}
 .gr-zurueck button{font:inherit;font-size:var(--t-m);background:none;border:1px solid var(--line);
-  border-radius:3px;padding:8px 13px;cursor:pointer;color:var(--ink)}
+  border-radius:var(--r-klein);padding:8px 13px;cursor:pointer;color:var(--ink)}
 .gr-zurueck b{font-family:var(--f-display);font-size:var(--t-l);min-width:0;overflow-wrap:anywhere}
 .gr-quer{margin:0 0 var(--a-2);font-size:var(--t-m);color:var(--ink-2);font-style:italic}
 /* Sechs Tabs passen nebeneinander nicht aufs Handy — sie dürfen umbrechen,
@@ -922,7 +1253,7 @@ header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 .wrap section[data-ans]:not(.ans-aus).ans-erste{border-top:0;padding-top:4px;margin-top:6px}
 @media(min-width:760px){header.top{padding:34px 0 16px}}
 
-.umzug{border:1px solid var(--peat);border-left-width:4px;border-radius:3px;padding:12px 14px;margin-bottom:10px;background:var(--paper)}
+.umzug{border:1px solid var(--peat);border-left-width:4px;border-radius:var(--r-klein);padding:12px 14px;margin-bottom:10px;background:var(--paper)}
 .umzug.warn{border-color:var(--terra)}
 .umzug h4{margin:0 0 6px;font-size:var(--t-l)}
 .umzug.warn h4{color:var(--terra)}
@@ -931,7 +1262,7 @@ header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 .umzug li{overflow-wrap:anywhere}
 .u-tipp{color:var(--ink-2);font-size:var(--t-s)!important}
 .gm-start{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
-  font:inherit;cursor:pointer;margin:0 0 16px;padding:15px 16px;border-radius:5px;
+  font:inherit;cursor:pointer;margin:0 0 16px;padding:15px 16px;border-radius:var(--r-mittel);
   border:0;background:var(--water);color:var(--schrift-invers);box-shadow:var(--ring-wasser)}
 .gm-start:active{transform:translateY(1px)}
 .gm-start-i{width:26px;height:26px;flex:0 0 auto;position:relative}
@@ -944,15 +1275,15 @@ header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 .gm-start.leer .gm-start-i::before{background:var(--ink-2)}
 .kibox{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
 .kizeile{display:flex;gap:8px;align-items:stretch}
-.kizeile select{flex:1;min-width:0;font:inherit;font-size:var(--t-md);padding:9px 10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+.kizeile select{flex:1;min-width:0;font:inherit;font-size:var(--t-md);padding:9px 10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .kizeile button{white-space:nowrap}
 .kihinweis{margin:8px 0 0;font-size:var(--t-s);line-height:1.5;color:var(--ink-2)}
 .kihinweis.ok{color:var(--moss)}
 .kihinweis.warn{color:var(--terra)}
 .kiprompt{margin-top:10px}
 .kiprompt summary{font-size:var(--t-m);color:var(--water);cursor:pointer}
-.kiprompt textarea{width:100%;min-height:150px;margin-top:8px;font:inherit;font-size:var(--t-s);line-height:1.5;padding:9px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical}
-.kurzweg{display:block;width:100%;margin-top:14px;font:inherit;font-size:var(--t-l);padding:13px;border:1.5px dashed var(--line);border-radius:4px;background:none;color:var(--ink-2);cursor:pointer}
+.kiprompt textarea{width:100%;min-height:150px;margin-top:8px;font:inherit;font-size:var(--t-s);line-height:1.5;padding:9px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);resize:vertical}
+.kurzweg{display:block;width:100%;margin-top:14px;font:inherit;font-size:var(--t-l);padding:13px;border:1.5px dashed var(--line);border-radius:var(--r-mittel);background:none;color:var(--ink-2);cursor:pointer}
 .kurzweg:hover{border-color:var(--moss);color:var(--moss)}
 /* ── Gießmodus ───────────────────────────────────────────── */
 body.gm-offen{overflow:hidden}
@@ -978,7 +1309,7 @@ body.gm-offen{overflow:hidden}
 .gm-zustand{margin:0 0 8px;font-size:var(--t-m);color:var(--terra)}
 .gm-wo{margin:12px 0 0;font-size:var(--t-s);color:var(--ink-2)}
 .gm-fuss{display:grid;gap:8px;padding:14px 18px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
-.gm-fuss button{font:inherit;font-size:var(--t-l);padding:16px;border-radius:4px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.gm-fuss button{font:inherit;font-size:var(--t-l);padding:16px;border-radius:var(--r-mittel);border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .gm-fuss .gm-ja{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 .gm-fuss .gm-spaeter{font-size:var(--t-m);padding:11px;color:var(--ink-2)}
 @media(min-width:520px){.gm-fuss{grid-template-columns:1fr 1fr}.gm-fuss .gm-spaeter{grid-column:1/-1}}
@@ -993,28 +1324,28 @@ body.gm-offen{overflow:hidden}
 .v-svg .v-ziel{stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;opacity:.55}
 .v-fuss{margin:6px 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.5}
 .w-reihe{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.w-plus{font:inherit;font-size:var(--t-m);padding:8px 13px;border:1px solid var(--moss);color:var(--moss);background:var(--paper);border-radius:3px;cursor:pointer}
+.w-plus{font:inherit;font-size:var(--t-m);padding:8px 13px;border:1px solid var(--moss);color:var(--moss);background:var(--paper);border-radius:var(--r-klein);cursor:pointer}
 .w-bilanz{margin:8px 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.5}
 .w-zahl{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
 .w-bars{display:flex;align-items:flex-end;gap:3px;height:38px;margin-top:9px}
 .w-bar{flex:1;background:var(--moss);opacity:.65;border-radius:1px;min-width:4px}
 
-.such-dok{border:1px solid var(--peat);border-left-width:4px;border-radius:3px;padding:12px 14px;margin-top:14px;background:var(--paper)}
+.such-dok{border:1px solid var(--peat);border-left-width:4px;border-radius:var(--r-klein);padding:12px 14px;margin-top:14px;background:var(--paper)}
 .such-dok p{margin:0 0 6px;font-size:var(--t-m);line-height:1.55}
 .sd-liste{color:var(--ink-2);font-size:var(--t-s)!important;overflow-wrap:anywhere}
 /* ── Pflanzendoktor ──────────────────────────────────────── */
-#dok-pflanze{width:100%;margin-top:5px;font:inherit;font-size:var(--t-l);padding:10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+#dok-pflanze{width:100%;margin-top:5px;font:inherit;font-size:var(--t-l);padding:10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .sym-gruppe{margin-bottom:14px}
 .sym-gruppe h4{margin:0 0 7px;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--peat)}
 .sym-liste{display:flex;flex-wrap:wrap;gap:6px}
-.sym{font:inherit;font-size:var(--t-m);line-height:1.3;text-align:left;padding:8px 11px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.sym{font:inherit;font-size:var(--t-m);line-height:1.3;text-align:left;padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);cursor:pointer;max-width:100%;overflow-wrap:anywhere}
 .sym:hover{border-color:var(--peat)}
 .sym.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.dok-rueck{margin:6px 0 12px;border:1px solid var(--line);border-radius:3px;padding:11px 13px;background:var(--sand)}
+.dok-rueck{margin:6px 0 12px;border:1px solid var(--line);border-radius:var(--r-klein);padding:11px 13px;background:var(--sand)}
 .dok-rueck summary{font-size:var(--t-m);color:var(--water);cursor:pointer}
 .dok-frage{margin-top:12px}
 .dok-frage p{margin:0 0 6px;font-size:var(--t-m)}
-.dg{border:1px solid var(--line);border-radius:4px;padding:14px 15px;margin-bottom:11px;background:var(--paper)}
+.dg{border:1px solid var(--line);border-radius:var(--r-mittel);padding:14px 15px;margin-bottom:11px;background:var(--paper)}
 .dg.top{border-color:var(--peat);border-left-width:4px}
 .dg-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .dg-rang{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--peat)}
@@ -1032,9 +1363,9 @@ body.gm-offen{overflow:hidden}
 .dg-hinweis{margin:8px 0 0;font-size:var(--t-s);color:var(--ink-2)}
 .dg .tools{margin-top:10px}
 /* ── Bearbeiten ──────────────────────────────────────────── */
-.bearb{border:1px solid var(--peat);border-radius:3px;padding:13px;margin-top:10px;background:var(--sand)}
+.bearb{border:1px solid var(--peat);border-radius:var(--r-klein);padding:13px;margin-top:10px;background:var(--sand)}
 .bearb[hidden]{display:none!important}
-.bearb textarea{width:100%;font:inherit;font-size:var(--t-md);padding:9px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);resize:vertical}
+.bearb textarea{width:100%;font:inherit;font-size:var(--t-md);padding:9px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);resize:vertical}
 .bearb-hinweis{margin:9px 0 0;font-size:var(--t-s);color:var(--ink-2)}
 
 /* ── Suchleiste beim Scrollen ausblenden ─────────────────── */
@@ -1055,27 +1386,27 @@ body.gm-offen{overflow:hidden}
 .ctrl-klapp[hidden]{display:none}
 .ctrl-klapp{padding-bottom:2px}
 #gruppen{font:inherit;font-size:var(--t-s);padding:7px 9px;border:1px solid var(--line);
-  border-radius:2px;background:var(--paper);color:var(--ink);max-width:60%}
+  border-radius:var(--r-klein);background:var(--paper);color:var(--ink);max-width:60%}
 .ctrl-auf .ctrl-zahl{display:inline-block;min-width:16px;margin-left:6px;padding:0 4px;
-  border-radius:9px;background:var(--ink);color:var(--paper);font-size:10px;line-height:16px}
+  border-radius:var(--r-gross);background:var(--ink);color:var(--paper);font-size:10px;line-height:16px}
 .ctrl-auf{display:block;flex:0 0 auto;font:inherit;font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase;
-  padding:9px 11px;border:1px solid var(--line);border-radius:2px;background:var(--paper);color:var(--peat);cursor:pointer}
+  padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--peat);cursor:pointer}
 .controls.fest.klebt.offen .ctrl-auf{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 @media(prefers-reduced-motion:reduce){.controls{transition:none}}
 
 /* ── Karte: Schnellzugriff und Klappabschnitte ───────────── */
 .schnell{position:sticky;top:var(--schnell-oben,0px);z-index:12;background:var(--sand);
-  border:1px solid var(--line);border-radius:4px;padding:11px 12px;margin:0 0 12px;
+  border:1px solid var(--line);border-radius:var(--r-mittel);padding:11px 12px;margin:0 0 12px;
   box-shadow:var(--sch-schnell)}
 .schnell-lage{font-size:var(--t-m);line-height:1.45;margin-bottom:9px;overflow-wrap:anywhere}
 .schnell-lage.warn{color:var(--terra)}
 .schnell-btns{display:flex;flex-wrap:wrap;gap:6px}
-.sb{font:inherit;font-size:var(--t-m);padding:9px 13px;border:1px solid var(--line);border-radius:3px;
+.sb{font:inherit;font-size:var(--t-m);padding:9px 13px;border:1px solid var(--line);border-radius:var(--r-klein);
   background:var(--paper);color:var(--ink);cursor:pointer;flex:1 1 auto;min-width:82px}
 .sb:hover{border-color:var(--peat)}
 .sb-haupt{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 .sb-haupt.erledigt{background:var(--moss);border-color:var(--moss)}
-.acc{border:1px solid var(--line);border-radius:4px;margin-bottom:8px;background:var(--paper);overflow:hidden}
+.acc{border:1px solid var(--line);border-radius:var(--r-mittel);margin-bottom:8px;background:var(--paper);overflow:hidden}
 .acc>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:center;
   justify-content:space-between;gap:10px;font-family:var(--f-display);font-weight:600;font-size:var(--t-l)}
 .acc>summary::-webkit-details-marker{display:none}
@@ -1086,7 +1417,7 @@ body.gm-offen{overflow:hidden}
 .acc>summary:hover{background:var(--sand)}
 .acc-t{flex:1;min-width:0;overflow-wrap:anywhere}
 .acc-z{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
-  color:var(--peat);border:1px solid var(--line);border-radius:2px;padding:2px 6px;white-space:nowrap}
+  color:var(--peat);border:1px solid var(--line);border-radius:var(--r-klein);padding:2px 6px;white-space:nowrap}
 .acc-in{padding:13px 14px 15px}
 .acc-in>h4{margin:16px 0 6px;font-size:var(--t-md);font-family:var(--f-display)}
 .acc-in>h4:first-child{margin-top:0}
@@ -1095,7 +1426,7 @@ body.gm-offen{overflow:hidden}
 .acc-in .verlauf:first-child,.acc-in .wachstum:first-child{border-top:0;margin-top:0;padding-top:0}
 
 /* ── Warnungen und Karten-Reiter ─────────────────────────── */
-.warnbox{border:1px solid var(--terra);border-left-width:4px;border-radius:4px;
+.warnbox{border:1px solid var(--terra);border-left-width:4px;border-radius:var(--r-mittel);
   background:var(--ton-gift);padding:10px 12px;margin:0 0 12px}
 .warnbox p{margin:0 0 6px;font-size:var(--t-m);line-height:1.45;color:var(--terra);font-weight:600;overflow-wrap:anywhere}
 .warnbox p:last-child{margin-bottom:0}
@@ -1109,7 +1440,7 @@ body.gm-offen{overflow:hidden}
 
 /* Pflegehinweise: bewusst leiser als die Warnungen. Grau statt rot,
    ohne Ausrufezeichen, mit einem × zum Wegräumen. */
-.pflegehinweis{border:1px solid var(--line);border-radius:4px;
+.pflegehinweis{border:1px solid var(--line);border-radius:var(--r-mittel);
   background:var(--ton-tipp);padding:2px 4px 2px 10px;margin:0 0 12px}
 .ph-zeile{display:flex;align-items:flex-start;gap:6px;padding:7px 0;
   border-top:1px solid var(--line)}
@@ -1137,16 +1468,16 @@ body.einfach #zonen-sec{display:none!important}
 .lagebox{display:grid;gap:10px;margin-bottom:12px}
 .lagebox label{display:block}
 .lagebox select{width:100%;font:inherit;font-size:var(--t-m);padding:9px 10px;
-  border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
+  border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .lage-jetzt{font-size:var(--t-m);color:var(--peat);margin:0 0 10px;line-height:1.45}
 .lage-tier{font-size:var(--t-m);line-height:1.45;margin:0 0 10px}
 .lage-tier.warn{color:var(--terra);font-weight:600}
 .card-lage{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
   color:var(--peat);display:block;margin-top:2px;overflow-wrap:anywhere}
 .filter-sel{font:inherit;font-size:var(--t-m);padding:7px 9px;border:1px solid var(--line);
-  border-radius:3px;background:var(--paper);color:var(--ink);margin:0 6px 6px 0;max-width:47%}
+  border-radius:var(--r-klein);background:var(--paper);color:var(--ink);margin:0 6px 6px 0;max-width:47%}
 
-.verki{border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:16px;background:var(--sand)}
+.verki{border:1px solid var(--line);border-radius:var(--r-mittel);padding:14px;margin-bottom:16px;background:var(--sand)}
 .verki.leer{background:transparent}
 .verki h4{margin:0 0 8px}
 .verki-liste{margin:0 0 10px;padding-left:1.15em}
@@ -1163,7 +1494,7 @@ body.einfach #zonen-sec{display:none!important}
 /* ── Gießplan als Häufungsgrafik ──────────────────────────── */
 .gp{margin:0 0 18px}
 .gp-sockel{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:9px 12px;margin-bottom:10px;
-  border:1px solid var(--terra);border-radius:4px;background:var(--ton-erde)}
+  border:1px solid var(--terra);border-radius:var(--r-mittel);background:var(--ton-erde)}
 .gp-sockel b{color:var(--terra)}
 .gp-sockel span{font-size:var(--t-xs);color:var(--peat)}
 .gp-balken{display:flex;align-items:flex-end;gap:2px;height:132px;overflow-x:auto;padding-bottom:2px}
@@ -1181,7 +1512,7 @@ body.einfach #zonen-sec{display:none!important}
 .gp-liste li span{color:var(--peat);font-size:var(--t-xs)}
 
 /* ── Ansichten der Sammlung ──────────────────────────────── */
-.sam-ansicht{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--line);border-radius:4px;overflow:hidden;width:fit-content}
+.sam-ansicht{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--line);border-radius:var(--r-mittel);overflow:hidden;width:fit-content}
 .sam-ansicht button{border:0;border-radius:0;padding:8px 15px;background:transparent;font-size:var(--t-s);
   border-right:1px solid var(--line)}
 .sam-ansicht button:last-child{border-right:0}
@@ -1221,11 +1552,64 @@ body.einfach #zonen-sec{display:none!important}
 .sam-raster .card:not(.open) .bar{margin-top:6px}
 @media(min-width:760px){ .sam-raster .grid{grid-template-columns:repeat(4,1fr)} }
 
-.quar-anbieten{border:1px solid var(--line);border-radius:4px;padding:12px;background:var(--sand)}
+/* ── Botanisch: Raster mit echter Bildhoehe ───────────────────
+   Zwei Spalten statt drei, dafuer traegt jedes Bild sein eigenes
+   Format. Die Reihenfolge bleibt zeilenweise von oben nach unten. */
+html[data-design="botanisch"] .sam-raster .grid{
+  grid-template-columns:repeat(2,1fr);
+  grid-auto-rows:8px;
+  gap:12px;
+  align-items:start;
+}
+html[data-design="botanisch"] .sam-raster .card{
+  grid-row-end:span calc(var(--spanne, 10) * 2 + 9);
+  border-radius:var(--r-mittel);overflow:hidden;
+}
+html[data-design="botanisch"] .sam-raster .thumb{
+  aspect-ratio:1 / var(--bildhoehe, 1);
+}
+@media(min-width:760px){
+  html[data-design="botanisch"] .sam-raster .grid{grid-template-columns:repeat(3,1fr)}
+}
+
+/* ── Klartext: eine Spalte, grosses Bild, deckender Namensblock ──
+   Kein Text ueber dem Foto — auf einem hellen Blatt vor dunklem
+   Laub ist er sonst weg. Der Name steht in einem eigenen Block
+   darunter, mit voller Deckkraft. */
+html[data-design="klartext"] .sam-karten .grid{display:block}
+html[data-design="klartext"] .sam-karten .card{margin:0 0 14px}
+html[data-design="klartext"] .sam-karten .card-btn{display:block;width:100%;padding:0}
+html[data-design="klartext"] .sam-karten .thumb{
+  width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;display:block;
+  border-right:0;border-bottom:1px solid var(--linie-stark);
+}
+html[data-design="klartext"] .sam-karten .card-body{
+  padding:14px 14px 16px;background:var(--fl-karte);color:var(--ink);
+}
+html[data-design="klartext"] .sam-karten .card-name{font-size:var(--t-xl);line-height:1.3}
+/* Die Umschaltleiste bleibt — Klartext nimmt nichts weg, es waehlt
+   nur anders vor. */
+
+/* ── Terrarium: Token-Galerie ─────────────────────────────────
+   Dichter Beschnitt, ein Rand in der Zustandsfarbe, Symbol in der
+   Ecke. Die Farbe traegt nie allein: das Symbol sagt dasselbe. */
+html[data-design="terrarium"] .sam-raster .grid{gap:6px}
+html[data-design="terrarium"] .sam-raster .card{
+  position:relative;border-radius:var(--r-klein);overflow:hidden;
+  border:1.5px solid var(--linie);
+}
+html[data-design="terrarium"] .sam-raster .card:nth-child(4n+1) .thumb{aspect-ratio:3/4}
+html[data-design="terrarium"] .sam-raster .card:nth-child(4n+3) .thumb{aspect-ratio:4/3}
+html[data-design="terrarium"] .sam-raster .card-body{
+  padding:6px 7px 8px;background:var(--fl-tief);
+}
+html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
+
+.quar-anbieten{border:1px solid var(--line);border-radius:var(--r-mittel);padding:12px;background:var(--sand)}
 .quar-anbieten p{margin:0 0 10px;font-size:var(--t-s);line-height:1.55;color:var(--peat)}
 .zmed{margin:10px 0}
 .zmed .lab{display:block;margin-bottom:6px}
-.aqua{border:1px solid var(--line);border-radius:4px;padding:16px;background:var(--sand)}
+.aqua{border:1px solid var(--line);border-radius:var(--r-mittel);padding:16px;background:var(--sand)}
 .aqua h3{margin:0 0 10px}
 .aqua-liste{margin:0 0 12px;padding-left:1.15em}
 .aqua-liste li{margin-bottom:7px;font-size:var(--t-m);line-height:1.55}
@@ -1234,15 +1618,15 @@ body.einfach #zonen-sec{display:none!important}
 .takt .lab{font-size:var(--t-s);color:var(--peat)}
 .takt-pm{width:38px;height:38px;font-size:1.15rem;line-height:1;padding:0;flex:0 0 auto}
 .takt-zahl{width:64px;text-align:center;font:inherit;font-size:var(--t-l);padding:7px 4px;
-  border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink)}
+  border:1px solid var(--line);border-radius:var(--r-mittel);background:var(--paper);color:var(--ink)}
 .takt-zahl:focus{outline:2px solid var(--water);outline-offset:-1px}
-.erinnerung{border:1px solid var(--terra);border-left-width:4px;border-radius:4px;padding:12px 14px;margin-bottom:14px;background:var(--paper)}
+.erinnerung{border:1px solid var(--terra);border-left-width:4px;border-radius:var(--r-mittel);padding:12px 14px;margin-bottom:14px;background:var(--paper)}
 .erinnerung p{margin:0 0 9px;font-size:var(--t-m);line-height:1.55}
 
 /* ── Substrat ────────────────────────────────────────────── */
 #sub-pflanze,#sub-ziel,#sub-topf{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
-  border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
-.sub-erg{border:1px solid var(--line);border-left-width:4px;border-radius:4px;padding:14px 15px;background:var(--paper)}
+  border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
+.sub-erg{border:1px solid var(--line);border-left-width:4px;border-radius:var(--r-mittel);padding:14px 15px;background:var(--paper)}
 .sub-titel{margin:16px 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
 .sub-titel:first-child{margin-top:0}
 .sub-erg.optimal{border-left-color:var(--water)}
@@ -1250,9 +1634,9 @@ body.einfach #zonen-sec{display:none!important}
 .sub-rezept{margin:0 0 10px;font-size:var(--t-m);line-height:1.6}
 .sub-tab tr.fehlt td{color:var(--ink-2)}
 .sub-fehlt{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
-  color:var(--terra);border:1px solid var(--terra);border-radius:2px;padding:1px 4px;white-space:nowrap}
+  color:var(--terra);border:1px solid var(--terra);border-radius:var(--r-klein);padding:1px 4px;white-space:nowrap}
 .sub-kaufen{margin:10px 0 0;font-size:var(--t-m);line-height:1.6}
-.sub-ersatz{margin:8px 0 0;padding:9px 12px;list-style:none;border-radius:4px;
+.sub-ersatz{margin:8px 0 0;padding:9px 12px;list-style:none;border-radius:var(--r-mittel);
   background:var(--ton-blatt);font-size:var(--t-m);line-height:1.55}
 .sub-ersatz li{margin:0 0 5px}
 .sub-ersatz li:last-child{margin-bottom:0}
@@ -1283,7 +1667,7 @@ body.einfach #zonen-sec{display:none!important}
 .topf-karussell::-webkit-scrollbar{height:0}
 .topf-form{flex:0 0 auto;scroll-snap-align:start;display:flex;flex-direction:column;
   align-items:center;gap:4px;width:86px;padding:10px 6px 8px;cursor:pointer;
-  border:1px solid var(--line);border-radius:4px;background:var(--sand);
+  border:1px solid var(--line);border-radius:var(--r-mittel);background:var(--sand);
   color:var(--ink-2);font:inherit;text-align:center}
 .topf-form b{font-size:var(--t-s);font-weight:600;line-height:1.2}
 .topf-form i{font-style:normal;font-size:var(--t-mono);font-family:var(--f-data);opacity:.7;line-height:1.2}
@@ -1302,22 +1686,22 @@ body.einfach #zonen-sec{display:none!important}
 .sb-zeile{display:flex;align-items:center;gap:9px;margin-bottom:7px}
 .sb-name{flex:0 0 96px;font-size:var(--t-s);color:var(--ink-2)}
 .sb-bahn{position:relative;flex:1;min-width:0;height:9px;border-radius:5px;background:var(--sand);border:1px solid var(--line)}
-.sb-ist{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--peat);opacity:.75}
+.sb-ist{position:absolute;left:0;top:0;bottom:0;border-radius:var(--r-mittel);background:var(--peat);opacity:.75}
 .sb-ist.gut{background:var(--moss)}
 .sb-soll{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);transform:translateX(-1px)}
 .sb-wert{flex:0 0 auto;font-size:var(--t-xs);font-variant-numeric:tabular-nums;color:var(--ink-2);min-width:52px;text-align:right}
 .sb-wert i{font-style:normal;opacity:.6}
 .sub-luecke{margin:8px 0 0;padding-left:19px;font-size:var(--t-m);line-height:1.6}
 .sub-luecke li{margin-bottom:4px;overflow-wrap:anywhere}
-.sub-kauf{border:1px dashed var(--line);border-radius:3px;padding:12px 13px;margin-top:11px}
+.sub-kauf{border:1px dashed var(--line);border-radius:var(--r-klein);padding:12px 13px;margin-top:11px}
 .sub-kauf p{margin:0 0 6px;font-size:var(--t-m);line-height:1.55}
 .sub-kauf-erg{color:var(--ink-2);font-size:var(--t-s)!important;overflow-wrap:anywhere}
 @media(max-width:400px){.sb-name{flex-basis:74px;font-size:var(--t-xs)}.sb-wert{min-width:44px}}
 
 /* ── Vermehrung ──────────────────────────────────────────── */
 #ver-pflanze{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
-  border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
-.ver{border:1px solid var(--line);border-radius:4px;margin-bottom:9px;background:var(--paper);overflow:hidden}
+  border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
+.ver{border:1px solid var(--line);border-radius:var(--r-mittel);margin-bottom:9px;background:var(--paper);overflow:hidden}
 .ver>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:flex-start;
   justify-content:space-between;gap:10px}
 .ver>summary::-webkit-details-marker{display:none}
@@ -1327,7 +1711,7 @@ body.einfach #zonen-sec{display:none!important}
 .ver-kopf b{font-family:var(--f-display);font-size:var(--t-l);overflow-wrap:anywhere}
 .ver-kopf i{font-style:normal;font-size:var(--t-s);color:var(--ink-2);overflow-wrap:anywhere}
 .ver-eig{flex:0 0 auto;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.09em;text-transform:uppercase;
-  border:1px solid var(--line);border-radius:2px;padding:3px 6px;white-space:nowrap;color:var(--ink-2)}
+  border:1px solid var(--line);border-radius:var(--r-klein);padding:3px 6px;white-space:nowrap;color:var(--ink-2)}
 .ver-eig.sehr-gut{color:var(--moss);border-color:var(--moss)}
 .ver-eig.gut{color:var(--peat);border-color:var(--peat)}
 .ver-eig.schwierig,.ver-eig.mäßig{color:var(--terra);border-color:var(--terra)}
@@ -1347,8 +1731,8 @@ body.einfach #zonen-sec{display:none!important}
 
 /* ── Vermehren ───────────────────────────────────────────── */
 #verm-pflanze{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
-  border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink)}
-.vm{border:1px solid var(--line);border-left-width:4px;border-radius:4px;margin-bottom:8px;background:var(--paper)}
+  border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
+.vm{border:1px solid var(--line);border-left-width:4px;border-radius:var(--r-mittel);margin-bottom:8px;background:var(--paper)}
 .vm.gut{border-left-color:var(--moss)}
 .vm.geht{border-left-color:var(--peat)}
 .vm.nein{border-left-color:var(--terra);opacity:.9}
@@ -1359,7 +1743,7 @@ body.einfach #zonen-sec{display:none!important}
 .vm-titel b{font-family:var(--f-display);font-size:var(--t-l);overflow-wrap:anywhere}
 .vm-titel i{font-style:normal;font-size:var(--t-s);color:var(--ink-2);overflow-wrap:anywhere}
 .vm-note{flex:0 0 auto;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
-  border:1px solid var(--line);border-radius:2px;padding:2px 6px;white-space:nowrap;color:var(--peat)}
+  border:1px solid var(--line);border-radius:var(--r-klein);padding:2px 6px;white-space:nowrap;color:var(--peat)}
 .vm.gut .vm-note{color:var(--moss);border-color:var(--moss)}
 .vm.nein .vm-note{color:var(--terra);border-color:var(--terra)}
 .vm-in{padding:0 14px 14px;border-top:1px solid var(--line);margin-top:-1px;padding-top:12px}
@@ -1396,7 +1780,7 @@ body.einfach #zonen-sec{display:none!important}
 .heute-start .gm-start-txt i{display:block;overflow-wrap:anywhere}
 @media(max-width:380px){.heute-start{grid-template-columns:1fr}}
 
-.start{border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:4px;padding:var(--a-4);background:var(--paper)}
+.start{border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:var(--r-mittel);padding:var(--a-4);background:var(--paper)}
 .start h3{margin:0 0 var(--a-2);font-size:var(--t-xl);font-family:var(--f-display)}
 .start p{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
 .start-weg{margin:var(--a-3) 0 var(--a-3);padding-left:20px;font-size:var(--t-m);line-height:1.7}
@@ -1409,7 +1793,7 @@ body.einfach #zonen-sec{display:none!important}
 .rg-start.leer .rg-i::before{background:var(--ink-2)}
 .stat-seit{margin:0 0 9px;font-size:var(--t-m);color:var(--ink-2)}
 .stat-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
-.stat-chip{font:inherit;font-size:var(--t-s);padding:8px 11px;border:1px solid var(--line);border-radius:3px;
+.stat-chip{font:inherit;font-size:var(--t-s);padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-klein);
   background:var(--paper);color:var(--ink);cursor:pointer}
 .stat-chip.gut{border-color:var(--moss);color:var(--moss)}
 .stat-chip.warn{border-color:var(--terra);color:var(--terra)}
@@ -1434,7 +1818,7 @@ body.einfach #zonen-sec{display:none!important}
 .rg-wert i{font-style:normal;font-size:var(--t-xs);color:var(--ink-2)}
 .rg-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px}
 .rg-foto{display:block;margin:10px auto 0;max-width:260px}
-.rg-foto span{display:block;padding:12px;border:1.5px dashed var(--line);border-radius:4px;
+.rg-foto span{display:block;padding:12px;border:1.5px dashed var(--line);border-radius:var(--r-mittel);
   text-align:center;font-size:var(--t-m);color:var(--ink-2);cursor:pointer}
 .rg-heute{margin:10px 0 0;font-size:var(--t-s);color:var(--moss)}
 
@@ -1451,7 +1835,7 @@ body.vollbild .plan-svg{max-height:100%;width:auto;max-width:100%}
   background:var(--sand);border-right:1px solid var(--line);
   display:flex;flex-direction:column;align-items:center;gap:var(--a-1);padding:var(--a-2) 0;overflow-y:auto}
 .vb-leiste[hidden]{display:none}
-.vb-w{width:40px;height:40px;flex:0 0 auto;border:1px solid var(--line);border-radius:4px;
+.vb-w{width:40px;height:40px;flex:0 0 auto;border:1px solid var(--line);border-radius:var(--r-mittel);
   background:var(--paper);color:var(--ink);font:inherit;font-size:var(--t-l);cursor:pointer;
   display:flex;align-items:center;justify-content:center}
 .vb-w.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -1477,7 +1861,7 @@ body:not(.vollbild) .vb-schublade{display:none}
 .vb-fuss input[type=range]{flex:1;min-width:0;accent-color:var(--water)}
 .vb-licht{display:flex;gap:4px}
 .vb-licht button{font:inherit;font-size:var(--t-xs);padding:6px 9px;border:1px solid var(--line);
-  border-radius:3px;background:var(--paper);color:var(--ink);cursor:pointer}
+  border-radius:var(--r-klein);background:var(--paper);color:var(--ink);cursor:pointer}
 .vb-licht button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 #vb-info{margin:0;flex:1 1 100%;font-size:var(--t-xs);color:var(--ink-2)}
 .vb-quer{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:4;margin:0;
@@ -1533,7 +1917,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
   font-family:var(--f-data);font-size:var(--t-mono);display:flex;align-items:center;justify-content:center}
 .dok-wahl{display:grid;gap:var(--a-2)}
 .dok-weg{text-align:left;font:inherit;padding:var(--a-3) var(--a-4);border:1px solid var(--line);
-  border-left-width:4px;border-radius:4px;background:var(--paper);color:var(--ink);cursor:pointer}
+  border-left-width:4px;border-radius:var(--r-mittel);background:var(--paper);color:var(--ink);cursor:pointer}
 .dok-weg:first-child{border-left-color:var(--water)}
 .dok-weg:last-child{border-left-color:var(--peat)}
 .dok-weg b{display:block;font-family:var(--f-display);font-size:var(--t-l);margin-bottom:3px}
@@ -1543,14 +1927,14 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .dok-g{font:inherit;font-size:var(--t-s);padding:8px 12px;border:1px solid var(--line);border-radius:100px;
   background:var(--paper);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .dok-g.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.dok-g span{background:var(--terra);color:var(--schrift-invers);border-radius:8px;min-width:16px;height:16px;
+.dok-g span{background:var(--terra);color:var(--schrift-invers);border-radius:var(--r-gross);min-width:16px;height:16px;
   font-size:var(--t-mono);line-height:16px;text-align:center;padding:0 4px}
 .dok-gewaehlt{margin:var(--a-3) 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.55;overflow-wrap:anywhere}
 
 /* ── Aufgaben: Titel, Beschreibung, Zeitpunkt ────────────── */
 .task-titel{display:inline}
 .wann{display:inline-block;margin-left:var(--a-2);font-family:var(--f-data);font-size:var(--t-mono);
-  letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:2px;
+  letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);border-radius:var(--r-klein);
   padding:1px 6px;color:var(--peat);vertical-align:2px;white-space:nowrap}
 .wann.warn{color:var(--terra);border-color:var(--terra)}
 .wann.still{opacity:.7}
@@ -1560,16 +1944,16 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
   border-left:2px solid var(--line);padding-left:var(--a-3)}
 .task-desc[hidden]{display:none}
 .add-wann{flex:0 0 auto;font:inherit;font-size:var(--t-s);padding:8px 6px;border:1px solid var(--line);
-  border-radius:3px;background:var(--paper);color:var(--ink);max-width:38%}
+  border-radius:var(--r-klein);background:var(--paper);color:var(--ink);max-width:38%}
 @media(max-width:420px){.addbar{flex-wrap:wrap}.add-wann{max-width:none;flex:1 1 100%}}
 
 /* ── Aktualisierung und Installation ─────────────────────── */
 #update-streifen{position:fixed;left:var(--a-3);right:var(--a-3);bottom:calc(76px + var(--a-3));z-index:90;
-  background:var(--ink);color:var(--paper);border-radius:5px;padding:var(--a-3) var(--a-4);
+  background:var(--ink);color:var(--paper);border-radius:var(--r-mittel);padding:var(--a-3) var(--a-4);
   display:flex;align-items:center;gap:var(--a-2);flex-wrap:wrap;
   box-shadow:var(--sch-streifen)}
 #update-streifen span{flex:1 1 140px;font-size:var(--t-m)}
-#update-streifen button{font:inherit;font-size:var(--t-s);padding:8px 12px;border-radius:3px;
+#update-streifen button{font:inherit;font-size:var(--t-s);padding:8px 12px;border-radius:var(--r-klein);
   border:1px solid var(--paper);background:none;color:var(--paper);cursor:pointer}
 #update-streifen button.haupt{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
 @media(min-width:760px){#update-streifen{bottom:var(--a-4);left:auto;right:var(--a-4);max-width:420px}}
@@ -1583,11 +1967,11 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
    Deckelchen ueber dem Loch kommt nur bei den Erklaerschritten
    dazu, wo nichts angetippt werden soll. */
 #tour[hidden]{display:none}
-#tour{position:fixed;inset:0;z-index:150;pointer-events:none}
+#tour{position:fixed;inset:0;z-index:300;pointer-events:none}
 .tour-bl{position:fixed;background:var(--schleier-tour);pointer-events:auto}
 #tour-deckel{position:fixed;background:none;pointer-events:auto;display:none}
 #tour.zu #tour-deckel{display:block}
-#tour-ring{position:fixed;border:2px solid var(--paper);border-radius:6px;
+#tour-ring{position:fixed;border:2px solid var(--paper);border-radius:var(--r-mittel);
   box-shadow:var(--ring-tour);pointer-events:none}
 #tour-ring[hidden]{display:none}
 #tour-pfeil{position:fixed;width:0;height:0;pointer-events:none;
@@ -1597,7 +1981,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-pfeil.runter{border-top:11px solid var(--ink)}
 #tour-karte{position:fixed;left:50%;transform:translateX(-50%);
   width:min(460px,calc(100vw - 28px));background:var(--paper);
-  border:1px solid var(--ink);border-radius:5px;pointer-events:auto;
+  border:1px solid var(--ink);border-radius:var(--r-mittel);pointer-events:auto;
   padding:var(--a-4) var(--a-4) var(--a-3);box-shadow:var(--sch-tour)}
 #tour-nr{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
   text-transform:uppercase;color:var(--peat);margin:0 0 6px;padding-right:22px}
@@ -1605,7 +1989,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
   margin:0 0 6px;padding-right:22px}
 #tour-text{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
 #tour-fuss{display:flex;gap:var(--a-2);align-items:center;flex-wrap:wrap}
-#tour-fuss button{font:inherit;font-size:var(--t-s);padding:9px 14px;border-radius:3px;
+#tour-fuss button{font:inherit;font-size:var(--t-s);padding:9px 14px;border-radius:var(--r-klein);
   border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 #tour-fuss button.haupt{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 #tour-fuss button[disabled]{opacity:.32;cursor:default}
@@ -1617,7 +2001,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-liste .mrow:first-child{border-top:0}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#f7f4ec">
+<meta name="theme-color" content="#FBF9F3">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -6825,6 +7209,28 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan mh" id="wetter-sec" data-mh="wetter">
+    <h2 class="wz-h2">Wetter</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="wetter" aria-expanded="false" aria-controls="mh-in-wetter">
+        <span class="wz-t">Wetter</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="wetter" aria-expanded="false" aria-label="Wozu ist das Wetter da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-wetter" hidden>
+      <p class="wz-hilfe" hidden>Wer Pflanzen auf dem Balkon stehen hat, gießt bei angesagtem Regen umsonst — und bei dreißig Grad reicht der übliche Rhythmus oft nicht. Trägst du hier einen Ort ein, zeigt „Heute“ eine Zeile mit Temperatur und Regen. Die App ändert damit nichts an deinen Gießabständen; sie sagt nur Bescheid. Die Daten kommen von Open-Meteo, einem freien Wetterdienst ohne Anmeldung. Übertragen wird nur der Ortsname beim Suchen und danach die Koordinaten — keine Angaben zu dir oder deinen Pflanzen. Ohne eingetragenen Ort fragt die App nichts ab und die Zeile bleibt aus.</p>
+      <div class="wt-suche">
+        <label class="fspan" for="wt-ort">Ort</label>
+        <div class="wt-zeile">
+          <input type="text" id="wt-ort" placeholder="z. B. Leipzig" autocomplete="address-level2">
+          <button type="button" id="wt-such">Suchen</button>
+        </div>
+      </div>
+      <div id="wt-treffer" class="wt-treffer" hidden></div>
+      <p id="wt-stand" class="wt-stand"></p>
+      <button type="button" id="wt-weg" class="wt-weg" hidden>Ort entfernen</button>
+    </div>
+  </section>
+
   <section data-ans="mehr" class="plan mh" id="tier-sec" data-mh="tiere">
     <h2 class="wz-h2">Haustiere</h2>
     <div class="wz-kopfzeile">
@@ -6893,9 +7299,9 @@ function papierkorbRender(){
     </div>
     <div class="wz-in" id="mh-in-ansicht" hidden>
       <p class="wz-hilfe" hidden>Normalerweise ist die App in vier Reiter geteilt, die unten am Rand stehen. Mit dem Haken läuft stattdessen wieder alles untereinander auf einer einzigen langen Seite. Am großen Bildschirm ist das oft angenehmer, am Handy meistens nicht. Der einfache Modus blendet alles aus, was man am Anfang nicht braucht — der Grundriss, die Gießart-Auswahl und der Blattzähler verschwinden, der Rundgang läuft mit drei Knöpfen. Es geht dabei nichts verloren: sobald du den Haken wieder wegnimmst, ist alles unverändert da. Pflegehinweise sind die kleinen grauen Kästen auf den Pflanzenkarten — etwa wenn an einem Platz deutlich weniger Sonne ankommt, als die Art gewohnt ist. Sie verbieten nichts und ändern nichts, sie sagen nur Bescheid. Einzelne lassen sich mit dem × wegklicken, mit dem Haken hier verschwinden sie alle.</p>
+    <span class="dsn-lab">Design</span>
+    <div class="dsn-wahl" role="group" aria-label="Design wählen" id="dsn-wahl"></div>
     <div class="mh-spalte">
-      <label class="fspan check">
-        <input type="checkbox" id="ans-alles"> <span class="lab" style="display:inline">Alles auf einer Seite zeigen</span></label>
       <label class="fspan check">
         <input type="checkbox" id="ans-einfach"> <span class="lab" style="display:inline">Einfacher Modus</span></label>
       <label class="fspan check">
@@ -7054,6 +7460,34 @@ function papierkorbRender(){
   <p class="ub-fuss"><span id="ub-fuss-txt"></span></p>
 </div>
 
+<!-- Eine Huelle fuer alle 17 Werkzeug- und Mehr-Abschnitte. Der
+     Inhalt wird beim Oeffnen aus seinem Abschnitt hierher gehaengt
+     und beim Schliessen zurueck. Verschoben, nicht kopiert: so
+     behalten alle Kennungen und Ereignisse ihre Gueltigkeit. -->
+<!-- Das Kartendetail. Frueher klappte es in der Liste auf; bei
+     einer langen Karte sprang die Liste dann unter dem Finger weg.
+     Jetzt bekommt eine Pflanze den ganzen Schirm, und die Pfeile
+     fuehren zur naechsten, ohne dass man zurueck in die Liste muss. -->
+<div id="karte-modal" class="sekm" hidden>
+  <div class="sekm-kopf">
+    <button class="sekm-i" id="karte-vor" aria-label="Vorige Pflanze">‹</button>
+    <h2 class="sekm-titel" id="karte-titel" tabindex="-1">&nbsp;</h2>
+    <button class="sekm-i" id="karte-zurueck" aria-label="Nächste Pflanze">›</button>
+    <button class="sekm-zu" id="karte-zu" aria-label="Fenster schließen">Fertig</button>
+  </div>
+  <div class="sekm-fest" id="karte-fest"></div>
+  <div class="sekm-rumpf" id="karte-rumpf"></div>
+</div>
+
+<div id="sek-modal" class="sekm" hidden>
+  <div class="sekm-kopf">
+    <h2 class="sekm-titel" id="sekm-titel" tabindex="-1">&nbsp;</h2>
+    <button class="sekm-i" id="sekm-info" aria-expanded="false" hidden>Wozu?</button>
+    <button class="sekm-zu" id="sekm-zu" aria-label="Fenster schließen">Fertig</button>
+  </div>
+  <div class="sekm-rumpf" id="sekm-rumpf"></div>
+</div>
+
 <nav class="tabs" id="tabs">
   <button data-ans-go="heute"><span class="tab-i"></span>Heute</button>
   <button data-ans-go="sammlung"><span class="tab-i"></span>Sammlung</button>
@@ -7128,8 +7562,104 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.1';
+const FASSUNG = '2.9.9';
 const PATCHNOTES = [
+  {
+    nr: '2.9.9', datum: '2026-08-25', titel: 'Erklärung und Karte',
+    neu: [
+      'Die App Tour liegt jetzt über den Fenstern statt darunter. „Weiter“ führt wieder zum nächsten Erklärschritt — vorher fiel der Tipp auf den Knopf dahinter durch und sprang zur nächsten Pflanze, in den Doktor oder ganz heraus.',
+      'Der Schnellzugriff im Kartenfenster bleibt beim Blättern oben stehen.'
+    ],
+    besser: [
+      'Die Erklärschritte kennen die Fenster, in denen sie stehen. Wo ein Schritt früher auf einen Knopf zeigte, den es nach dem Umbau nicht mehr gibt, blieb die Tour hängen — bei „Pflanzendoktor“ etwa auf Schritt 3, ohne Weg vor oder zurück.',
+      'Die Abhakkästchen bei den Aufgaben sind wieder quadratisch. Eine Regel für Mindestgrößen von Knöpfen hatte sie in die Länge gezogen; die Trefffläche bleibt trotzdem groß.',
+      '„Zuklappen“ im Kartenfenster ist weg. „Fertig“ oben rechts tat dasselbe.'
+    ]
+  },
+  {
+    nr: '2.9.8', datum: '2026-08-25', titel: 'Wetter',
+    neu: [
+      'Unter „Mehr › Wetter“ lässt sich ein Ort eintragen. Auf „Heute“ steht dann eine Zeile mit Temperatur, Tageshoch und -tief und angesagtem Regen — plus einem knappen Hinweis, wenn er sich lohnt: bei viel Regen, bei Hitze, bei Frost.',
+      'Die App verschiebt damit keine Gießabstände von allein. Sie sagt Bescheid, entschieden wird von dir.'
+    ],
+    besser: [
+      'Ohne eingetragenen Ort fragt die App nichts ab und die Zeile bleibt aus. Übertragen wird beim Suchen der Ortsname, danach nur noch die Koordinaten — nichts über dich, nichts über deine Pflanzen.',
+      'Ohne Netz steht der letzte bekannte Wert da, und ab sechs Stunden mit dem Datum dabei. Keine Fehlermeldung, kein Hänger — aber auch keine Zahl, die so tut, als wäre sie von jetzt.'
+    ]
+  },
+  {
+    nr: '2.9.7', datum: '2026-08-25', titel: 'Sehen, wofür man sich entscheidet',
+    neu: [
+      'Die Designwahl unter „Mehr › Ansicht“ zeigt jetzt zu jedem Design eine kleine Vorschau statt nur den Namen. Man sieht vorher, worauf man sich einlässt.'
+    ],
+    besser: [
+      'Die Vorschauen sind nicht gemalt, sondern aus denselben Farbwerten gebaut, die auch die App färben. Wenn sich ein Farbwert ändert, ändert sich die Vorschau mit — eine gezeichnete Vorschau hätte irgendwann etwas anderes gezeigt als die App.'
+    ]
+  },
+  {
+    nr: '2.9.6', datum: '2026-08-25', titel: 'Die Sammlung',
+    neu: [
+      'Jedes Design bringt eine eigene Vorbelegung für die Sammlung mit: Botanisch und Terrarium zeigen das Raster, Klartext eine Spalte mit großem Bild und großem Namen. Die Umschaltleiste bleibt — wer einmal umschaltet, behält seine Wahl auch nach einem Designwechsel.',
+      'Im Raster von Botanisch behält jedes Foto sein echtes Format. Ein hochkant fotografierter Bogenhanf steht hoch, eine breite Schale liegt breit.'
+    ],
+    besser: [
+      'Die Vorschaubilder werden erst geladen, wenn sie fast im Bild sind. Bei vierzig Pflanzen mit großen Fotos war das Scrollen auf schwachen Geräten spürbar zäh — der Browser hat vorher alle Bilder auf einmal aufbereitet.'
+    ]
+  },
+  {
+    nr: '2.9.5', datum: '2026-08-25', titel: 'Eine Pflanze, ein Bildschirm',
+    neu: [
+      'Eine Pflanze antippen öffnet sie jetzt als eigenes Fenster über den ganzen Bildschirm, statt die Karte in der Liste aufzuklappen. Bei einer langen Karte sprang die Liste vorher unter dem Finger weg.',
+      'Zwei Pfeile oben im Fenster führen zur vorigen und nächsten Pflanze — in der Reihenfolge, in der die Liste gerade sortiert und gefiltert ist. Wer zehn Pflanzen durchsehen will, muss nicht neun Mal zurück in die Liste.',
+      'Mit angeschlossener Tastatur blättern auch die Pfeiltasten, solange man nicht gerade in einem Feld tippt.'
+    ],
+    besser: [
+      'In Klartext gibt es im Kartenfenster keine Reiter mehr. Pflege, Standort und Verlauf stehen untereinander, jeweils mit Überschrift. Nichts ist hinter einer Bedienung versteckt, die man erst kennen muss.',
+      'Der Zurück-Knopf des Handys schließt das Kartenfenster.'
+    ]
+  },
+  {
+    nr: '2.9.4', datum: '2026-08-25', titel: 'Werkzeuge und Mehr öffnen als Fenster',
+    neu: [
+      'Die sechs Werkzeuge liegen jetzt als Kacheln nebeneinander und öffnen sich als Fenster über den ganzen Bildschirm. Vorher klappte immer nur eines auf, und wer das zweite wollte, musste erst das erste zuklappen.',
+      'Die elf Punkte unter „Mehr“ öffnen genauso. Kein Scrollen mehr an zugeklappten Zeilen vorbei.',
+      'Die Erklärungstexte stehen nicht mehr im Weg, sondern hinter einem „Wozu?“-Knopf oben im Fenster.',
+      'Der Zurück-Knopf des Handys schließt jetzt das offene Fenster, statt die App zu verlassen. Dasselbe gilt für die Wischgeste am Rand. Wer im Gießmodus versehentlich zurückwischt, landet wieder in der App und nicht auf dem Startbildschirm.',
+      'Esc schließt das oberste Fenster, ein Tippen neben das Fenster ebenfalls — außer bei Gießmodus, Rundgang, Urlaubszettel und der Ersteinrichtung, wo ein versehentlicher Fingertipp sonst mitten in der Arbeit alles zumacht.'
+    ],
+    besser: [
+      'Solange ein Fenster offen ist, scrollt die Seite dahinter nicht mehr mit weg. Beim Schließen steht man wieder an derselben Stelle.',
+      'Der Hintergrund ist während eines offenen Fensters vollständig stillgelegt — nicht anklickbar, nicht per Tabulator erreichbar und für Vorlesesoftware nicht vorhanden. Bisher galt das nur für den Hauptbereich, nicht für die Reiterleiste.',
+      'Beim Öffnen springt der Vorleser jetzt auf die Überschrift des Fensters statt auf den ersten Knopf. Man hört, worum es geht, bevor man hört, was man drücken kann.',
+      'Beim Schließen kehrt der Fokus auf das Element zurück, das das Fenster geöffnet hat.',
+      'Halb ausgefüllte Formulare bleiben beim Öffnen und Schließen erhalten — der Inhalt wird verschoben, nicht neu aufgebaut.',
+      '„Alles auf einer Seite zeigen“ ist entfallen — die Einstellung stammt aus der Zeit, als die Seiten kurz waren; mit Fenstern über die volle Höhe ergibt eine Endlosseite keinen Sinn mehr.'
+    ]
+  },
+  {
+    nr: '2.9.3', datum: '2026-08-25', titel: 'Die Designs bekommen ihre Maße',
+    neu: [
+      'Knöpfe, Auswahlfelder und Eingabefelder haben jetzt überall eine Mindestgröße. In Klartext sind das 56 Pixel — mehr als der Standard verlangt, weil man mit zittrigen Händen bei 48 nur knapp trifft.',
+      'Klartext schreibt keine Versalien mehr und hält die Zeilen kurz genug, dass man beim Zurückspringen die nächste findet.'
+    ],
+    besser: [
+      'Die Ecken der Karten und Kästen folgen jetzt dem Design: Botanisch rundet deutlich weicher ab als bisher, Terrarium noch stärker, Klartext bleibt bewusst kantig — bei großer Schrift laufen weiche Ecken sonst ineinander.',
+      'Alle Schriftgrößen hängen jetzt an der Systemschriftgröße. Wer sie im Handy hochsetzt, sieht das auch in den kleinsten Etiketten der App.',
+      'Symbole, Fortschrittsbalken und der Urlaubszettel behalten ihre festen Maße. Ein Reitersymbol ist 20 Pixel groß — mit dem Kartenradius wäre daraus ein Klecks geworden, und der Zettel wird auf Papier gedruckt.'
+    ]
+  },
+  {
+    nr: '2.9.2', datum: '2026-08-25', titel: 'Drei Designs',
+    neu: [
+      'Unter „Mehr › Ansicht“ steht jetzt die Designwahl. Drei Stück: Botanisch ist der neue Standard — wärmeres Papierweiß, und die Reiter Heute und Mehr stehen auf Dunkelgrün. Klartext ist für schlechte Augen, wackelige Hände und grelles Sonnenlicht gemacht: große Schrift, große Knöpfe, schwarze Kanten, keine Bewegung. Terrarium ist durchgehend dunkel mit einem leuchtenden Grünton.',
+      'Die Wahl wird gemerkt und gilt sofort — ohne Neuladen und ohne Aufblitzen beim nächsten Öffnen.',
+      'Die Statusleiste des Handys färbt sich mit. Über einer dunklen Seite steht kein cremefarbener Streifen mehr.'
+    ],
+    besser: [
+      'Klartext schaltet jede Animation ab, auch wenn im Betriebssystem nichts eingestellt ist. Fenster sind da oder nicht da.',
+      'Das gewählte Design zeigt sich nicht nur an der Farbe, sondern zusätzlich am Haken und an der kräftigeren Schrift.'
+    ]
+  },
   {
     nr: '2.9.1', datum: '2026-08-25', titel: 'Vorbereitung auf die drei Ansichten',
     besser: [
@@ -7546,6 +8076,7 @@ const LEERSTAND = () => ({
   eigene:[], zustand:{}, neueArten:[], blatt:{}, edits:{}, vorrat:[], weg:{},
   ereignisse:{}, gesehen:{}, orte:{}, acc:{giessen:1, aufgaben:1},
   balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'', sammlungOffen:null,
+  design:'botanisch', wetter:null,
   letzteSicherung:null, startGesehen:null, grundrissWunsch:null,
   /* Erklärungen: aus schaltet alles ab, kapitel merkt sich die
      gesehenen, einricht den Stand der Ersteinrichtung. */
@@ -7555,6 +8086,141 @@ const LEERSTAND = () => ({
   feuchtRueck:{}   /* Rückmeldungen „noch feucht“ je Pflanze */
 });
 let S = LEERSTAND();
+
+/* ══════════════════ Designs ══════════════════
+   Drei Fuellungen fuer einen Satz Tokens. Die Flags sind
+   Voreinstellungen, keine Sperren — sie sagen, welche Darstellung
+   eine Oberflaeche zunaechst waehlt, nicht was erlaubt ist.
+
+   Grundsatz: Designs unterscheiden sich in Darstellung und
+   Bedienung, nie im Funktionsumfang. Jede Aktion muss in allen
+   dreien erreichbar bleiben. */
+const DESIGNS = {
+  botanisch: {name:'Botanisch', zonen:['heute','mehr'], sammlung:'raster',
+              kartendetail:'reiter', dichte:'normal', statistiken:false,
+              leiste:'#FBF9F3', dunkel:'#2C3E33'},
+  klartext:  {name:'Klartext',  zonen:[],              sammlung:'eine-spalte',
+              kartendetail:'menue',  dichte:'knapp',  statistiken:false,
+              leiste:'#FFFFFF', dunkel:null},
+  terrarium: {name:'Terrarium', zonen:'alle',          sammlung:'tokens',
+              kartendetail:'reiter', dichte:'voll',   statistiken:true,
+              leiste:'#0C1810', dunkel:'#0C1810'}
+};
+const DESIGN_SCHLUESSEL = 'gk-design';
+
+/* ── Miniaturen ───────────────────────────────────────────────
+   Die Vorschau wird nicht gemalt, sondern aus denselben Tokens
+   gebaut, die auch die App faerben. Wer spaeter einen Farbwert
+   aendert, aendert die Miniatur mit — eine handgezeichnete
+   Vorschau haette irgendwann gelogen.
+
+   Gelesen wird an einem unsichtbaren Element mit dem jeweiligen
+   Design, nicht am Dokument: sonst zeigten alle drei Miniaturen
+   die Farben des gerade eingestellten Designs. */
+function designTokens(name){
+  const probe = document.createElement('div');
+  probe.setAttribute('data-design', name);
+  probe.style.cssText = 'position:absolute;left:-9999px;width:0;height:0';
+  document.documentElement.appendChild(probe);
+  const c = getComputedStyle(probe);
+  const hol = n => (c.getPropertyValue(n) || '').trim();
+  const w = {
+    grund:  hol('--fl-grund')  || '#F4F1E8',
+    karte:  hol('--fl-karte')  || '#FBF9F3',
+    schrift:hol('--schrift')   || '#1C2620',
+    zweit:  hol('--schrift-2') || '#4A5750',
+    akzent: hol('--fl-akzent') || '#3F5443',
+    linie:  hol('--linie-stark') || '#999',
+    radius: parseFloat(hol('--r-klein')) || 3,
+    dunkel: hol('--zone-grund') || hol('--fl-grund')
+  };
+  probe.remove();
+  return w;
+}
+
+function designMiniatur(name){
+  const t = designTokens(name);
+  const r = Math.min(6, t.radius);
+  const gross = name === 'klartext';
+  const zeile = (y, br, farbe, h) =>
+    `<rect x="9" y="${y}" width="${br}" height="${h || (gross ? 5 : 3.5)}" rx="1" fill="${farbe}"/>`;
+  /* Botanisch zeigt oben seine dunkle Zone — das ist der auffaelligste
+     Unterschied und gehoert in die Vorschau. */
+  const kopf = name === 'botanisch'
+    ? `<rect x="0" y="0" width="74" height="22" fill="${t.dunkel}"/>`
+    : `<rect x="0" y="0" width="74" height="22" fill="${t.karte}"/>`;
+  const kopfSchrift = name === 'botanisch' ? t.karte : t.schrift;
+  return `<svg class="dsn-schau" viewBox="0 0 74 74" role="img" aria-hidden="true" focusable="false">
+    <rect width="74" height="74" fill="${t.grund}"/>
+    ${kopf}
+    <rect x="9" y="8" width="30" height="${gross ? 7 : 5}" rx="1" fill="${kopfSchrift}"/>
+    <rect x="7" y="28" width="60" height="${gross ? 20 : 16}" rx="${r}"
+          fill="${t.karte}" stroke="${t.linie}" stroke-width="1"/>
+    ${zeile(gross ? 33 : 32, 34, t.schrift, gross ? 6 : 4)}
+    ${gross ? '' : zeile(39, 22, t.zweit)}
+    <rect x="7" y="${gross ? 52 : 48}" width="60" height="${gross ? 15 : 16}" rx="${r}"
+          fill="${t.karte}" stroke="${t.linie}" stroke-width="1"/>
+    ${zeile(gross ? 57 : 52, 28, t.schrift, gross ? 6 : 4)}
+    ${gross ? '' : zeile(59, 18, t.zweit)}
+    <rect x="0" y="68" width="74" height="6" fill="${t.karte}"/>
+    <circle cx="16" cy="71" r="2" fill="${t.akzent}"/>
+    <circle cx="30" cy="71" r="2" fill="${t.zweit}"/>
+    <circle cx="44" cy="71" r="2" fill="${t.zweit}"/>
+    <circle cx="58" cy="71" r="2" fill="${t.zweit}"/>
+  </svg>`;
+}
+
+const DESIGN_TEXT = {
+  botanisch: 'Warm und ruhig. Heute und Mehr stehen auf Dunkelgrün.',
+  klartext:  'Große Schrift, große Knöpfe, starke Kanten, keine Bewegung.',
+  terrarium: 'Dunkel durchgehend, ein leuchtender Akzent.'
+};
+
+function designWahlZeichnen(){
+  const ziel = document.getElementById('dsn-wahl');
+  if(!ziel) return;
+  ziel.innerHTML = Object.keys(DESIGNS).map(k=>
+    `<button type="button" class="dsn-btn" data-design-go="${k}" aria-pressed="${k === S.design}">
+       ${designMiniatur(k)}
+       <span class="dsn-txt"><b>${esc(DESIGNS[k].name)}</b><i>${esc(DESIGN_TEXT[k] || '')}</i></span>
+     </button>`).join('');
+}
+
+/* Faerbt die Statusleiste des Handys. Ohne das steht ueber einer
+   dunkelgruenen Seite ein cremefarbener Streifen. */
+function themeFarbe(){
+  const d = DESIGNS[S.design] ? S.design : 'botanisch';
+  const zonen = DESIGNS[d].zonen;
+  const dunkel = zonen === 'alle'
+    || (Array.isArray(zonen) && zonen.includes(S.ansicht));
+  const farbe = dunkel ? DESIGNS[d].dunkel : DESIGNS[d].leiste;
+  const m = document.querySelector('meta[name="theme-color"]');
+  if(m && farbe) m.setAttribute('content', farbe);
+}
+
+function designSetzen(name, merken){
+  if(!DESIGNS[name]) name = 'botanisch';
+  S.design = name;
+  document.documentElement.setAttribute('data-design', name);
+  /* Zweitschluessel fuer das Startskript im Kopf der Seite. */
+  try{ localStorage.setItem(DESIGN_SCHLUESSEL, name); }catch(e){}
+  document.querySelectorAll('[data-design-go]').forEach(b=>{
+    b.setAttribute('aria-pressed', String(b.dataset.designGo === name));
+  });
+  /* Die Miniaturen selbst aendern sich nicht — jede zeigt ihr eigenes
+     Design. Neu gezeichnet wird nur, wenn es sie noch nicht gibt. */
+  const wahl = document.getElementById('dsn-wahl');
+  if(wahl && !wahl.children.length) designWahlZeichnen();
+  themeFarbe();
+  if(merken !== false) sichern();
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-design-go]');
+  if(!b) return;
+  designSetzen(b.dataset.designGo);
+  if(typeof ansage === 'function') ansage('Design ' + DESIGNS[S.design].name + ' gewählt');
+});
 
 /* Fehlende Felder ergänzen, ohne vorhandene zu überschreiben. */
 function grundwerteErgaenzen(){
@@ -7578,6 +8244,12 @@ function grundwerteErgaenzen(){
      || Array.isArray(S.tutorial.kapitel)) S.tutorial.kapitel = {};
   if(typeof S.tutorial.einricht !== 'number') S.tutorial.einricht = 0;
   if(S.grundrissWunsch === undefined) S.grundrissWunsch = null;
+  if(!DESIGNS[S.design]) S.design = 'botanisch';
+  if(!S.wetter) S.wetter = {ort:null, lat:null, lon:null, stand:null, daten:null};
+  /* Was die Fenster ersetzt haben, wird aus dem gespeicherten
+     Zustand entfernt. Bliebe `ansichtAlles` stehen, startete die App
+     in eine Darstellung, die es nicht mehr gibt. */
+  ['wzOffen', 'mehrOffen', 'ansichtAlles'].forEach(k=>{ delete S[k]; });
   /* Ebenso alle Sammlungen, die als Liste erwartet werden. */
   ['eigene','neueArten','vorrat'].forEach(k=>{ if(!Array.isArray(S[k])) S[k] = []; });
   ['tasks','added','deleted','water','fotos','fotosWeg','profil','zustand','blatt','edits',
@@ -8467,7 +9139,6 @@ function schnellLeiste(p){
       <button class="sb" data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
       <button class="sb" data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
       <button class="sb" data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
-      <button class="sb" data-do="karte-zu-oben" data-p="${p.id}">Zuklappen</button>
     </div>
   </div>
   <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
@@ -8632,6 +9303,14 @@ function lagePaneHTML(p){
 function kartenReiter(id, reiter){
   const nutzbar = reiter.filter(r=>r.inhalt && String(r.inhalt).trim());
   if(!nutzbar.length) return '';
+  /* Klartext stapelt statt zu blaettern. Ein Reiter versteckt drei
+     Viertel des Inhalts hinter einer Bedienung, die man kennen muss;
+     wer schlecht sieht, sucht dann nach Dingen, die da sind. */
+  if(S.design === 'klartext'){
+    return nutzbar.map(r=>
+      `<h3 class="kstapel-h">${esc(r.titel)}</h3><div class="ktab-pane" data-kpane="${r.key}" data-p="${id}">${r.inhalt}</div>`
+    ).join('');
+  }
   const aktiv = (S.kartenTab && nutzbar.some(r=>r.key===S.kartenTab)) ? S.kartenTab : nutzbar[0].key;
   return `<div class="ktabs" role="tablist">${nutzbar.map(r=>
       `<button class="ktab" type="button" role="tab" data-ktab="${r.key}" data-p="${id}" aria-selected="${r.key===aktiv}">${esc(r.titel)}</button>`).join('')}</div>
@@ -8643,7 +9322,8 @@ document.addEventListener('click', e=>{
   e.stopPropagation();
   const key = b.dataset.ktab;
   S.kartenTab = key; sichern();
-  const karte = b.closest('.card'); if(!karte) return;
+  const karte = b.closest('.card') || document.getElementById('karte-rumpf');
+  if(!karte) return;
   karte.querySelectorAll('[data-ktab]').forEach(x=>
     x.setAttribute('aria-selected', String(x.dataset.ktab === key)));
   karte.querySelectorAll('[data-kpane]').forEach(x=>{ x.hidden = x.dataset.kpane !== key; });
@@ -8761,13 +9441,21 @@ function kartenDetailHTML(p){
 function cardHTML(p){
   const K = KLASSEN[p.klasse];
   const pf = profilFoto(p.id);
-  const thumb = pf ? `<span class="thumb" style="background-image:url('${pf.src}')" aria-hidden="true"></span>` : '';
-  const auf = offen.has(p.id);
+  /* Frueher ein <span> mit background-image. Der Browser hat damit
+     alle Bilder auf einmal dekodiert — bei vierzig Pflanzen mit
+     vollbreiten Fotos ruckelt das auf schwachen Geraeten spuerbar.
+     Ein <img loading="lazy"> dekodiert erst kurz vor dem Sichtbar-
+     werden und liefert nebenbei das echte Seitenverhaeltnis, das
+     Botanisch fuer die Zeilenhoehe im Raster braucht. */
+  const thumb = pf
+    ? `<img class="thumb" src="${pf.src}" alt="" loading="lazy" decoding="async" data-mass>`
+    : '';
   const st = giessStatus(p);
-  const detail = auf ? kartenDetailHTML(p) : `<div class="detail" data-spaetkarte="${p.id}"></div>`;
-
-  return `<article class="card${auf?' open':''}" id="c-${p.id}">
-    <button class="card-btn" aria-expanded="${auf}" data-t="${p.id}">
+  /* Die Karte in der Liste ist nur noch Vorschau. Das Detail lebt im
+     Fenster — darum hier kein `id`, sonst gaebe es die Kennung zweimal
+     im Dokument. */
+  return `<article class="card" data-karte="${p.id}">
+    <button class="card-btn" data-t="${p.id}" aria-haspopup="dialog">
       ${thumb}
       <span class="card-body">
         <span class="card-id">${p.id}${st.stand==='over'?' · überfällig':''}</span>
@@ -8777,7 +9465,271 @@ function cardHTML(p){
         ${iconRow(p)}${zustandBadge(p)}
         <span class="bar"><span style="width:${K.feuchte}%"></span></span>
       </span>
-    </button>${detail}</article>`;
+    </button></article>`;
+}
+
+/* ══════════════════ Wetter ══════════════════
+
+   Die erste Stelle, an der die App ueberhaupt ins Netz greift.
+   Darum drei Regeln:
+
+   1. Ohne eingetragenen Ort wird nichts abgefragt. Die Zeile bleibt
+      aus, es geht kein Byte hinaus.
+   2. Der Service Worker legt die Antwort nicht ab — er steigt bei
+      fremden Herkuenften ohnehin aus. Ein zwischengespeicherter
+      Wetterbericht waere schlimmer als gar keiner, weil er alt ist,
+      ohne es zu sagen.
+   3. Faellt das Netz aus, steht der letzte Wert mit seinem Datum da.
+      Kein Fehler, kein Haenger, kein leeres Feld — aber auch keine
+      Zahl, die so tut, als waere sie von heute.
+
+   Uebertragen wird beim Suchen der Ortsname, danach nur noch die
+   Koordinaten. Nichts ueber die Person, nichts ueber die Pflanzen. */
+
+const WETTER_GEO = 'https://geocoding-api.open-meteo.com/v1/search';
+const WETTER_API = 'https://api.open-meteo.com/v1/forecast';
+
+function wetterStand(){
+  if(!S.wetter) S.wetter = {ort:null, lat:null, lon:null, stand:null, daten:null};
+  return S.wetter;
+}
+
+async function wetterSuchen(name){
+  const u = WETTER_GEO + '?name=' + encodeURIComponent(name)
+          + '&count=5&language=de&format=json';
+  const a = await fetch(u);
+  if(!a.ok) throw new Error('Suche fehlgeschlagen');
+  const j = await a.json();
+  return (j && j.results) || [];
+}
+
+async function wetterHolen(){
+  const w = wetterStand();
+  if(w.lat == null || w.lon == null) return false;
+  const u = WETTER_API + '?latitude=' + w.lat + '&longitude=' + w.lon
+    + '&current=temperature_2m'
+    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum'
+    + '&forecast_days=2&timezone=auto';
+  try{
+    const a = await fetch(u, {cache:'no-store'});
+    if(!a.ok) throw new Error('Abruf fehlgeschlagen');
+    const j = await a.json();
+    const t = j.daily || {};
+    w.daten = {
+      jetzt: j.current ? j.current.temperature_2m : null,
+      hoch:  t.temperature_2m_max ? t.temperature_2m_max[0] : null,
+      tief:  t.temperature_2m_min ? t.temperature_2m_min[0] : null,
+      regen: t.precipitation_sum ? t.precipitation_sum[0] : null,
+      regenMorgen: t.precipitation_sum ? t.precipitation_sum[1] : null
+    };
+    w.stand = new Date().toISOString();
+    sichern();
+    return true;
+  }catch(e){
+    /* Absichtlich still. Ein rotes Feld fuer einen ausgefallenen
+       Wetterbericht waere eine Warnung ohne Anlass. */
+    return false;
+  }
+}
+
+function wetterAlter(){
+  const w = wetterStand();
+  if(!w.stand) return null;
+  return Math.floor((Date.now() - new Date(w.stand).getTime()) / 3600000);
+}
+
+/* Der Rat ist bewusst knapp und trifft keine Entscheidung: die App
+   verschiebt keinen Gieszabstand von allein. */
+function wetterRat(d){
+  if(!d) return '';
+  if(d.regen != null && d.regen >= 3) return 'Draußen musst du heute kaum gießen.';
+  if(d.regenMorgen != null && d.regenMorgen >= 5) return 'Morgen ist Regen angesagt.';
+  if(d.hoch != null && d.hoch >= 28) return 'Heiß — draußen kann eher wieder etwas fällig sein.';
+  if(d.tief != null && d.tief <= 3) return 'Kalt — empfindliche Pflanzen besser hereinholen.';
+  return '';
+}
+
+function wetterZeileHTML(){
+  const w = wetterStand();
+  if(!w.ort || !w.daten) return '';
+  const d = w.daten;
+  const alt = wetterAlter();
+  const zahl = n => (n == null ? '—' : Math.round(n) + ' °C');
+  const teile = [];
+  teile.push('<b>' + esc(w.ort) + '</b>');
+  if(d.jetzt != null) teile.push('<b>' + zahl(d.jetzt) + '</b>');
+  if(d.hoch != null || d.tief != null) teile.push(zahl(d.tief) + ' bis ' + zahl(d.hoch));
+  if(d.regen != null && d.regen > 0) teile.push(Math.round(d.regen) + ' mm Regen');
+  const rat = wetterRat(d);
+  if(rat) teile.push('<span class="wt-rat">' + esc(rat) + '</span>');
+  /* Aelter als sechs Stunden: sagen, wie alt. Sonst liest man eine
+     Zahl von gestern als die von jetzt. */
+  if(alt != null && alt >= 6){
+    teile.push('<span class="wt-alt">Stand von '
+      + new Date(w.stand).toLocaleString('de-DE', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'})
+      + '</span>');
+  }
+  return '<p class="wt-linie">' + teile.join(' · ') + '</p>';
+}
+
+function wetterEinstellungZeichnen(){
+  const w = wetterStand();
+  const feld = document.getElementById('wt-ort');
+  const stand = document.getElementById('wt-stand');
+  const weg = document.getElementById('wt-weg');
+  if(!feld || !stand || !weg) return;
+  if(w.ort && document.activeElement !== feld) feld.value = w.ort;
+  weg.hidden = !w.ort;
+  if(!w.ort){ stand.textContent = 'Kein Ort eingetragen — die App fragt nichts ab.'; return; }
+  if(!w.stand){ stand.textContent = 'Noch kein Wert abgerufen.'; return; }
+  stand.textContent = 'Letzter Abruf: '
+    + new Date(w.stand).toLocaleString('de-DE', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
+}
+
+async function wetterOrtSuchen(){
+  const feld = document.getElementById('wt-ort');
+  const box = document.getElementById('wt-treffer');
+  const stand = document.getElementById('wt-stand');
+  if(!feld || !box) return;
+  const name = feld.value.trim();
+  if(name.length < 2){ stand.textContent = 'Bitte mindestens zwei Buchstaben.'; return; }
+  stand.textContent = 'Suche …';
+  let treffer = [];
+  try{ treffer = await wetterSuchen(name); }
+  catch(e){ stand.textContent = 'Die Suche ist nicht durchgekommen. Später noch einmal versuchen.'; return; }
+  if(!treffer.length){ box.hidden = true; stand.textContent = 'Kein Ort mit diesem Namen gefunden.'; return; }
+  box.hidden = false;
+  box.innerHTML = treffer.map((t, i)=>
+    '<button type="button" data-wt-pick="' + i + '">' + esc(t.name)
+    + (t.admin1 ? ', ' + esc(t.admin1) : '')
+    + (t.country ? ' · ' + esc(t.country) : '') + '</button>').join('');
+  box._treffer = treffer;
+  stand.textContent = treffer.length === 1 ? 'Ein Treffer.' : treffer.length + ' Treffer — bitte auswählen.';
+}
+
+async function wetterOrtSetzen(t){
+  const w = wetterStand();
+  w.ort = t.name;
+  w.lat = Math.round(t.latitude * 10000) / 10000;
+  w.lon = Math.round(t.longitude * 10000) / 10000;
+  w.daten = null; w.stand = null;
+  sichern();
+  const box = document.getElementById('wt-treffer');
+  if(box){ box.hidden = true; box.innerHTML = ''; }
+  wetterEinstellungZeichnen();
+  await wetterHolen();
+  wetterEinstellungZeichnen();
+  if(typeof render === 'function') render();
+}
+
+function wetterOrtLoeschen(){
+  const w = wetterStand();
+  w.ort = null; w.lat = null; w.lon = null; w.daten = null; w.stand = null;
+  sichern();
+  const feld = document.getElementById('wt-ort');
+  if(feld) feld.value = '';
+  wetterEinstellungZeichnen();
+  if(typeof render === 'function') render();
+}
+
+document.addEventListener('click', e=>{
+  if(e.target.closest('#wt-such')){ wetterOrtSuchen(); return; }
+  if(e.target.closest('#wt-weg')){ wetterOrtLoeschen(); return; }
+  const p = e.target.closest('[data-wt-pick]');
+  if(p){
+    const box = document.getElementById('wt-treffer');
+    const t = box && box._treffer && box._treffer[parseInt(p.dataset.wtPick, 10)];
+    if(t) wetterOrtSetzen(t);
+  }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Enter' && e.target && e.target.id === 'wt-ort'){
+    e.preventDefault();
+    wetterOrtSuchen();
+  }
+});
+
+/* ── Bildformat fuer das Raster ───────────────────────────────
+   Botanisch setzt die Kachelhoehe aus dem echten Seitenverhaeltnis:
+   ein hochkant fotografierter Bogenhanf bekommt mehr Zeilen als eine
+   breit liegende Schale. Gemessen wird erst, wenn das Bild da ist —
+   vorher stimmt naturalHeight nicht.
+
+   Ueber Zeilenspannen und nicht ueber Spalten: `column-count` haette
+   die Lesereihenfolge zerlegt, dort laeuft man Spalte fuer Spalte
+   von oben nach unten statt Zeile fuer Zeile. */
+function bildFormatMessen(img){
+  if(!img || !img.naturalWidth || !img.naturalHeight) return;
+  const karte = img.closest('.card');
+  if(!karte) return;
+  const v = img.naturalHeight / img.naturalWidth;
+  /* Gedeckelt: ein extrem schmales Bild wuerde sonst eine halbe
+     Bildschirmhoehe einnehmen. */
+  const gedeckelt = Math.max(0.7, Math.min(1.6, v));
+  karte.style.setProperty('--bildhoehe', gedeckelt.toFixed(3));
+  karte.style.setProperty('--spanne', String(Math.round(gedeckelt * 10)));
+}
+document.addEventListener('load', e=>{
+  const img = e.target;
+  if(img && img.tagName === 'IMG' && img.hasAttribute('data-mass')) bildFormatMessen(img);
+}, true);
+
+/* ══════════════════ Kartendetail als Fenster ══════════════════
+
+   Die Liste haelt die Reihenfolge fest, in der zuletzt gezeichnet
+   wurde. Nur so koennen die Pfeile „naechste Pflanze" bedeuten und
+   nicht „naechste im Datenbestand" — gefiltert und sortiert ist das
+   ein Unterschied. */
+let _karteListe = [];
+let _karteId = null;
+
+function karteRumpfFuellen(){
+  const p = allePflanzen().find(x=>x.id === _karteId);
+  const rumpf = document.getElementById('karte-rumpf');
+  if(!p || !rumpf) return false;
+  document.getElementById('karte-titel').textContent = nice(p);
+  rumpf.innerHTML = '<article class="card open" id="c-' + p.id + '">'
+    + kartenDetailHTML(p) + '</article>';
+  /* Der Schnellzugriff wandert aus dem Scrollbereich in die feste
+     Leiste unter dem Kopf. `position:sticky` hat das nicht gehalten:
+     die Karte darum herum steht auf `overflow:clip`. */
+  const fest = document.getElementById('karte-fest');
+  if(fest){
+    fest.innerHTML = '';
+    const sch = rumpf.querySelector('.schnell');
+    if(sch) fest.appendChild(sch);
+  }
+  const i = _karteListe.indexOf(_karteId);
+  const vor = document.getElementById('karte-vor');
+  const zur = document.getElementById('karte-zurueck');
+  /* Bei einer einzelnen Pflanze verschwinden die Pfeile ganz —
+     abgeblendete Knoepfe, die nie etwas tun, sind nur Rauschen. */
+  const mehrere = _karteListe.length > 1 && i !== -1;
+  vor.hidden = zur.hidden = !mehrere;
+  if(mehrere){
+    vor.disabled = i <= 0;
+    zur.disabled = i >= _karteListe.length - 1;
+  }
+  if(typeof kartenBeobachten === 'function') kartenBeobachten();
+  return true;
+}
+
+function karteOeffnen(id, ausloeser){
+  if(!allePflanzen().some(x=>x.id === id)) return false;
+  _karteId = id;
+  if(!_karteListe.length) _karteListe = allePflanzen().map(x=>x.id);
+  if(!karteRumpfFuellen()) return false;
+  if(modalOffen('karte-modal')) return true;
+  return modalAuf('karte-modal', ausloeser);
+}
+
+function karteBlaettern(schritt){
+  const i = _karteListe.indexOf(_karteId);
+  const j = i + schritt;
+  if(i === -1 || j < 0 || j >= _karteListe.length) return;
+  _karteId = _karteListe[j];
+  karteRumpfFuellen();
+  document.getElementById('karte-titel').focus();
 }
 
 /* Aufgeklappte Abschnitte merken */
@@ -8787,16 +9739,6 @@ document.addEventListener('toggle', e=>{
   if(d.open) S.acc[d.dataset.acc] = 1; else delete S.acc[d.dataset.acc];
   sichern();
 }, true);
-
-document.addEventListener('click', e=>{
-  const b = e.target.closest('[data-do="karte-zu-oben"]'); if(!b) return;
-  e.stopPropagation();
-  const id = b.dataset.p;
-  offen.delete(id);
-  render();
-  const c = document.getElementById('c-'+id);
-  if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
-});
 
 /* ══════════════════ Stammbaum ══════════════════ */
 function treeHTML(){
@@ -8822,12 +9764,10 @@ function treeHTML(){
 
 /* ══════════════════ Rendern ══════════════════ */
 function oeffne(id){
-  offen.add(id);
   $('#q').value=''; filterKlasse=null; filterKatze=null;
   document.querySelectorAll('#filters .chip').forEach(x=>x.setAttribute('aria-pressed','false'));
   render();
-  const c = document.getElementById('c-'+id);
-  if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
+  karteOeffnen(id);
 }
 
 /* Karten, kompakte Zeilen oder Raster. Der Aufbau der Karte bleibt in
@@ -8835,8 +9775,15 @@ function oeffne(id){
    Damit klappt jede Karte weiterhin an Ort und Stelle auf und es gibt
    keine zweite Darstellung, die getrennt gepflegt werden müsste. */
 const SAM_ANSICHTEN = ['karten','zeilen','raster'];
+/* Jedes Design bringt eine Vorbelegung mit, keine Vorschrift: wer
+   umschaltet, behaelt seine Wahl auch nach einem Designwechsel.
+   Botanisch und Terrarium zeigen das Raster — dort traegt das Bild.
+   Klartext zeigt eine Spalte: ein grosses Foto, ein grosser Name,
+   nichts nebeneinander, was man verwechseln koennte. */
+const SAM_VORGABE = {botanisch:'raster', klartext:'karten', terrarium:'raster'};
 function samAnsicht(){
-  return SAM_ANSICHTEN.includes(S.samAnsicht) ? S.samAnsicht : 'karten';
+  if(SAM_ANSICHTEN.includes(S.samAnsicht)) return S.samAnsicht;
+  return SAM_VORGABE[S.design] || 'karten';
 }
 function samAnsichtSetzen(v){
   S.samAnsicht = SAM_ANSICHTEN.includes(v) ? v : 'karten';
@@ -8976,35 +9923,11 @@ function render(){
   if(typeof wunschSichtbarkeit === 'function') wunschSichtbarkeit();
   $('#empty').hidden = list.length>0;
 
+  /* Die gezeichnete Reihenfolge merken — die Pfeile im Fenster
+     folgen ihr, nicht dem Datenbestand. */
+  _karteListe = list.map(p=>p.id);
   $('#out').querySelectorAll('.card-btn').forEach(b=>b.onclick=()=>{
-    const c = b.closest('.card');
-    const wirdAuf = !c.classList.contains('open');
-    if(wirdAuf && S.einzeln !== false){
-      /* Nur eine Karte gleichzeitig: alle anderen zuklappen */
-      $('#out').querySelectorAll('.card.open').forEach(andere=>{
-        if(andere === c) return;
-        andere.classList.remove('open');
-        const btn = andere.querySelector('.card-btn');
-        if(btn){ btn.setAttribute('aria-expanded','false'); offen.delete(btn.dataset.t); }
-      });
-    }
-    if(wirdAuf){
-      const platz = c.querySelector('[data-spaetkarte]');
-      if(platz){
-        const pp = allePflanzen().find(x=>x.id === platz.dataset.spaetkarte);
-        if(pp) platz.outerHTML = kartenDetailHTML(pp);
-      }
-    }
-    c.classList.toggle('open', wirdAuf);
-    b.setAttribute('aria-expanded', String(wirdAuf));
-    wirdAuf ? offen.add(b.dataset.t) : offen.delete(b.dataset.t);
-    if(wirdAuf) kartenBeobachten();
-    /* Nach dem Zuklappen der anderen kann die Karte weggerutscht sein */
-    if(wirdAuf) requestAnimationFrame(()=>{
-      const r = c.getBoundingClientRect();
-      if(r.top < 0 || r.top > window.innerHeight - 120)
-        c.scrollIntoView({behavior:'smooth', block:'start'});
-    });
+    karteOeffnen(b.dataset.t, b);
   });
   $('#out').querySelectorAll('.group-head').forEach(b=>b.onclick=()=>{
     const n = b.dataset.grp, s = b.closest('.group');
@@ -9014,8 +9937,8 @@ function render(){
   });
   $('#out').querySelectorAll('.gal img').forEach(im=>im.onclick=e=>{
     e.stopPropagation();
-    const lb = $('#lightbox'); lb.querySelector('img').src = im.src; lb.classList.add('on');
-    if(typeof fensterAuf === 'function') fensterAuf(lb);
+    $('#lightbox').querySelector('img').src = im.src;
+    modalAuf('lightbox', im);
   });
   $('#out').querySelectorAll('input[data-foto]').forEach(inp=>inp.onchange=e=>{
     e.stopPropagation();
@@ -9023,7 +9946,7 @@ function render(){
   });
   document.querySelectorAll('.foto-add').forEach(l=>l.onclick=e=>e.stopPropagation());
 
-  $('#heute-status').innerHTML = heuteStatusHTML();
+  $('#heute-status').innerHTML = wetterZeileHTML() + heuteStatusHTML();
   $('#raumknoepfe').innerHTML = (typeof raumKnoepfeHTML === 'function') ? raumKnoepfeHTML() : '';
   $('#stichtage').innerHTML = stichtageHTML();
   meldeRender();
@@ -9076,8 +9999,7 @@ document.addEventListener('click', e=>{
     e.stopPropagation();
     fotoLoeschZiel = {id: btn.dataset.p, k: btn.dataset.k};
     fotoMenuOffen = null;
-    $('#foto-modal').hidden = false;
-    if(typeof fensterAuf === 'function') fensterAuf($('#foto-modal'));
+    modalAuf('foto-modal', btn);
     return;
   }
 
@@ -9637,28 +10559,251 @@ $('#btn-reset').onclick = async ()=>{
    Seite dahinter, die man gar nicht sehen kann. `inert` nimmt den
    Hintergrund komplett aus der Bedienung; wo der Browser das nicht
    kennt, bleibt wenigstens der Fokus richtig gesetzt. */
-let _fensterVorher = null;
-function fensterAuf(el){
-  if(!el) return;
-  _fensterVorher = document.activeElement;
-  const wrap = document.querySelector('.wrap');
-  if(wrap && !wrap.contains(el)) wrap.setAttribute('inert', '');
-  const ziel = el.querySelector('button, [href], input, select, textarea');
-  if(ziel && typeof ziel.focus === 'function') setTimeout(()=>ziel.focus(), 0);
+/* ══════════════════ Fenster-System ══════════════════
+
+   Ein Fenster wird angemeldet, nicht gebaut. Fokus, Hintergrund-
+   sperre, Zurueck-Knopf, Esc und Schleier sind einmal geloest und
+   gelten fuer alle. Vorher tat das jeder Dialog ein bisschen
+   anders — und der Android-Zurueck-Knopf schloss die ganze App.
+
+   Anmeldung:
+     modalAnmelden('id', {
+       el:        'element-id',      // wenn abweichend
+       groesse:   'blatt'|'voll'|'druck',
+       schleier:  true,              // Tippen daneben schliesst
+       zeigen/verbergen(el),         // wenn nicht ueber [hidden]
+       nachAuf(), nachZu(),          // Aufraeumen
+       darfZu()                      // false haelt das Fenster offen
+     })
+
+   „druck" ist eine eigene Klasse, weil die Druckregel
+   `body>*{display:none}` nur auf direkte Kinder von <body> wirkt.
+   Wandert der Urlaubszettel in einen Behaelter, kommt eine leere
+   Seite aus dem Drucker. */
+
+const MODAL = {};
+const MODAL_STAPEL = [];      /* offene Fenster, unterstes zuerst */
+const MODAL_TIEFE = 2;        /* mehr verliert die Orientierung */
+const _modalVorher = {};      /* je Fenster das ausloesende Element */
+let _modalPop = false;        /* laeuft gerade ein popstate? */
+
+function modalAnmelden(id, def){
+  MODAL[id] = Object.assign({id:id, groesse:'blatt', schleier:true}, def || {});
 }
-function fensterZu(){
-  const wrap = document.querySelector('.wrap');
-  if(wrap) wrap.removeAttribute('inert');
-  if(_fensterVorher && typeof _fensterVorher.focus === 'function'){
-    try{ _fensterVorher.focus(); }catch(e){}
-  }
-  _fensterVorher = null;
+function modalElement(id){
+  const d = MODAL[id];
+  return d ? document.getElementById(d.el || id) : null;
+}
+function modalOben(){
+  return MODAL_STAPEL.length ? MODAL_STAPEL[MODAL_STAPEL.length - 1] : null;
+}
+function modalOffen(id){
+  return id ? MODAL_STAPEL.indexOf(id) !== -1 : MODAL_STAPEL.length > 0;
 }
 
-$('#lightbox').onclick = ()=>{ $('#lightbox').classList.remove('on'); fensterZu(); };
+/* Alles ausser dem obersten Fenster wird stillgelegt: nicht
+   anklickbar, nicht per Tabulator erreichbar, fuer Screenreader
+   nicht vorhanden. Wird bei jedem Auf und Zu neu berechnet, damit
+   ein zweites Fenster das erste mitsperrt. */
+function _modalSperre(){
+  const oben = modalOben();
+  const el = oben ? modalElement(oben) : null;
+  Array.prototype.forEach.call(document.body.children, k=>{
+    if(k.tagName === 'SCRIPT' || k.tagName === 'STYLE') return;
+    /* Die Tour liegt ueber allem und wird nie stillgelegt. Sonst
+       nimmt ihr „Weiter" keinen Klick mehr an, und der Tipp faellt
+       auf den Knopf im Fenster darunter durch. */
+    if(k.id === 'tour'){ k.removeAttribute('inert'); return; }
+    if(el && (k === el || k.contains(el))) k.removeAttribute('inert');
+    else if(el) k.setAttribute('inert', '');
+    else k.removeAttribute('inert');
+  });
+  document.documentElement.classList.toggle('modal-offen', !!el);
+  document.body.classList.toggle('modal-offen', !!el);
+}
+
+/* Der Fokus geht auf die Ueberschrift, nicht auf den ersten Knopf.
+   Sonst liest ein Screenreader „Abbrechen" vor, ohne gesagt zu
+   haben, worum es geht. */
+function _modalFokus(el){
+  const kopf = el.querySelector('h1,h2,h3,[data-modal-titel]');
+  const ziel = kopf || el.querySelector('button,[href],input,select,textarea') || el;
+  if(kopf && !kopf.hasAttribute('tabindex')) kopf.setAttribute('tabindex', '-1');
+  if(ziel && typeof ziel.focus === 'function'){
+    setTimeout(()=>{ try{ ziel.focus(); }catch(e){} }, 0);
+  }
+}
+
+function modalAuf(id, ausloeser){
+  const d = MODAL[id];
+  const el = modalElement(id);
+  if(!d || !el) return false;
+  if(modalOffen(id)) return true;
+  /* Hoechstens zwei Ebenen: das dritte verdraengt das zweite. */
+  while(MODAL_STAPEL.length >= MODAL_TIEFE) _modalWeg(modalOben());
+
+  _modalVorher[id] = ausloeser || document.activeElement || null;
+  MODAL_STAPEL.push(id);
+
+  if(typeof d.zeigen === 'function') d.zeigen(el);
+  else el.hidden = false;
+
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  if(d.groesse) el.setAttribute('data-groesse', d.groesse);
+
+  _modalSperre();
+  _modalFokus(el);
+
+  /* Ein Eintrag im Verlauf je Fenster. Damit schliesst der
+     Zurueck-Knopf des Geraets das Fenster, statt die App zu
+     verlassen. */
+  try{ history.pushState({gkModal:id}, ''); }catch(e){}
+
+  if(typeof d.nachAuf === 'function') d.nachAuf(el);
+  return true;
+}
+
+/* Nur das DOM-Aufraeumen, ohne Verlauf. */
+function _modalWeg(id){
+  const d = MODAL[id];
+  const el = modalElement(id);
+  const i = MODAL_STAPEL.indexOf(id);
+  if(i !== -1) MODAL_STAPEL.splice(i, 1);
+  if(el){
+    if(d && typeof d.verbergen === 'function') d.verbergen(el);
+    else el.hidden = true;
+    el.removeAttribute('aria-modal');
+  }
+  _modalSperre();
+  const vorher = _modalVorher[id];
+  delete _modalVorher[id];
+  if(vorher && typeof vorher.focus === 'function' && document.contains(vorher)){
+    try{ vorher.focus(); }catch(e){}
+  }
+  if(d && typeof d.nachZu === 'function') d.nachZu(el);
+}
+
+function modalZu(id){
+  const ziel = id || modalOben();
+  if(!ziel || !modalOffen(ziel)) return false;
+  const d = MODAL[ziel];
+  /* darfZu() darf nein sagen — etwa bei ungespeicherter Eingabe. */
+  if(d && typeof d.darfZu === 'function' && d.darfZu() === false) return false;
+  /* Ueber den Verlauf schliessen, damit kein toter Eintrag
+     zurueckbleibt. popstate erledigt dann das Aufraeumen. */
+  if(!_modalPop && history.state && history.state.gkModal === ziel){
+    try{ history.back(); return true; }catch(e){}
+  }
+  _modalWeg(ziel);
+  return true;
+}
+
+window.addEventListener('popstate', ()=>{
+  if(!MODAL_STAPEL.length) return;
+  const oben = modalOben();
+  const d = MODAL[oben];
+  if(d && typeof d.darfZu === 'function' && d.darfZu() === false){
+    /* Nicht schliessen — den Eintrag wieder hinlegen, sonst
+       verlaesst der naechste Druck die App. */
+    try{ history.pushState({gkModal:oben}, ''); }catch(e){}
+    return;
+  }
+  _modalPop = true;
+  _modalWeg(oben);
+  _modalPop = false;
+});
+
 document.addEventListener('keydown', e=>{
-  if(e.key !== 'Escape') return;
-  if($('#lightbox').classList.contains('on')){ $('#lightbox').classList.remove('on'); fensterZu(); }
+  if(e.key !== 'Escape' || !MODAL_STAPEL.length) return;
+  /* Laeuft eine Tour, gehoert Esc ihr. Sonst schliessen beide
+     Zuhoerer auf einmal — Fenster weg, Tour zeigt ins Leere. */
+  if(typeof tourLauf !== 'undefined' && tourLauf) return;
+  e.preventDefault(); modalZu();
+});
+
+/* Tippen auf den Schleier schliesst — aber nur, wenn wirklich
+   daneben getippt wurde, nicht auf ein Kind. */
+document.addEventListener('click', e=>{
+  const oben = modalOben();
+  if(!oben) return;
+  const d = MODAL[oben];
+  if(!d || d.schleier === false) return;
+  if(e.target === modalElement(oben)) modalZu(oben);
+});
+
+/* Alte Namen, damit nichts stehenbleibt, was noch daran haengt. */
+function fensterAuf(){}
+function fensterZu(){}
+
+/* ── Die vorhandenen Fenster anmelden ─────────────────────────
+   Der Inhalt bleibt, wo er ist; nur das Auf und Zu laeuft jetzt
+   ueber eine Stelle. Die Kachelgitter fuer Werkzeuge und Mehr
+   kommen spaeter dazu — sie melden sich genauso an. */
+
+modalAnmelden('giessmodus', {
+  groesse:'voll', schleier:false,
+  nachAuf: ()=>{ document.body.classList.add('gm-offen');
+    if(gmListe && gmListe.length && typeof gmZeichnen==='function') gmZeichnen(); },
+  nachZu:  ()=>{ document.body.classList.remove('gm-offen'); if(typeof render==='function') render(); }
+});
+
+modalAnmelden('rundgang', {
+  groesse:'voll', schleier:false,
+  nachAuf: ()=>{ document.body.classList.add('gm-offen');
+    if(rgListe && rgListe.length && typeof rgZeichnen==='function') rgZeichnen(); },
+  nachZu:  ()=>{
+    document.body.classList.remove('gm-offen');
+    if(typeof rgEinst === 'function'){ const e = rgEinst(); e.zaehler = (e.zaehler || 0) + 1; sichern(); }
+    if(typeof render==='function') render();
+  }
+});
+
+modalAnmelden('foto-modal', {
+  groesse:'blatt',
+  nachZu: ()=>{ fotoLoeschZiel = null; if(typeof render==='function') render(); }
+});
+
+modalAnmelden('karte-modal', {
+  groesse:'voll', schleier:false,
+  nachZu: ()=>{ _karteId = null; document.getElementById('karte-rumpf').innerHTML = ''; }
+});
+
+document.getElementById('karte-zu').onclick = ()=>modalZu('karte-modal');
+document.getElementById('karte-vor').onclick = ()=>karteBlaettern(-1);
+document.getElementById('karte-zurueck').onclick = ()=>karteBlaettern(1);
+
+/* Pfeiltasten blaettern mit, solange nicht in einem Feld getippt wird. */
+document.addEventListener('keydown', e=>{
+  if(!modalOffen('karte-modal')) return;
+  const t = e.target;
+  if(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+  if(e.key === 'ArrowLeft') karteBlaettern(-1);
+  if(e.key === 'ArrowRight') karteBlaettern(1);
+});
+
+modalAnmelden('gift-modal', {groesse:'blatt'});
+modalAnmelden('neu-modal',  {groesse:'blatt'});
+
+modalAnmelden('lightbox', {
+  groesse:'voll',
+  zeigen:    el=>el.classList.add('on'),
+  verbergen: el=>el.classList.remove('on')
+});
+
+/* Der Urlaubszettel bleibt direktes Kind von <body>, sonst
+   druckt der Browser eine leere Seite. */
+modalAnmelden('urlaub-blatt', {
+  groesse:'druck', schleier:false,
+  nachAuf: ()=>window.scrollTo(0, 0)
+});
+
+modalAnmelden('willkommen', {
+  groesse:'voll', schleier:false,
+  nachAuf: ()=>{
+    if(typeof wkSchritt==='function') wkSchritt(1);
+    if(typeof wkArtenZeichnen==='function') wkArtenZeichnen();
+  }
 });
 
 /* ══════════════════ Plan & Skala ══════════════════ */
@@ -9984,10 +11129,7 @@ function wkFertig(mitTutorial){
   S.startGesehen = iso(HEUTE);
   if(S.tiere && S.tiere.aktiv === null) S.tiere.aktiv = false;
   sichern();
-  const w = document.getElementById('willkommen');
-  if(w) w.hidden = true;
-  document.body.style.overflow = '';
-  if(typeof fensterZu === 'function') fensterZu();
+  modalZu('willkommen');
   tierEinstellungZeichnen();
   render();
   /* Frueher sprang der Knopf direkt ins offene Formular. Jetzt geht es
@@ -10049,11 +11191,18 @@ document.addEventListener('click', e=>{
   const w = document.getElementById('willkommen'); if(!w) return;
   const schonDa = (S.eigene || []).length || Object.keys(S.water || {}).length;
   if(S.startGesehen || schonDa) return;
-  w.hidden = false;
-  document.body.style.overflow = 'hidden';
-  wkSchritt(1);
-  wkArtenZeichnen();
-  if(typeof fensterAuf === 'function') fensterAuf(w);
+  modalAuf('willkommen');
+})();
+
+/* Wetter beim Start auffrischen — aber nur, wenn ein Ort eingetragen
+   ist und der letzte Wert aelter als eine Stunde. Sonst laeuft bei
+   jedem Oeffnen eine Abfrage, die nichts Neues bringt. */
+(function(){
+  const w = (typeof wetterStand === 'function') ? wetterStand() : null;
+  if(!w || w.lat == null) return;
+  const alt = wetterAlter();
+  if(alt !== null && alt < 1) return;
+  wetterHolen().then(ok=>{ if(ok && typeof render === 'function') render(); });
 })();
 
 /* Fotos aus dem großen Speicher nachladen und die Anzeige auffrischen.
@@ -10179,13 +11328,9 @@ function giftWarnen(name, ga){
     + '. Außerhalb der Reichweite aufstellen — Hängeampel, geschlossenes Regal oder '
     + 'ein Raum, in den die Katzen nicht kommen. Auch abgefallene Blätter aufsammeln.'
     + (ga && ga.grund ? '\n\n' + ga.grund : '');
-  $('#gift-modal').hidden = false;
-  if(typeof fensterAuf === 'function') fensterAuf($('#gift-modal'));
+  modalAuf('gift-modal');
 }
-$('#gift-ok').onclick = ()=>{
-  $('#gift-modal').hidden = true;
-  if(typeof fensterZu === 'function') fensterZu();
-};
+$('#gift-ok').onclick = ()=>modalZu('gift-modal');
 
 /* ══════════════════ Was sich geändert hat ══════════════════ */
 
@@ -10228,8 +11373,7 @@ function neuFensterZeigen(eintrag){
   if(!modal) return;
   document.getElementById('neu-titel').textContent = 'Neu in Fassung ' + eintrag.nr;
   document.getElementById('neu-inhalt').innerHTML = patchEintragHTML(eintrag, false);
-  modal.hidden = false;
-  if(typeof fensterAuf === 'function') fensterAuf(modal);
+  modalAuf('neu-modal');
 }
 
 function fassungPruefen(){
@@ -10244,29 +11388,22 @@ function fassungPruefen(){
   if(eintrag) neuFensterZeigen(eintrag);
 }
 
-$('#neu-ok').onclick = ()=>{
-  $('#neu-modal').hidden = true;
-  if(typeof fensterZu === 'function') fensterZu();
-};
+$('#neu-ok').onclick = ()=>modalZu('neu-modal');
 $('#neu-alle').onclick = ()=>{
-  $('#neu-modal').hidden = true;
+  modalZu('neu-modal');
   ansichtZeigen('mehr');
-  /* Erst nach dem Ansichtswechsel öffnen und springen — vorher steht
-     die Sektion noch auf display:none und scrollIntoView läuft ins Leere. */
-  setTimeout(()=>mehrOeffnen('patch', true), 60);
+  /* Erst nach dem Ansichtswechsel öffnen: das Fenster legt einen
+     Eintrag in den Verlauf, und der soll hinter dem Reiterwechsel
+     liegen, nicht davor. */
+  setTimeout(()=>sektionOeffnen('patch'), 60);
 };
 
 fassungPruefen();
-$('#gift-modal').addEventListener('click', e=>{ if(e.target.id==='gift-modal') $('#gift-modal').hidden = true; });
 
 /* ── Foto löschen: erst fragen, dann handeln ────────────── */
 let fotoLoeschZiel = null;
-function fotoLoeschEnde(){
-  fotoLoeschZiel = null; $('#foto-modal').hidden = true;
-  if(typeof fensterZu === 'function') fensterZu();
-}
-$('#foto-behalten').onclick = ()=>{ fotoLoeschEnde(); render(); };
-$('#foto-modal').addEventListener('click', e=>{ if(e.target.id==='foto-modal'){ fotoLoeschEnde(); render(); } });
+function fotoLoeschEnde(){ modalZu('foto-modal'); }
+$('#foto-behalten').onclick = ()=>fotoLoeschEnde();
 $('#foto-loeschen').onclick = ()=>{
   if(!fotoLoeschZiel){ fotoLoeschEnde(); return; }
   const {id, k} = fotoLoeschZiel;
@@ -10713,10 +11850,8 @@ $('#btn-neu-save').onclick = async ()=>{
         : ' Aufgaben aus der Bestimmung übernommen.') + ' Sie stehen jetzt unter „Heute“.';
     }
   }
-  offen.add(id);
   render();
-  const c = document.getElementById('c-'+id);
-  if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
+  karteOeffnen(id);
 };
 
 /* ── Zustandsbedienung auf den Karten ────────────────────── */
@@ -11843,17 +12978,9 @@ function gmStarten(){
   gmListe = giessListe();
   if(!gmListe.length){ alert('Gerade ist nichts fällig. Schön.'); return; }
   gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0;
-  $('#giessmodus').hidden = false;
-  document.body.classList.add('gm-offen');
-  gmZeichnen();
-  if(typeof fensterAuf === 'function') fensterAuf($('#giessmodus'));
+  modalAuf('giessmodus');
 }
-function gmBeenden(){
-  $('#giessmodus').hidden = true;
-  document.body.classList.remove('gm-offen');
-  if(typeof fensterZu === 'function') fensterZu();
-  render();
-}
+function gmBeenden(){ modalZu('giessmodus'); }
 function gmWeiter(){
   gmIndex++;
   if(gmIndex >= gmListe.length) gmZeichnenEnde(); else gmZeichnen();
@@ -12151,7 +13278,12 @@ const ANSICHTEN = ['heute','sammlung','werkzeuge','mehr'];
    ansichtZeigen('doktor') und die Verknüpfung ?start=doktor weiter
    funktionieren, werden die alten Namen hier übersetzt. */
 const WERKZEUGE = ['doktor','giessplan','substrat','vermehren','stammbaum','grundriss'];
-let ANS_ALLE = false;   // alles untereinander statt in Reitern
+/* „Alles auf einer Seite" ist entfallen. Die Einstellung stammt aus
+   der Zeit, als die Seiten kurz waren; mit Fenstern ueber die volle
+   Hoehe ergibt eine Endlosseite keinen Sinn mehr. Die Konstante
+   bleibt als false stehen, damit die Stellen, die sie lesen, nicht
+   einzeln umgebaut werden muessen. */
+const ANS_ALLE = false;
 /* Nur noch die Ueberschrift. Der erklaerende Untertitel ist weggefallen —
    die Reiter erklaeren sich ueber ihren Inhalt, nicht ueber einen Absatz. */
 const ANSICHT_KOPF = {
@@ -12186,14 +13318,13 @@ function ansichtZeigen(name, merken){
   }
   const kopf = ANSICHT_KOPF[name];
   if(kopf) $('#kopf-titel').innerHTML = kopf[0];
-  if(name === 'werkzeuge'){
-    werkzeugZeichnen();
-    if(S.wzOffen === 'grundriss' && typeof planRender === 'function') planRender();
-  }
-  if(name === 'mehr') mehrZeichnen();
+  /* Ein Reiterwechsel schliesst ein offenes Abschnittsfenster —
+     sonst stuende man hinter einem Fenster auf der falschen Seite. */
+  if(typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');
   if(typeof sicherungStempel === 'function') sicherungStempel();
   if(name === 'sammlung') sammlungZeichnen();
   document.body.dataset.ansicht = name;
+  if(typeof themeFarbe === 'function') themeFarbe();
   if(typeof fabZeichnen === 'function') fabZeichnen();
   zaehlerAktualisieren();
 }
@@ -12252,93 +13383,121 @@ document.addEventListener('click', e=>{
   };
 });
 
-/* ── Werkzeuge: immer nur ein Block offen ─────────────────────
-   Untereinander waren die drei Werkzeuge eine sehr lange Seite, auf der
-   man den Anfang des nächsten nie gefunden hat. Ein Block offen, die
-   anderen als Zeile — die Wahl bleibt sichtbar, der Rest ist ruhig. */
-function werkzeugZeichnen(){
-  document.querySelectorAll('[data-wz]').forEach(sec=>{
-    const auf = sec.dataset.wz === S.wzOffen;
-    sec.classList.toggle('auf', auf);
-    const box = sec.querySelector('.wz-in');
-    if(box) box.hidden = !auf;
-    const kopf = sec.querySelector('.wz-kopf');
-    if(kopf) kopf.setAttribute('aria-expanded', String(auf));
-  });
+/* ══════════════════ Abschnitte als Fenster ══════════════════
+
+   Vorher klappten 17 Abschnitte an Ort und Stelle auf, und immer
+   nur einer. Wer das zweite Werkzeug wollte, musste erst das erste
+   zuklappen; auf „Mehr" scrollte man an elf zugeklappten Zeilen
+   vorbei. Jetzt oeffnet jeder Abschnitt als Fenster ueber die
+   volle Hoehe.
+
+   Der Inhalt wird nicht neu gebaut, sondern verschoben: der
+   `.wz-in`-Kasten wandert aus seinem Abschnitt in die Fensterhuelle
+   und beim Schliessen zurueck. Damit bleiben alle Kennungen,
+   Ereignisse und der Eingabestand erhalten — ein Neuaufbau haette
+   halb ausgefuellte Formulare geleert. */
+
+const MEHR_BLOECKE = ['sicherung','urlaub','wetter','tiere','rundgang','ansicht','tour','rueck','install','weg','melde','patch'];
+let _sekOffen = null;
+
+function sekAbschnitt(key){
+  return document.querySelector('[data-wz="' + key + '"]')
+      || document.querySelector('[data-mh="' + key + '"]');
 }
-function werkzeugOeffnen(key, springen){
-  S.wzOffen = (WERKZEUGE.includes(key) ? key : 'doktor');
-  sichern();
-  werkzeugZeichnen();
+
+function sektionOeffnen(key, ausloeser){
+  const sec = sekAbschnitt(key);
+  if(!sec) return false;
+  const box = sec.querySelector('.wz-in');
+  if(!box) return false;
+  if(_sekOffen) sekZurueckhaengen();
+
+  const titel = sec.querySelector('.wz-t');
+  document.getElementById('sekm-titel').textContent =
+    titel ? titel.textContent.trim() : (sec.querySelector('.wz-h2') || {}).textContent || '';
+
+  document.getElementById('sekm-rumpf').appendChild(box);
+  box.hidden = false;
+  _sekOffen = {key, sec, box};
+
+  /* Der Hilfetext lag frueher aufgeklappt mitten im Abschnitt.
+     Jetzt haengt er am Knopf im Fensterkopf — da, wo man ihn
+     sucht, und nicht im Weg, wenn man ihn kennt. */
+  const hilfe = box.querySelector('.wz-hilfe');
+  const iknopf = document.getElementById('sekm-info');
+  iknopf.hidden = !hilfe;
+  if(hilfe){
+    hilfe.hidden = true;
+    iknopf.setAttribute('aria-expanded', 'false');
+    iknopf.setAttribute('aria-label', 'Wozu ist ' + (titel ? titel.textContent.trim() : 'das') + ' da?');
+  }
+
+  modalAuf('sek-modal', ausloeser);
   if(key === 'grundriss' && typeof planRender === 'function') planRender();
-  if(springen){
-    const sec = document.querySelector(`[data-wz="${S.wzOffen}"]`);
-    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
-  }
+  if(key === 'ansicht' && typeof designWahlZeichnen === 'function') designWahlZeichnen();
+  if(key === 'wetter' && typeof wetterEinstellungZeichnen === 'function') wetterEinstellungZeichnen();
+  return true;
 }
-document.addEventListener('click', e=>{
-  const kopf = e.target.closest('[data-wz-go]');
-  if(kopf){
-    const key = kopf.dataset.wzGo;
-    /* Ein offener Block lässt sich auch wieder zuklappen — dann steht
-       die Auswahl der drei Werkzeuge wieder ganz für sich da. */
-    if(S.wzOffen === key){ S.wzOffen = null; sichern(); werkzeugZeichnen(); }
-    else werkzeugOeffnen(key, true);
-    return;
-  }
-  const info = e.target.closest('[data-wz-info]');
-  if(info){
-    const sec = info.closest('[data-wz]');
-    const hilfe = sec && sec.querySelector('.wz-hilfe');
-    if(!hilfe) return;
-    /* Der Block muss dafür offen sein, sonst tippt man ins Leere. */
-    if(S.wzOffen !== sec.dataset.wz) werkzeugOeffnen(sec.dataset.wz);
-    hilfe.hidden = !hilfe.hidden;
-    info.setAttribute('aria-expanded', String(!hilfe.hidden));
-  }
+
+function sekZurueckhaengen(){
+  if(!_sekOffen) return;
+  const {sec, box} = _sekOffen;
+  box.hidden = true;
+  sec.appendChild(box);
+  _sekOffen = null;
+}
+
+modalAnmelden('sek-modal', {
+  groesse:'voll', schleier:false,
+  nachZu: ()=>sekZurueckhaengen()
 });
 
-/* ── Mehr: dasselbe Muster wie bei den Werkzeugen ─────────────
-   Bewusst eine eigene Funktion statt einer gemeinsamen: die beiden
-   Seiten merken sich getrennt, was offen war, und die Werkzeuge-Logik
-   bleibt unangetastet. */
-const MEHR_BLOECKE = ['sicherung','urlaub','tiere','rundgang','ansicht','tour','rueck','install','weg','melde','patch'];
-function mehrZeichnen(){
-  document.querySelectorAll('[data-mh]').forEach(sec=>{
-    const auf = sec.dataset.mh === S.mehrOffen;
-    sec.classList.toggle('auf', auf);
-    const box = sec.querySelector('.wz-in');
-    if(box) box.hidden = !auf;
-    const kopf = sec.querySelector('.wz-kopf');
-    if(kopf) kopf.setAttribute('aria-expanded', String(auf));
-  });
-}
-function mehrOeffnen(key, springen){
-  S.mehrOffen = (MEHR_BLOECKE.includes(key) ? key : 'sicherung');
-  sichern();
-  mehrZeichnen();
-  if(springen){
-    const sec = document.querySelector(`[data-mh="${S.mehrOffen}"]`);
-    if(sec && sec.scrollIntoView) sec.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-}
+document.getElementById('sekm-zu').onclick = ()=>modalZu('sek-modal');
+document.getElementById('sekm-info').onclick = function(){
+  if(!_sekOffen) return;
+  const hilfe = _sekOffen.box.querySelector('.wz-hilfe');
+  if(!hilfe) return;
+  hilfe.hidden = !hilfe.hidden;
+  this.setAttribute('aria-expanded', String(!hilfe.hidden));
+};
+
+/* Die alten Namen bleiben — anderer Code ruft sie auf. */
+function werkzeugOeffnen(key, ausloeser){ return sektionOeffnen(key, ausloeser); }
+function mehrOeffnen(key, ausloeser){ return sektionOeffnen(key, ausloeser); }
+function werkzeugZeichnen(){}
+function mehrZeichnen(){}
+
 document.addEventListener('click', e=>{
-  const kopf = e.target.closest('[data-mh-go]');
-  if(kopf){
-    const key = kopf.dataset.mhGo;
-    if(S.mehrOffen === key){ S.mehrOffen = null; sichern(); mehrZeichnen(); }
-    else mehrOeffnen(key, true);
-    return;
-  }
-  const info = e.target.closest('[data-mh-info]');
-  if(info){
-    const sec = info.closest('[data-mh]');
-    const hilfe = sec && sec.querySelector('.wz-hilfe');
-    if(!hilfe) return;
-    if(S.mehrOffen !== sec.dataset.mh) mehrOeffnen(sec.dataset.mh);
-    hilfe.hidden = !hilfe.hidden;
-    info.setAttribute('aria-expanded', String(!hilfe.hidden));
-  }
+  const kopf = e.target.closest('[data-wz-go],[data-mh-go]');
+  if(!kopf) return;
+  sektionOeffnen(kopf.dataset.wzGo || kopf.dataset.mhGo, kopf);
+});
+
+/* Die sechs Werkzeuge kommen ins Kachelgitter. Der Behaelter wird
+   erst hier erzeugt: die Abschnitte sind Geschwister im Dokument,
+   und ein Raster braucht einen gemeinsamen Elternteil. */
+(function(){
+  const secs = Array.prototype.slice.call(document.querySelectorAll('section[data-wz]'));
+  if(!secs.length) return;
+  const gitter = document.createElement('div');
+  gitter.className = 'kachelgitter';
+  gitter.dataset.ans = 'werkzeuge';
+  secs[0].parentNode.insertBefore(gitter, secs[0]);
+  secs.forEach(sec=>{
+    gitter.appendChild(sec);
+    const box = sec.querySelector('.wz-in');
+    if(box) box.hidden = true;
+    const kopf = sec.querySelector('.wz-kopf');
+    if(kopf) kopf.removeAttribute('aria-expanded');
+  });
+})();
+
+/* Auf „Mehr" bleibt die Liste, nur zugeklappt. */
+document.querySelectorAll('section[data-mh]').forEach(sec=>{
+  const box = sec.querySelector('.wz-in');
+  if(box) box.hidden = true;
+  const kopf = sec.querySelector('.wz-kopf');
+  if(kopf) kopf.removeAttribute('aria-expanded');
 });
 
 
@@ -12710,15 +13869,9 @@ function ubBlattBauen(){
 }
 function ubBlattOeffnen(){
   if(!ubBlattBauen()) return;
-  document.getElementById('urlaub-blatt').hidden = false;
-  document.body.style.overflow = 'hidden';
-  window.scrollTo(0, 0);
+  modalAuf('urlaub-blatt');
 }
-function ubBlattZu(){
-  const b = document.getElementById('urlaub-blatt');
-  if(b) b.hidden = true;
-  document.body.style.overflow = '';
-}
+function ubBlattZu(){ modalZu('urlaub-blatt'); }
 function ubDrucken(hinweis){
   if(!ubBlattBauen()) return;
   const b = document.getElementById('urlaub-blatt');
@@ -12891,10 +14044,7 @@ document.addEventListener('click', e=>{
   const go = e.target.closest('[data-go]');
   if(go && S.ansicht !== 'sammlung'){
     ansichtZeigen('sammlung');
-    setTimeout(()=>{
-      const c = document.getElementById('c-' + go.dataset.go);
-      if(c) c.scrollIntoView({behavior:'smooth', block:'center'});
-    }, 90);
+    setTimeout(()=>karteOeffnen(go.dataset.go), 90);
   }
 });
 
@@ -12902,22 +14052,21 @@ document.addEventListener('click', e=>{
 const _renderVorherNav = render;
 render = function(){
   _renderVorherNav();
+  /* Steht das Kartenfenster offen, muss es die Aenderung mitbekommen —
+     aber nicht, waehrend jemand darin tippt. */
+  if(typeof modalOffen === 'function' && modalOffen('karte-modal')){
+    const f = document.activeElement;
+    const tippt = f && /^(INPUT|TEXTAREA|SELECT)$/.test(f.tagName)
+      && document.getElementById('karte-rumpf').contains(f);
+    if(!tippt) karteRumpfFuellen();
+  }
   document.querySelectorAll('[data-ans]').forEach(el=>{
     el.classList.toggle('ans-aus', !ANS_ALLE && el.dataset.ans !== S.ansicht);
   });
   zaehlerAktualisieren();
 };
 
-function alleAnsichten(an){
-  ANS_ALLE = !!an; S.ansichtAlles = ANS_ALLE; sichern();
-  document.getElementById('tabs').classList.toggle('flach', ANS_ALLE);
-  ansichtZeigen(S.ansicht || 'heute', false);
-}
-const schalter = document.getElementById('ans-alles');
-if(schalter){
-  schalter.checked = !!S.ansichtAlles;
-  schalter.onchange = ()=>alleAnsichten(schalter.checked);
-}
+designSetzen(S.design, false);
 
 /* ── Einfacher Modus ─────────────────────────────────────────
    Blendet nur aus, löscht nichts. Alles bleibt gespeichert und ist
@@ -12934,9 +14083,9 @@ function einfachSetzen(an){
     S.rundgang.stufe = 'blick';
     const rs = document.getElementById('rg-stufe');
     if(rs){ rs.value = 'blick'; rs.dispatchEvent(new Event('change', {bubbles:true})); }
-    /* Stand der Grundriss gerade offen, bliebe sonst ein aufgeklappter
-       aber unsichtbarer Block zurück. */
-    if(S.wzOffen === 'grundriss'){ S.wzOffen = null; }
+    /* Stand der Grundriss gerade offen, bliebe sonst ein Fenster
+       zu einem Werkzeug stehen, das es nicht mehr gibt. */
+    if(_sekOffen && _sekOffen.key === 'grundriss') modalZu('sek-modal');
   }
   sichern();
 }
@@ -12980,7 +14129,6 @@ einfachSetzen(!!S.einfach);
     txt.textContent = weg ? weg + (weg === 1 ? ' Hinweis ist' : ' Hinweise sind') + ' weggeklickt.' : '';
   }
 })();
-if(S.ansichtAlles) ANS_ALLE = true;
 ansichtZeigen(S.ansicht || 'heute', false);
 
 
@@ -14777,17 +15925,10 @@ function rgStarten(){
   rgListe = rundgangListe();
   if(!rgListe.length){ alert('Gerade ist nichts fällig. Unter „Mehr“ lässt sich der Rhythmus ändern.'); return; }
   rgIndex = 0; rgErfasst = 0; rgFotos = 0;
-  $('#rundgang').hidden = false;
-  document.body.classList.add('gm-offen');
-  rgZeichnen();
-  if(typeof fensterAuf === 'function') fensterAuf($('#rundgang'));
+  modalAuf('rundgang');
 }
 function rgBeenden(){
-  $('#rundgang').hidden = true;
-  document.body.classList.remove('gm-offen');
-  if(typeof fensterZu === 'function') fensterZu();
-  const e = rgEinst(); e.zaehler = (e.zaehler || 0) + 1; sichern();
-  render();
+  modalZu('rundgang');
 }
 function rgWeiter(){
   rgIndex++;
@@ -15231,7 +16372,7 @@ const TOUR_KAPITEL = {
 
   sammlung: {
     name: 'Die Sammlung',
-    danach: ()=>{ if(document.querySelector('#out .card.open') && tourNoetig('karte'))
+    danach: ()=>{ if(modalOffen('karte-modal') && tourNoetig('karte'))
                     tourStart('karte'); },
     schritte: ()=>[
       { vor: ()=>ansichtZeigen('sammlung'),
@@ -15257,21 +16398,25 @@ const TOUR_KAPITEL = {
   karte: {
     name: 'Die Pflanzenkarte',
     schritte: ()=>[
-      { ziel: ()=>document.querySelector('#out .card.open .schnell'),
+      { fenster: 'karte-modal',
+        ziel: ()=>document.querySelector('#karte-fest .schnell'),
         titel: 'Der Schnellzugriff',
         text: 'Ganz oben in der Karte steht, wie es ums Gießen bestellt ist, darunter die Knöpfe, die du am häufigsten brauchst — gießen, Aufgabe anlegen, Ereignis eintragen.' },
 
-      { ziel: ()=>document.querySelector('#out .card.open .ktabs'),
+      { fenster: 'karte-modal',
+        ziel: ()=>document.querySelector('#karte-rumpf .ktabs'),
         titel: 'Vier Reiter',
         text: 'Allgemein für Fotos und Aufgaben, Pflege für die Angaben zur Art, Lage für Raum und Stellplatz samt Tierwarnung, Geschichte für Zustand und Verlauf. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
 
-      { ziel: ()=>document.querySelector('#out .card.open .acc'),
+      { fenster: 'karte-modal',
+        ziel: ()=>document.querySelector('#karte-rumpf .acc'),
         titel: 'Abschnitte klappen auf',
         text: 'Was du hier aufklappst, ist auch bei der nächsten Pflanze aufgeklappt. So siehst du überall dasselbe, ohne jedes Mal zu suchen.' },
 
-      { ziel: ()=>document.querySelector('#out .card.open .card-btn'),
-        titel: 'Wieder zuklappen',
-        text: 'Ein Tipp auf den Kopf der Karte schließt sie. Es ist immer nur eine Karte gleichzeitig offen.' }
+      { fenster: 'karte-modal',
+        ziel: ()=>document.getElementById('karte-zu'),
+        titel: 'Fertig — und weiterblättern',
+        text: '„Fertig“ schließt das Fenster, der Zurück-Knopf des Geräts genauso. Mit den Pfeilen links und rechts vom Namen gehst du zur nächsten Pflanze, ohne den Umweg über die Liste.' }
     ]
   },
 
@@ -15305,10 +16450,12 @@ const TOUR_KAPITEL = {
   giessmodus: {
     name: 'Gießmodus',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('gm-inhalt'),
+      { fenster: 'giessmodus',
+        ziel: ()=>document.getElementById('gm-inhalt'),
         titel: 'Eine nach der anderen',
         text: 'Oben läuft ein Balken mit, der zeigt, wie weit du bist. In der Mitte steht die Pflanze, die gerade dran ist — mit Bild, Standort und der Gießart, die zu ihr passt.' },
-      { ziel: ()=>document.getElementById('gm-knoepfe'),
+      { fenster: 'giessmodus',
+        ziel: ()=>document.getElementById('gm-knoepfe'),
         titel: 'Gegossen, übersprungen, noch feucht',
         text: '„Noch feucht“ ist kein Überspringen: die App merkt sich das und verlängert den Abstand für diese Pflanze. So lernt der Rhythmus mit, statt jedes Mal danebenzuliegen.' }
     ]
@@ -15317,10 +16464,12 @@ const TOUR_KAPITEL = {
   rundgang: {
     name: 'Rundgang',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('rg-inhalt'),
+      { fenster: 'rundgang',
+        ziel: ()=>document.getElementById('rg-inhalt'),
         titel: 'Die ganze Sammlung der Reihe nach',
         text: 'Anders als der Gießmodus geht der Rundgang alle Pflanzen durch, nicht nur die fälligen. Damit fällt auf, was sonst monatelang unbeachtet in der Ecke steht.' },
-      { ziel: ()=>document.getElementById('rg-knoepfe'),
+      { fenster: 'rundgang',
+        ziel: ()=>document.getElementById('rg-knoepfe'),
         titel: 'Was unterwegs erfasst wird',
         text: 'Welche Knöpfe hier stehen, entscheidest du unter „Mehr“ › Rundgang: nur ein kurzer Blick, dazu Blattzahl und Ereignisse, oder zusätzlich ein Foto. Je weniger, desto schneller geht es.' }
     ]
@@ -15339,14 +16488,17 @@ const TOUR_KAPITEL = {
   doktor: {
     name: 'Pflanzendoktor',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('dok-fortschritt'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('dok-fortschritt'),
         titel: 'Vier Schritte',
         text: 'Die Leiste oben zeigt, wo du stehst. Sie geht nur weiter, wenn der Schritt davor beantwortet ist — halbe Angaben ergeben halbe Diagnosen.',
         warte: 320 },
-      { ziel: ()=>document.getElementById('dok-s1'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('dok-s1'),
         titel: 'Erst die Pflanze',
         text: 'Auch Arten, die du gar nicht besitzt, stehen zur Auswahl — dann bekommst du die Einschätzung, aber nichts wird in eine Karte übernommen.' },
-      { ziel: ()=>document.querySelector('#doktor-sec .wz-i'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('sekm-info'),
         titel: 'Zwei Wege danach',
         text: 'Mit Foto von einer KI ansehen lassen — die Frage wird fertig zusammengebaut, du hängst nur das Bild an — oder selbst beschreiben, was auffällt. Das geht ohne Internet. Alles Grundsätzliche steht hinter diesem i.' }
     ]
@@ -15355,14 +16507,17 @@ const TOUR_KAPITEL = {
   substrat: {
     name: 'Substrat mischen',
     schritte: ()=>[
-      { ziel: ()=>{ const e = document.getElementById('sub-pflanze'); return e ? e.closest('label') : null; },
+      { fenster: 'sek-modal',
+        ziel: ()=>{ const e = document.getElementById('sub-pflanze'); return e ? e.closest('label') : null; },
         titel: 'Für welche Pflanze',
         text: 'Aus der Art ergibt sich die Zielmischung: wie luftig, wie sauer, wie viel Wasser sie halten soll. Ohne Pflanze lässt sich auch eine Gruppe von Hand wählen.',
         warte: 320 },
-      { ziel: ()=>document.querySelector('#substrat-sec .topf-block'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.querySelector('#sekm-rumpf .topf-block'),
         titel: 'Topfform und Größe',
         text: 'Aus Form und Durchmesser rechnet die App das Volumen und daraus die Menge je Zutat. Ein konischer Topf fasst deutlich weniger als ein zylindrischer derselben Weite — deshalb die Auswahl.' },
-      { ziel: ()=>document.getElementById('sub-vorrat'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('sub-vorrat'),
         titel: 'Was du zu Hause hast',
         text: 'Hak an, was vorrätig ist. Die App rechnet die beste mögliche Mischung daraus — und sagt darunter ausdrücklich, wo sie am Ziel vorbeischrammt, statt so zu tun, als ginge alles.' }
     ]
@@ -15371,14 +16526,17 @@ const TOUR_KAPITEL = {
   grundriss: {
     name: 'Räume und Grundriss',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('gr-liste'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('gr-liste'),
         titel: 'Erst die Räume',
         text: 'Jeder Raum ist eine Karte. Erst wenn Maße, Fenster und Himmelsrichtung stehen, kann die App rechnen — vorher steht „noch nicht eingerichtet“ dabei.',
         warte: 320 },
-      { ziel: ()=>document.getElementById('btn-raum-neu'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('btn-raum-neu'),
         titel: 'Einen Raum anlegen',
         text: 'Danach geht es in die Zeichenfläche: Größe festlegen, Wände und Fenster auf die Kanten setzen, den Raum auf dem Kompass drehen. Quer halten hilft sehr.' },
-      { ziel: ()=>document.querySelector('#zonen-sec .wz-i'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('sekm-info'),
         titel: 'Freiwillig, aber nützlich',
         text: 'Der Grundriss ist der aufwendigste Teil der App und der einzige, der echte Sonnenstunden liefert statt einer Schätzung. Nichts davon verbietet dir einen Standort — die App sagt nur, was sie sieht.' }
     ]
@@ -15420,14 +16578,17 @@ const TOUR_KAPITEL = {
   sicherung: {
     name: 'Sicherung',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('storage-state'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('storage-state'),
         titel: 'Wo deine Daten liegen',
         text: 'Nichts davon liegt auf einem fremden Rechner. Das ist der Vorteil und zugleich das Risiko: niemand sonst hat eine Kopie.',
         warte: 320 },
-      { ziel: ()=>document.getElementById('btn-download'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('btn-download'),
         titel: 'Eine Datei mit allem darin',
         text: 'Pflanzen, Fotos, Gießstand, Räume, Einstellungen. Auf einem neuen Gerät lädst du sie mit „Sicherung laden“ wieder ein, und alles steht wie vorher. Wie oft die App daran erinnert, stellst du hier selbst ein.' },
-      { ziel: ()=>document.getElementById('btn-reset'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('btn-reset'),
         titel: 'Der rote Knopf',
         text: '„Alles zurücksetzen“ löscht den gesamten Bestand samt Fotos und lässt sich nicht rückgängig machen. Vorher eine Sicherung herunterladen.' }
     ]
@@ -15436,14 +16597,17 @@ const TOUR_KAPITEL = {
   urlaub: {
     name: 'Urlaubszettel',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('url-von'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('url-von'),
         titel: 'Der Zeitraum entscheidet alles',
         text: 'Auf den Zettel kommen nur Pflanzen, die in diesen Tagen wirklich drankommen. Pflanzen in der Gießpause und solche ohne Eintrag stehen getrennt darunter, damit die Vertretung weiß, warum sie fehlen.',
         warte: 320 },
-      { ziel: ()=>document.getElementById('url-puffer'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('url-puffer'),
         titel: 'Lieber einen Tag zu früh',
         text: 'Eine Vertretung kommt selten auf den Tag genau. Ein Tag zu früh schadet fast nie, drei Tage zu spät oft schon.' },
-      { ziel: ()=>document.getElementById('btn-url-druck'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('btn-url-druck'),
         titel: 'Ausgeben',
         text: 'Der Zettel wird immer schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt — mit Raumplan, Nummern zum Ausschneiden und Bildern, wenn du sie mitnimmst.' }
     ]
@@ -15452,11 +16616,13 @@ const TOUR_KAPITEL = {
   vermehren: {
     name: 'Vermehren',
     schritte: ()=>[
-      { ziel: ()=>document.getElementById('ver-pflanze'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('ver-pflanze'),
         titel: 'Passend zur Art',
         text: 'Nicht jede Pflanze lässt sich auf jede Weise vermehren. Aus der gewählten Art ergeben sich die Wege, die bei ihr wirklich funktionieren — Kopfsteckling, Teilung, Blattsteckling, Kindel.',
         warte: 320 },
-      { ziel: ()=>document.getElementById('ver-inhalt'),
+      { fenster: 'sek-modal',
+        ziel: ()=>document.getElementById('ver-inhalt'),
         titel: 'Vom Ableger zur Pflanze',
         text: 'Zu jedem Weg stehen Jahreszeit, Werkzeug und die einzelnen Handgriffe. Ein fertiger Ableger lässt sich von hier aus direkt als neue Pflanze anlegen — die Mutterpflanze bleibt im Stammbaum verknüpft.' }
     ]
@@ -15510,8 +16676,17 @@ function tourErledigt(key){
 })();
 
 /* ── Anzeige ─────────────────────────────── */
+/* Ein Schritt darf sagen, in welchem Fenster er steht. Ist das
+   Fenster zu, hat der Schritt kein Ziel — und wird uebersprungen,
+   statt eine Karte ins Leere zu haengen. */
+function tourFensterOffen(schritt){
+  if(!schritt || !schritt.fenster) return true;
+  try{ return modalOffen(schritt.fenster); }catch(e){ return true; }
+}
+
 function tourZiel(schritt){
   if(!schritt || typeof schritt.ziel !== 'function') return null;
+  if(!tourFensterOffen(schritt)) return null;
   let el = null;
   try{ el = schritt.ziel(); }catch(e){ return null; }
   if(!el || !el.getBoundingClientRect) return null;
@@ -15632,7 +16807,8 @@ function tourText(){
    sofort gezeigt; wer nach 700 ms nicht auftaucht, gilt als nicht da. */
 function tourWartenAufZiel(schritt, fertig){
   const start = Date.now();
-  const grenze = Math.max(300, schritt && schritt.warte ? schritt.warte * 2 : 700);
+  const grenze = Math.max(300, schritt && schritt.warte ? schritt.warte * 2 : 700)
+    + (schritt && schritt.fenster ? 300 : 0);
   (function schauen(){
     const el = tourZiel(schritt);
     if(el || Date.now() - start > grenze){ fertig(el); return; }
@@ -15851,7 +17027,7 @@ document.addEventListener('click', e=>{
   if(tourLauf || !tourNoetig('karte')) return;
   setTimeout(()=>{
     if(tourLauf || !tourNoetig('karte')) return;
-    if(document.querySelector('#out .card.open')) tourStart('karte');
+    if(modalOffen('karte-modal')) tourStart('karte');
   }, 460);
 });
 
