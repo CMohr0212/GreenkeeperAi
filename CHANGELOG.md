@@ -4,6 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.11 — 25. August 2026
+**Näher am Entwurf**
+
+### Neu
+- Über jeder Überschrift steht jetzt der Name des Reiters, auf dem man gerade ist — in Versalien, in einer Serifenschrift. In Klartext bleibt er normal geschrieben, Versalien sind dort schwerer zu lesen.
+- Überschriften laufen in Botanisch und Terrarium in Newsreader statt in der Grotesk. Die Schrift war längst geladen, aber nur für den Fließtext im Einsatz.
+
+### Besser
+- Das Grün auf „Heute“ und „Mehr“ ist heller und wärmer. Der alte Ton war so dunkel, dass die Seiten schwer wirkten.
+- Die beiden Startknöpfe auf „Heute“ sind cremefarbene Karten mit rundem Symbolfeld. Vorher standen sie dunkel auf dunkel und waren kaum zu lesen.
+- Die Werkzeugkacheln sind alle gleich hoch und mittig gesetzt. Unter jedem Werkzeug steht „Öffnen“ statt eines Pfeils — ein Wort, das auch vorgelesen wird.
+
+---
+
 ## 2.9.10 — 25. August 2026
 **Hin statt hingewiesen**
 

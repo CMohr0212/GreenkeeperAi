@@ -178,7 +178,7 @@
 /* ── BOTANISCH — Standard, warm, papierartig ──────────────── */
 [data-design="botanisch"]{
   --fl-grund:#F4F1E8; --fl-karte:#FBF9F3; --fl-erhoben:#FFFFFF; --fl-tief:#EDEAE0;
-  --fl-akzent:#3F5443; --fl-bildleer:#E1DDD0;
+  --fl-akzent:#44574A; --fl-bildleer:#E1DDD0;
   --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459; --schrift-invers:#EDF0E6;
   --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
   --wasser:#2C5A6B; --wasser-tief:#244855;
@@ -191,7 +191,15 @@
   --r-klein:8px; --r-mittel:14px; --r-gross:22px;
   --tap:44px; --rand:20px;
   --dauer:180ms; --glanz:none;
-  --zone-grund:#2C3E33;
+  --zone-grund:#44574A;
+  /* Die Vorlage setzt Ueberschriften in einer Serifenschrift mit
+     Versalien. Newsreader liegt ohnehin im Haus — bisher nur als
+     Fliesstext. Sie wird bis 500 geladen, deshalb faellt auch das
+     Titelgewicht von 600 auf 500; alles darueber waere ein vom
+     Browser kuenstlich verfetteter Schnitt. */
+  --f-display:'Newsreader',Georgia,serif;
+  --gewicht-titel:500;
+  --etikett:#5C7159;
 }
 
 /* ── KLARTEXT — barrierefrei, alles hell, nichts blass ────── */
@@ -251,9 +259,11 @@
   --zone-grund:#0C1810;
   /* Zahlen in Monospace: Terrarium zeigt viele Messwerte, und
      untereinander stehen sie nur so buendig. Keine Serifen. */
-  --f-display:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-display:'Newsreader',Georgia,serif;
   --f-body:'Bricolage Grotesque',system-ui,sans-serif;
   --f-data:'JetBrains Mono',ui-monospace,monospace;
+  --gewicht-titel:500;
+  --etikett:#7FD8A0;
   /* Toene kehren sich um: auf dunklem Grund hellt eine Hinweisflaeche
      auf, sie dunkelt nicht nach. */
   --ton-gift:rgba(255,184,101,.12); --ton-sicher:rgba(123,232,143,.12);
@@ -288,8 +298,9 @@ html[data-design="botanisch"] body[data-ansicht="mehr"]{background:var(--zone-gr
 
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap,
 html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
-  --fl-grund:#2C3E33; --fl-karte:#243328; --fl-erhoben:#35473B; --fl-tief:#22302A;
-  --fl-bildleer:#1E2A22;
+  --fl-grund:#44574A; --fl-karte:#3A4B3F; --fl-erhoben:#4E6354; --fl-tief:#36463B;
+  --fl-bildleer:#334237;
+  --etikett:#B9CDAE;
   --schrift:#F2F7F0; --schrift-2:#B4C7AC; --schrift-3:#B4C7AC;
   --linie:rgba(237,240,230,.18); --linie-stark:rgba(237,240,230,.34);
   --wasser:#8FBACC; --wasser-tief:#B6D5E1;
@@ -303,6 +314,54 @@ html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
   --ton-tipp-hover:rgba(242,247,240,.10); --ton-hover:rgba(242,247,240,.08);
   color:var(--schrift);
   background:var(--fl-grund);
+}
+
+/* ── Helle Karten in der dunklen Zone ─────────────────────────
+   Die Vorlage stellt auf Heute cremefarbene Karten auf das Gruen.
+   Bisher stand dort dunkel auf dunkel: die beiden Startknoepfe
+   liefen auf --wasser, das die Zone ins Helle dreht, ihr Text aber
+   auf --schrift-invers, das die Zone nicht anfasst.
+
+   Die Karte bindet die Tokens zurueck auf hell und setzt color
+   selbst — sonst erbt der Inhalt die helle Schrift der Zone. */
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start,
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .stich{
+  --fl-karte:#F2F0E4; --fl-erhoben:#FFFFFF; --fl-tief:#E7E4D6;
+  --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459;
+  --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
+  --wasser:#2C5A6B; --gift:#7A3B22; --sicher:#2F5233; --duenger:#6B4E12;
+  color:#1C2620;
+  background:#F2F0E4;
+  border:0;
+  box-shadow:0 1px 3px rgba(0,0,0,.20);
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start{
+  align-items:center;gap:14px;padding:15px 16px;border-radius:var(--r-mittel)
+}
+/* Das Rundfeld links aus der Vorlage: helle Scheibe, Symbol darin. */
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start-i{
+  width:40px;height:40px;border-radius:50%;background:#DCE4D0
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start-i::before{
+  top:12px;background:#44574A
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start-txt b{
+  font-family:var(--f-display);font-weight:500;font-size:1.15rem
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start-txt i{
+  opacity:1;color:var(--schrift-2)
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start.leer{
+  background:#E9E6D8;color:#4A5750;border:0
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start.leer .gm-start-i{
+  background:#DAD6C6
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .gm-start.leer .gm-start-i::before{
+  background:#4A5750
+}
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .stich{
+  padding:14px 16px;border-radius:var(--r-mittel)
 }
 
 /* ── Trefferflaechen ──────────────────────────────────────────
@@ -817,22 +876,31 @@ html.modal-offen, body.modal-offen{overflow:hidden}
    Vorher eine Ziehharmonika: ein Block offen, die anderen als
    Zeile darunter. Wer das zweite Werkzeug wollte, musste erst das
    erste zuklappen. Jetzt liegen alle sechs nebeneinander. */
+/* Gleich hohe Reihen. Vorher richtete sich jede Reihe nach ihrer
+   laengsten Kachel und das Gitter wirkte zerfallen. */
 .kachelgitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:10px;margin:0 0 22px}
+  grid-auto-rows:1fr;gap:10px;margin:0 0 22px}
 .kachelgitter.ans-aus{display:none}
 .kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
 .kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
-.kachelgitter .wz-kopf{display:flex;flex-direction:column;justify-content:flex-end;
-  align-items:flex-start;gap:4px;width:100%;height:100%;min-height:88px;
-  padding:14px 13px;text-align:left;cursor:pointer;font:inherit;
+.kachelgitter .wz-kopf{display:flex;flex-direction:column;justify-content:center;
+  align-items:center;gap:5px;width:100%;height:100%;min-height:118px;
+  padding:18px 13px;text-align:center;cursor:pointer;font:inherit;
   background:var(--fl-karte);color:var(--ink);
   border:1px solid var(--line);border-radius:var(--r-mittel);
   box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
 .kachelgitter .wz-kopf:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .kachelgitter .wz-t{font-family:var(--f-display);font-weight:var(--gewicht-titel);
   font-size:var(--t-l);line-height:1.25}
-.kachelgitter .wz-p{align-self:flex-end;color:var(--ink-2)}
+/* Der Pfeil wird durch ein Wort ersetzt — in der Vorlage steht unter
+   jedem Werkzeug, was der Griff danach ausloest. Ein Wort sagt das
+   verlaesslicher als ein Zeichen, und es ist vorlesbar. */
+.kachelgitter .wz-p{font-size:0;line-height:0;color:var(--etikett,var(--schrift-2))}
+.kachelgitter .wz-p::after{content:'Öffnen';font-size:var(--t-xs);line-height:1.4;
+  letter-spacing:.09em;text-transform:uppercase;display:block}
+html[data-design="klartext"] .kachelgitter .wz-p::after{
+  content:'Öffnen →';text-transform:none;letter-spacing:0;font-size:var(--t-s)}
 
 /* Mehr bleibt eine Liste — elf Punkte als Kacheln waeren ein
    Suchbild, untereinander liest man sie in einem Zug. */
@@ -1244,6 +1312,31 @@ body.gm-offen #fab-neu{display:none}
 }
 
 /* Kopfbereich kompakt, seit es Reiter gibt */
+.top-etikett{font-family:var(--f-display);text-transform:uppercase;
+  letter-spacing:.11em;font-size:clamp(1.3rem,5.2vw,2rem);font-weight:500;
+  line-height:1.05;margin:0 0 1px;color:var(--etikett,var(--schrift-2))}
+.top-etikett:empty{display:none}
+/* Versalien sind bei Sehschwaeche und Legasthenie schwerer zu lesen —
+   in Klartext bleibt das Etikett normal geschrieben. */
+html[data-design="klartext"] .top-etikett{text-transform:none;letter-spacing:0}
+html[data-design="terrarium"] .top-etikett{text-shadow:0 0 14px rgba(127,216,160,.45)}
+
+/* Newsreader wird bis 500 geladen. Ohne diese Zeile setzte der Browser
+   die alten 600er und 800er Gewichte kuenstlich fett — verschmierte
+   Serifen, genau der Eindruck, den die Vorlage nicht hat. */
+html[data-design="botanisch"] h1,
+html[data-design="terrarium"] h1,
+html[data-design="botanisch"] .wk-titel,
+html[data-design="terrarium"] .wk-titel,
+html[data-design="botanisch"] .card-name,
+html[data-design="terrarium"] .card-name,
+html[data-design="botanisch"] .group-title,
+html[data-design="terrarium"] .group-title,
+html[data-design="botanisch"] .plan h2,
+html[data-design="terrarium"] .plan h2{font-weight:500;letter-spacing:-.005em}
+html[data-design="botanisch"] h1,
+html[data-design="terrarium"] h1{line-height:1.02}
+
 header.top{padding:26px 0 14px}
 header.top h1{font-size:clamp(1.75rem,6.4vw,2.9rem);margin:0 0 9px}
 header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
@@ -6594,6 +6687,7 @@ function papierkorbRender(){
 <div class="wrap">
   <header class="top">
     <button class="sich-stempel" id="sich-stempel" type="button" aria-label="Letzte Sicherung" hidden></button>
+    <p class="top-etikett" id="kopf-etikett" aria-hidden="true">Heute</p>
     <h1 id="kopf-titel">Was heute<br>Wasser braucht</h1>
   </header>
 
@@ -7562,8 +7656,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.10';
+const FASSUNG = '2.9.11';
 const PATCHNOTES = [
+  {
+    nr: '2.9.11', datum: '2026-08-25', titel: 'Näher am Entwurf',
+    neu: [
+      'Über jeder Überschrift steht jetzt der Name des Reiters, auf dem man gerade ist — in Versalien, in einer Serifenschrift. In Klartext bleibt er normal geschrieben, Versalien sind dort schwerer zu lesen.',
+      'Überschriften laufen in Botanisch und Terrarium in Newsreader statt in der Grotesk. Die Schrift war längst geladen, aber nur für den Fließtext im Einsatz.'
+    ],
+    besser: [
+      'Das Grün auf „Heute“ und „Mehr“ ist heller und wärmer. Der alte Ton war so dunkel, dass die Seiten schwer wirkten.',
+      'Die beiden Startknöpfe auf „Heute“ sind cremefarbene Karten mit rundem Symbolfeld. Vorher standen sie dunkel auf dunkel und waren kaum zu lesen.',
+      'Die Werkzeugkacheln sind alle gleich hoch und mittig gesetzt. Unter jedem Werkzeug steht „Öffnen“ statt eines Pfeils — ein Wort, das auch vorgelesen wird.'
+    ]
+  },
   {
     nr: '2.9.10', datum: '2026-08-25', titel: 'Hin statt hingewiesen',
     neu: [
@@ -8110,7 +8216,7 @@ let S = LEERSTAND();
 const DESIGNS = {
   botanisch: {name:'Botanisch', zonen:['heute','mehr'], sammlung:'raster',
               kartendetail:'reiter', dichte:'normal', statistiken:false,
-              leiste:'#FBF9F3', dunkel:'#2C3E33'},
+              leiste:'#FBF9F3', dunkel:'#44574A'},
   klartext:  {name:'Klartext',  zonen:[],              sammlung:'eine-spalte',
               kartendetail:'menue',  dichte:'knapp',  statistiken:false,
               leiste:'#FFFFFF', dunkel:null},
@@ -13312,11 +13418,14 @@ const WERKZEUGE = ['doktor','giessplan','substrat','vermehren','stammbaum','grun
 const ANS_ALLE = false;
 /* Nur noch die Ueberschrift. Der erklaerende Untertitel ist weggefallen —
    die Reiter erklaeren sich ueber ihren Inhalt, nicht ueber einen Absatz. */
+/* Zweiter Eintrag: das Etikett ueber der Ueberschrift. Es benennt den
+   Reiter, auf dem man steht — die Ueberschrift sagt, was es dort gibt.
+   In der Vorlage ist genau das der Aufbau. */
 const ANSICHT_KOPF = {
-  heute:    ['Was heute<br>zu tun ist'],
-  sammlung: ['Die ganze<br>Sammlung'],
-  werkzeuge:['Werkzeuge'],
-  mehr:     ['Sichern und<br>einstellen']
+  heute:    ['Was heute<br>zu tun ist', 'Heute'],
+  sammlung: ['Die ganze<br>Sammlung', 'Sammlung'],
+  werkzeuge:['Werkzeuge', 'Werkzeuge'],
+  mehr:     ['Sichern und<br>einstellen', 'Mehr']
 };
 
 function ansichtZeigen(name, merken){
@@ -13350,6 +13459,8 @@ function ansichtZeigen(name, merken){
   }
   const kopf = ANSICHT_KOPF[name];
   if(kopf) $('#kopf-titel').innerHTML = kopf[0];
+  const etikett = document.getElementById('kopf-etikett');
+  if(etikett) etikett.textContent = (kopf && kopf[1]) || '';
   /* Ein Reiterwechsel schliesst ein offenes Abschnittsfenster —
      sonst stuende man hinter einem Fenster auf der falschen Seite. */
   if(!werkzeug && typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');
