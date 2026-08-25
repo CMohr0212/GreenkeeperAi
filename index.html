@@ -876,23 +876,43 @@ html.modal-offen, body.modal-offen{overflow:hidden}
    Vorher eine Ziehharmonika: ein Block offen, die anderen als
    Zeile darunter. Wer das zweite Werkzeug wollte, musste erst das
    erste zuklappen. Jetzt liegen alle sechs nebeneinander. */
-/* Gleich hohe Reihen. Vorher richtete sich jede Reihe nach ihrer
-   laengsten Kachel und das Gitter wirkte zerfallen. */
-.kachelgitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  grid-auto-rows:1fr;gap:10px;margin:0 0 22px}
+/* Zwei feste Spalten, gleich hohe Reihen. Vorher legte auto-fill bei
+   breiteren Schirmen drei oder vier schmale Kacheln nebeneinander und
+   jede Reihe richtete sich nach ihrer laengsten — das Gitter wirkte
+   zerfallen. Sechs Werkzeuge, zwei Spalten, drei Reihen: das fuellt
+   die Seite und jede Kachel ist gross genug fuer ein Symbol. */
+.kachelgitter{display:grid;grid-template-columns:repeat(2,1fr);
+  grid-auto-rows:1fr;gap:12px;margin:0 0 22px}
 .kachelgitter.ans-aus{display:none}
 .kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
 .kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
 .kachelgitter .wz-kopf{display:flex;flex-direction:column;justify-content:center;
-  align-items:center;gap:5px;width:100%;height:100%;min-height:118px;
-  padding:18px 13px;text-align:center;cursor:pointer;font:inherit;
+  align-items:center;gap:4px;width:100%;height:100%;min-height:158px;
+  padding:20px 12px;text-align:center;cursor:pointer;font:inherit;
   background:var(--fl-karte);color:var(--ink);
   border:1px solid var(--line);border-radius:var(--r-mittel);
   box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
 .kachelgitter .wz-kopf:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .kachelgitter .wz-t{font-family:var(--f-display);font-weight:var(--gewicht-titel);
-  font-size:var(--t-l);line-height:1.25}
+  font-size:1.06rem;line-height:1.22}
+
+/* ── Symbol auf der Kachel ────────────────────────────────────
+   Strichzeichnung, keine Flaeche: in allen drei Designs traegt
+   dieselbe Linie eine andere Farbe. Das Symbol steht auf
+   aria-hidden — der Kachelname sagt bereits, worum es geht, und
+   ein zweites Mal vorgelesen zu werden hilft niemandem. */
+.wz-ikon{display:block;width:46px;height:46px;margin:0 0 6px}
+.wz-ikon svg{width:100%;height:100%;display:block;fill:none;
+  stroke:var(--fl-akzent);stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round}
+html[data-design="terrarium"] .wz-ikon svg{
+  stroke:var(--fl-akzent);filter:drop-shadow(0 0 9px rgba(94,230,160,.55))}
+html[data-design="klartext"] .wz-ikon svg{stroke:var(--schrift);stroke-width:1.9}
+html[data-design="klartext"] .wz-ikon{width:52px;height:52px}
+.wz-unter{display:block;font-size:var(--t-xs);line-height:1.35;
+  color:var(--schrift-2);max-width:20ch}
+html[data-design="klartext"] .wz-unter{font-size:var(--t-s)}
 /* Der Pfeil wird durch ein Wort ersetzt — in der Vorlage steht unter
    jedem Werkzeug, was der Griff danach ausloest. Ein Wort sagt das
    verlaesslicher als ein Zeichen, und es ist vorlesbar. */
@@ -1650,14 +1670,20 @@ body.einfach #zonen-sec{display:none!important}
    Format. Die Reihenfolge bleibt zeilenweise von oben nach unten. */
 html[data-design="botanisch"] .sam-raster .grid{
   grid-template-columns:repeat(2,1fr);
-  grid-auto-rows:8px;
-  gap:12px;
+  grid-auto-rows:4px;
+  column-gap:12px;
+  row-gap:0;
   align-items:start;
 }
+/* Der Abstand nach unten haengt an der Kachel, nicht am Raster:
+   eine Kachel spannt viele Zeilen, und row-gap saesse dann auch
+   zwischen den Zeilen innerhalb einer Kachel. */
 html[data-design="botanisch"] .sam-raster .card{
-  grid-row-end:span calc(var(--spanne, 10) * 2 + 9);
-  border-radius:var(--r-mittel);overflow:hidden;
+  margin:0 0 12px;
+  border-radius:var(--r-gross);overflow:hidden;
+  border:0;box-shadow:0 1px 2px rgba(28,38,32,.06),0 6px 18px rgba(28,38,32,.05);
 }
+html[data-design="botanisch"] .sam-raster .card:not(.open) .card-body{padding:11px 13px 13px}
 html[data-design="botanisch"] .sam-raster .thumb{
   aspect-ratio:1 / var(--bildhoehe, 1);
 }
@@ -7656,8 +7682,18 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.11';
+const FASSUNG = '2.9.12';
 const PATCHNOTES = [
+  {
+    nr: '2.9.12', datum: '2026-08-25', titel: 'Kacheln und Raster',
+    neu: [
+      'Jedes Werkzeug hat ein gezeichnetes Symbol und eine Zeile, die in drei Worten sagt, was es tut. Die Kacheln sind deutlich größer: zwei Spalten, drei Reihen, sechs Werkzeuge — das füllt die Seite.'
+    ],
+    besser: [
+      'Die Sammlung im Rasterblick misst jetzt, wie hoch eine Kachel wirklich ist, statt es aus dem Bildformat zu schätzen. Pflanzen ohne Foto rissen vorher ein Loch von einem Viertel Bildschirm, lange Namen ragten in die Kachel darunter. Die Lesefolge bleibt zeilenweise.',
+      'Die Kacheln der Sammlung haben weichere Ecken und einen ruhigeren Schatten statt eines Rahmens.'
+    ]
+  },
   {
     nr: '2.9.11', datum: '2026-08-25', titel: 'Näher am Entwurf',
     neu: [
@@ -9796,12 +9832,53 @@ function bildFormatMessen(img){
      Bildschirmhoehe einnehmen. */
   const gedeckelt = Math.max(0.7, Math.min(1.6, v));
   karte.style.setProperty('--bildhoehe', gedeckelt.toFixed(3));
-  karte.style.setProperty('--spanne', String(Math.round(gedeckelt * 10)));
+  rasterSpannenBald();
 }
+
+/* ── Zeilenspannen messen statt rechnen ───────────────────────
+   Vorher stand die Spanne in einer Formel: Bildverhaeltnis mal
+   zwanzig plus neun Zeilen fuer den Text. Beides war geraten. Eine
+   Pflanze ohne Foto bekam die Voreinstellung und riss ein Loch von
+   einem Viertel Bildschirm; stand der Name ueber zwei Zeilen, ragte
+   die Kachel in die naechste. Jetzt wird gemessen, was die Kachel
+   tatsaechlich braucht.
+
+   Zwei Durchgaenge, und dazwischen nichts anderes: erst alle
+   Spannen loesen, dann alle Hoehen lesen. Wer im selben Durchgang
+   misst und setzt, zwingt den Browser zwischen jeder Kachel zu
+   einem neuen Umbruch. */
+function rasterSpannen(){
+  const gitter = document.querySelector('.sam-raster .grid');
+  if(!gitter || !gitter.offsetWidth) return;
+  const st = getComputedStyle(gitter);
+  const zeile = parseFloat(st.gridAutoRows) || 0;
+  /* Nur das Botanisch-Raster arbeitet mit feinen Zeilen. Die anderen
+     Designs haben normale Rasterzeilen und brauchen das hier nicht. */
+  if(!zeile || zeile > 12) return;
+  const karten = Array.prototype.slice.call(
+    gitter.querySelectorAll(':scope > .card:not(.open)'));
+  karten.forEach(k=>{ k.style.gridRowEnd = ''; });
+  const hoehen = karten.map(k=>{
+    const stk = getComputedStyle(k);
+    return k.getBoundingClientRect().height + (parseFloat(stk.marginBottom) || 0);
+  });
+  karten.forEach((k, i)=>{
+    if(!hoehen[i]) return;
+    k.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil(hoehen[i] / zeile));
+  });
+}
+
+let _rasterTakt = null;
+function rasterSpannenBald(){
+  if(_rasterTakt) return;
+  _rasterTakt = requestAnimationFrame(()=>{ _rasterTakt = null; rasterSpannen(); });
+}
+
 document.addEventListener('load', e=>{
   const img = e.target;
   if(img && img.tagName === 'IMG' && img.hasAttribute('data-mass')) bildFormatMessen(img);
 }, true);
+window.addEventListener('resize', rasterSpannenBald);
 
 /* ══════════════════ Kartendetail als Fenster ══════════════════
 
@@ -13246,7 +13323,7 @@ function gmKnopfAktualisieren(){
     : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'}`;
 }
 const _renderVorherGm = render;
-render = function(){ _renderVorherGm(); gmKnopfAktualisieren(); };
+render = function(){ _renderVorherGm(); gmKnopfAktualisieren(); rasterSpannenBald(); };
 gmKnopfAktualisieren();
 
 /* ══════════════════ Gießrhythmus nachjustieren ══════════════════
@@ -13641,6 +13718,47 @@ document.addEventListener('click', e=>{
     if(kopf) kopf.removeAttribute('aria-expanded');
   });
 })();
+
+/* ── Was auf einer Werkzeugkachel steht ───────────────────────
+   Die Zeichnungen stammen aus der Designvorschau. Sie liegen hier
+   und nicht im Markup, weil sechs Abschnitte sonst sechsmal
+   dieselbe Struktur von Hand tragen muessten — und beim siebten
+   Werkzeug haette man es an einer Stelle vergessen. */
+const WZ_KACHEL = {
+  doktor: {unter:'Symptome deuten', svg:
+    '<circle cx="12" cy="12" r="3"/><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/>'},
+  giessplan: {unter:'Die nächsten Tage', svg:
+    '<path d="M4 10h9v6.5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M13 12l5.4-3.4v6.8L13 12"/>'
+    + '<path d="M6.5 10V8.2a2.5 2.5 0 0 1 5 0V10"/>'
+    + '<path d="M18.7 17.4c0 .8-.6 1.4-1.35 1.4s-1.35-.6-1.35-1.4c0-.9 1.35-2.6 1.35-2.6s1.35 1.7 1.35 2.6z"/>'},
+  substrat: {unter:'Mischung rechnen', svg:
+    '<path d="M5 13h14l-1.4 6.4a2 2 0 0 1-2 1.6H8.4a2 2 0 0 1-2-1.6z"/><path d="M3.8 13h16.4"/>'
+    + '<path d="M7.6 13c1.1-1.5 2.6-2.3 4.4-2.3s3.3.8 4.4 2.3"/><path d="M12 10.7V6.4"/>'
+    + '<path d="M12 7.6c0-2 1.5-3.1 4-3.1 0 2.4-1.5 3.6-4 3.1z"/>'
+    + '<path d="M12 8.8c0-1.6-1.2-2.5-3.2-2.5 0 2 1.2 3 3.2 2.5z"/>'},
+  vermehren: {unter:'Ableger ziehen', svg:
+    '<path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M4 7h6M7 4v6"/>'},
+  stammbaum: {unter:'Wer von wem', svg:
+    '<circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/>'
+    + '<path d="M12 7.5v4M12 11.5H6v5M12 11.5h6v5"/>'},
+  grundriss: {unter:'Räume und Plätze', svg:
+    '<path d="M3 3h18v18H3zM3 10h18M10 10v11"/>'}
+};
+
+function werkzeugKachelnAusstatten(){
+  document.querySelectorAll('.kachelgitter section[data-wz]').forEach(sec=>{
+    const k = WZ_KACHEL[sec.dataset.wz];
+    const kopf = sec.querySelector('.wz-kopf');
+    if(!k || !kopf || kopf.querySelector('.wz-ikon')) return;
+    kopf.insertAdjacentHTML('afterbegin',
+      '<span class="wz-ikon" aria-hidden="true">'
+      + '<svg viewBox="0 0 24 24">' + k.svg + '</svg></span>');
+    const t = kopf.querySelector('.wz-t');
+    if(t) t.insertAdjacentHTML('afterend',
+      '<span class="wz-unter">' + esc(k.unter) + '</span>');
+  });
+}
+werkzeugKachelnAusstatten();
 
 /* Auf „Mehr" bleibt die Liste, nur zugeklappt. */
 document.querySelectorAll('section[data-mh]').forEach(sec=>{

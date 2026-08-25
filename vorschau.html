@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GreenkeeperAI 3.0 — Designvorschau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════
+   RAHMEN — gehört zu keinem Design, nur zur Vorschau
+   ══════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:#15171a;color:#e8e8e6;
+  font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:15px}
+.steuer{position:sticky;top:0;z-index:99;background:#1d2024;
+  border-bottom:1px solid #33383e;padding:10px 12px}
+.steuer h1{margin:0 0 9px;font-size:13px;font-weight:600;letter-spacing:.04em;
+  text-transform:uppercase;color:#8b9298}
+.reihe{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}
+.reihe:last-child{margin-bottom:0}
+.steuer button{flex:1 1 auto;min-height:40px;padding:7px 11px;border-radius:8px;
+  border:1px solid #3a4046;background:#24282d;color:#c8ced4;cursor:pointer;
+  font:inherit;font-size:13px}
+.steuer button[aria-pressed="true"]{background:#e8e8e6;color:#15171a;border-color:#e8e8e6;font-weight:600}
+.steuer button:focus-visible{outline:2px solid #6ea8fe;outline-offset:2px}
+.notiz{max-width:420px;margin:14px auto 0;padding:0 14px;font-size:13px;
+  line-height:1.6;color:#8b9298}
+.notiz b{color:#c8ced4}
+
+.geraet{max-width:420px;margin:14px auto;border-radius:30px;overflow:hidden;
+  border:1px solid #33383e;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.schirm{height:74vh;min-height:520px;overflow-y:auto;overflow-x:hidden;position:relative;
+  display:flex;flex-direction:column;
+  background:var(--fl-grund);color:var(--schrift);
+  font-family:var(--f-body);font-size:var(--grundschrift);
+  line-height:1.6;-webkit-overflow-scrolling:touch}
+.schirm::-webkit-scrollbar{width:0}
+
+/* ══════════════════════════════════════════════════════════
+   TOKEN-VERTRAG — dieselben Namen in allen drei Designs
+   ══════════════════════════════════════════════════════════ */
+
+/* ── BOTANISCH ─────────────────────────────────────────── */
+[data-design="botanisch"]{
+  --fl-grund:#F4F1E8; --fl-karte:#FBF9F3; --fl-erhoben:#FFFFFF; --fl-tief:#EDEAE0;
+  --fl-akzent:#3F5443;
+  --schrift:#1C2620; --schrift-2:#4A5750; --schrift-invers:#EDF0E6;
+  --linie:rgba(28,38,32,.14); --linie-stark:#3F5443;
+  --wasser:#2C5A6B; --gift:#7A3B22; --sicher:#2F5233; --duenger:#6B4E12;
+  --f-titel:'Newsreader',Georgia,serif;
+  --f-body:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-zahl:'JetBrains Mono',monospace;
+  --grundschrift:18px; --klein:14px; --winzig:11px;
+  --r-klein:8px; --r-mittel:14px; --r-gross:22px;
+  --tap:44px; --rand:18px; --dauer:180ms;
+  --schatten-1:0 1px 3px rgba(28,38,32,.07);
+  --schatten-2:0 -8px 40px rgba(28,38,32,.24);
+  --glanz:none;
+}
+/* Dunkle Zone: bindet dieselben Tokens neu. Keine Komponente merkt es. */
+[data-design="botanisch"] [data-zone="dunkel"]{
+  --fl-grund:#2C3E33; --fl-karte:#F5F2EA; --fl-tief:#22302A;
+  --schrift:#F2F7F0; --schrift-2:#B4C7AC;
+  --linie:rgba(237,240,230,.18);
+  --wasser:#8FBACC; --gift:#E8A78C; --sicher:#A6CC97; --duenger:#D9BC77;
+}
+
+/* ── KLARTEXT ──────────────────────────────────────────── */
+[data-design="klartext"]{
+  --fl-grund:#FFFFFF; --fl-karte:#FFFDF7; --fl-erhoben:#FFFFFF; --fl-tief:#F2F0EA;
+  --fl-akzent:#00451C;
+  --schrift:#000000; --schrift-2:#1A1A1A; --schrift-invers:#FFFFFF;
+  --linie:#000000; --linie-stark:#000000;
+  --wasser:#003D5C; --gift:#8C1D00; --sicher:#00451C; --duenger:#4A3400;
+  --f-titel:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-body:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-zahl:'Bricolage Grotesque',system-ui,sans-serif;
+  --grundschrift:22px; --klein:20px; --winzig:18px;
+  --r-klein:6px; --r-mittel:10px; --r-gross:14px;
+  --tap:56px; --rand:20px; --dauer:0s;
+  --schatten-1:none; --schatten-2:0 -4px 0 #000;
+  --glanz:none;
+}
+
+/* ── TERRARIUM ─────────────────────────────────────────── */
+[data-design="terrarium"]{
+  --fl-grund:#0C1810; --fl-karte:#132218; --fl-erhoben:#18291D; --fl-tief:#081008;
+  --fl-akzent:#5EE6A0;
+  --schrift:#E4F0E4; --schrift-2:#A8BFAE; --schrift-invers:#0C1810;
+  --linie:rgba(94,230,160,.22); --linie-stark:rgba(94,230,160,.5);
+  --wasser:#6FD3F0; --gift:#FFB865; --sicher:#7BE88F; --duenger:#E8D06A;
+  --f-titel:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-body:'Bricolage Grotesque',system-ui,sans-serif;
+  --f-zahl:'JetBrains Mono',monospace;
+  --grundschrift:17px; --klein:13.5px; --winzig:10.5px;
+  --r-klein:10px; --r-mittel:18px; --r-gross:28px;
+  --tap:44px; --rand:16px; --dauer:220ms;
+  --schatten-1:0 0 0 1px rgba(94,230,160,.14), 0 0 22px rgba(94,230,160,.07);
+  --schatten-2:0 -10px 50px rgba(0,0,0,.7);
+  --glanz:0 0 14px rgba(94,230,160,.45);
+}
+
+/* ══════════════════════════════════════════════════════════
+   BAUSTEINE — lesen nur Tokens, kennen kein Design
+   ══════════════════════════════════════════════════════════ */
+.seite{display:none;padding:0 var(--rand) 20px;background:var(--fl-grund);
+  color:var(--schrift)}
+.seite.an{display:block;flex:1 0 auto}
+
+.kopf{padding:26px 0 16px}
+.auge{font-family:var(--f-zahl);font-size:var(--winzig);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--schrift-2);margin:0 0 5px}
+[data-design="klartext"] .auge{text-transform:none;letter-spacing:0;font-weight:600}
+.kopf h2{font-family:var(--f-titel);margin:0;line-height:1.05;letter-spacing:-.02em}
+[data-design="botanisch"] .kopf h2{font-size:2.5rem;font-weight:600}
+[data-design="klartext"] .kopf h2{font-size:2rem;font-weight:800}
+[data-design="terrarium"] .kopf h2{font-size:2.3rem;font-weight:800;
+  text-shadow:0 0 26px rgba(94,230,160,.28)}
+.gruss{margin:6px 0 0;font-size:1.15rem;color:var(--schrift)}
+
+.karte{background:var(--fl-karte);color:#1C2620;border-radius:var(--r-mittel);
+  padding:14px;margin-bottom:10px;box-shadow:var(--schatten-1)}
+[data-design="klartext"] .karte{border:2px solid var(--linie);color:var(--schrift)}
+[data-design="terrarium"] .karte{color:var(--schrift);border:1px solid rgba(94,230,160,.3)}
+[data-design="terrarium"] .kachel{border-color:rgba(94,230,160,.3)}
+[data-design="terrarium"] .seite{background-image:
+  radial-gradient(58% 38% at 16% 10%, rgba(94,230,160,.06), transparent 70%),
+  radial-gradient(48% 34% at 86% 44%, rgba(111,211,240,.045), transparent 70%),
+  radial-gradient(68% 44% at 48% 92%, rgba(94,230,160,.05), transparent 70%)}
+
+.aufgabe{display:flex;align-items:center;gap:12px}
+.marke{flex:0 0 auto;width:38px;height:38px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(44,90,107,.13)}
+[data-design="terrarium"] .marke{background:rgba(111,211,240,.12);box-shadow:var(--glanz)}
+[data-design="klartext"] .marke{width:44px;height:44px;background:var(--fl-tief);
+  border:2px solid var(--wasser)}
+.marke svg{width:19px;height:19px;stroke:var(--wasser);fill:none;stroke-width:1.9}
+.aufgabe-txt{flex:1;min-width:0}
+.aufgabe-txt b{display:block;font-weight:600;font-size:1.02rem}
+.aufgabe-txt span{display:block;font-size:var(--klein);color:var(--schrift-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-design="klartext"] .aufgabe-txt span{white-space:normal}
+[data-design="botanisch"] [data-zone="dunkel"] .karte .aufgabe-txt span{color:#4A5750}
+.frist{font-family:var(--f-zahl);font-size:var(--winzig);white-space:nowrap;
+  padding:4px 9px;border-radius:100px;background:rgba(28,38,32,.07);color:#4A5750}
+[data-design="terrarium"] .frist{background:rgba(94,230,160,.1);color:var(--fl-akzent)}
+[data-design="klartext"] .frist{background:var(--fl-tief);color:var(--schrift);
+  font-size:var(--winzig);font-weight:600;border:1px solid var(--linie)}
+.balken{height:5px;border-radius:100px;background:rgba(28,38,32,.1);margin-top:11px;overflow:hidden}
+.balken i{display:block;height:100%;background:var(--wasser);border-radius:100px}
+.karte.duengen .balken i{background:var(--duenger)}
+.karte.pruefen .balken i{background:var(--sicher)}
+[data-design="klartext"] .balken{height:10px;border:1px solid var(--linie)}
+
+.haupttat{display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  min-height:var(--tap);padding:18px 16px;margin:4px 0 10px;font:inherit;cursor:pointer;
+  border-radius:var(--r-gross);border:1px solid transparent;
+  background:var(--fl-akzent);color:var(--schrift-invers);box-shadow:var(--schatten-1);
+  transition:var(--dauer)}
+.haupttat:active{transform:scale(.99)}
+[data-design="klartext"] .haupttat{border:2px solid var(--linie);border-radius:var(--r-mittel)}
+[data-design="terrarium"] .haupttat{box-shadow:var(--glanz)}
+.ht-marke{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,255,255,.16)}
+[data-design="terrarium"] .ht-marke{background:rgba(12,24,16,.22)}
+[data-design="botanisch"] [data-zone="dunkel"] .haupttat{background:var(--fl-karte);color:#1C2620}
+[data-design="botanisch"] [data-zone="dunkel"] .haupttat .ht-marke{background:rgba(63,84,67,.14)}
+[data-design="botanisch"] [data-zone="dunkel"] .nt.voll{background:rgba(245,242,234,.1);
+  border-color:transparent;color:var(--schrift)}
+[data-design="botanisch"] [data-zone="dunkel"] .nt.voll i{color:var(--schrift-2)}
+.ht-marke svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.7}
+.ht-txt{flex:1;min-width:0}
+.ht-txt b{display:block;font-family:var(--f-titel);font-size:1.22rem;font-weight:600;line-height:1.2}
+.ht-txt i{display:block;font-style:normal;font-size:var(--klein);opacity:.82;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-design="klartext"] .ht-txt b{font-size:1.3rem;font-weight:800}
+[data-design="klartext"] .ht-txt i{opacity:1;font-size:var(--klein)}
+.ht-pfeil{font-size:1.5rem;opacity:.6}
+.haupttat.ruhe{background:var(--fl-karte);color:var(--schrift);border-color:var(--linie)}
+[data-design="botanisch"] [data-zone="dunkel"] .haupttat.ruhe{color:#1C2620}
+.haupttat.ruhe .ht-marke{background:rgba(0,0,0,.07)}
+.haupttat.ruhe .ht-pfeil{display:none}
+
+.nebentaten{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px}
+[data-design="klartext"] .nebentaten{grid-template-columns:1fr}
+.nt{min-height:var(--tap);padding:14px 13px;border-radius:var(--r-mittel);font:inherit;
+  text-align:left;cursor:pointer;transition:var(--dauer)}
+.nt svg{width:24px;height:24px;fill:none;stroke-width:1.6;margin-bottom:7px;display:block}
+.nt b{display:block;font-weight:600;font-size:1.02rem}
+.nt i{font-style:normal;font-size:var(--winzig);display:block;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-design="klartext"] .nt i{font-size:var(--winzig)}
+.nt.voll{background:var(--fl-karte);border:1px solid var(--linie);color:#1C2620}
+.nt.voll svg{stroke:var(--duenger)}
+.nt.voll i{color:#4A5750}
+.nt.rand{background:transparent;border:1px solid var(--linie);color:var(--schrift)}
+.nt.rand svg{stroke:var(--schrift-2)}
+.nt.rand i{color:var(--schrift-2)}
+[data-design="terrarium"] .nt.voll{color:var(--schrift);border-color:rgba(232,208,106,.3)}
+[data-design="terrarium"] .nt.voll i{color:var(--schrift-2)}
+[data-design="klartext"] .nt{border-width:2px}
+[data-design="klartext"] .nt.voll{color:var(--schrift)}
+[data-design="klartext"] .nt.voll i{color:var(--schrift)}
+
+.start{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0 20px}
+.start.eins{grid-template-columns:1fr}
+.marke.duengen{background:rgba(107,78,18,.13)}
+.marke.duengen svg{stroke:var(--duenger)}
+.marke.pruefen{background:rgba(47,82,51,.13)}
+.marke.pruefen svg{stroke:var(--sicher)}
+[data-design="terrarium"] .marke.duengen{background:rgba(232,208,106,.12)}
+[data-design="terrarium"] .marke.pruefen{background:rgba(123,232,143,.12)}
+[data-design="klartext"] .marke.duengen{border-color:var(--duenger)}
+[data-design="klartext"] .marke.pruefen{border-color:var(--sicher)}
+.hinweis{display:flex;gap:11px;align-items:flex-start;padding:12px 13px;margin-bottom:10px;
+  border-radius:var(--r-mittel);border:1px dashed var(--linie);font-size:var(--klein);
+  color:var(--schrift)}
+[data-design="klartext"] .hinweis{border:2px dashed var(--linie);font-size:var(--klein)}
+.hinweis svg{flex:0 0 auto;width:22px;height:22px;stroke:var(--schrift-2);fill:none;stroke-width:1.5}
+.hinweis b{font-weight:600}
+[data-design="klartext"] .start{grid-template-columns:1fr}
+.start button{min-height:var(--tap);padding:14px 12px;border-radius:var(--r-mittel);
+  border:1px solid var(--linie);background:var(--fl-karte);color:#1C2620;
+  font:inherit;text-align:left;cursor:pointer;transition:var(--dauer)}
+[data-design="terrarium"] .start button{color:var(--schrift);box-shadow:var(--glanz)}
+[data-design="klartext"] .start button{border:2px solid var(--linie);color:var(--schrift);
+  font-size:var(--grundschrift);padding:18px}
+.start button b{display:block;font-weight:600}
+.start button i{font-style:normal;font-size:var(--klein);color:var(--schrift-2);opacity:.85}
+[data-design="botanisch"] [data-zone="dunkel"] .start button i{color:#4A5750}
+
+.wetter{display:flex;align-items:center;gap:11px;padding:11px 13px;
+  border-radius:var(--r-mittel);background:var(--fl-karte);color:#1C2620;
+  font-size:var(--klein);margin-bottom:10px;box-shadow:var(--schatten-1)}
+[data-design="terrarium"] .wetter{color:var(--schrift);border:1px solid var(--linie)}
+[data-design="klartext"] .wetter{color:var(--schrift);border:2px solid var(--linie);font-size:var(--klein)}
+.wetter b{font-family:var(--f-zahl);font-weight:600}
+
+/* — Zustandsleiste, nur Terrarium — */
+.werte{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.wert{background:var(--fl-karte);border:1px solid var(--linie);border-radius:var(--r-klein);
+  padding:10px 9px;box-shadow:var(--schatten-1)}
+.wert em{display:block;font-style:normal;font-family:var(--f-zahl);font-size:var(--winzig);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--schrift-2);margin-bottom:6px}
+.wert b{font-family:var(--f-zahl);font-size:1.28rem;color:var(--fl-akzent)}
+[data-design="botanisch"] [data-zone="dunkel"] .wert{background:rgba(245,242,234,.08);
+  border-color:var(--linie)}
+[data-design="botanisch"] [data-zone="dunkel"] .wert b{color:var(--schrift)}
+[data-design="botanisch"] [data-zone="dunkel"] .wert em{color:var(--schrift-2)}
+[data-design="botanisch"] [data-zone="dunkel"] .saeulen i{background:var(--schrift)}
+[data-design="botanisch"] [data-zone="dunkel"] .wetter{background:rgba(245,242,234,.08);
+  color:var(--schrift);box-shadow:none;border:1px solid var(--linie)}
+[data-design="klartext"] .wert b{color:var(--schrift);font-weight:700}
+[data-design="klartext"] .wert{border:2px solid var(--linie)}
+[data-design="klartext"] .saeulen i{background:var(--fl-akzent);opacity:1}
+.saeulen{display:flex;align-items:flex-end;gap:2px;height:24px;margin-top:6px}
+.saeulen i{flex:1;background:var(--fl-akzent);opacity:.45;border-radius:1px}
+
+/* — Suchzeile — */
+.suchzeile{display:flex;gap:8px;margin-bottom:12px}
+.suchzeile input{flex:1;min-height:var(--tap);padding:0 14px;border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:var(--fl-tief);color:var(--schrift);
+  font:inherit;font-size:var(--klein)}
+[data-design="klartext"] .suchzeile input{border:2px solid var(--linie);font-size:var(--grundschrift)}
+.suchzeile input::placeholder{color:var(--schrift-2)}
+
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.chip{min-height:34px;padding:7px 14px;border-radius:100px;border:1px solid var(--linie);
+  background:transparent;color:var(--schrift-2);font:inherit;font-size:var(--winzig);
+  letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+[data-design="klartext"] .chip{min-height:var(--tap);font-size:var(--winzig);
+  text-transform:none;letter-spacing:0;border:2px solid var(--linie);color:var(--schrift);
+  border-radius:var(--r-klein);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:var(--fl-akzent)}
+[data-design="terrarium"] .chip[aria-pressed="true"]{box-shadow:var(--glanz)}
+
+/* — Sammlung: Botanisch — */
+.raster{display:grid;grid-template-columns:1fr 1fr;column-gap:9px;row-gap:0;
+  grid-auto-rows:4px;align-items:start}
+.raster .pfl{margin-bottom:9px}
+[data-design="botanisch"] .pfl{border:0;border-radius:var(--r-gross);
+  box-shadow:0 1px 2px rgba(28,38,32,.06), 0 6px 18px rgba(28,38,32,.05)}
+[data-design="botanisch"] .pfl-txt{padding:11px 13px 13px}
+.pfl{display:block;background:var(--fl-karte);border:1px solid var(--linie);border-radius:var(--r-mittel);
+  overflow:hidden;cursor:pointer;text-align:left;padding:0;font:inherit;color:inherit;
+  box-shadow:var(--schatten-1);transition:var(--dauer)}
+.pfl:active{transform:scale(.98)}
+.bild{display:block;aspect-ratio:1;background:linear-gradient(150deg,#5c7d55,#2f4a30);position:relative}
+.bild.b2{background:linear-gradient(150deg,#7d8f5a,#435a32)}
+.bild.b3{background:linear-gradient(150deg,#4a7d6a,#26443a)}
+.bild.b4{background:linear-gradient(150deg,#87805a,#4d4a30)}
+.pfl-txt{display:block;padding:10px 11px}
+.pfl-txt b{display:block;font-weight:600;font-size:var(--klein);color:#1C2620;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-design="terrarium"] .pfl-txt b{color:var(--schrift)}
+[data-design="klartext"] .pfl-txt b{color:var(--schrift)}
+.pfl-txt span{font-size:var(--winzig);color:#4A5750;display:flex;align-items:center;gap:5px;margin-top:3px}
+[data-design="terrarium"] .pfl-txt span{color:var(--schrift-2)}
+[data-design="klartext"] .pfl-txt span{color:var(--schrift);font-size:var(--winzig)}
+.punkt{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:var(--sicher)}
+.punkt.durst{background:var(--wasser)}
+
+/* — Sammlung: Klartext, eine Spalte, großes Bild — */
+[data-design="klartext"] .raster{grid-template-columns:1fr;grid-auto-rows:auto;row-gap:0}
+[data-design="klartext"] .raster .pfl{margin-bottom:16px}
+[data-design="klartext"] .pfl{border:2px solid var(--linie);border-radius:var(--r-mittel)}
+[data-design="klartext"] .bild{aspect-ratio:3/2}
+[data-design="klartext"] .pfl-txt{padding:14px 16px 16px}
+[data-design="klartext"] .pfl-txt b{font-size:var(--grundschrift);white-space:normal}
+[data-design="klartext"] .pfl-txt span{font-size:var(--klein);margin-top:6px}
+[data-design="klartext"] .punkt{width:14px;height:14px}
+
+/* — Sammlung: Terrarium, Token-Galerie — */
+.tokens{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tok{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:center}
+.tok-form{display:block;position:relative;aspect-ratio:1;filter:drop-shadow(0 0 12px rgba(94,230,160,.3))}
+.tok-form .huelle{position:absolute;inset:0;background:var(--fl-akzent);opacity:.55}
+.tok-form .kern{position:absolute;inset:2px;background:linear-gradient(155deg,#5c7d55,#16281a)}
+.tok-form.k2 .kern{background:linear-gradient(155deg,#7d8f5a,#25331d)}
+.tok-form.k3 .kern{background:linear-gradient(155deg,#4a7d6a,#132a24)}
+.tok-form.k4 .kern{background:linear-gradient(155deg,#87805a,#2a281c)}
+/* unregelmäßig, kein gleichseitiges Sechseck */
+.f1 .huelle,.f1 .kern{clip-path:polygon(50% 0,93% 21%,100% 68%,63% 100%,17% 96%,0 47%,12% 13%)}
+.f2 .huelle,.f2 .kern{clip-path:polygon(38% 0,88% 9%,100% 55%,78% 100%,25% 94%,0 60%,6% 18%)}
+.f3 .huelle,.f3 .kern{clip-path:polygon(50% 0,100% 27%,90% 79%,44% 100%,4% 74%,0 30%)}
+.f4 .huelle,.f4 .kern{clip-path:polygon(56% 0,97% 33%,86% 84%,36% 100%,3% 66%,10% 20%)}
+.tok-form.durst .huelle{background:var(--wasser);animation:puls 2.4s ease-in-out infinite}
+.tok-form.acht .huelle{background:var(--gift)}
+@keyframes puls{0%,100%{opacity:.4}50%{opacity:1}}
+.tok-eck{position:absolute;right:2px;bottom:6px;width:24px;height:24px;border-radius:50%;
+  background:var(--fl-grund);display:grid;place-items:center;z-index:2;
+  border:1px solid var(--linie)}
+.tok-eck svg{width:12px;height:12px;fill:none;stroke-width:2.2;stroke:var(--sicher)}
+.tok-eck.durst svg{stroke:var(--wasser)}
+.tok-eck.acht svg{stroke:var(--gift)}
+.tok-name{display:block;margin-top:9px;font-size:var(--klein);font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* — Werkzeuge — */
+.kacheln{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.kachel{background:var(--fl-karte);border:1px solid var(--linie);border-radius:var(--r-mittel);
+  padding:18px 14px;text-align:center;cursor:pointer;font:inherit;color:var(--schrift);
+  min-height:var(--tap);box-shadow:var(--schatten-1);transition:var(--dauer)}
+[data-design="botanisch"] .kachel{color:#1C2620}
+[data-design="terrarium"] .kachel{box-shadow:var(--schatten-1)}
+.kachel:active{transform:scale(.98)}
+.kachel svg{width:38px;height:38px;stroke:var(--fl-akzent);fill:none;stroke-width:1.4;margin-bottom:9px}
+[data-design="terrarium"] .kachel svg{filter:drop-shadow(0 0 9px rgba(94,230,160,.55))}
+[data-design="botanisch"] .kachel svg{stroke:#3F5443}
+.kachel b{display:block;font-family:var(--f-titel);font-weight:600;font-size:1.02rem}
+.kachel i{font-style:normal;font-size:var(--winzig);color:var(--schrift-2);display:block;margin-top:3px}
+[data-design="botanisch"] .kachel i{color:#4A5750}
+
+/* — Liste (Klartext, und Mehr) — */
+.liste{display:flex;flex-direction:column;gap:0}
+.zeile{display:flex;align-items:center;gap:14px;width:100%;min-height:var(--tap);
+  padding:15px 4px;background:none;border:0;border-bottom:1px solid var(--linie);
+  font:inherit;color:var(--schrift);text-align:left;cursor:pointer}
+[data-design="klartext"] .zeile{min-height:72px;border-bottom:2px solid var(--linie);padding:16px 4px}
+.zeile svg{flex:0 0 auto;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6}
+[data-design="klartext"] .zeile svg{width:30px;height:30px;stroke-width:2}
+.zeile-txt{flex:1;min-width:0}
+.zeile-txt b{display:block;font-weight:600;font-size:1.02rem}
+[data-design="klartext"] .zeile-txt b{font-size:var(--grundschrift)}
+.zeile-txt i{font-style:normal;font-size:var(--klein);color:var(--schrift-2)}
+.pfeil{opacity:.5;font-size:1.1rem}
+
+.kennzahlen{padding:2px 0 20px;border-bottom:1px solid var(--linie);margin-bottom:18px}
+.kennzahlen b{display:block;font-family:var(--f-titel);font-size:1.6rem;font-weight:600}
+.kennzahlen span{font-size:var(--klein);color:var(--schrift-2)}
+[data-design="klartext"] .kennzahlen{border-bottom-width:2px}
+
+/* — Umschalter im Mehr-Reiter — */
+.umschalt{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:6px 0 22px}
+.dwahl{background:var(--fl-karte);border:2px solid transparent;border-radius:var(--r-klein);
+  padding:8px 6px 9px;cursor:pointer;font:inherit;color:var(--schrift)}
+[data-design="botanisch"] .dwahl{color:#1C2620}
+.dwahl[aria-pressed="true"]{border-color:var(--fl-akzent)}
+.dwahl svg{width:100%;height:auto;display:block;border-radius:4px}
+.dwahl span{display:block;margin-top:6px;font-size:var(--winzig);font-weight:600}
+.dtext{margin:14px 0 0;font-size:var(--klein);color:var(--schrift-2);line-height:1.6}
+.abschnitt{font-family:var(--f-zahl);font-size:var(--winzig);letter-spacing:.16em;
+  text-transform:uppercase;color:var(--schrift-2);margin:26px 0 4px}
+.abschnitt:first-child{margin-top:0}
+[data-design="klartext"] .abschnitt{font-family:var(--f-body);text-transform:none;
+  letter-spacing:0;font-weight:700;color:var(--schrift);font-size:var(--klein)}
+.hinf{margin:0 0 12px;font-size:var(--klein);color:var(--schrift-2);line-height:1.5}
+.wahlreihe{display:flex;gap:7px;flex-wrap:wrap}
+.wahlreihe button{flex:1;min-height:var(--tap);padding:10px 8px;border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);font:inherit;
+  font-size:var(--klein);cursor:pointer}
+.wahlreihe button[aria-pressed="true"]{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:var(--fl-akzent);font-weight:600}
+[data-design="klartext"] .wahlreihe button{border-width:2px}
+.haken{display:flex;align-items:center;gap:12px;min-height:var(--tap);cursor:pointer;
+  padding:6px 0;font-size:var(--klein)}
+.haken input{width:24px;height:24px;flex:0 0 auto;accent-color:var(--fl-akzent)}
+[data-design="klartext"] .haken input{width:30px;height:30px}
+.umschalt{margin:0}
+
+/* — Leiste unten — */
+.leiste{position:sticky;bottom:0;margin-top:auto;display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--linie)}
+[data-design="botanisch"] .leiste{background:#FBF9F3;border-top-color:rgba(28,38,32,.14)}
+[data-design="klartext"] .leiste{background:#FFFFFF;border-top:3px solid #000}
+[data-design="terrarium"] .leiste{background:#132218;border-top-color:rgba(94,230,160,.22)}
+.leiste button{background:none;border:0;padding:9px 2px calc(9px + env(safe-area-inset-bottom));
+  cursor:pointer;font:inherit;display:flex;flex-direction:column;align-items:center;gap:3px;
+  position:relative;min-height:var(--tap)}
+.leiste svg{width:22px;height:22px;stroke-width:1.6;fill:none}
+[data-design="klartext"] .leiste svg{width:28px;height:28px;stroke-width:2}
+.leiste span{font-size:var(--winzig)}
+[data-design="klartext"] .leiste span{font-size:15px;font-weight:500}
+[data-design="botanisch"] .leiste button{color:#5A6B5E}
+[data-design="botanisch"] .leiste button[aria-pressed="true"]{color:#3F5443}
+[data-design="klartext"] .leiste button{color:#000}
+[data-design="terrarium"] .leiste button{color:rgba(168,191,174,.75)}
+[data-design="terrarium"] .leiste button[aria-pressed="true"]{color:#5EE6A0}
+.leiste button[aria-pressed="true"] svg{stroke-width:2.3;
+  background:currentColor;border-radius:100px;padding:3px 11px;box-sizing:content-box}
+[data-design="botanisch"] .leiste button[aria-pressed="true"] svg{background:rgba(63,84,67,.13)}
+[data-design="klartext"] .leiste button[aria-pressed="true"] svg{background:rgba(0,69,28,.14)}
+[data-design="terrarium"] .leiste button[aria-pressed="true"] svg{background:rgba(94,230,160,.15)}
+.leiste button[aria-pressed="true"] span{font-weight:600}
+[data-design="terrarium"] .leiste button[aria-pressed="true"] svg{
+  filter:drop-shadow(0 0 7px rgba(94,230,160,.5))}
+.leiste button[aria-pressed="true"]::before{content:"";position:absolute;top:0;
+  left:26%;right:26%;height:3px;border-radius:0 0 3px 3px;background:currentColor}
+[data-design="klartext"] .leiste button[aria-pressed="true"]::before{height:6px;left:14%;right:14%}
+
+/* — Modal — */
+.deckel{position:absolute;inset:0;background:rgba(10,16,12,.55);z-index:60;display:none}
+.deckel.an{display:block}
+.modal{position:absolute;inset:0;z-index:61;display:none;flex-direction:column;
+  background:var(--fl-erhoben);color:var(--schrift);box-shadow:var(--schatten-2)}
+.modal.an{display:flex;animation:auf var(--dauer) ease-out}
+@keyframes auf{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}
+.m-kopf{display:flex;align-items:center;gap:10px;padding:13px var(--rand);
+  border-bottom:1px solid var(--linie);flex:0 0 auto}
+[data-design="klartext"] .m-kopf{border-bottom:3px solid var(--linie);padding:16px var(--rand)}
+.m-kopf h3{margin:0;flex:1;font-family:var(--f-titel);font-size:1.15rem;font-weight:600}
+[data-design="klartext"] .m-kopf h3{font-size:1.25rem;font-weight:800}
+.m-zu{min-width:var(--tap);min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:inherit;font:inherit;cursor:pointer;
+  display:flex;align-items:center;gap:6px;padding:0 12px}
+[data-design="klartext"] .m-zu{border:2px solid var(--linie);font-weight:600}
+.m-koerper{flex:1;overflow-y:auto;padding:16px var(--rand) 26px}
+.m-bild{aspect-ratio:16/10;border-radius:var(--r-mittel);margin-bottom:14px;
+  background:linear-gradient(150deg,#5c7d55,#2f4a30);position:relative}
+[data-design="terrarium"] .m-bild{box-shadow:var(--glanz)}
+.m-titel{font-family:var(--f-titel);font-size:1.5rem;font-weight:600;margin:0 0 3px}
+.m-bot{margin:0 0 16px;color:var(--schrift-2);font-size:var(--klein);font-style:italic}
+[data-design="klartext"] .m-bot{font-style:normal}
+.reiter{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.reiter button{padding:8px 13px;border-radius:100px;border:1px solid var(--linie);
+  background:transparent;color:var(--schrift-2);font:inherit;font-size:var(--winzig);
+  text-transform:uppercase;letter-spacing:.05em;cursor:pointer;min-height:36px}
+.reiter button[aria-pressed="true"]{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:var(--fl-akzent)}
+.feld{display:flex;justify-content:space-between;gap:14px;padding:11px 0;
+  border-bottom:1px solid var(--linie);font-size:var(--klein)}
+[data-design="klartext"] .feld{font-size:var(--grundschrift);padding:14px 0;border-bottom-width:2px}
+.feld dt{color:var(--schrift-2);margin:0}
+.feld dd{margin:0;font-weight:600;text-align:right}
+.m-fuss{flex:0 0 auto;display:flex;gap:9px;padding:12px var(--rand) calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--linie)}
+[data-design="klartext"] .m-fuss{border-top:3px solid var(--linie)}
+.m-fuss button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);border:1px solid var(--linie);
+  background:transparent;color:var(--schrift);font:inherit;cursor:pointer}
+.m-fuss.spalten{flex-direction:column;gap:8px}
+.fuss-zwei{display:flex;gap:8px}
+.fuss-zwei button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);font:inherit;cursor:pointer}
+[data-design="klartext"] .fuss-zwei button{border-width:2px;font-weight:600}
+.schritt{font-family:var(--f-zahl);font-size:var(--winzig);color:var(--schrift-2)}
+.g-bild{aspect-ratio:16/10;border-radius:var(--r-mittel);margin-bottom:14px;position:relative;
+  overflow:hidden;background:var(--fl-tief)}
+.duengerchip{display:flex;align-items:center;gap:10px;margin:0 0 16px;padding:12px 13px;
+  border-radius:var(--r-mittel);font-size:var(--klein);
+  background:rgba(107,78,18,.1);border:1px solid var(--duenger);color:var(--schrift)}
+.duengerchip svg{flex:0 0 auto;width:22px;height:22px;fill:none;stroke:var(--duenger);stroke-width:1.6}
+[data-design="terrarium"] .duengerchip{background:rgba(232,208,106,.1)}
+[data-design="klartext"] .duengerchip{border-width:2px;font-size:var(--klein)}
+.m-fuss button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);border-color:var(--fl-akzent);font-weight:600}
+[data-design="terrarium"] .m-fuss button.haupt{box-shadow:var(--glanz)}
+[data-design="klartext"] .m-fuss button{border:2px solid var(--linie);font-size:var(--klein);font-weight:600}
+.blaettern{display:flex;gap:8px}
+.blaettern button{min-width:var(--tap);min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:inherit;font:inherit;cursor:pointer}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* ══ Fotos als Vektorgrafik ══ */
+.bild,.m-bild{position:relative;overflow:hidden}
+.tok-form .kern{overflow:hidden}
+.foto{position:absolute;inset:0;width:100%;height:100%;display:block}
+</style>
+</head>
+<body>
+
+<div class="steuer">
+  <h1>GreenkeeperAI 3.0 — Designvorschau</h1>
+  <div class="reihe" id="dwahl">
+    <button data-d="botanisch" aria-pressed="true">Botanisch</button>
+    <button data-d="klartext" aria-pressed="false">Klartext</button>
+    <button data-d="terrarium" aria-pressed="false">Terrarium</button>
+  </div>
+  <div class="reihe" id="lage">
+    <button data-l="viele" aria-pressed="true">3 fällig</button>
+    <button data-l="eine" aria-pressed="false">1 fällig</button>
+    <button data-l="ruhe" aria-pressed="false">Nichts fällig</button>
+  </div>
+  <div class="reihe" id="swahl">
+    <button data-s="heute" aria-pressed="true">Heute</button>
+    <button data-s="sammlung" aria-pressed="false">Sammlung</button>
+    <button data-s="werkzeuge" aria-pressed="false">Werkzeuge</button>
+    <button data-s="mehr" aria-pressed="false">Mehr</button>
+  </div>
+</div>
+
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="blatt" d="M0 0 C 14 -13 40 -13 54 0 C 40 13 14 13 0 0 Z"/><filter id="weich" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter><radialGradient id="licht" cx="28%" cy="20%" r="88%"><stop offset="0" stop-color="#ffffff" stop-opacity=".20"/><stop offset=".55" stop-color="#000000" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity=".18"/></radialGradient><linearGradient id="g-mon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5d8a58"/><stop offset="1" stop-color="#31543a"/></linearGradient><linearGradient id="g-cal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a9455"/><stop offset="1" stop-color="#4e5a30"/></linearGradient><linearGradient id="g-efe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4b9c85"/><stop offset="1" stop-color="#22564a"/></linearGradient><linearGradient id="g-agl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#968f5f"/><stop offset="1" stop-color="#585232"/></linearGradient></defs></svg>
+<div class="geraet">
+  <div class="schirm" id="schirm" data-design="botanisch">
+
+    <!-- ══ HEUTE ══ -->
+    <div class="seite an" data-s="heute" data-zone="dunkel">
+      <div class="kopf">
+        <p class="auge">Heute</p>
+        <h2>Guten Morgen</h2>
+        <p class="gruss">Drei Aufgaben stehen an.</p>
+      </div>
+
+      <div class="wetter">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg>
+        <span>Berlin <b>21°</b> · Luft <b>65%</b> · Licht <b>mäßig</b></span>
+      </div>
+
+      <div class="werte">
+        <div class="wert"><em>Gesund</em><b>12/14</b>
+          <div class="saeulen"><i style="height:40%"></i><i style="height:65%"></i><i style="height:55%"></i><i style="height:80%"></i><i style="height:72%"></i><i style="height:88%"></i></div></div>
+        <div class="wert"><em>Gießtreue</em><b>94%</b>
+          <div class="saeulen"><i style="height:70%"></i><i style="height:90%"></i><i style="height:100%"></i><i style="height:80%"></i><i style="height:95%"></i><i style="height:94%"></i></div></div>
+        <div class="wert"><em>Neu im Monat</em><b>+3</b>
+          <div class="saeulen"><i style="height:20%"></i><i style="height:30%"></i><i style="height:25%"></i><i style="height:50%"></i><i style="height:45%"></i><i style="height:70%"></i></div></div>
+      </div>
+
+      <button class="haupttat" id="haupttat">
+        <span class="ht-marke"><svg viewBox="0 0 24 24"><path d="M12 2s7 8 7 12a7 7 0 0 1-14 0c0-4 7-12 7-12z"/></svg></span>
+        <span class="ht-txt">
+          <b id="ht-titel">Gießmodus starten</b>
+          <i id="ht-unter">3 Pflanzen · heute</i>
+        </span>
+        <span class="ht-pfeil" aria-hidden="true">›</span>
+      </button>
+
+      <div class="nebentaten">
+        <button class="nt voll">
+          <svg viewBox="0 0 24 24"><path d="M12 20v-7"/><path d="M12 13c0-3.4 2.4-5.2 6.6-5.2 0 4.2-2.4 6-6.6 5.2z"/><path d="M12 15c0-2.8-2-4.4-5.6-4.4 0 3.6 2 5.2 5.6 4.4z"/><path d="M7 20h10"/></svg>
+          <b>Düngen</b><i>2 beim nächsten Gießen</i>
+        </button>
+        <button class="nt rand">
+          <svg viewBox="0 0 24 24"><path d="M5 13h14l-1.4 6.4a2 2 0 0 1-2 1.6H8.4a2 2 0 0 1-2-1.6z"/><path d="M3.8 13h16.4"/><path d="M7.6 13c1.1-1.5 2.6-2.3 4.4-2.3s3.3.8 4.4 2.3"/><path d="M12 10.7V6.4"/><path d="M12 7.6c0-2 1.5-3.1 4-3.1 0 2.4-1.5 3.6-4 3.1z"/><path d="M12 8.8c0-1.6-1.2-2.5-3.2-2.5 0 2 1.2 3 3.2 2.5z"/></svg>
+          <b>Umtopfen</b><i>Monstera · Frühjahr</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ SAMMLUNG ══ -->
+    <div class="seite" data-s="sammlung">
+      <div class="kopf">
+        <p class="auge">Sammlung</p>
+        <h2>14 Pflanzen</h2>
+      </div>
+      <div class="suchzeile"><input placeholder="Name, Art, Standort …" aria-label="Suchen"></div>
+      <div class="chips">
+        <button class="chip" aria-pressed="true">Alle</button>
+        <button class="chip" aria-pressed="false">Farne</button>
+        <button class="chip" aria-pressed="false">Sukkulenten</button>
+        <button class="chip" aria-pressed="false">Katzensicher</button>
+      </div>
+
+      <!-- Botanisch und Klartext -->
+      <div class="raster" data-nicht="terrarium">
+        <button class="pfl" data-ar="0.78" data-oeffnen>
+          <span class="bild"></span>
+          <span class="pfl-txt"><b>Monstera deliciosa</b><span><i class="punkt durst"></i>Gießen: heute</span></span>
+        </button>
+        <button class="pfl" data-ar="1.0" data-oeffnen>
+          <span class="bild b2"></span>
+          <span class="pfl-txt"><b>Calathea orbifolia</b><span><i class="punkt "></i>Alles in Ordnung</span></span>
+        </button>
+        <button class="pfl" data-ar="0.72" data-oeffnen>
+          <span class="bild b3"></span>
+          <span class="pfl-txt"><b>Efeutute</b><span><i class="punkt "></i>Alles in Ordnung</span></span>
+        </button>
+        <button class="pfl" data-ar="1.2" data-oeffnen>
+          <span class="bild b4"></span>
+          <span class="pfl-txt"><b>Aglaonema Silver Bay</b><span><i class="punkt durst"></i>Gießen: morgen</span></span>
+        </button>
+        <button class="pfl" data-ar="0.95" data-oeffnen>
+          <span class="bild b3"></span>
+          <span class="pfl-txt"><b>Zamioculcas</b><span><i class="punkt "></i>Alles in Ordnung</span></span>
+        </button>
+        <button class="pfl" data-ar="1.35" data-oeffnen>
+          <span class="bild"></span>
+          <span class="pfl-txt"><b>Pilea peperomioides</b><span><i class="punkt "></i>Alles in Ordnung</span></span>
+        </button>
+        <button class="pfl" data-ar="0.8" data-oeffnen>
+          <span class="bild b2"></span>
+          <span class="pfl-txt"><b>Sansevieria</b><span><i class="punkt durst"></i>Gießen: in 2 Tagen</span></span>
+        </button>
+        <button class="pfl" data-ar="1.05" data-oeffnen>
+          <span class="bild b4"></span>
+          <span class="pfl-txt"><b>Philodendron scandens</b><span><i class="punkt "></i>Alles in Ordnung</span></span>
+        </button>
+      </div>
+
+      <!-- Terrarium -->
+      <div class="tokens" data-nur="terrarium">
+        <button class="tok" data-oeffnen>
+          <span class="tok-form f1 durst"><span class="huelle"></span><span class="kern"></span>
+            <span class="tok-eck durst"><svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 10a6 6 0 0 1-12 0c0-3 6-10 6-10z"/></svg></span></span>
+          <span class="tok-name">Monstera deliciosa</span>
+        </button>
+        <button class="tok" data-oeffnen>
+          <span class="tok-form f2 k2"><span class="huelle"></span><span class="kern"></span>
+            <span class="tok-eck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span></span>
+          <span class="tok-name">Calathea orbifolia</span>
+        </button>
+        <button class="tok" data-oeffnen>
+          <span class="tok-form f3 k3"><span class="huelle"></span><span class="kern"></span>
+            <span class="tok-eck"><svg viewBox="0 0 24 24"><path d="M4 12.5l5.5 5.5L20 7"/></svg></span></span>
+          <span class="tok-name">Efeutute</span>
+        </button>
+        <button class="tok" data-oeffnen>
+          <span class="tok-form f4 k4 acht"><span class="huelle"></span><span class="kern"></span>
+            <span class="tok-eck acht"><svg viewBox="0 0 24 24"><path d="M12 4v10M12 18v.5"/></svg></span></span>
+          <span class="tok-name">Aglaonema Silver Bay</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ WERKZEUGE ══ -->
+    <div class="seite" data-s="werkzeuge">
+      <div class="kopf"><p class="auge">Werkzeuge</p><h2>Sechs Helfer</h2></div>
+
+      <div class="kacheln" data-nicht="klartext">
+        <button class="kachel"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/></svg><b>Pflanzendoktor</b><i>Symptome deuten</i></button>
+        <button class="kachel"><svg viewBox="0 0 24 24"><path d="M4 10h9v6.5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M13 12l5.4-3.4v6.8L13 12"/><path d="M6.5 10V8.2a2.5 2.5 0 0 1 5 0V10"/><path d="M18.7 17.4c0 .8-.6 1.4-1.35 1.4s-1.35-.6-1.35-1.4c0-.9 1.35-2.6 1.35-2.6s1.35 1.7 1.35 2.6z"/></svg><b>Gießplan</b><i>Die nächsten Tage</i></button>
+        <button class="kachel"><svg viewBox="0 0 24 24"><path d="M5 13h14l-1.4 6.4a2 2 0 0 1-2 1.6H8.4a2 2 0 0 1-2-1.6z"/><path d="M3.8 13h16.4"/><path d="M7.6 13c1.1-1.5 2.6-2.3 4.4-2.3s3.3.8 4.4 2.3"/><path d="M12 10.7V6.4"/><path d="M12 7.6c0-2 1.5-3.1 4-3.1 0 2.4-1.5 3.6-4 3.1z"/><path d="M12 8.8c0-1.6-1.2-2.5-3.2-2.5 0 2 1.2 3 3.2 2.5z"/></svg><b>Substrat</b><i>Mischung rechnen</i></button>
+        <button class="kachel"><svg viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M4 7h6M7 4v6"/></svg><b>Vermehren</b><i>Ableger ziehen</i></button>
+        <button class="kachel"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5H6v5M12 11.5h6v5"/></svg><b>Stammbaum</b><i>Wer von wem</i></button>
+        <button class="kachel"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 10h18M10 10v11"/></svg><b>Grundriss</b><i>Räume und Plätze</i></button>
+      </div>
+
+      <div class="liste" data-nur="klartext">
+        <button class="zeile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/></svg><span class="zeile-txt"><b>Pflanzendoktor</b><i>Symptome deuten</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M4 10h9v6.5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M13 12l5.4-3.4v6.8L13 12"/><path d="M6.5 10V8.2a2.5 2.5 0 0 1 5 0V10"/><path d="M18.7 17.4c0 .8-.6 1.4-1.35 1.4s-1.35-.6-1.35-1.4c0-.9 1.35-2.6 1.35-2.6s1.35 1.7 1.35 2.6z"/></svg><span class="zeile-txt"><b>Gießplan</b><i>Die nächsten Tage</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M5 13h14l-1.4 6.4a2 2 0 0 1-2 1.6H8.4a2 2 0 0 1-2-1.6z"/><path d="M3.8 13h16.4"/><path d="M7.6 13c1.1-1.5 2.6-2.3 4.4-2.3s3.3.8 4.4 2.3"/><path d="M12 10.7V6.4"/><path d="M12 7.6c0-2 1.5-3.1 4-3.1 0 2.4-1.5 3.6-4 3.1z"/><path d="M12 8.8c0-1.6-1.2-2.5-3.2-2.5 0 2 1.2 3 3.2 2.5z"/></svg><span class="zeile-txt"><b>Substrat mischen</b><i>Mischung rechnen</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M4 7h6M7 4v6"/></svg><span class="zeile-txt"><b>Vermehren</b><i>Ableger ziehen</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M12 7.5v4M12 11.5H6v5M12 11.5h6v5"/></svg><span class="zeile-txt"><b>Stammbaum</b><i>Wer von wem</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zM3 10h18M10 10v11"/></svg><span class="zeile-txt"><b>Räume und Grundriss</b><i>Plätze festlegen</i></span><span class="pfeil">›</span></button>
+      </div>
+    </div>
+
+    <!-- ══ MEHR ══ -->
+    <div class="seite" data-s="mehr" data-zone="dunkel">
+      <div class="kopf"><p class="auge">Mehr</p><h2>Einstellungen</h2></div>
+
+      <div class="liste">
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M21 15V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10M3 15l4-4 4 4 3-3 4 4"/></svg><span class="zeile-txt"><b>Sicherung</b><i>Zuletzt vor 3 Tagen</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 9h16M9 4v16"/></svg><span class="zeile-txt"><b>Urlaubszettel</b><i>Zum Ausdrucken</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M4 5.5 6 10M20 5.5 18 10"/><path d="M12 20c-4.4 0-7-2.9-7-7.2C5 8.6 8 5.5 12 5.5s7 3.1 7 7.3c0 4.3-2.6 7.2-7 7.2z"/></svg><span class="zeile-txt"><b>Haustiere</b><i>Eine Katze</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/><circle cx="12" cy="12" r="3"/></svg><span class="zeile-txt"><b>Kartendichte</b><i>Knapp</i></span><span class="pfeil">›</span></button>
+        <button class="zeile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg><span class="zeile-txt"><b>App-Tour</b><i>Von vorn ansehen</i></span><span class="pfeil">›</span></button>
+        <button class="zeile" data-design-modal><svg viewBox="0 0 24 24"><path d="M4 5h16v12H4z"/><path d="M9 20h6M12 17v3"/></svg><span class="zeile-txt"><b>Ansicht</b><i>Botanisch · Normal</i></span><span class="pfeil">›</span></button>
+      </div>
+    </div>
+
+    <!-- ══ MODAL ══ -->
+    <div class="deckel" id="deckel"></div>
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-h">
+      <div class="m-kopf">
+        <button class="m-zu" id="m-zu"><span aria-hidden="true">‹</span> Zurück</button>
+        <h3 id="m-h">Monstera</h3>
+        <span class="blaettern">
+          <button aria-label="Vorherige Pflanze">‹</button>
+          <button aria-label="Nächste Pflanze">›</button>
+        </span>
+      </div>
+      <div class="m-koerper">
+        <div class="m-bild"></div>
+        <p class="m-titel">Monstera deliciosa</p>
+        <p class="m-bot">Araceae · Fensterblatt</p>
+
+        <div class="reiter" data-nicht="klartext">
+          <button aria-pressed="true">Pflege</button>
+          <button aria-pressed="false">Standort</button>
+          <button aria-pressed="false">Gift</button>
+          <button aria-pressed="false">Verlauf</button>
+        </div>
+
+        <dl data-nicht="klartext">
+          <div class="feld"><dt>Gießen</dt><dd>alle 7 Tage</dd></div>
+          <div class="feld"><dt>Zuletzt</dt><dd>vor 6 Tagen</dd></div>
+          <div class="feld"><dt>Licht</dt><dd>hell, ohne Sonne</dd></div>
+          <div class="feld"><dt>Standort</dt><dd>Schlafzimmer</dd></div>
+          <div class="feld"><dt>Für Katzen</dt><dd style="color:var(--gift)">giftig</dd></div>
+        </dl>
+
+        <div class="liste" data-nur="klartext">
+          <button class="zeile"><svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><span class="zeile-txt"><b>Pflege</b><i>Gießen alle 7 Tage</i></span><span class="pfeil">›</span></button>
+          <button class="zeile"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span class="zeile-txt"><b>Standort und Licht</b><i>Schlafzimmer</i></span><span class="pfeil">›</span></button>
+          <button class="zeile"><svg viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg><span class="zeile-txt"><b>Giftigkeit</b><i>Für Katzen giftig</i></span><span class="pfeil">›</span></button>
+          <button class="zeile"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3"/></svg><span class="zeile-txt"><b>Fotos</b><i>3 Bilder</i></span><span class="pfeil">›</span></button>
+          <button class="zeile"><svg viewBox="0 0 24 24"><path d="M12 7v5l3 3"/><circle cx="12" cy="12" r="9"/></svg><span class="zeile-txt"><b>Verlauf</b><i>18 Einträge</i></span><span class="pfeil">›</span></button>
+        </div>
+      </div>
+      <div class="m-fuss">
+        <button>Bearbeiten</button>
+        <button class="haupt">Gegossen</button>
+      </div>
+    </div>
+
+    <div class="modal" id="gmodal" role="dialog" aria-modal="true" aria-labelledby="g-h">
+      <div class="m-kopf">
+        <button class="m-zu" id="g-zu"><span aria-hidden="true">‹</span> Beenden</button>
+        <h3 id="g-h">Gießmodus</h3>
+        <span class="schritt">1 von 3</span>
+      </div>
+      <div class="m-koerper">
+        <div class="g-bild"></div>
+        <p class="m-titel">Calathea orbifolia</p>
+        <p class="m-bot">Wohnzimmer · Fensterbank Ost</p>
+        <p class="duengerchip"><svg viewBox="0 0 24 24"><path d="M12 20v-7"/><path d="M12 13c0-3.4 2.4-5.2 6.6-5.2 0 4.2-2.4 6-6.6 5.2z"/><path d="M12 15c0-2.8-2-4.4-5.6-4.4 0 3.6 2 5.2 5.6 4.4z"/></svg>
+          <span><b>Mit Dünger</b> — fällig seit 2 Tagen</span></p>
+        <dl>
+          <div class="feld"><dt>Zuletzt gegossen</dt><dd>vor 8 Tagen</dd></div>
+          <div class="feld"><dt>Übliche Menge</dt><dd>ca. 250 ml</dd></div>
+        </dl>
+      </div>
+      <div class="m-fuss spalten">
+        <button class="haupt">Gegossen</button>
+        <div class="fuss-zwei">
+          <button>Ohne Dünger</button>
+          <button id="g-skip">Überspringen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="dmodal" role="dialog" aria-modal="true" aria-labelledby="d-h">
+      <div class="m-kopf">
+        <button class="m-zu" id="d-zu"><span aria-hidden="true">‹</span> Zurück</button>
+        <h3 id="d-h">Ansicht</h3>
+      </div>
+      <div class="m-koerper">
+        <p class="abschnitt">Design</p>
+        <p class="hinf">Jedes Design bringt sein eigenes Layout mit. Alle Funktionen bleiben in allen dreien erreichbar.</p>
+        <div class="umschalt" id="mini"></div>
+        <p class="dtext" id="dtext"></p>
+
+        <p class="abschnitt">Kartendichte</p>
+        <p class="hinf">Wie viel auf einer Pflanzenkarte steht.</p>
+        <div class="wahlreihe" id="dichte">
+          <button data-w="knapp">Knapp</button>
+          <button data-w="normal" aria-pressed="true">Normal</button>
+          <button data-w="voll">Ausführlich</button>
+        </div>
+
+        <p class="abschnitt">Auf der Heute-Seite</p>
+        <label class="haken"><input type="checkbox" id="ck-wetter" checked><span>Wetter und Standortklima</span></label>
+        <label class="haken"><input type="checkbox" id="ck-werte"><span>Kennzahlen (Gesund, Gießtreue, Zuwachs)</span></label>
+      </div>
+    </div>
+
+    <nav class="leiste">
+      <button data-s="heute" aria-pressed="true"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg><span>Heute</span></button>
+      <button data-s="sammlung" aria-pressed="false"><svg viewBox="0 0 24 24" stroke="currentColor"><rect x="4" y="4" width="6.6" height="9" rx="1.6"/><rect x="13.4" y="4" width="6.6" height="5" rx="1.6"/><rect x="4" y="15" width="6.6" height="5" rx="1.6"/><rect x="13.4" y="11" width="6.6" height="9" rx="1.6"/></svg><span>Sammlung</span></button>
+      <button data-s="werkzeuge" aria-pressed="false"><svg viewBox="0 0 24 24" stroke="currentColor"><circle cx="7.5" cy="18.5" r="2.4"/><circle cx="16.5" cy="18.5" r="2.4"/><path d="M9.1 16.7 18.2 3.6"/><path d="M14.9 16.7 5.8 3.6"/><path d="M10.6 10.6 13.4 10.6"/></svg><span>Werkzeuge</span></button>
+      <button data-s="mehr" aria-pressed="false"><svg viewBox="0 0 24 24" stroke="currentColor"><path d="M4 7h9M17.5 7H20M4 12h4M12.5 12H20M4 17h11M19.5 17H20"/><circle cx="15" cy="7" r="2.4"/><circle cx="10.2" cy="12" r="2.4"/><circle cx="17.2" cy="17" r="2.4"/></svg><span>Mehr</span></button>
+    </nav>
+  </div>
+</div>
+
+<p class="notiz">
+  <b>Was du hier siehst:</b> alle drei Designs lesen dieselben Token-Namen — nur die Werte
+  unterscheiden sich. Botanisch schaltet auf <i>Heute</i> und <i>Mehr</i> in die dunkle Zone,
+  Terrarium ist überall dunkel. Tippe eine Pflanze in der Sammlung an, um das Kartendetail
+  als Vollhöhen-Modal zu sehen — in Klartext als Menüliste, sonst mit Reitern.
+</p>
+
+<script>
+const schirm = document.getElementById('schirm');
+
+function sichtbarkeit(){
+  const d = schirm.dataset.design;
+  schirm.querySelectorAll('[data-nur]').forEach(el=>{
+    el.style.display = el.dataset.nur === d ? '' : 'none';
+  });
+  schirm.querySelectorAll('[data-nicht]').forEach(el=>{
+    el.style.display = el.dataset.nicht === d ? 'none' : '';
+  });
+}
+
+function design(d){
+  schirm.dataset.design = d;
+  document.querySelectorAll('#dwahl button').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.d === d)));
+  document.querySelectorAll('#mini .dwahl').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.d === d)));
+  const t = document.getElementById('dtext'); if(t) t.textContent = BESCHREIBUNG[d];
+  if(typeof ckK !== 'undefined'){
+    ckK.checked = (d === 'terrarium');
+    dichteJetzt = (d === 'klartext') ? 'knapp' : (d === 'terrarium' ? 'voll' : 'normal');
+    document.querySelectorAll('#dichte button').forEach(x=>
+      x.setAttribute('aria-pressed', String(x.dataset.w === dichteJetzt)));
+    heuteTeile(); zeileText();
+  }
+  sichtbarkeit();
+}
+
+function seite(s){
+  schirm.querySelectorAll('.seite').forEach(p=>p.classList.toggle('an', p.dataset.s === s));
+  document.querySelectorAll('#swahl button, .leiste button').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.s === s)));
+  schirm.scrollTop = 0;
+}
+
+document.getElementById('dwahl').onclick = e=>{
+  const b = e.target.closest('button'); if(b) design(b.dataset.d);
+};
+document.getElementById('swahl').onclick = e=>{
+  const b = e.target.closest('button'); if(b) seite(b.dataset.s);
+};
+schirm.querySelector('.leiste').onclick = e=>{
+  const b = e.target.closest('button'); if(b) seite(b.dataset.s);
+};
+
+/* Modal */
+const modal = document.getElementById('modal'), deckel = document.getElementById('deckel');
+schirm.addEventListener('click', e=>{
+  if(e.target.closest('[data-oeffnen]')){ modal.classList.add('an'); deckel.classList.add('an'); }
+});
+const zu = ()=>{ ['modal','dmodal','gmodal'].forEach(i=>{
+  const m = document.getElementById(i); if(m) m.classList.remove('an'); });
+  deckel.classList.remove('an'); };
+document.getElementById('m-zu').onclick = zu;
+deckel.onclick = zu;
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape') zu(); });
+
+/* Reiter im Modal */
+modal.querySelector('.reiter').onclick = e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  modal.querySelectorAll('.reiter button').forEach(x=>
+    x.setAttribute('aria-pressed', String(x === b)));
+};
+
+/* Miniaturen für den Umschalter — aus denselben Tokens gezeichnet */
+const MINI = {
+  botanisch: {grund:'#2E3D31', karte:'#F1EFE6', leiste:'#FBF9F3', akzent:'#3F5443', text:'#EDF0E6'},
+  klartext:  {grund:'#FFFFFF', karte:'#FFFDF7', leiste:'#FFFFFF', akzent:'#00451C', text:'#000000'},
+  terrarium: {grund:'#0C1810', karte:'#132218', leiste:'#132218', akzent:'#5EE6A0', text:'#E4F0E4'}
+};
+const NAME = {botanisch:'Botanisch', klartext:'Klartext', terrarium:'Terrarium'};
+
+function miniSVG(t, d){
+  const gross = d === 'klartext';
+  const zeilen = gross
+    ? `<rect x="7" y="26" width="44" height="15" rx="2" fill="${t.karte}" stroke="${t.text}" stroke-width="1"/>
+       <rect x="7" y="44" width="44" height="15" rx="2" fill="${t.karte}" stroke="${t.text}" stroke-width="1"/>`
+    : `<rect x="7" y="26" width="44" height="11" rx="2.5" fill="${t.karte}"/>
+       <rect x="7" y="40" width="44" height="11" rx="2.5" fill="${t.karte}"/>
+       <rect x="7" y="54" width="20" height="9" rx="2.5" fill="${t.karte}"/>
+       <rect x="31" y="54" width="20" height="9" rx="2.5" fill="${t.karte}"/>`;
+  const glanz = d === 'terrarium'
+    ? `<rect x="7" y="26" width="44" height="11" rx="2.5" fill="none" stroke="${t.akzent}" stroke-width=".6" opacity=".55"/>` : '';
+  return `<svg viewBox="0 0 58 104" xmlns="http://www.w3.org/2000/svg">
+    <rect width="58" height="104" rx="7" fill="${t.grund}"/>
+    <rect x="7" y="10" width="26" height="4.5" rx="2" fill="${t.text}" opacity=".85"/>
+    <rect x="7" y="17" width="17" height="3" rx="1.5" fill="${t.text}" opacity=".45"/>
+    ${zeilen}${glanz}
+    <rect x="0" y="88" width="58" height="16" fill="${t.leiste}"/>
+    <circle cx="11" cy="96" r="2.6" fill="${t.akzent}"/>
+    <circle cx="23" cy="96" r="2.6" fill="${t.text}" opacity=".3"/>
+    <circle cx="35" cy="96" r="2.6" fill="${t.text}" opacity=".3"/>
+    <circle cx="47" cy="96" r="2.6" fill="${t.text}" opacity=".3"/>
+  </svg>`;
+}
+
+document.getElementById('mini').innerHTML = Object.keys(MINI).map(d=>
+  `<button class="dwahl" data-d="${d}" aria-pressed="${d==='botanisch'}">
+     ${miniSVG(MINI[d], d)}<span>${NAME[d]}</span></button>`).join('');
+
+document.getElementById('mini').onclick = e=>{
+  const b = e.target.closest('button'); if(b) design(b.dataset.d);
+};
+
+const LAGEN = {
+  viele: {titel:'Gießmodus starten', unter:'3 Pflanzen · heute', gruss:'Drei Pflanzen sind dran.',
+          duenger:'2 beim nächsten Gießen', ruhe:false},
+  eine:  {titel:'Gießmodus starten', unter:'Calathea · Fensterbank Ost', gruss:'Eine Pflanze ist dran.',
+          duenger:'1 beim nächsten Gießen', ruhe:false},
+  ruhe:  {titel:'Alles erledigt', unter:'Nächstes Gießen am Donnerstag', gruss:'Heute ist nichts zu tun.',
+          duenger:'2 beim nächsten Gießen', ruhe:true}
+};
+function lage(l){
+  const v = LAGEN[l];
+  document.getElementById('ht-titel').textContent = v.titel;
+  document.getElementById('ht-unter').textContent = v.unter;
+  document.querySelector('.gruss').textContent = v.gruss;
+  document.querySelector('.nt.voll i').textContent = v.duenger;
+  document.getElementById('haupttat').classList.toggle('ruhe', v.ruhe);
+  document.querySelectorAll('#lage button').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.l === l)));
+}
+document.getElementById('lage').onclick = e=>{
+  const b = e.target.closest('button'); if(b) lage(b.dataset.l);
+};
+
+const BESCHREIBUNG = {
+  botanisch: 'Heller Standard. Ruhige Papiertöne, versetztes Raster in der Sammlung, Heute und Mehr in Dunkelgrün.',
+  klartext:  'Für gutes Lesen gemacht. Große Schrift, starke Kontraste, eine Spalte, große Trefferflächen, keine Bewegung.',
+  terrarium: 'Dunkel und dicht. Die Sammlung als Pflanzen-Token, Kennzahlen auf Heute, Zahlen in Festbreitenschrift.'
+};
+
+const gmodal = document.getElementById('gmodal');
+document.getElementById('haupttat').onclick = ()=>{
+  if(document.getElementById('haupttat').classList.contains('ruhe')) return;
+  gmodal.classList.add('an'); deckel.classList.add('an');
+};
+document.getElementById('g-zu').onclick = ()=>{ gmodal.classList.remove('an'); deckel.classList.remove('an'); };
+
+const dmodal = document.getElementById('dmodal');
+schirm.addEventListener('click', e=>{
+  if(e.target.closest('[data-design-modal]')){ dmodal.classList.add('an'); deckel.classList.add('an'); }
+});
+document.getElementById('d-zu').onclick = ()=>{ dmodal.classList.remove('an'); deckel.classList.remove('an'); };
+
+const DICHTE = {knapp:'Knapp', normal:'Normal', voll:'Ausführlich'};
+let dichteJetzt = 'normal';
+function zeileText(){
+  const z = document.querySelector('[data-design-modal] i');
+  if(z) z.textContent = NAME[schirm.dataset.design] + ' · ' + DICHTE[dichteJetzt];
+}
+document.getElementById('dichte').onclick = e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  dichteJetzt = b.dataset.w;
+  document.querySelectorAll('#dichte button').forEach(x=>
+    x.setAttribute('aria-pressed', String(x === b)));
+  zeileText();
+};
+const ckW = document.getElementById('ck-wetter'), ckK = document.getElementById('ck-werte');
+function heuteTeile(){
+  document.querySelector('.wetter').hidden = !ckW.checked;
+  document.querySelector('.werte').hidden = !ckK.checked;
+}
+ckW.onchange = heuteTeile; ckK.onchange = heuteTeile;
+
+/* Fotos einsetzen */
+const FOTOS = {
+  f1: '<rect width="100" height="100" fill="url(#g-mon)"/><g filter="url(#weich)"><circle cx="78" cy="26" r="17" fill="#9ecb8a" opacity="0.55"/><circle cx="16" cy="20" r="13" fill="#8bbd7c" opacity="0.5"/><circle cx="60" cy="64" r="20" fill="#a7d494" opacity="0.45"/><circle cx="88" cy="86" r="14" fill="#b9e0a6" opacity="0.4"/></g><g filter="url(#weich)" opacity=".55"><use href="#blatt" xlink:href="#blatt" transform="translate(-8 72) rotate(-18) scale(1.35)" fill="#7cae6d"/><use href="#blatt" xlink:href="#blatt" transform="translate(58 18) rotate(32) scale(1.1)" fill="#95c483"/></g><g><use href="#blatt" xlink:href="#blatt" transform="translate(20 40) rotate(-8) scale(1.55)" fill="#b6dc9f"/><use href="#blatt" xlink:href="#blatt" transform="translate(70 78) rotate(-42) scale(1.25)" fill="#8cbb7a"/><use href="#blatt" xlink:href="#blatt" transform="translate(30 94) rotate(15) scale(1.3)" fill="#a4d191"/></g><rect width="100" height="100" fill="url(#licht)"/>',
+  f2: '<rect width="100" height="100" fill="url(#g-cal)"/><g filter="url(#weich)"><circle cx="80" cy="30" r="16" fill="#c3cf86" opacity="0.52"/><circle cx="18" cy="24" r="12" fill="#b0bd74" opacity="0.48"/><circle cx="58" cy="70" r="19" fill="#cdd894" opacity="0.44"/><circle cx="90" cy="88" r="13" fill="#dde5aa" opacity="0.38"/></g><g filter="url(#weich)" opacity=".55"><use href="#blatt" xlink:href="#blatt" transform="translate(-6 66) rotate(-12) scale(1.4)" fill="#a8b56c"/><use href="#blatt" xlink:href="#blatt" transform="translate(62 24) rotate(28) scale(1.15)" fill="#bcc880"/></g><g><use href="#blatt" xlink:href="#blatt" transform="translate(24 36) rotate(-4) scale(1.5)" fill="#dbe4a4"/><use href="#blatt" xlink:href="#blatt" transform="translate(74 82) rotate(-38) scale(1.2)" fill="#b3c077"/><use href="#blatt" xlink:href="#blatt" transform="translate(34 96) rotate(10) scale(1.25)" fill="#c9d491"/></g><rect width="100" height="100" fill="url(#licht)"/>',
+  f3: '<rect width="100" height="100" fill="url(#g-efe)"/><g filter="url(#weich)"><circle cx="76" cy="28" r="16" fill="#7fcfb2" opacity="0.55"/><circle cx="14" cy="22" r="11" fill="#6cc0a2" opacity="0.5"/><circle cx="62" cy="66" r="19" fill="#93dcc1" opacity="0.44"/><circle cx="86" cy="84" r="13" fill="#a9e6d1" opacity="0.38"/></g><g filter="url(#weich)" opacity=".55"><use href="#blatt" xlink:href="#blatt" transform="translate(-8 70) rotate(-16) scale(1.3)" fill="#5cb497"/><use href="#blatt" xlink:href="#blatt" transform="translate(60 20) rotate(30) scale(1.1)" fill="#74c6a8"/></g><g><use href="#blatt" xlink:href="#blatt" transform="translate(22 42) rotate(-6) scale(1.55)" fill="#a2e2c9"/><use href="#blatt" xlink:href="#blatt" transform="translate(72 80) rotate(-40) scale(1.25)" fill="#6fbfa2"/><use href="#blatt" xlink:href="#blatt" transform="translate(32 94) rotate(12) scale(1.25)" fill="#8ad6bb"/></g><rect width="100" height="100" fill="url(#licht)"/>',
+  f4: '<rect width="100" height="100" fill="url(#g-agl)"/><g filter="url(#weich)"><circle cx="78" cy="26" r="16" fill="#cfc48c" opacity="0.52"/><circle cx="16" cy="26" r="12" fill="#bdb179" opacity="0.48"/><circle cx="60" cy="68" r="18" fill="#d9cf9b" opacity="0.44"/><circle cx="88" cy="86" r="13" fill="#e6dcaf" opacity="0.38"/></g><g filter="url(#weich)" opacity=".55"><use href="#blatt" xlink:href="#blatt" transform="translate(-6 68) rotate(-14) scale(1.35)" fill="#b3a771"/><use href="#blatt" xlink:href="#blatt" transform="translate(64 22) rotate(30) scale(1.1)" fill="#c6ba85"/></g><g><use href="#blatt" xlink:href="#blatt" transform="translate(26 38) rotate(-5) scale(1.5)" fill="#e2d8a8"/><use href="#blatt" xlink:href="#blatt" transform="translate(70 84) rotate(-36) scale(1.2)" fill="#bcaf78"/><use href="#blatt" xlink:href="#blatt" transform="translate(36 92) rotate(14) scale(1.25)" fill="#d2c793"/></g><rect width="100" height="100" fill="url(#licht)"/>'
+};
+
+function foto(el, id){
+  const s = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  s.setAttribute('class','foto');
+  s.setAttribute('viewBox','0 0 100 100');
+  s.setAttribute('preserveAspectRatio','xMidYMid slice');
+  s.innerHTML = FOTOS[id];
+  el.prepend(s);
+}
+const WELCHES = el => el.classList.contains('b2')||el.closest('.k2') ? 'f2'
+                   : el.classList.contains('b3')||el.closest('.k3') ? 'f3'
+                   : el.classList.contains('b4')||el.closest('.k4') ? 'f4' : 'f1';
+document.querySelectorAll('.bild, .tok-form .kern, .m-bild')
+  .forEach(el => foto(el, WELCHES(el)));
+foto(document.querySelector('.g-bild'), 'f2');
+
+
+/* Kachelhoehen aus dem echten Bildformat — Lesefolge bleibt zeilenweise */
+function raster(){
+  const g = document.querySelector('.raster');
+  if(!g || !g.offsetWidth) return;
+  const d = schirm.dataset.design, einspaltig = (d === 'klartext');
+  const spalte = einspaltig ? g.clientWidth : (g.clientWidth - 9) / 2;
+  g.querySelectorAll('.pfl').forEach(p=>{
+    const bild = p.querySelector('.bild'), txt = p.querySelector('.pfl-txt');
+    if(einspaltig){ bild.style.aspectRatio = ''; p.style.gridRowEnd = ''; return; }
+    const ar = parseFloat(p.dataset.ar) || 1;
+    bild.style.aspectRatio = String(ar);
+    const hoehe = spalte / ar + txt.offsetHeight;
+    p.style.gridRowEnd = 'span ' + Math.ceil((hoehe + 9) / 4);
+  });
+}
+const _seite = seite, _design = design;
+seite = s => { _seite(s); requestAnimationFrame(raster); };
+design = d => { _design(d); requestAnimationFrame(raster); };
+addEventListener('resize', raster);
+
+design(schirm.dataset.design);
+lage('viele');
+requestAnimationFrame(raster);
+</script>
+</body>
+</html>

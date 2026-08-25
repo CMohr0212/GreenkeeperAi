@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.12 — 25. August 2026
+**Kacheln und Raster**
+
+### Neu
+- Jedes Werkzeug hat ein gezeichnetes Symbol und eine Zeile, die in drei Worten sagt, was es tut. Die Kacheln sind deutlich größer: zwei Spalten, drei Reihen, sechs Werkzeuge — das füllt die Seite.
+
+### Besser
+- Die Sammlung im Rasterblick misst jetzt, wie hoch eine Kachel wirklich ist, statt es aus dem Bildformat zu schätzen. Pflanzen ohne Foto rissen vorher ein Loch von einem Viertel Bildschirm, lange Namen ragten in die Kachel darunter. Die Lesefolge bleibt zeilenweise.
+- Die Kacheln der Sammlung haben weichere Ecken und einen ruhigeren Schatten statt eines Rahmens.
+
+---
+
 ## 2.9.11 — 25. August 2026
 **Näher am Entwurf**
 
