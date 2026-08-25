@@ -4,6 +4,35 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.14 — 25. August 2026
+**Eine Hauptsache**
+
+### Neu
+- „Heute“ hat jetzt einen großen Knopf und zwei kleine darunter. Gießen ist die Hauptsache und bekommt die volle Breite; Rundgang und Pflanzendoktor stehen daneben. Vorher standen zwei gleich große Knöpfe nebeneinander und stellten die Frage, was wichtiger ist.
+- Der Pflanzendoktor ist von „Heute“ aus direkt erreichbar. Wenn etwas komisch aussieht, will man es sofort nachsehen und nicht erst den Reiter wechseln.
+
+### Besser
+- Steht nichts an, tritt der Gießknopf zurück statt zu leuchten. Er verschwindet nicht — gießen darf man auch dann.
+
+---
+
+## 2.9.13 — 25. August 2026
+**Aufgeräumt**
+
+### Neu
+- „Mehr“ ist ein Menü geworden: eine Zeile je Punkt, mit Symbol und Pfeil. Vorher war jeder Eintrag so groß wie eine Kachel und man scrollte für elf Punkte über zwei Schirme. In Klartext bleiben die großen Zeilen — dort sind sie der Zweck.
+- Aufgaben und Wunschliste stehen jetzt unter „Mehr“ und öffnen sich als eigenes Fenster. „Heute“ zeigt nur noch, was heute zu tun ist.
+- Beim ersten Start fragt die App einmal nach der Stadt, für Temperatur, Regen und Frostwarnung. Wer ablehnt, wird nicht wieder gefragt; nachtragen geht unter „Mehr › Wetter“.
+- Die Sammlung im Terrarium zeigt Pflanzen als leuchtende Kristallformen statt als Rechtecke.
+
+### Besser
+- Über der Überschrift stand der Reitername noch einmal groß daneben — auf „Werkzeuge“ zweimal dasselbe Wort. Das Etikett ist jetzt klein und gesperrt, die Überschrift sagt etwas Eigenes.
+- Fließtext läuft in Botanisch und Terrarium in der Grotesk, Serifen bleiben den Überschriften. Auf dem Telefon liest sich das ruhiger.
+- Die Werkzeugkacheln sind wirklich alle gleich hoch. „Räume und Grundriss“ ragte über die anderen hinaus, weil sich nur der Abschnitt streckte, nicht der Knopf darin.
+- Die Sammlung steht in Botanisch und Terrarium fest im Rasterblick, und jede Pflanze bekommt ein festes Bildformat — hoch, quadratisch oder breit. Dafür wird das Foto beschnitten; in der Karte liegt es weiter in voller Größe. Die Umschaltung auf Karten und Zeilen ist in die Filterklappe gewandert.
+
+---
+
 ## 2.9.12 — 25. August 2026
 **Kacheln und Raster**
 
