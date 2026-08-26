@@ -820,21 +820,53 @@ html.modal-offen, body.modal-offen{overflow:hidden}
    Vorher stand die Zeile blank auf dem Grund und sah aus wie
    vergessener Text. Als Flaeche mit Rahmen und Zeichnung gehoert
    sie sichtbar zur Seite. */
-.wt-leiste{display:flex;align-items:center;gap:11px;padding:11px 13px;
-  margin:0 0 10px;border-radius:var(--r-mittel);
+.wt-leiste{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  padding:13px 14px;margin:0 0 10px;cursor:pointer;font:inherit;color:inherit;
+  min-height:var(--tap);border-radius:var(--r-mittel);
   background:var(--fl-karte);border:1px solid var(--linie);box-shadow:var(--schatten-1)}
-.wt-bild{flex:0 0 auto;width:22px;height:22px;display:block}
+.wt-leiste:focus-visible{outline:2px solid var(--water);outline-offset:3px}
+.wt-bild{flex:0 0 auto;width:36px;height:36px;display:block}
+.wt-bild-k{width:20px;height:20px}
 .wt-bild svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
-  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste{
   background:rgba(245,242,234,.10);border-color:var(--linie);box-shadow:none}
 html[data-design="terrarium"] .wt-leiste{box-shadow:var(--glanz)}
 html[data-design="klartext"] .wt-leiste{border-width:2px}
-.wt-linie{flex:1;min-width:0;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 10px;
-  margin:0 0 8px;font-size:var(--t-s);color:var(--ink-2)}
-.wt-linie b{color:var(--ink);font-weight:600}
-.wt-linie .wt-alt{font-style:italic}
-.wt-linie .wt-rat{color:var(--ink)}
+.wt-text{flex:1 1 auto;min-width:0;display:block}
+.wt-oben{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;
+  font-size:var(--t-m);color:var(--ink)}
+.wt-oben b{font-weight:600}
+.wt-grad{font-family:var(--f-data)}
+.wt-lage{color:var(--ink-2);font-size:var(--t-s)}
+.wt-tr{color:var(--ink-2);opacity:.6}
+.wt-unten{display:block;margin-top:2px;font-size:var(--t-s);color:var(--ink-2)}
+.wt-rat{display:block;margin-top:4px;font-size:var(--t-s);color:var(--ink)}
+.wt-alt{display:block;margin-top:3px;font-size:var(--t-xs);color:var(--ink-2);font-style:italic}
+.wt-pfeil{flex:0 0 auto;font-size:var(--t-l);line-height:1;color:var(--ink-2)}
+
+/* ── Verlauf und Ausblick ─────────────────────────────────────
+   Zwei schmale Tabellen im Wetterfenster. Zeit, Zeichnung, Lage
+   als Wort, Temperatur, Niederschlag. Die Lage steht als Wort
+   dabei, damit die Zeichnung nicht allein tragen muss. */
+.wt-detail{margin-top:20px}
+.wt-h3{margin:0 0 8px;font-family:var(--f-display);font-weight:var(--gewicht-titel);
+  font-size:var(--t-m);color:var(--ink)}
+.wt-liste{display:grid;gap:2px;margin:0 0 20px}
+.wt-r{display:grid;grid-template-columns:4.6em 20px minmax(0,1fr) auto auto;
+  align-items:center;gap:0 9px;padding:8px 9px;border-radius:var(--r-klein);
+  font-size:var(--t-s);color:var(--ink-2)}
+.wt-liste7 .wt-r{grid-template-columns:5.6em 20px minmax(0,1fr) auto auto}
+.wt-r:nth-child(odd){background:var(--fl-tief)}
+.wt-zeit{font-family:var(--f-data);color:var(--ink)}
+.wt-w{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wt-t{font-family:var(--f-data);font-weight:600;color:var(--ink);justify-self:end}
+.wt-n{font-family:var(--f-data);color:var(--water);justify-self:end;min-width:4em;text-align:right}
+.wt-frost .wt-w{color:var(--water);font-weight:600}
+.wt-frost{outline:1px solid var(--linie-stark)}
+.wt-hinweis{margin:-10px 0 18px;font-size:var(--t-s);color:var(--ink)}
+html[data-design="klartext"] .wt-r{padding:11px 10px}
+html[data-design="klartext"] .wt-frost{outline-width:2px}
 .wt-zeile{display:flex;gap:8px;margin:4px 0 10px}
 .wt-zeile input{flex:1 1 auto;min-width:0}
 .wt-treffer{display:grid;gap:6px;margin:0 0 12px}
@@ -7490,7 +7522,7 @@ function papierkorbRender(){
       <button class="wz-i" data-mh-info="wetter" aria-expanded="false" aria-label="Wozu ist das Wetter da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-wetter" hidden>
-      <p class="wz-hilfe" hidden>Wer Pflanzen auf dem Balkon stehen hat, gießt bei angesagtem Regen umsonst — und bei dreißig Grad reicht der übliche Rhythmus oft nicht. Trägst du hier einen Ort ein, zeigt „Heute“ eine Zeile mit Temperatur und Regen. Die App ändert damit nichts an deinen Gießabständen; sie sagt nur Bescheid. Die Daten kommen von Open-Meteo, einem freien Wetterdienst ohne Anmeldung. Übertragen wird nur der Ortsname beim Suchen und danach die Koordinaten — keine Angaben zu dir oder deinen Pflanzen. Ohne eingetragenen Ort fragt die App nichts ab und die Zeile bleibt aus.</p>
+      <p class="wz-hilfe" hidden>Wer Pflanzen auf dem Balkon stehen hat, gießt bei angesagtem Regen umsonst — und bei dreißig Grad reicht der übliche Rhythmus oft nicht. Trägst du hier einen Ort ein, zeigt „Heute“ eine Zeile mit Temperatur und Regen. Die App ändert damit nichts an deinen Gießabständen; sie sagt nur Bescheid. Die Daten kommen von Open-Meteo, einem freien Wetterdienst ohne Anmeldung. Übertragen wird nur der Ortsname beim Suchen und danach die Koordinaten — keine Angaben zu dir oder deinen Pflanzen. Ohne eingetragenen Ort fragt die App nichts ab und die Zeile bleibt aus. Unten stehen der Tagesverlauf bis Mitternacht und ein Ausblick über sieben Tage; geht es darin unter null, wird der Tag als Frosttag benannt. Alles davon steckt in derselben einen Anfrage — sie läuft nur beim Start und nur, wenn der letzte Wert älter als eine Stunde ist.</p>
       <div class="wt-suche">
         <label class="fspan" for="wt-ort">Ort</label>
         <div class="wt-zeile">
@@ -7501,6 +7533,7 @@ function papierkorbRender(){
       <div id="wt-treffer" class="wt-treffer" hidden></div>
       <p id="wt-stand" class="wt-stand"></p>
       <button type="button" id="wt-weg" class="wt-weg" hidden>Ort entfernen</button>
+      <div id="wt-detail" class="wt-detail"></div>
     </div>
   </section>
 
@@ -7835,8 +7868,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.15';
+const FASSUNG = '2.9.16';
 const PATCHNOTES = [
+  {
+    nr: '2.9.16', datum: '2026-08-26', titel: 'Wetter, ausgebaut',
+    neu: [
+      'Die Wetterleiste auf „Heute“ ist antippbar und führt in „Mehr › Wetter“.',
+      'Dort steht jetzt der Tagesverlauf: jede volle Stunde bis Mitternacht mit Lage, Temperatur und Niederschlag.',
+      'Dazu ein Ausblick über sieben Tage mit Tief, Hoch und Regenmenge.',
+      'Geht es in den nächsten sieben Tagen unter null, sagt die App das — auf „Heute“ und im Ausblick, wo der Tag zusätzlich „Frost“ als Wort trägt.',
+      'Die Leiste zeigt zusätzlich die Luftfeuchte und ist zweizeilig geworden: oben Ort, Temperatur und Lage, darunter die übrigen Werte.'
+    ],
+    besser: [
+      'Der Abruf holt alles in einer Anfrage. Er läuft weiterhin nur beim Start, nur mit eingetragenem Ort und nur, wenn der letzte Wert älter als eine Stunde ist. Übertragen werden weiterhin nur die Koordinaten.'
+    ]
+  },
   {
     nr: '2.9.15', datum: '2026-08-26', titel: 'Erst mal geradeziehen',
     neu: [
@@ -9862,9 +9908,10 @@ async function wetterHolen(){
   const w = wetterStand();
   if(w.lat == null || w.lon == null) return false;
   const u = WETTER_API + '?latitude=' + w.lat + '&longitude=' + w.lon
-    + '&current=temperature_2m,weather_code'
-    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum'
-    + '&forecast_days=2&timezone=auto';
+    + '&current=temperature_2m,weather_code,relative_humidity_2m'
+    + '&hourly=temperature_2m,precipitation,weather_code'
+    + '&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code'
+    + '&forecast_days=7&timezone=auto';
   try{
     const a = await fetch(u, {cache:'no-store'});
     if(!a.ok) throw new Error('Abruf fehlgeschlagen');
@@ -9873,10 +9920,14 @@ async function wetterHolen(){
     w.daten = {
       jetzt: j.current ? j.current.temperature_2m : null,
       lage:  j.current && j.current.weather_code != null ? j.current.weather_code : null,
+      feuchte: j.current && j.current.relative_humidity_2m != null
+               ? j.current.relative_humidity_2m : null,
       hoch:  t.temperature_2m_max ? t.temperature_2m_max[0] : null,
       tief:  t.temperature_2m_min ? t.temperature_2m_min[0] : null,
       regen: t.precipitation_sum ? t.precipitation_sum[0] : null,
-      regenMorgen: t.precipitation_sum ? t.precipitation_sum[1] : null
+      regenMorgen: t.precipitation_sum ? t.precipitation_sum[1] : null,
+      stunden: wetterStundenBauen(j),
+      tage:    wetterTageBauen(t)
     };
     w.stand = new Date().toISOString();
     sichern();
@@ -9886,6 +9937,69 @@ async function wetterHolen(){
        Wetterbericht waere eine Warnung ohne Anlass. */
     return false;
   }
+}
+
+/* ── Tagesverlauf ─────────────────────────────────────────────
+   Open-Meteo liefert 168 Stundenwerte. Abgelegt wird nur, was heute
+   noch kommt — ab der laufenden Stunde bis Mitternacht. Alles
+   Weitere steht ohnehin im Sieben-Tage-Ausblick, und ein Speicher
+   voller Zahlen von uebermorgen frueh nuetzt niemandem.
+
+   Ist der Tag fast vorbei, bleiben null oder zwei Zeilen uebrig.
+   Dann werden stattdessen die naechsten sechs Stunden genommen —
+   der Kopf ueber der Tabelle sagt beim Zeichnen, was von beidem
+   gerade dasteht. */
+function wetterStundenBauen(j){
+  const h = j && j.hourly;
+  if(!h || !h.time || !h.time.length) return [];
+  const jetzt = (j.current && j.current.time) || h.time[0];
+  const marke = String(jetzt).slice(0, 13);        /* JJJJ-MM-TTTHH */
+  let ab = h.time.findIndex(z => String(z).slice(0, 13) >= marke);
+  if(ab < 0) ab = 0;
+  const tag = String(jetzt).slice(0, 10);
+  const zeile = i => ({
+    zeit: String(h.time[i]),
+    t:    h.temperature_2m ? h.temperature_2m[i] : null,
+    n:    h.precipitation  ? h.precipitation[i]  : null,
+    lage: h.weather_code   ? h.weather_code[i]   : null
+  });
+  const rest = [];
+  for(let i = ab; i < h.time.length && String(h.time[i]).slice(0, 10) === tag; i++)
+    rest.push(zeile(i));
+  if(rest.length >= 3) return rest;
+  const kurz = [];
+  for(let i = ab; i < h.time.length && kurz.length < 6; i++) kurz.push(zeile(i));
+  return kurz;
+}
+
+function wetterTageBauen(t){
+  if(!t || !t.time || !t.time.length) return [];
+  return t.time.map((z, i)=>({
+    datum: String(z),
+    hoch:  t.temperature_2m_max ? t.temperature_2m_max[i] : null,
+    tief:  t.temperature_2m_min ? t.temperature_2m_min[i] : null,
+    regen: t.precipitation_sum  ? t.precipitation_sum[i]  : null,
+    lage:  t.weather_code       ? t.weather_code[i]       : null
+  }));
+}
+
+/* Der erste Tag im Ausblick, an dem es unter null geht — der Grund,
+   warum ueberhaupt sieben Tage geholt werden. Auf dem Balkon
+   entscheidet das darueber, ob man Toepfe hereinholt. */
+function wetterFrostTag(d){
+  const t = (d && d.tage) || [];
+  for(let i = 0; i < t.length; i++){
+    if(t[i].tief != null && t[i].tief <= 0) return {i, tag: t[i]};
+  }
+  return null;
+}
+
+function wetterTagName(datum, i){
+  if(i === 0) return 'Heute';
+  if(i === 1) return 'Morgen';
+  const dt = new Date(datum + 'T12:00');
+  if(isNaN(dt)) return datum;
+  return dt.toLocaleDateString('de-DE', {weekday:'long'});
 }
 
 function wetterAlter(){
@@ -9902,6 +10016,9 @@ function wetterRat(d){
   if(d.regenMorgen != null && d.regenMorgen >= 5) return 'Morgen ist Regen angesagt.';
   if(d.hoch != null && d.hoch >= 28) return 'Heiß — draußen kann eher wieder etwas fällig sein.';
   if(d.tief != null && d.tief <= 3) return 'Kalt — empfindliche Pflanzen besser hereinholen.';
+  const f = wetterFrostTag(d);
+  if(f) return 'Frost ' + (f.i === 0 ? 'heute Nacht' : f.i === 1 ? 'morgen'
+    : 'am ' + wetterTagName(f.tag.datum, f.i)) + ' — empfindliche Pflanzen hereinholen.';
   return '';
 }
 
@@ -9930,33 +10047,104 @@ function wetterLage(code){
   return WETTER_BILD.wolke;
 }
 
+/* ── Die Leiste auf „Heute" ───────────────────────────────────
+   Zweizeilig und antippbar: oben Ort, Temperatur und Lage, unten
+   die Zusatzwerte. Ein Tipp fuehrt in „Mehr > Wetter", wo Verlauf
+   und Ausblick stehen. Der Pfeil sagt das auch ohne Ausprobieren. */
+function wetterSymbolHTML(lage, gross){
+  if(!lage) return '';
+  return '<span class="wt-bild' + (gross ? '' : ' wt-bild-k') + '" aria-hidden="true">'
+    + '<svg viewBox="0 0 24 24">' + lage.svg + '</svg></span>';
+}
+
 function wetterZeileHTML(){
   const w = wetterStand();
   if(!w.ort || !w.daten) return '';
   const d = w.daten;
   const alt = wetterAlter();
-  const zahl = n => (n == null ? '—' : Math.round(n) + ' °C');
+  const zahl = n => (n == null ? '\u2014' : Math.round(n) + ' \u00B0C');
   const lage = wetterLage(d.lage);
-  const teile = [];
-  teile.push('<b>' + esc(w.ort) + '</b>');
-  if(d.jetzt != null) teile.push('<b>' + zahl(d.jetzt) + '</b>');
-  if(lage) teile.push(esc(lage.wort));
-  if(d.hoch != null || d.tief != null) teile.push(zahl(d.tief) + ' bis ' + zahl(d.hoch));
-  if(d.regen != null && d.regen > 0) teile.push(Math.round(d.regen) + ' mm Regen');
+
+  const oben = [];
+  oben.push('<b class="wt-ort">' + esc(w.ort) + '</b>');
+  if(d.jetzt != null) oben.push('<b class="wt-grad">' + zahl(d.jetzt) + '</b>');
+  if(lage) oben.push('<span class="wt-lage">' + esc(lage.wort) + '</span>');
+
+  const unten = [];
+  if(d.hoch != null || d.tief != null) unten.push(zahl(d.tief) + ' bis ' + zahl(d.hoch));
+  if(d.feuchte != null) unten.push('Luft ' + Math.round(d.feuchte) + '\u00A0%');
+  if(d.regen != null && d.regen > 0) unten.push(Math.round(d.regen) + ' mm Regen');
+
   const rat = wetterRat(d);
-  if(rat) teile.push('<span class="wt-rat">' + esc(rat) + '</span>');
+  let text = '<span class="wt-oben">' + oben.join('<span class="wt-tr" aria-hidden="true">\u00B7</span>') + '</span>';
+  if(unten.length) text += '<span class="wt-unten">' + esc(unten.join(' \u00B7 ')) + '</span>';
+  if(rat) text += '<span class="wt-rat">' + esc(rat) + '</span>';
   /* Aelter als sechs Stunden: sagen, wie alt. Sonst liest man eine
      Zahl von gestern als die von jetzt. */
   if(alt != null && alt >= 6){
-    teile.push('<span class="wt-alt">Stand von '
-      + new Date(w.stand).toLocaleString('de-DE', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'})
-      + '</span>');
+    text += '<span class="wt-alt">Stand von '
+      + esc(new Date(w.stand).toLocaleString('de-DE', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'}))
+      + '</span>';
   }
-  const bild = lage
-    ? '<span class="wt-bild" aria-hidden="true"><svg viewBox="0 0 24 24">' + lage.svg + '</svg></span>'
-    : '';
-  return '<div class="wt-leiste">' + bild
-    + '<p class="wt-linie">' + teile.join(' · ') + '</p></div>';
+
+  const ansage = 'Wetter in ' + w.ort
+    + (d.jetzt != null ? ', ' + Math.round(d.jetzt) + ' Grad' : '')
+    + (lage ? ', ' + lage.wort : '') + ' \u2014 Verlauf und Ausblick \u00F6ffnen';
+
+  return '<button type="button" class="wt-leiste" id="wt-leiste" aria-label="' + esc(ansage) + '">'
+    + wetterSymbolHTML(lage, true)
+    + '<span class="wt-text">' + text + '</span>'
+    + '<span class="wt-pfeil" aria-hidden="true">\u203A</span></button>';
+}
+
+/* ── Verlauf und Ausblick in „Mehr > Wetter" ──────────────────
+   Zwei schmale Tabellen. Der Frosttag wird zusaetzlich benannt und
+   bekommt ein Wort, nicht nur eine Farbe. */
+function wetterDetailHTML(){
+  const w = wetterStand();
+  if(!w.ort) return '';
+  const d = w.daten;
+  if(!d) return '<p class="wt-stand">Noch kein Wert abgerufen.</p>';
+  const grad = n => (n == null ? '\u2014' : Math.round(n) + '\u00B0');
+  const mm = n => (n != null && n >= 0.1 ? Math.round(n * 10) / 10 + ' mm' : '');
+  let h = '';
+
+  const st = d.stunden || [];
+  if(st.length){
+    const einTag = st.every(z => z.zeit.slice(0, 10) === st[0].zeit.slice(0, 10));
+    h += '<h3 class="wt-h3">' + (einTag ? 'Heute bis Mitternacht' : 'N\u00E4chste Stunden') + '</h3>';
+    h += '<div class="wt-liste">' + st.map(z=>{
+      const l = wetterLage(z.lage);
+      return '<div class="wt-r">'
+        + '<span class="wt-zeit">' + esc(z.zeit.slice(11, 13)) + ' Uhr</span>'
+        + (wetterSymbolHTML(l, false) || '<span class="wt-bild wt-bild-k"></span>')
+        + '<span class="wt-w">' + (l ? esc(l.wort) : '') + '</span>'
+        + '<b class="wt-t">' + grad(z.t) + '</b>'
+        + '<span class="wt-n">' + esc(mm(z.n)) + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  const tg = d.tage || [];
+  if(tg.length){
+    const frost = wetterFrostTag(d);
+    h += '<h3 class="wt-h3">Die n\u00E4chsten Tage</h3>';
+    h += '<div class="wt-liste wt-liste7">' + tg.map((z, i)=>{
+      const l = wetterLage(z.lage);
+      const kalt = z.tief != null && z.tief <= 0;
+      return '<div class="wt-r' + (kalt ? ' wt-frost' : '') + '">'
+        + '<span class="wt-zeit">' + esc(wetterTagName(z.datum, i)) + '</span>'
+        + (wetterSymbolHTML(l, false) || '<span class="wt-bild wt-bild-k"></span>')
+        + '<span class="wt-w">' + (kalt ? 'Frost' : (l ? esc(l.wort) : '')) + '</span>'
+        + '<b class="wt-t">' + grad(z.tief) + '\u2009/\u2009' + grad(z.hoch) + '</b>'
+        + '<span class="wt-n">' + esc(mm(z.regen)) + '</span></div>';
+    }).join('') + '</div>';
+    if(frost){
+      h += '<p class="wt-hinweis">Frost ' + (frost.i === 0 ? 'heute Nacht'
+        : frost.i === 1 ? 'morgen' : 'am ' + esc(wetterTagName(frost.tag.datum, frost.i)))
+        + ': ' + grad(frost.tag.tief) + '. Empfindliche Pflanzen hereinholen.</p>';
+    }
+  }
+  return h;
 }
 
 function wetterEinstellungZeichnen(){
@@ -9964,6 +10152,8 @@ function wetterEinstellungZeichnen(){
   const feld = document.getElementById('wt-ort');
   const stand = document.getElementById('wt-stand');
   const weg = document.getElementById('wt-weg');
+  const detail = document.getElementById('wt-detail');
+  if(detail) detail.innerHTML = wetterDetailHTML();
   if(!feld || !stand || !weg) return;
   if(w.ort && document.activeElement !== feld) feld.value = w.ort;
   weg.hidden = !w.ort;
@@ -10020,6 +10210,8 @@ function wetterOrtLoeschen(){
 }
 
 document.addEventListener('click', e=>{
+  const leiste = e.target.closest('#wt-leiste');
+  if(leiste){ sektionOeffnen('wetter', leiste); return; }
   if(e.target.closest('#wt-such')){ wetterOrtSuchen(); return; }
   if(e.target.closest('#wt-weg')){ wetterOrtLoeschen(); return; }
   const p = e.target.closest('[data-wt-pick]');
@@ -11685,7 +11877,8 @@ document.addEventListener('click', e=>{
   const w = (typeof wetterStand === 'function') ? wetterStand() : null;
   if(!w || w.lat == null) return;
   const alt = wetterAlter();
-  if(alt !== null && alt < 1) return;
+  const luecke = !w.daten || !w.daten.stunden || !w.daten.tage;
+  if(alt !== null && alt < 1 && !luecke) return;
   wetterHolen().then(ok=>{ if(ok && typeof render === 'function') render(); });
 })();
 

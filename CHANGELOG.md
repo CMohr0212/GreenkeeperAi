@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.16 — 26. August 2026
+**Wetter, ausgebaut**
+
+### Neu
+- Die Wetterleiste auf „Heute“ ist antippbar und führt in „Mehr › Wetter“.
+- Dort steht jetzt der Tagesverlauf: jede volle Stunde bis Mitternacht mit Lage, Temperatur und Niederschlag.
+- Dazu ein Ausblick über sieben Tage mit Tief, Hoch und Regenmenge.
+- Geht es in den nächsten sieben Tagen unter null, sagt die App das — auf „Heute“ und im Ausblick, wo der Tag zusätzlich „Frost“ als Wort trägt.
+- Die Leiste zeigt zusätzlich die Luftfeuchte und ist zweizeilig geworden: oben Ort, Temperatur und Lage, darunter die übrigen Werte.
+
+### Besser
+- Der Abruf holt alles in einer Anfrage. Er läuft weiterhin nur beim Start, nur mit eingetragenem Ort und nur, wenn der letzte Wert älter als eine Stunde ist. Übertragen werden weiterhin nur die Koordinaten.
+
+---
+
 ## 2.9.15 — 26. August 2026
 **Erst mal geradeziehen**
 
