@@ -77,6 +77,10 @@
   --duenger:#B08A3A;
   --duenger-tief:#654C15;
   --unklar:#B08A3A;        /* Giftigkeit unbekannt - nicht dasselbe wie giftig */
+  --alarm:#A3231A;         /* jetzt etwas tun: Schaedlinge, Faeule, Quarantaene */
+  --ruhe:#4B4E8C;          /* jetzt nichts tun: Eingewoehnung, Winterruhe */
+  --bluete:#8A2E63;
+  --sonne:#B8811C;
 
   /* Schwache Toene fuer Hinweisflaechen */
   --ton-gift:rgba(180,80,40,.07);
@@ -184,6 +188,7 @@
   --wasser:#2C5A6B; --wasser-tief:#244855;
   --gift:#7A3B22; --sicher:#2F5233;
   --duenger:#6B4E12; --duenger-tief:#543D0E; --unklar:#7A5A12;
+  --alarm:#A3231A; --ruhe:#4B4E8C; --bluete:#8A2E63; --sonne:#9A6A12;
   --grundschrift:1.125rem; --gewicht-text:400; --gewicht-titel:600;
   --t-mono:.69rem; --t-xs:.81rem; --t-s:.88rem; --t-m:.94rem;
   --t-md:1rem; --t-l:1.06rem; --t-xl:1.19rem;
@@ -215,6 +220,7 @@
   --wasser:#003D5C; --wasser-tief:#002B40;
   --gift:#8C1D00; --sicher:#00451C;
   --duenger:#4A3400; --duenger-tief:#332400; --unklar:#4A3400;
+  --alarm:#8C0000; --ruhe:#1F2270; --bluete:#6B0B45; --sonne:#5C3D00;
   --grundschrift:1.375rem; --gewicht-text:500; --gewicht-titel:800;
   /* Nichts unter 18 px. Die drei kleinsten Stufen fallen zusammen. */
   --t-mono:1.125rem; --t-xs:1.125rem; --t-s:1.125rem; --t-m:1.19rem;
@@ -253,6 +259,7 @@
   --wasser:#6FD3F0; --wasser-tief:#A2E4F7;
   --gift:#FFB865; --sicher:#7BE88F;
   --duenger:#E8D06A; --duenger-tief:#F0E09A; --unklar:#E8D06A;
+  --alarm:#FF6B5E; --ruhe:#9EB8FF; --bluete:#FF8FD0; --sonne:#FFD966;
   --grundschrift:1.0625rem; --gewicht-text:400; --gewicht-titel:800;
   --t-mono:.66rem; --t-xs:.75rem; --t-s:.81rem; --t-m:.88rem;
   --t-md:.91rem; --t-l:.97rem; --t-xl:1.09rem;
@@ -310,6 +317,7 @@ html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
   --wasser:#8FBACC; --wasser-tief:#B6D5E1;
   --gift:#E8A78C; --sicher:#A6CC97;
   --duenger:#D9BC77; --duenger-tief:#EBD6A4; --unklar:#D9BC77;
+  --alarm:#F0A79C; --ruhe:#B5C0EE; --bluete:#E9A8CB; --sonne:#E8C878;
   --ton-gift:rgba(232,167,140,.12); --ton-sicher:rgba(166,204,151,.12);
   --ton-wasser:rgba(143,186,204,.12); --ton-unklar:rgba(217,188,119,.12);
   --ton-alarm:rgba(232,167,140,.12); --ton-ok:rgba(166,204,151,.10);
@@ -329,11 +337,17 @@ html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
    Die Karte bindet die Tokens zurueck auf hell und setzt color
    selbst — sonst erbt der Inhalt die helle Schrift der Zone. */
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .haupttat,
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt,
+html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste,
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .stich{
   --fl-karte:#F2F0E4; --fl-erhoben:#FFFFFF; --fl-tief:#E7E4D6;
   --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459;
   --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
-  --wasser:#2C5A6B; --gift:#7A3B22; --sicher:#2F5233; --duenger:#6B4E12;
+  --wasser:#2C5A6B; --wasser-tief:#244855;
+  --gift:#7A3B22; --sicher:#2F5233; --duenger:#6B4E12;
+  /* Auch die neuen Bedeutungsfarben muessen zurueck auf die hellen
+     Werte — sonst steht ein Ton fuer dunklen Grund auf Creme. */
+  --alarm:#A3231A; --ruhe:#4B4E8C; --bluete:#8A2E63; --sonne:#9A6A12;
   color:#1C2620;
   background:#F2F0E4;
   border:0;
@@ -349,11 +363,12 @@ html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .ht-txt i{
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .haupttat.leer{
   background:#E9E6D8;color:#4A5750;border:0
 }
-/* Die beiden kleinen Knoepfe bleiben Umriss auf dem Gruen — zwei
-   weitere helle Flaechen wuerden mit der Hauptsache konkurrieren. */
+/* Frueher waren die beiden kleinen Knoepfe Umriss auf dem Gruen und
+   die Wetterleiste eine dritte Variante. Drei Knopfarten auf einem
+   Schirm — jetzt tragen alle dieselbe helle Flaeche und dieselbe
+   Schriftfarbe, und das Gruen bleibt Hintergrund. */
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt{
-  background:rgba(245,242,234,.10);border-color:transparent;color:var(--schrift)
-}
+  border-radius:var(--r-gross);padding:14px 15px}
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt svg,
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt i{
   color:var(--schrift-2);stroke:var(--schrift-2)
@@ -473,8 +488,12 @@ img.thumb{object-fit:cover;object-position:center}
   background:var(--ton-still)}
 .card-stand[data-ton="wasser"]::before{background:var(--wasser)}
 .card-stand[data-ton="sicher"]::before{background:var(--sicher)}
-.card-stand[data-ton="gift"]::before,
-.card-stand[data-ton="warn"]::before{background:var(--gift)}
+.card-stand[data-ton="gift"]::before{background:var(--gift)}
+.card-stand[data-ton="warn"]::before{background:var(--duenger)}
+.card-stand[data-ton="alarm"]::before{background:var(--alarm)}
+.card-stand[data-ton="ruhe"]::before{background:var(--ruhe)}
+.card-stand[data-ton="bluete"]::before{background:var(--bluete)}
+.card-stand[data-ton="alarm"]{color:var(--alarm);font-weight:600}
 .bar{display:block;height:5px;background:var(--ton-still);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--water);border-radius:3px}
 
@@ -841,7 +860,7 @@ html.modal-offen, body.modal-offen{overflow:hidden}
 .wt-bild svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;
   stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste{
-  background:rgba(245,242,234,.10);border-color:var(--linie);box-shadow:none}
+  border-radius:var(--r-gross)}
 html[data-design="terrarium"] .wt-leiste{box-shadow:var(--glanz)}
 html[data-design="klartext"] .wt-leiste{border-width:2px}
 /* Schriftbild wie bei den Nebenknoepfen darunter: dieselbe Flaeche,
@@ -860,6 +879,10 @@ html[data-design="klartext"] .wt-leiste{border-width:2px}
 .wt-alt{display:block;margin-top:3px;font-size:var(--t-xs);color:var(--schrift-2);font-style:italic}
 .wt-pfeil{flex:0 0 auto;font-size:var(--t-l);line-height:1;color:var(--schrift-2)}
 .wt-leiste .wt-bild svg{stroke:var(--schrift-2)}
+.wt-bild[data-lage="klar"] svg{stroke:var(--sonne)}
+.wt-bild[data-lage="teils"] svg{stroke:var(--sonne)}
+.wt-bild[data-lage="regen"] svg{stroke:var(--wasser)}
+.wt-bild[data-lage="schnee"] svg{stroke:var(--wasser-tief)}
 html[data-design="klartext"] .wt-lage,
 html[data-design="klartext"] .wt-unten,
 html[data-design="klartext"] .wt-rat{color:var(--schrift);font-size:var(--t-s)}
@@ -1177,15 +1200,19 @@ body{padding-bottom:76px}
    Sicherung. Keine Deckkraft unter 100 Prozent — die Farbe macht
    die Zuruecknahme, nicht die Transparenz. */
 .top{position:relative;display:flex;flex-direction:column}
-.sich-stempel{position:absolute;top:5px;right:0;z-index:2;
-  border:0;background:none;padding:2px 0 2px 10px;margin:0;min-height:0;max-width:62%;
-  font:inherit;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;
-  color:var(--schrift-2);cursor:pointer;text-align:right;line-height:1.25}
+/* Nicht mehr absolut gesetzt: an einer festen Ecke brach der Text
+   um, sobald Datum und Fassung zusammen laenger wurden. Jetzt
+   laeuft er im Fluss mit, bleibt aber rechtsbuendig und darf so
+   breit werden, wie er braucht. */
+.sich-stempel{order:-1;align-self:flex-end;max-width:100%;
+  border:0;background:none;padding:0 0 6px;margin:0;min-height:0;
+  font:inherit;font-family:var(--f-data);font-size:.64rem;letter-spacing:.04em;
+  color:var(--schrift-2);cursor:pointer;text-align:right;line-height:1.3}
 .sich-stempel[hidden]{display:none}
 .sich-stempel.alt{color:var(--gift)}
 .sich-stempel:focus-visible{outline:2px solid var(--water);outline-offset:2px}
-html[data-design="klartext"] .sich-stempel{position:static;align-self:flex-start;
-  text-align:left;max-width:none;padding:0 0 8px;font-size:var(--t-xs);
+html[data-design="klartext"] .sich-stempel{align-self:flex-start;
+  text-align:left;padding:0 0 8px;font-size:var(--t-xs);
   color:var(--schrift);letter-spacing:0}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
@@ -1450,6 +1477,12 @@ body.gm-offen #fab-neu{display:none}
   letter-spacing:.18em;font-size:var(--t-mono);font-weight:400;
   line-height:1.2;margin:0 0 5px;color:var(--etikett,var(--schrift-2))}
 .top-etikett:empty{display:none}
+.top-gruss{margin:6px 0 0;font-family:var(--f-display);font-weight:var(--gewicht-titel);
+  font-size:var(--t-xl);line-height:1.15;color:var(--schrift)}
+.top-gruss:empty{display:none}
+.top-lage{margin:4px 0 0;font-size:var(--t-s);line-height:1.4;color:var(--schrift-2)}
+.top-lage:empty{display:none}
+html[data-design="klartext"] .top-lage{font-size:var(--t-m);color:var(--schrift)}
 /* Versalien sind bei Sehschwaeche und Legasthenie schwerer zu lesen —
    in Klartext bleibt das Etikett normal geschrieben. */
 html[data-design="klartext"] .top-etikett{text-transform:none;letter-spacing:0}
@@ -1804,10 +1837,15 @@ body.einfach #zonen-sec{display:none!important}
    Die alten Regeln hier zielten auf `.lat`, `.ort` und `.nr` —
    Klassen, die es im Markup laengst nicht mehr gibt. Deshalb stand
    auf der Kachel weiterhin alles. */
+/* Die Zeichenreihe bleibt: Licht, Wasser, Katze, Frost, Duenger —
+   dafuer gibt es die Zeichenerklaerung unter der Sammlung. Sie
+   rueckt nur enger zusammen, damit sie auf eine Kachelbreite passt. */
+.sam-raster .card:not(.open) .icons{margin-top:7px;gap:7px}
+.sam-raster .card:not(.open) .ico{font-size:var(--t-mono)}
+.sam-raster .card:not(.open) .ico svg{width:13px;height:13px;flex:0 0 13px}
 .sam-raster .card:not(.open) .card-id,
 .sam-raster .card:not(.open) .card-bot,
 .sam-raster .card:not(.open) .card-lage,
-.sam-raster .card:not(.open) .icons,
 .sam-raster .card:not(.open) .zbadge,
 .sam-raster .card:not(.open) .warnbox,
 .sam-raster .card:not(.open) .pflegehinweis,
@@ -1921,6 +1959,35 @@ html[data-design="terrarium"] .sam-raster .card:not(.open) .card-name{
    sie ist ein Wort, kein Schmuck. */
 html[data-design="terrarium"] .sam-raster .card:not(.open) .card-stand{
   justify-content:center;font-size:var(--t-xs);margin-top:4px}
+/* Auf dem Token darf der botanische Name stehen — er ist der Grund,
+   warum jemand Terrarium waehlt. Alles Uebrige bleibt weg. */
+html[data-design="terrarium"] .sam-raster .card:not(.open) .card-bot{
+  display:block;font-size:var(--t-mono);font-style:italic;color:var(--schrift-2);
+  margin:2px 0 0;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-design="terrarium"] .sam-raster .card:not(.open) .icons{
+  justify-content:center;margin-top:6px}
+
+/* ── Der Zustandsrand ─────────────────────────────────────────
+   P1.4 wollte einen leuchtenden Rand, dessen Farbe der Zustand
+   bestimmt. Er nimmt denselben Ton wie der Punkt in der Standzeile,
+   also sagen beide dasselbe. Das Wort traegt weiterhin allein die
+   Bedeutung — der Rand ist die schnelle Zweitmeldung ueber das
+   ganze Gitter hinweg. */
+html[data-design="terrarium"] .sam-raster .card{--zst:var(--linie-stark)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="wasser"]{--zst:var(--wasser)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="sicher"]{--zst:var(--sicher)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="gift"]{--zst:var(--gift)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="warn"]{--zst:var(--duenger)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="alarm"]{--zst:var(--alarm)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="ruhe"]{--zst:var(--ruhe)}
+html[data-design="terrarium"] .sam-raster .card[data-ton="bluete"]{--zst:var(--bluete)}
+html[data-design="terrarium"] .sam-raster .card:not(.open){
+  border-color:var(--zst);
+  box-shadow:0 0 0 1px var(--zst), 0 0 13px -2px var(--zst)}
+html[data-design="terrarium"] .sam-raster .card:not(.open) .thumb,
+html[data-design="terrarium"] .sam-raster .card:not(.open) .card-btn::before{
+  filter:drop-shadow(0 0 6px var(--zst))}
 
 html[data-design="terrarium"] .sam-raster .card:nth-child(4n+1) .thumb,
 html[data-design="terrarium"] .sam-raster .card:nth-child(4n+1) .card-btn::before,
@@ -2117,8 +2184,12 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
    als Block rechts — und weil der Block selbst zweispaltig ist, lief
    die Seite waagerecht ueber den Rand hinaus. Man musste
    herauszoomen, um sie ganz zu sehen. */
-.heute-start{display:block;margin-bottom:var(--a-3)}
+/* Die Hauptsache steht nicht oben am Rand, sondern etwa dort, wo
+   der Daumen liegt. Der Abstand waechst mit dem Schirm mit, damit
+   auf kleinen Geraeten trotzdem alles zusammen sichtbar bleibt. */
+.heute-start{display:block;margin:clamp(20px,8vh,68px) 0 var(--a-3)}
 .heute-start .haupttat{width:100%}
+html[data-design="klartext"] .heute-start{margin-top:var(--a-4)}
 
 .start{border:1px solid var(--line);border-left:4px solid var(--moss);border-radius:var(--r-mittel);padding:var(--a-4);background:var(--paper)}
 .start h3{margin:0 0 var(--a-2);font-size:var(--t-xl);font-family:var(--f-display)}
@@ -6934,8 +7005,10 @@ function papierkorbRender(){
 <div class="wrap">
   <header class="top">
     <button class="sich-stempel" id="sich-stempel" type="button" aria-label="Letzte Sicherung" hidden></button>
-    <p class="top-etikett" id="kopf-etikett" aria-hidden="true">Heute</p>
+    <p class="top-etikett" id="kopf-etikett" aria-hidden="true"></p>
     <h1 id="kopf-titel">Heute</h1>
+    <p class="top-gruss" id="kopf-gruss"></p>
+    <p class="top-lage" id="kopf-lage"></p>
   </header>
 
   <section data-ans="heute" class="faellig" id="faellig-sec">
@@ -7915,8 +7988,24 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.19';
+const FASSUNG = '2.9.20';
 const PATCHNOTES = [
+  {
+    nr: '2.9.20', datum: '2026-08-26', titel: 'Farbe bekennen',
+    neu: [
+      'Der Punkt auf der Kachel hat jetzt sieben Töne statt zwei: leuchtendes Rot für Quarantäne, Schädlinge und Wurzelfäule, Bernstein für Durst und Hunger, Blauviolett für alles, wo man gerade nichts tun soll, Magenta für Blüte. Das Wort daneben bleibt.',
+      'In Terrarium leuchtet der Rand jedes Tokens in der Farbe seines Zustands — so, wie es der Entwurf vorgesehen hatte.',
+      'Der Kopf auf „Heute“ grüßt in der zweiten Zeile und sagt darunter, wie viele Pflanzen heute dran sind.'
+    ],
+    besser: [
+      'Die Zeichen für Licht, Wasser, Katzensicherheit, Frost und Dünger stehen wieder auf der Rasterkachel. Die Zeichenerklärung unter der Sammlung passte längst zu nichts mehr.',
+      'In Terrarium bleibt der botanische Name unter dem Token stehen.',
+      'Auf „Heute“ tragen Gießknopf, Rundgang, Pflanzendoktor und Wetterleiste dieselbe helle Fläche und dieselbe Schriftfarbe. Vorher standen dort drei verschiedene Knopfarten auf dem Grün.',
+      'Das Wettersymbol darf Farbe tragen: Sonne golden, Regen blau, Schnee hell.',
+      'Der Sicherungsstempel brach um, sobald Datum und Fassung zusammen länger wurden. Er ist kleiner geworden und steht nicht mehr an einer festen Ecke, sondern läuft rechtsbündig mit.',
+      'Gießknopf und die beiden kleinen Knöpfe rücken auf „Heute“ weiter nach unten, dorthin, wo der Daumen liegt.'
+    ]
+  },
   {
     nr: '2.9.19', datum: '2026-08-26', titel: 'Die Kachel räumt auf',
     besser: [
@@ -9914,15 +10003,31 @@ function kartenDetailHTML(p){
    Eine Zeile, wie in der Vorschau: farbiger Punkt und ein Wort.
    Der Punkt schmueckt, das Wort traegt — wer Farben schlecht
    unterscheidet, liest trotzdem, was los ist. */
+/* Ein Punkt in zwei Farben sagte kaum etwas. Jetzt hat jeder
+   Zustand seinen Ton: Rot heisst „jetzt etwas tun", Blauviolett
+   „jetzt nichts tun", Bernstein „nachsehen", Blau „gießen".
+   Das Wort daneben bleibt trotzdem die eigentliche Information. */
+const STAND_TON = {
+  quarantaene:'alarm', schaedlinge:'alarm', wurzelfaeule:'alarm',
+  trocken:'warn', hunger:'warn', sonnenbrand:'warn', kaelteschaden:'warn',
+  neu:'ruhe', frisch:'ruhe', aquakultur:'ruhe', steckling:'ruhe',
+  regeneration:'ruhe', winterruhe:'ruhe', bluete:'bluete'
+};
+
 function karteStand(p){
   const st = giessStatus(p);
-  if(st.stand === 'stopp')     return {ton:'warn',  text:'Jetzt nicht gießen'};
+  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  const zTon = z && z.code !== 'gesund'
+    ? (STAND_TON[z.code] || (z.def.ton === 'warn' ? 'warn' : 'ruhe')) : null;
+  /* Ein laufender Gießstopp ist immer der wichtigere Befund — er
+     widerspricht dem, was der Rhythmus sagen wuerde. */
+  if(st.stand === 'stopp')     return {ton:'alarm', text:'Jetzt nicht gießen'};
+  if(zTon === 'alarm')         return {ton:'alarm', text:z.def.name};
   if(st.stand === 'over')      return {ton:'gift',  text:'Gießen: überfällig'};
   if(st.stand === 'unbekannt') return {ton:'still', text:'Noch nicht erfasst'};
   if(st.rest <= 0)             return {ton:'wasser', text:'Gießen: heute'};
   if(st.rest === 1)            return {ton:'wasser', text:'Gießen: morgen'};
-  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
-  if(z && z.code !== 'gesund') return {ton:'warn', text:z.def.name};
+  if(zTon)                     return {ton:zTon, text:z.def.name};
   if(st.rest === 2)            return {ton:'wasser', text:'Gießen: übermorgen'};
   return {ton:'sicher', text:'Alles in Ordnung'};
 }
@@ -9958,7 +10063,7 @@ function cardHTML(p){
   /* Die Karte in der Liste ist nur noch Vorschau. Das Detail lebt im
      Fenster — darum hier kein `id`, sonst gaebe es die Kennung zweimal
      im Dokument. */
-  return `<article class="card" data-karte="${p.id}">
+  return `<article class="card" data-karte="${p.id}" data-ton="${karteStand(p).ton}">
     <button class="card-btn" data-t="${p.id}" aria-haspopup="dialog">
       ${thumb}
       <span class="card-body">
@@ -10155,9 +10260,14 @@ function wetterLage(code){
    Zweizeilig und antippbar: oben Ort, Temperatur und Lage, unten
    die Zusatzwerte. Ein Tipp fuehrt in „Mehr > Wetter", wo Verlauf
    und Ausblick stehen. Der Pfeil sagt das auch ohne Ausprobieren. */
+/* Das Symbol darf Farbe tragen — es ist das einzige Bild auf einer
+   sonst durchweg gruenen Seite, und die Lage steht ohnehin als Wort
+   daneben. Farbe schmueckt hier also, sie traegt nichts. */
 function wetterSymbolHTML(lage, gross){
   if(!lage) return '';
-  return '<span class="wt-bild' + (gross ? '' : ' wt-bild-k') + '" aria-hidden="true">'
+  const art = Object.keys(WETTER_BILD).find(k => WETTER_BILD[k] === lage) || '';
+  return '<span class="wt-bild' + (gross ? '' : ' wt-bild-k') + '"'
+    + (art ? ' data-lage="' + art + '"' : '') + ' aria-hidden="true">'
     + '<svg viewBox="0 0 24 24">' + lage.svg + '</svg></span>';
 }
 
@@ -14144,6 +14254,15 @@ const ANSICHT_KOPF = {
   mehr:     ['Einstellungen', 'Mehr']
 };
 
+/* Eine Zeile, die den Tag beschreibt — dieselbe Zahl, die auch auf
+   dem Giesknopf steht, aber als Satz. */
+function heuteLageText(){
+  let n = 0;
+  try{ n = giessListe().length; }catch(e){ return ''; }
+  if(!n) return 'Heute ist nichts fällig.';
+  return n === 1 ? 'Eine Pflanze ist heute dran.' : n + ' Pflanzen sind heute dran.';
+}
+
 function tagesGruss(){
   const h = new Date().getHours();
   if(h < 5)  return 'Noch wach';
@@ -14189,6 +14308,13 @@ function ansichtZeigen(name, merken){
   if(kopf) $('#kopf-titel').textContent = kopf[1] || '';
   const etikett = document.getElementById('kopf-etikett');
   if(etikett) etikett.textContent = '';
+  /* Unter dem Reiternamen steht auf „Heute" der Gruss und darunter,
+     eine Stufe kleiner, die Lage des Tages. Auf den anderen Reitern
+     bleiben beide leer und verschwinden ueber `:empty`. */
+  const gruss = document.getElementById('kopf-gruss');
+  const lage = document.getElementById('kopf-lage');
+  if(gruss) gruss.textContent = name === 'heute' ? tagesGruss() : '';
+  if(lage)  lage.textContent  = name === 'heute' ? heuteLageText() : '';
   /* Ein Reiterwechsel schliesst ein offenes Abschnittsfenster —
      sonst stuende man hinter einem Fenster auf der falschen Seite. */
   if(!werkzeug && typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');

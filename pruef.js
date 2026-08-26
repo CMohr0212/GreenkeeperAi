@@ -89,7 +89,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.19', w.__T('FASSUNG') === '2.9.19', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.20', w.__T('FASSUNG') === '2.9.20', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -959,6 +959,65 @@ setTimeout(async () => {
     return karteStand(p).text; })()`);
   pruef('ohne Gievermerk keine Panik', stand("{}") === 'Noch nicht erfasst', stand("{}"));
 
+  /* Zeichen bleiben, Zustandstoene sind mehr als zwei */
+  pruef('Zeichenreihe bleibt auf der Kachel',
+    !/\.sam-raster \.card:not\(\.open\) \.icons,/.test(stil3)
+    && /\.sam-raster \.card:not\(\.open\) \.icons\{/.test(stil3));
+  ['alarm','ruhe','bluete','warn'].forEach(t=>{
+    pruef('Ton ' + t + ' hat eine eigene Farbe',
+      new RegExp('\\.card-stand\\[data-ton="' + t + '"\\]::before\\{background:var\\(--')
+        .test(stil3));
+  });
+  ['alarm','ruhe','bluete','sonne'].forEach(t=>{
+    pruef('Token --' + t + ' steht in allen Tabellen',
+      (stil3.match(new RegExp('--' + t + ':', 'g')) || []).length >= 5,
+      String((stil3.match(new RegExp('--' + t + ':', 'g')) || []).length));
+  });
+  const tonVon = (code) => w.__T(`(function(){
+    S.zustand['PRUEF-2'] = {code:'${code}', seit:null, bis:null};
+    const t = karteStand({id:'PRUEF-2', klasse:'normal'}).ton;
+    delete S.zustand['PRUEF-2']; return t; })()`);
+  pruef('Quarantaene schlaegt Alarm', tonVon('quarantaene') === 'alarm', tonVon('quarantaene'));
+  pruef('Schaedlinge ebenso', tonVon('schaedlinge') === 'alarm', tonVon('schaedlinge'));
+  pruef('Winterruhe ist kein Alarm', tonVon('winterruhe') !== 'alarm', tonVon('winterruhe'));
+  pruef('Karte traegt ihren Ton als Merkmal',
+    /<article class="card" data-karte="[^"]*" data-ton="/.test(karte1), karte1.slice(0,90));
+
+  /* Terrarium: Rand nach Zustand, botanischer Name bleibt */
+  pruef('Zustandsrand leuchtet',
+    /html\[data-design="terrarium"\] \.sam-raster \.card:not\(\.open\)\{[^}]*box-shadow:0 0 0 1px var\(--zst\)/
+      .test(stil3.replace(/\n\s*/g, '')));
+  pruef('jeder Ton faerbt den Rand',
+    (stil3.match(/\.sam-raster \.card\[data-ton="[a-z]+"\]\{--zst:/g) || []).length >= 7);
+  pruef('botanischer Name bleibt in Terrarium',
+    /html\[data-design="terrarium"\] \.sam-raster \.card:not\(\.open\) \.card-bot\{[\s\S]{0,40}display:block/
+      .test(stil3));
+
+  /* Heute: Kopf, Knoepfe, Wettersymbol */
+  w.__T("ansichtZeigen('heute')"); await tick();
+  pruef('Kopf gruesst in der zweiten Zeile',
+    /gut|wach/i.test(d.getElementById('kopf-gruss').textContent),
+    d.getElementById('kopf-gruss').textContent);
+  pruef('darunter steht die Lage des Tages',
+    /Pflanzen? (ist|sind) heute dran|nichts f/i.test(d.getElementById('kopf-lage').textContent),
+    d.getElementById('kopf-lage').textContent);
+  w.__T("ansichtZeigen('sammlung')"); await tick();
+  pruef('auf anderen Reitern bleibt der Gruss weg',
+    d.getElementById('kopf-gruss').textContent === ''
+    && d.getElementById('kopf-lage').textContent === '');
+  w.__T("ansichtZeigen('heute')"); await tick();
+  pruef('alle Flaechen auf Heute tragen dieselbe Haut',
+    /\.wrap \.haupttat,[\s\S]{0,220}\.wrap \.nt,[\s\S]{0,120}\.wrap \.wt-leiste,/.test(stil3));
+  pruef('kein Umrissknopf mehr auf dem Gruen',
+    !/\.wrap \.nt\{[^}]*background:rgba\(245,242,234/.test(stil3));
+  pruef('Wettersymbol traegt seine Lage',
+    w.__T("wetterSymbolHTML(WETTER_BILD.regen, true)").indexOf('data-lage="regen"') !== -1);
+  pruef('Sonne und Regen bekommen Farbe',
+    /\.wt-bild\[data-lage="klar"\] svg\{stroke:var\(--sonne\)/.test(stil3)
+    && /\.wt-bild\[data-lage="regen"\] svg\{stroke:var\(--wasser\)/.test(stil3));
+  pruef('die drei Knoepfe ruecken nach unten',
+    /\.heute-start\{display:block;margin:clamp\(20px,8vh,68px\)/.test(stil3));
+
   pruef('Bildformat schlaegt die allgemeine Rasterregel',
     /\.sam-raster \.card:not\(\.open\) \.thumb\{[^}]*aspect-ratio:1 \/ var\(--bildhoehe/.test(
       stil3.replace(/\n/g, '')) ||
@@ -1004,8 +1063,10 @@ setTimeout(async () => {
   pruef('Nebenknöpfe stehen unter dem Hauptknopf',
     d.querySelector('.heute-start .haupttat').nextElementSibling
       .classList.contains('nebentaten'));
-  pruef('Stempel sitzt in der oberen rechten Ecke',
-    /\.sich-stempel\{position:absolute;top:5px;right:0/.test(stil5));
+  pruef('Stempel sitzt oben rechts, aber im Fluss',
+    /\.sich-stempel\{order:-1;align-self:flex-end/.test(stil5));
+  pruef('Stempel bricht nicht mehr an fester Breite',
+    !/\.sich-stempel\{[^}]*position:absolute/.test(stil5));
   pruef('Stempel bleibt voll deckend', !/\.sich-stempel\{[^}]*opacity:/.test(stil5));
 
   /* Stempeltext: Datum und Fassung */

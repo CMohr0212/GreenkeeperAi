@@ -4,6 +4,24 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.20 — 26. August 2026
+**Farbe bekennen**
+
+### Neu
+- Der Punkt auf der Kachel hat jetzt sieben Töne statt zwei: leuchtendes Rot für Quarantäne, Schädlinge und Wurzelfäule, Bernstein für Durst und Hunger, Blauviolett für alles, wo man gerade nichts tun soll, Magenta für Blüte. Das Wort daneben bleibt.
+- In Terrarium leuchtet der Rand jedes Tokens in der Farbe seines Zustands — so, wie es der Entwurf vorgesehen hatte.
+- Der Kopf auf „Heute“ grüßt in der zweiten Zeile und sagt darunter, wie viele Pflanzen heute dran sind.
+
+### Besser
+- Die Zeichen für Licht, Wasser, Katzensicherheit, Frost und Dünger stehen wieder auf der Rasterkachel. Die Zeichenerklärung unter der Sammlung passte längst zu nichts mehr.
+- In Terrarium bleibt der botanische Name unter dem Token stehen.
+- Auf „Heute“ tragen Gießknopf, Rundgang, Pflanzendoktor und Wetterleiste dieselbe helle Fläche und dieselbe Schriftfarbe. Vorher standen dort drei verschiedene Knopfarten auf dem Grün.
+- Das Wettersymbol darf Farbe tragen: Sonne golden, Regen blau, Schnee hell.
+- Der Sicherungsstempel brach um, sobald Datum und Fassung zusammen länger wurden. Er ist kleiner geworden und steht nicht mehr an einer festen Ecke, sondern läuft rechtsbündig mit.
+- Gießknopf und die beiden kleinen Knöpfe rücken auf „Heute“ weiter nach unten, dorthin, wo der Daumen liegt.
+
+---
+
 ## 2.9.19 — 26. August 2026
 **Die Kachel räumt auf**
 
