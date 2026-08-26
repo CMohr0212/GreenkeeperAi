@@ -8795,6 +8795,7 @@ function designSetzen(name, merken){
   const wahl = document.getElementById('dsn-wahl');
   if(wahl && !wahl.children.length) designWahlZeichnen();
   themeFarbe();
+  rasterSpannenBald();
   if(merken !== false) sichern();
 }
 
@@ -10558,14 +10559,17 @@ function bildFormateSetzen(){
    einem neuen Umbruch. */
 function rasterSpannenEin(gitter){
   if(!gitter || !gitter.offsetWidth) return;
+  const karten = Array.prototype.slice.call(
+    gitter.querySelectorAll(':scope > .card:not(.open)'));
+  /* Erst raeumen, dann pruefen: ein Designwechsel laesst sonst die
+     Zeilenspannen des vorigen Designs stehen, weil dieselben
+     Karten-Knoten wiederverwendet werden. */
+  karten.forEach(k=>{ k.style.gridRowEnd = ''; });
   const st = getComputedStyle(gitter);
   const zeile = parseFloat(st.gridAutoRows) || 0;
   /* Nur das Botanisch-Raster arbeitet mit feinen Zeilen. Die anderen
      Designs haben normale Rasterzeilen und brauchen das hier nicht. */
   if(!zeile || zeile > 12) return;
-  const karten = Array.prototype.slice.call(
-    gitter.querySelectorAll(':scope > .card:not(.open)'));
-  karten.forEach(k=>{ k.style.gridRowEnd = ''; });
   /* Zwei Wege zur Hoehe, und der groessere gewinnt. Gemessen wird,
      was dasteht — solange ein Foto noch nicht geladen ist, ist das
      zu wenig. Gerechnet wird aus Spaltenbreite, zugeteiltem Format
