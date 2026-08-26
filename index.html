@@ -10555,10 +10555,8 @@ function bildFormateSetzen(){
    Spannen loesen, dann alle Hoehen lesen. Wer im selben Durchgang
    misst und setzt, zwingt den Browser zwischen jeder Kachel zu
    einem neuen Umbruch. */
-function rasterSpannen(){
-  const gitter = document.querySelector('.sam-raster .grid');
+function rasterSpannenEin(gitter){
   if(!gitter || !gitter.offsetWidth) return;
-  bildFormateSetzen();
   const st = getComputedStyle(gitter);
   const zeile = parseFloat(st.gridAutoRows) || 0;
   /* Nur das Botanisch-Raster arbeitet mit feinen Zeilen. Die anderen
@@ -10588,6 +10586,19 @@ function rasterSpannen(){
     if(!hoehen[i]) return;
     k.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil(hoehen[i] / zeile));
   });
+}
+
+/* Gruppiert zeigt die Sammlung ein eigenes .grid je Abschnitt (ein
+   Raum, eine Klasse, ...) statt eines einzigen. Vorher wurde nur das
+   erste Raster im Dokument gemessen und gespannt — jeder weitere
+   Abschnitt blieb ohne Zeilenspannen und die Kacheln liefen sich in
+   fester 4px-Zeilenhoehe uebereinander. Jetzt bekommt jedes Raster
+   seinen eigenen Durchgang. */
+function rasterSpannen(){
+  const gitter = document.querySelectorAll('.sam-raster .grid');
+  if(!gitter.length) return;
+  bildFormateSetzen();
+  gitter.forEach(rasterSpannenEin);
 }
 
 let _rasterTakt = null;

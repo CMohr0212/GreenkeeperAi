@@ -4,6 +4,14 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.23 — 26. August 2026
+**Raster repariert**
+
+### Behoben
+- In Botanisch liefen die Bilder in der Sammlung übereinander, sobald mehr als eine Gruppe zu sehen war — nur die erste Gruppe hatte ein sauberes Raster. Jetzt bekommt jede Gruppe ihre eigene Zeilenhöhe.
+
+---
+
 ## 2.9.22 — 26. August 2026
 **Nachgezogen**
 
