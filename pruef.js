@@ -89,7 +89,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.20', w.__T('FASSUNG') === '2.9.20', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.21', w.__T('FASSUNG') === '2.9.21', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -107,13 +107,15 @@ setTimeout(async () => {
 
   const tf = () => d.querySelector('meta[name="theme-color"]').getAttribute('content');
   w.__T("ansichtZeigen('heute')");
-  pruef('Botanisch · Heute dunkel', tf() === '#44574A', tf());
+  pruef('Botanisch · Heute hell', tf() === '#F1F4ED', tf());
   w.__T("ansichtZeigen('sammlung')");
-  pruef('Botanisch · Sammlung hell', tf() === '#FBF9F3', tf());
+  pruef('Botanisch · Sammlung hell', tf() === '#F1F4ED', tf());
   w.__T("ansichtZeigen('mehr')");
-  pruef('Botanisch · Mehr dunkel', tf() === '#44574A', tf());
+  pruef('Botanisch · Mehr hell', tf() === '#F1F4ED', tf());
   w.__T("ansichtZeigen('werkzeuge')");
-  pruef('Botanisch · Werkzeuge hell', tf() === '#FBF9F3', tf());
+  pruef('Botanisch · Werkzeuge hell', tf() === '#F1F4ED', tf());
+  pruef('Botanisch springt nicht mehr zwischen den Reitern',
+    tf() === '#F1F4ED');
   d.querySelector('[data-design-go="terrarium"]').click();
   pruef('Terrarium überall dunkel', tf() === '#0C1810', tf());
   w.__T("ansichtZeigen('heute')");
@@ -766,14 +768,20 @@ setTimeout(async () => {
     stil.indexOf('html[data-design="klartext"] .top-etikett{text-transform:none') !== -1);
   d.documentElement.setAttribute('data-design', 'botanisch');
 
-  pruef('Zonengrün aufgehellt',
-    dsn('botanisch').getPropertyValue('--zone-grund').trim().toUpperCase() === '#44574A');
-  pruef('Notfarbe zieht mit',
-    w.__T("DESIGNS.botanisch.dunkel") === '#44574A', w.__T("DESIGNS.botanisch.dunkel"));
-  pruef('heller Hauptknopf auf Heute',
-    stil.indexOf('body[data-ansicht="heute"] .wrap .haupttat,') !== -1);
-  pruef('helle Karte setzt color selbst',
-    /\.wrap \.stich\{[^}]*color:#1C2620/.test(stil));
+  /* Botanisch ist ganz hell geworden — auf Dunkelgruen war bei
+     Sonnenlicht nichts mehr zu lesen. */
+  pruef('Botanisch steht auf Salbei',
+    dsn('botanisch').getPropertyValue('--fl-grund').trim().toUpperCase() === '#CDD9C5',
+    dsn('botanisch').getPropertyValue('--fl-grund'));
+  pruef('keine dunklen Zonen mehr',
+    Array.isArray(w.__T("DESIGNS.botanisch.zonen")) && w.__T("DESIGNS.botanisch.zonen").length === 0);
+  pruef('keine Notfarbe fuer Dunkel', w.__T("DESIGNS.botanisch.dunkel") === null);
+  pruef('Zonengrund folgt dem Seitengrund',
+    dsn('botanisch').getPropertyValue('--zone-grund').trim().toUpperCase() === '#CDD9C5');
+  pruef('Knoepfe tragen die helle Karte',
+    /html\[data-design="botanisch"\] \.haupttat,/.test(stil));
+  pruef('kein Gruen mehr unter der Schrift',
+    !/body\[data-ansicht="heute"\] \.wrap\{[^}]*--schrift:#F2F7F0/.test(stil.replace(/\n\s*/g,'')));
   pruef('Kacheln gleich hoch', stil.indexOf('grid-auto-rows:1fr') !== -1);
   pruef('Aktionswort statt Pfeil', stil.indexOf(".wz-p::after{content:'Öffnen'") !== -1);
 
@@ -970,7 +978,7 @@ setTimeout(async () => {
   });
   ['alarm','ruhe','bluete','sonne'].forEach(t=>{
     pruef('Token --' + t + ' steht in allen Tabellen',
-      (stil3.match(new RegExp('--' + t + ':', 'g')) || []).length >= 5,
+      (stil3.match(new RegExp('--' + t + ':', 'g')) || []).length >= 4,
       String((stil3.match(new RegExp('--' + t + ':', 'g')) || []).length));
   });
   const tonVon = (code) => w.__T(`(function(){
@@ -987,8 +995,23 @@ setTimeout(async () => {
   pruef('Zustandsrand leuchtet',
     /html\[data-design="terrarium"\] \.sam-raster \.card:not\(\.open\)\{[^}]*box-shadow:0 0 0 1px var\(--zst\)/
       .test(stil3.replace(/\n\s*/g, '')));
-  pruef('jeder Ton faerbt den Rand',
-    (stil3.match(/\.sam-raster \.card\[data-ton="[a-z]+"\]\{--zst:/g) || []).length >= 7);
+  pruef('jeder Zustandston faerbt den Rand',
+    (stil3.match(/\.sam-raster \.card\[data-zton="[a-z]+"\]\{--zst:/g) || []).length >= 5);
+  /* Der Rand meldet den Zustand, nicht die naechste Aufgabe:
+     gesund leuchtet gruen, auch wenn heute gegossen werden muss. */
+  const zton = (code) => w.__T(`(function(){
+    if(${code === null}) { delete S.zustand['PRUEF-3']; }
+    else S.zustand['PRUEF-3'] = {code:'${code}', seit:null, bis:null};
+    const t = karteZustandTon({id:'PRUEF-3', klasse:'normal'});
+    delete S.zustand['PRUEF-3']; return t; })()`);
+  pruef('gesund leuchtet gruen', zton('gesund') === 'gesund', zton('gesund'));
+  pruef('ohne Eintrag ebenso', zton(null) === 'gesund', zton(null));
+  pruef('Quarantaene leuchtet rot', zton('quarantaene') === 'alarm', zton('quarantaene'));
+  pruef('Gruen fuer gesund ist ein eigener Wert',
+    (stil3.match(/--gesund:/g) || []).length >= 4,
+    String((stil3.match(/--gesund:/g) || []).length));
+  pruef('Karte traegt auch den Zustandston',
+    /data-zton="[a-z]+"/.test(karte1), karte1.slice(0,140));
   pruef('botanischer Name bleibt in Terrarium',
     /html\[data-design="terrarium"\] \.sam-raster \.card:not\(\.open\) \.card-bot\{[\s\S]{0,40}display:block/
       .test(stil3));
@@ -1007,9 +1030,19 @@ setTimeout(async () => {
     && d.getElementById('kopf-lage').textContent === '');
   w.__T("ansichtZeigen('heute')"); await tick();
   pruef('alle Flaechen auf Heute tragen dieselbe Haut',
-    /\.wrap \.haupttat,[\s\S]{0,220}\.wrap \.nt,[\s\S]{0,120}\.wrap \.wt-leiste,/.test(stil3));
+    /"botanisch"\] \.haupttat,[\s\S]{0,160}"botanisch"\] \.nt,[\s\S]{0,80}"botanisch"\] \.wt-leiste,/.test(stil3));
   pruef('kein Umrissknopf mehr auf dem Gruen',
     !/\.wrap \.nt\{[^}]*background:rgba\(245,242,234/.test(stil3));
+  pruef('Blattmuster auf Heute und Mehr',
+    /body\[data-ansicht="mehr"\]\{[\s\S]{0,120}background-image:url\("data:image\/svg\+xml/
+      .test(stil3.replace(/\n\s*/g,'')));
+  pruef('Muster nur auf zwei Reitern',
+    (stil3.match(/background-image:url\("data:image\/svg\+xml/g) || []).length === 1);
+  pruef('Terrarium legt sein Bild hinter Heute und Mehr',
+    /"terrarium"\] body\[data-ansicht="mehr"\]\{[\s\S]{0,320}bg-terrarium\.webp/
+      .test(stil3.replace(/\n\s*/g,'')));
+  pruef('mit gerechnetem Schleier darueber',
+    stil3.indexOf('linear-gradient(rgba(12,24,16,.62),rgba(12,24,16,.62))') !== -1);
   pruef('Wettersymbol traegt seine Lage',
     w.__T("wetterSymbolHTML(WETTER_BILD.regen, true)").indexOf('data-lage="regen"') !== -1);
   pruef('Sonne und Regen bekommen Farbe',

@@ -78,6 +78,7 @@
   --duenger-tief:#654C15;
   --unklar:#B08A3A;        /* Giftigkeit unbekannt - nicht dasselbe wie giftig */
   --alarm:#A3231A;         /* jetzt etwas tun: Schaedlinge, Faeule, Quarantaene */
+  --gesund:#4F7A3F;        /* der Pflanze geht es gut - nicht dasselbe wie --sicher */
   --ruhe:#4B4E8C;          /* jetzt nichts tun: Eingewoehnung, Winterruhe */
   --bluete:#8A2E63;
   --sonne:#B8811C;
@@ -181,14 +182,19 @@
 
 /* ── BOTANISCH — Standard, warm, papierartig ──────────────── */
 [data-design="botanisch"]{
-  --fl-grund:#F4F1E8; --fl-karte:#FBF9F3; --fl-erhoben:#FFFFFF; --fl-tief:#EDEAE0;
-  --fl-akzent:#44574A; --fl-bildleer:#E1DDD0;
+  /* Salbei statt Creme, aus dem Entwurf gemessen. Der Wechsel hat
+     einen handfesten Grund: Heute und Mehr standen auf Dunkelgruen
+     und waren bei Sonne auf dem Balkon nicht mehr zu lesen. Jetzt
+     ist jede Seite hell, und die Schrift bleibt ueberall dieselbe. */
+  --fl-grund:#CDD9C5; --fl-karte:#F1F4ED; --fl-erhoben:#FFFFFF; --fl-tief:#BFCDB6;
+  --fl-akzent:#44574A; --fl-bildleer:#C2D0B9;
   --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459; --schrift-invers:#EDF0E6;
   --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
   --wasser:#2C5A6B; --wasser-tief:#244855;
   --gift:#7A3B22; --sicher:#2F5233;
   --duenger:#6B4E12; --duenger-tief:#543D0E; --unklar:#7A5A12;
   --alarm:#A3231A; --ruhe:#4B4E8C; --bluete:#8A2E63; --sonne:#9A6A12;
+  --gesund:#3F6B33;
   --grundschrift:1.125rem; --gewicht-text:400; --gewicht-titel:600;
   --t-mono:.69rem; --t-xs:.81rem; --t-s:.88rem; --t-m:.94rem;
   --t-md:1rem; --t-l:1.06rem; --t-xl:1.19rem;
@@ -196,7 +202,7 @@
   --r-klein:8px; --r-mittel:14px; --r-gross:22px;
   --tap:44px; --rand:20px;
   --dauer:180ms; --glanz:none;
-  --zone-grund:#44574A;
+  --zone-grund:#CDD9C5;
   /* Die Vorlage setzt Ueberschriften in einer Serifenschrift mit
      Versalien. Newsreader liegt ohnehin im Haus — bisher nur als
      Fliesstext. Sie wird bis 500 geladen, deshalb faellt auch das
@@ -221,6 +227,7 @@
   --gift:#8C1D00; --sicher:#00451C;
   --duenger:#4A3400; --duenger-tief:#332400; --unklar:#4A3400;
   --alarm:#8C0000; --ruhe:#1F2270; --bluete:#6B0B45; --sonne:#5C3D00;
+  --gesund:#00451C;
   --grundschrift:1.375rem; --gewicht-text:500; --gewicht-titel:800;
   /* Nichts unter 18 px. Die drei kleinsten Stufen fallen zusammen. */
   --t-mono:1.125rem; --t-xs:1.125rem; --t-s:1.125rem; --t-m:1.19rem;
@@ -260,6 +267,7 @@
   --gift:#FFB865; --sicher:#7BE88F;
   --duenger:#E8D06A; --duenger-tief:#F0E09A; --unklar:#E8D06A;
   --alarm:#FF6B5E; --ruhe:#9EB8FF; --bluete:#FF8FD0; --sonne:#FFD966;
+  --gesund:#5EE6A0;
   --grundschrift:1.0625rem; --gewicht-text:400; --gewicht-titel:800;
   --t-mono:.66rem; --t-xs:.75rem; --t-s:.81rem; --t-m:.88rem;
   --t-md:.91rem; --t-l:.97rem; --t-xl:1.09rem;
@@ -304,78 +312,46 @@
    color wird an der Wurzel aufgeloest und vererbt, das Neubinden
    der Variablen in der Zone kaeme sonst zu spaet.
    ══════════════════════════════════════════════════════════════ */
+/* ── Das Blattmuster auf Heute und Mehr ───────────────────────
+   Zwei Monstera-Umrisse als gekacheltes SVG, keine Bilddatei: es
+   skaliert, wiegt unter einem Kilobyte und ist offline da. Die
+   Deckkraft steckt im SVG selbst, damit nichts darueberliegt, was
+   Text abdunkeln koennte.
+
+   Nur Heute und Mehr — Sammlung und Werkzeuge sind voll mit Fotos
+   und Kacheln, dort waere ein Muster darunter nur Unruhe. */
 html[data-design="botanisch"] body[data-ansicht="heute"],
-html[data-design="botanisch"] body[data-ansicht="mehr"]{background:var(--zone-grund)}
+html[data-design="botanisch"] body[data-ansicht="mehr"]{
+  background-color:var(--fl-grund);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cg fill='none' stroke='%237E9670' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' opacity='.34'%3E%3Cg transform='translate(18 14) rotate(-14 60 120)'%3E%3Cpath d='M60 6C112 32 130 96 114 152 104 188 82 212 60 226 38 212 16 188 6 152-10 96 8 32 60 6Z'/%3E%3Cpath d='M60 22V222'/%3E%3Cpath d='M60 54 22 68M60 54 98 68M60 100 12 116M60 100 108 116M60 148 22 164M60 148 98 164'/%3E%3C/g%3E%3Cg transform='translate(186 168) rotate(24 46 92) scale(.78)'%3E%3Cpath d='M60 6C112 32 130 96 114 152 104 188 82 212 60 226 38 212 16 188 6 152-10 96 8 32 60 6Z'/%3E%3Cpath d='M60 22V222'/%3E%3Cpath d='M60 54 22 68M60 54 98 68M60 100 12 116M60 100 108 116M60 148 22 164M60 148 98 164'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat;
+  background-size:320px 320px;
+  background-attachment:fixed;
+}
 
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap,
-html[data-design="botanisch"] body[data-ansicht="mehr"] .wrap{
-  --fl-grund:#44574A; --fl-karte:#3A4B3F; --fl-erhoben:#4E6354; --fl-tief:#36463B;
-  --fl-bildleer:#334237;
-  --etikett:#B9CDAE;
-  --schrift:#F2F7F0; --schrift-2:#B4C7AC; --schrift-3:#B4C7AC;
-  --linie:rgba(237,240,230,.18); --linie-stark:rgba(237,240,230,.34);
-  --wasser:#8FBACC; --wasser-tief:#B6D5E1;
-  --gift:#E8A78C; --sicher:#A6CC97;
-  --duenger:#D9BC77; --duenger-tief:#EBD6A4; --unklar:#D9BC77;
-  --alarm:#F0A79C; --ruhe:#B5C0EE; --bluete:#E9A8CB; --sonne:#E8C878;
-  --ton-gift:rgba(232,167,140,.12); --ton-sicher:rgba(166,204,151,.12);
-  --ton-wasser:rgba(143,186,204,.12); --ton-unklar:rgba(217,188,119,.12);
-  --ton-alarm:rgba(232,167,140,.12); --ton-ok:rgba(166,204,151,.10);
-  --ton-erde:rgba(217,188,119,.10); --ton-blatt:rgba(166,204,151,.10);
-  --ton-still:rgba(242,247,240,.12); --ton-tipp:rgba(242,247,240,.05);
-  --ton-tipp-hover:rgba(242,247,240,.10); --ton-hover:rgba(242,247,240,.08);
+/* ── Die Knoepfe auf Heute ────────────────────────────────────
+   Alle drei tragen dieselbe helle Karte auf dem Salbeigrund und
+   dieselbe Schriftfarbe. Kein Gruen mehr unter der Schrift: das
+   war die Stelle, an der bei Sonnenlicht nichts mehr zu lesen war.
+   Der Unterschied zwischen Grund und Karte reicht als Kante —
+   #CDD9C5 zu #F1F4ED sind knapp anderthalb Stufen. */
+html[data-design="botanisch"] .haupttat,
+html[data-design="botanisch"] .nt,
+html[data-design="botanisch"] .wt-leiste,
+html[data-design="botanisch"] .stich{
+  background:var(--fl-karte);
   color:var(--schrift);
-  background:var(--fl-grund);
+  border:1px solid var(--linie);
+  border-radius:var(--r-gross);
+  box-shadow:0 1px 2px rgba(28,38,32,.07),0 6px 16px rgba(28,38,32,.06);
 }
-
-/* ── Helle Karten in der dunklen Zone ─────────────────────────
-   Die Vorlage stellt auf Heute cremefarbene Karten auf das Gruen.
-   Bisher stand dort dunkel auf dunkel: die beiden Startknoepfe
-   liefen auf --wasser, das die Zone ins Helle dreht, ihr Text aber
-   auf --schrift-invers, das die Zone nicht anfasst.
-
-   Die Karte bindet die Tokens zurueck auf hell und setzt color
-   selbst — sonst erbt der Inhalt die helle Schrift der Zone. */
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .haupttat,
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt,
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste,
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .stich{
-  --fl-karte:#F2F0E4; --fl-erhoben:#FFFFFF; --fl-tief:#E7E4D6;
-  --schrift:#1C2620; --schrift-2:#4A5750; --schrift-3:#5A6459;
-  --linie:rgba(28,38,32,.14); --linie-stark:rgba(28,38,32,.30);
-  --wasser:#2C5A6B; --wasser-tief:#244855;
-  --gift:#7A3B22; --sicher:#2F5233; --duenger:#6B4E12;
-  /* Auch die neuen Bedeutungsfarben muessen zurueck auf die hellen
-     Werte — sonst steht ein Ton fuer dunklen Grund auf Creme. */
-  --alarm:#A3231A; --ruhe:#4B4E8C; --bluete:#8A2E63; --sonne:#9A6A12;
-  color:#1C2620;
-  background:#F2F0E4;
-  border:0;
-  box-shadow:0 1px 3px rgba(0,0,0,.20);
-}
-/* Das Rundfeld links aus der Vorlage: helle Scheibe, Symbol darin. */
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .ht-marke{
-  background:rgba(68,87,74,.14)
-}
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .ht-txt i{
-  opacity:1;color:var(--schrift-2)
-}
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .haupttat.leer{
-  background:#E9E6D8;color:#4A5750;border:0
-}
-/* Frueher waren die beiden kleinen Knoepfe Umriss auf dem Gruen und
-   die Wetterleiste eine dritte Variante. Drei Knopfarten auf einem
-   Schirm — jetzt tragen alle dieselbe helle Flaeche und dieselbe
-   Schriftfarbe, und das Gruen bleibt Hintergrund. */
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt{
-  border-radius:var(--r-gross);padding:14px 15px}
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt svg,
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .nt i{
-  color:var(--schrift-2);stroke:var(--schrift-2)
-}
-html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .stich{
-  padding:14px 16px;border-radius:var(--r-mittel)
-}
+html[data-design="botanisch"] .ht-marke{background:rgba(68,87,74,.14)}
+html[data-design="botanisch"] .ht-txt i{opacity:1;color:var(--schrift-2)}
+html[data-design="botanisch"] .nt{padding:14px 15px}
+html[data-design="botanisch"] .nt svg{stroke:var(--schrift-2)}
+html[data-design="botanisch"] .haupttat.leer{
+  background:var(--fl-tief);color:var(--schrift-2)}
+html[data-design="botanisch"] .stich{padding:14px 16px;border-radius:var(--r-mittel)}
 
 /* ── Trefferflaechen ──────────────────────────────────────────
    --tap ist die Mindestgroesse. In Botanisch und Terrarium steht
@@ -493,6 +469,7 @@ img.thumb{object-fit:cover;object-position:center}
 .card-stand[data-ton="alarm"]::before{background:var(--alarm)}
 .card-stand[data-ton="ruhe"]::before{background:var(--ruhe)}
 .card-stand[data-ton="bluete"]::before{background:var(--bluete)}
+.card-stand[data-ton="gesund"]::before{background:var(--gesund)}
 .card-stand[data-ton="alarm"]{color:var(--alarm);font-weight:600}
 .bar{display:block;height:5px;background:var(--ton-still);border-radius:3px;margin-top:12px;overflow:hidden}
 .bar span{display:block;height:100%;background:var(--water);border-radius:3px}
@@ -862,6 +839,28 @@ html.modal-offen, body.modal-offen{overflow:hidden}
 html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste{
   border-radius:var(--r-gross)}
 html[data-design="terrarium"] .wt-leiste{box-shadow:var(--glanz)}
+/* ── Der Hintergrund in Terrarium ─────────────────────────────
+   Das Bild liegt als eigene Datei im Verzeichnis, nicht in dieser
+   Datei — 35 KB Bild waeren als Text ein Drittel mehr, und der
+   Dienstarbeiter legt es ohnehin einmal ab.
+
+   Darueber ein Schleier aus --fl-grund mit 62 Prozent. Der Wert
+   ist gerechnet, nicht geschaetzt: an der hellsten Stelle des
+   Bildes kommt die Schrift damit auf 11.2:1, der Nebentext auf
+   6.7:1. Ohne Schleier faellt der Nebentext stellenweise unter 5.
+   Nur Heute und Mehr — auf Sammlung und Werkzeuge liegen Fotos,
+   und zwei Bilder uebereinander ergeben Matsch. */
+html[data-design="terrarium"] body[data-ansicht="heute"],
+html[data-design="terrarium"] body[data-ansicht="mehr"]{
+  background-color:var(--fl-grund);
+  background-image:
+    linear-gradient(rgba(12,24,16,.62),rgba(12,24,16,.62)),
+    url("./bg-terrarium.webp");
+  background-repeat:no-repeat,no-repeat;
+  background-size:cover,cover;
+  background-position:center top,center top;
+  background-attachment:fixed,fixed;
+}
 html[data-design="klartext"] .wt-leiste{border-width:2px}
 /* Schriftbild wie bei den Nebenknoepfen darunter: dieselbe Flaeche,
    dieselbe Groesse, dieselben zwei Farbstufen. Vorher war die Leiste
@@ -1160,6 +1159,9 @@ body{padding-bottom:76px}
   padding:9px 2px 8px;border:0;background:none;color:var(--ink-2);cursor:pointer;
   display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
 .tabs button.on{color:var(--ink)}
+/* Auf dem Salbeigrund braucht die Leiste eine eigene Flaeche,
+   sonst verschwimmt die Unterkante der Seite mit ihr. */
+html[data-design="botanisch"] .tabs{background:var(--fl-karte)}
 .tab-i{width:20px;height:20px;border-radius:4px;border:1.6px solid currentColor;position:relative}
 .tabs button:nth-child(1) .tab-i{border-radius:50%}
 .tabs button:nth-child(2) .tab-i{border-radius:2px;box-shadow:inset 0 0 0 1.6px transparent,4px 4px 0 -1.6px currentColor}
@@ -1975,13 +1977,11 @@ html[data-design="terrarium"] .sam-raster .card:not(.open) .icons{
    Bedeutung — der Rand ist die schnelle Zweitmeldung ueber das
    ganze Gitter hinweg. */
 html[data-design="terrarium"] .sam-raster .card{--zst:var(--linie-stark)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="wasser"]{--zst:var(--wasser)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="sicher"]{--zst:var(--sicher)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="gift"]{--zst:var(--gift)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="warn"]{--zst:var(--duenger)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="alarm"]{--zst:var(--alarm)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="ruhe"]{--zst:var(--ruhe)}
-html[data-design="terrarium"] .sam-raster .card[data-ton="bluete"]{--zst:var(--bluete)}
+html[data-design="terrarium"] .sam-raster .card[data-zton="gesund"]{--zst:var(--gesund)}
+html[data-design="terrarium"] .sam-raster .card[data-zton="warn"]{--zst:var(--duenger)}
+html[data-design="terrarium"] .sam-raster .card[data-zton="alarm"]{--zst:var(--alarm)}
+html[data-design="terrarium"] .sam-raster .card[data-zton="ruhe"]{--zst:var(--ruhe)}
+html[data-design="terrarium"] .sam-raster .card[data-zton="bluete"]{--zst:var(--bluete)}
 html[data-design="terrarium"] .sam-raster .card:not(.open){
   border-color:var(--zst);
   box-shadow:0 0 0 1px var(--zst), 0 0 13px -2px var(--zst)}
@@ -2412,7 +2412,7 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-liste .mrow:first-child{border-top:0}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
-<meta name="theme-color" content="#FBF9F3">
+<meta name="theme-color" content="#F1F4ED">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -7988,8 +7988,19 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.20';
+const FASSUNG = '2.9.21';
 const PATCHNOTES = [
+  {
+    nr: '2.9.21', datum: '2026-08-26', titel: 'Alles hell',
+    neu: [
+      'Heute und Mehr bekommen ein Blattmuster als Hintergrund. In Terrarium liegt dort das dunkle Muster als Bild, mit einem Schleier darüber, damit die Schrift an jeder Stelle lesbar bleibt.',
+      'In Terrarium leuchtet der Rand einer Pflanze grün, solange sie gesund ist — auch wenn sie heute Wasser braucht. Der Rand meldet den Zustand, das Wort daneben die nächste Aufgabe.'
+    ],
+    besser: [
+      'Botanisch hat keine dunklen Seiten mehr. Heute und Mehr standen auf Dunkelgrün und waren bei Sonnenlicht auf dem Balkon kaum noch zu lesen. Jetzt ist jede Seite in demselben hellen Salbeigrün, und die Schrift bleibt überall gleich.',
+      'Gießknopf, Rundgang, Pflanzendoktor und Wetterleiste tragen dieselbe helle Karte — in ganz Botanisch, nicht nur auf Heute.'
+    ]
+  },
   {
     nr: '2.9.20', datum: '2026-08-26', titel: 'Farbe bekennen',
     neu: [
@@ -8646,9 +8657,11 @@ let S = LEERSTAND();
    Bedienung, nie im Funktionsumfang. Jede Aktion muss in allen
    dreien erreichbar bleiben. */
 const DESIGNS = {
-  botanisch: {name:'Botanisch', zonen:['heute','mehr'], sammlung:'raster',
+  /* Botanisch hat keine dunklen Zonen mehr — jede Seite ist hell.
+     `zonen` bleibt als Feld bestehen, Terrarium nutzt es weiter. */
+  botanisch: {name:'Botanisch', zonen:[],              sammlung:'raster',
               kartendetail:'reiter', dichte:'normal', statistiken:false,
-              leiste:'#FBF9F3', dunkel:'#44574A'},
+              leiste:'#F1F4ED', dunkel:null},
   klartext:  {name:'Klartext',  zonen:[],              sammlung:'eine-spalte',
               kartendetail:'menue',  dichte:'knapp',  statistiken:false,
               leiste:'#FFFFFF', dunkel:null},
@@ -10032,6 +10045,19 @@ function karteStand(p){
   return {ton:'sicher', text:'Alles in Ordnung'};
 }
 
+/* ── Der Ton fuer den Rand ────────────────────────────────────
+   Der Rand in Terrarium meldet den *Zustand*, nicht die naechste
+   Aufgabe. Eine gesunde Pflanze leuchtet gruen, auch wenn sie
+   heute Wasser braucht — das steht daneben im Wort. So sieht man
+   ueber das ganze Gitter hinweg mit einem Blick, welcher Pflanze
+   es nicht gut geht. */
+function karteZustandTon(p){
+  if(typeof stoppRest === 'function' && stoppRest(p) > 0) return 'alarm';
+  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  if(!z || z.code === 'gesund') return 'gesund';
+  return STAND_TON[z.code] || (z.def.ton === 'warn' ? 'warn' : 'ruhe');
+}
+
 function karteStandHTML(p){
   const s = karteStand(p);
   return '<span class="card-stand" data-ton="' + s.ton + '">' + esc(s.text) + '</span>';
@@ -10063,7 +10089,7 @@ function cardHTML(p){
   /* Die Karte in der Liste ist nur noch Vorschau. Das Detail lebt im
      Fenster — darum hier kein `id`, sonst gaebe es die Kennung zweimal
      im Dokument. */
-  return `<article class="card" data-karte="${p.id}" data-ton="${karteStand(p).ton}">
+  return `<article class="card" data-karte="${p.id}" data-ton="${karteStand(p).ton}" data-zton="${karteZustandTon(p)}">
     <button class="card-btn" data-t="${p.id}" aria-haspopup="dialog">
       ${thumb}
       <span class="card-body">

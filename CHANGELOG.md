@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.21 — 26. August 2026
+**Alles hell**
+
+### Neu
+- Heute und Mehr bekommen ein Blattmuster als Hintergrund. In Terrarium liegt dort das dunkle Muster als Bild, mit einem Schleier darüber, damit die Schrift an jeder Stelle lesbar bleibt.
+- In Terrarium leuchtet der Rand einer Pflanze grün, solange sie gesund ist — auch wenn sie heute Wasser braucht. Der Rand meldet den Zustand, das Wort daneben die nächste Aufgabe.
+
+### Besser
+- Botanisch hat keine dunklen Seiten mehr. Heute und Mehr standen auf Dunkelgrün und waren bei Sonnenlicht auf dem Balkon kaum noch zu lesen. Jetzt ist jede Seite in demselben hellen Salbeigrün, und die Schrift bleibt überall gleich.
+- Gießknopf, Rundgang, Pflanzendoktor und Wetterleiste tragen dieselbe helle Karte — in ganz Botanisch, nicht nur auf Heute.
+
+---
+
 ## 2.9.20 — 26. August 2026
 **Farbe bekennen**
 
