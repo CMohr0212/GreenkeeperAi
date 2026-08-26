@@ -4,6 +4,27 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.18 — 26. August 2026
+**Das Raster versetzt**
+
+### Besser
+- Im Rasterblick sind die Kacheln endlich unterschiedlich hoch und stehen versetzt gegeneinander. Jede Pflanze hat schon seit 2.9.12 ein festes Format bekommen — eine ältere Regel hat es überschrieben und alle Bilder wieder quadratisch gemacht.
+
+---
+
+## 2.9.17 — 26. August 2026
+**Kopf frei**
+
+### Neu
+- Der Sicherungsstempel nennt jetzt auch die Fassung: „Sicherung · gestern · aktuelle Fassung“. Stammt die Sicherung aus einer älteren Fassung, steht deren Nummer da — und der Stempel färbt sich, wie er es auch tut, wenn zu lange nicht gesichert wurde.
+
+### Besser
+- Der Seitenkopf trägt nur noch den Namen des Reiters, dafür groß. Der Zusatz darunter — „26 Pflanzen“, „Einstellungen“ — sagte nichts, was nicht eine Zeile weiter unten ohnehin stand.
+- Der Sicherungsstempel sitzt klein in der oberen rechten Ecke statt als eigene Zeile über der Überschrift. Er führt jetzt direkt zur Sicherung statt nur nach „Mehr“.
+- Die Wetterleiste auf „Heute“ hat dieselbe Schrift wie die Knöpfe darunter. Vorher war sie eine Spur größer und dunkler und sah aus wie von einer anderen Seite.
+
+---
+
 ## 2.9.16 — 26. August 2026
 **Wetter, ausgebaut**
 

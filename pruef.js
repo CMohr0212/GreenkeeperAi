@@ -36,8 +36,29 @@ const dom = new JSDOM(html, {
       if (!w.__netz) return Promise.reject(new Error('offline'));
       const j = String(u).indexOf('geocoding') !== -1
         ? {results:[{name:'Leipzig', admin1:'Sachsen', country:'Deutschland', latitude:51.3397, longitude:12.3731}]}
-        : {current:{temperature_2m:24.4},
-           daily:{temperature_2m_max:[29.2], temperature_2m_min:[15.1], precipitation_sum:[0, 6.2]}};
+        : (function(){
+            const std = {time:[], temperature_2m:[], precipitation:[], weather_code:[]};
+            ['2026-08-26','2026-08-27'].forEach(tag=>{
+              for(let h=0; h<24; h++){
+                std.time.push(tag + 'T' + String(h).padStart(2,'0') + ':00');
+                std.temperature_2m.push(14 + h * 0.5);
+                std.precipitation.push(h === 18 ? 1.4 : 0);
+                std.weather_code.push(h < 12 ? 0 : 61);
+              }
+            });
+            return {
+              current:{time:'2026-08-26T14:30', temperature_2m:24.4,
+                       weather_code:2, relative_humidity_2m:58},
+              hourly: std,
+              daily:{
+                time:['2026-08-26','2026-08-27','2026-08-28','2026-08-29',
+                      '2026-08-30','2026-08-31','2026-09-01'],
+                temperature_2m_max:[29.2, 21, 19, 14, 8, 9, 12],
+                temperature_2m_min:[15.1, 12, 10, 5, -2, 1, 4],
+                precipitation_sum:[0, 6.2, 1.1, 0, 0, 0.4, 0],
+                weather_code:[2, 61, 3, 0, 0, 71, 2]
+              }};
+          })();
       return Promise.resolve({ok:true, json:()=>Promise.resolve(j)});
     };
     w.alert = () => {};
@@ -50,7 +71,11 @@ const w = dom.window;
 
 setTimeout(async () => {
   const d = w.document;
-  const tick = () => new Promise(r => setTimeout(r, 60));
+  /* 60 ms waren zu knapp: modalZu() geht ueber history.back(), und
+     popstate kommt in jsdom unter Last spaeter. Die Pruefung schlug
+     dann sprunghaft fehl, ohne dass sich an der App etwas geaendert
+     hatte. */
+  const tick = () => new Promise(r => setTimeout(r, 160));
   const pruef = (name, bed, zusatz) => {
     zahl++;
     if (!bed) { console.log('  FEHL ' + name + (zusatz ? '  → ' + zusatz : '')); fehler.push(name); }
@@ -64,7 +89,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.9', w.__T('FASSUNG') === '2.9.9', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.18', w.__T('FASSUNG') === '2.9.18', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -82,11 +107,11 @@ setTimeout(async () => {
 
   const tf = () => d.querySelector('meta[name="theme-color"]').getAttribute('content');
   w.__T("ansichtZeigen('heute')");
-  pruef('Botanisch · Heute dunkel', tf() === '#2C3E33', tf());
+  pruef('Botanisch · Heute dunkel', tf() === '#44574A', tf());
   w.__T("ansichtZeigen('sammlung')");
   pruef('Botanisch · Sammlung hell', tf() === '#FBF9F3', tf());
   w.__T("ansichtZeigen('mehr')");
-  pruef('Botanisch · Mehr dunkel', tf() === '#2C3E33', tf());
+  pruef('Botanisch · Mehr dunkel', tf() === '#44574A', tf());
   w.__T("ansichtZeigen('werkzeuge')");
   pruef('Botanisch · Werkzeuge hell', tf() === '#FBF9F3', tf());
   d.querySelector('[data-design-go="terrarium"]').click();
@@ -337,19 +362,32 @@ setTimeout(async () => {
            bildFormatMessen(i); }
   `);
   const karte = d.querySelector('#out .card');
-  pruef('Bildhöhe gemessen',
-    karte && karte.style.getPropertyValue('--bildhoehe') === '1.500',
+  /* Das Format kommt nicht mehr aus dem Foto, sondern aus einer festen
+     Stufe je Pflanze — sonst waeren alle Kacheln gleich hoch. */
+  pruef('Bildformat gesetzt',
+    karte && [1.32, 1.0, 0.78, 1.15].indexOf(
+      parseFloat(karte.style.getPropertyValue('--bildhoehe'))) !== -1,
     karte && karte.style.getPropertyValue('--bildhoehe'));
-  pruef('Zeilenspanne gesetzt',
-    karte && karte.style.getPropertyValue('--spanne') === '15',
-    karte && karte.style.getPropertyValue('--spanne'));
+  pruef('Format bleibt gleich bei gleicher Pflanze',
+    w.__T("bildStufe('abc') === bildStufe('abc')") === true);
+  pruef('Formate verteilen sich', w.__T(`(function(){
+    const s = new Set(); for(let i=0;i<40;i++) s.add(bildStufe('p'+i));
+    return s.size; })()`) >= 3);
+  /* --spanne ist entfallen: die Kachelhoehe wird gemessen, nicht
+     mehr aus dem Bildformat gerechnet. */
+  pruef('keine gerechnete Spanne mehr',
+    karte && karte.style.getPropertyValue('--spanne') === '');
+  pruef('Raster misst statt zu rechnen',
+    w.__T('typeof rasterSpannen') === 'function');
+  pruef('Messung läuft ohne Raster durch', w.__T(`(function(){
+    try{ rasterSpannen(); return true; }catch(e){ return 'Fehler: ' + e.message; } })()`) === true);
 
   /* Ansicht-Fenster */
   pruef('drei Miniaturen', d.querySelectorAll('#dsn-wahl .dsn-schau').length === 3);
   const svgB = w.__T("designMiniatur('botanisch')");
   const svgT = w.__T("designMiniatur('terrarium')");
   pruef('Miniaturen unterscheiden sich', svgB !== svgT);
-  pruef('Botanisch zieht seinen Farbwert', svgB.indexOf('#2C3E33') !== -1 || svgB.indexOf('44, 62, 51') !== -1, svgB.slice(0,120));
+  pruef('Botanisch zieht seinen Farbwert', svgB.indexOf('#44574A') !== -1 || svgB.indexOf('68, 87, 74') !== -1, svgB.slice(0,120));
   pruef('Terrarium zieht seinen Farbwert', svgT.toUpperCase().indexOf('#0C1810') !== -1 || svgT.indexOf('12, 24, 16') !== -1);
   pruef('keine Probe hängengeblieben', d.querySelectorAll('html > [data-design]').length === 0);
 
@@ -370,6 +408,54 @@ setTimeout(async () => {
   pruef('Koordinaten gerundet gespeichert',
     w.__T('S.wetter.lat') === 51.3397 && w.__T('S.wetter.lon') === 12.3731);
   pruef('Werte geholt', w.__T('S.wetter.daten && S.wetter.daten.jetzt') === 24.4);
+  pruef('Luftfeuchte geholt', w.__T('S.wetter.daten.feuchte') === 58);
+
+  /* Tagesverlauf: ab der laufenden Stunde bis Mitternacht.
+     14:30 Uhr heiszt zehn Zeilen, 14 bis 23 Uhr. */
+  pruef('Verlauf bis Mitternacht', w.__T('S.wetter.daten.stunden.length') === 10,
+    w.__T('S.wetter.daten.stunden.length'));
+  pruef('Verlauf beginnt bei der laufenden Stunde',
+    w.__T('S.wetter.daten.stunden[0].zeit') === '2026-08-26T14:00',
+    w.__T('S.wetter.daten.stunden[0].zeit'));
+  pruef('Verlauf endet vor Mitternacht',
+    w.__T('S.wetter.daten.stunden[S.wetter.daten.stunden.length-1].zeit') === '2026-08-26T23:00');
+  pruef('sieben Tage geholt', w.__T('S.wetter.daten.tage.length') === 7,
+    w.__T('S.wetter.daten.tage.length'));
+  pruef('nur eine Anfrage je Abruf',
+    w.__abrufe.filter(u => u.indexOf('forecast') !== -1).length === 1,
+    String(w.__abrufe.filter(u => u.indexOf('forecast') !== -1).length));
+
+  /* Frost im Ausblick */
+  pruef('Frosttag gefunden', w.__T('wetterFrostTag(S.wetter.daten).i') === 4,
+    String(w.__T('wetterFrostTag(S.wetter.daten) && wetterFrostTag(S.wetter.daten).i')));
+  pruef('Frost wird angesagt',
+    w.__T("wetterRat({hoch:14, tief:8, regen:0, regenMorgen:0, tage:S.wetter.daten.tage})").indexOf('Frost') !== -1,
+    w.__T("wetterRat({hoch:14, tief:8, regen:0, regenMorgen:0, tage:S.wetter.daten.tage})"));
+  pruef('ohne Frost kein Frostsatz',
+    w.__T("wetterRat({hoch:20, tief:9, regen:0, regenMorgen:0, tage:[{tief:5},{tief:7}]})") === '');
+
+  /* Verlauf und Ausblick im Fenster */
+  const det = w.__T('wetterDetailHTML()');
+  pruef('Verlauf hat eine Ueberschrift', det.indexOf('Heute bis Mitternacht') !== -1, det.slice(0,80));
+  pruef('Verlauf zeigt Stundenzeilen', (det.match(/wt-r\b/g) || []).length >= 17);
+  pruef('Ausblick steht darunter', det.indexOf('Die nächsten Tage') !== -1);
+  pruef('Frosttag traegt ein Wort, nicht nur Farbe', det.indexOf('>Frost<') !== -1);
+  pruef('Ausblick nennt Wochentage', det.indexOf('Heute') !== -1 && det.indexOf('Morgen') !== -1);
+
+  /* Die Leiste fuehrt ins Wetterfenster */
+  const lz = w.__T('wetterZeileHTML()');
+  pruef('Leiste ist ein Knopf', lz.indexOf('<button') === 0 && lz.indexOf('id="wt-leiste"') !== -1);
+  pruef('Leiste ist beschriftet', lz.indexOf('aria-label="Wetter in Leipzig') !== -1, lz.slice(0,120));
+  pruef('Leiste zeigt die Luftfeuchte', lz.indexOf('Luft 58') !== -1);
+  w.__T("document.getElementById('heute-status').innerHTML = wetterZeileHTML();");
+  d.getElementById('wt-leiste').dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  await new Promise(r => setTimeout(r, 160));
+  pruef('Tipp auf die Leiste oeffnet das Wetterfenster',
+    w.__T("modalOffen('sek-modal')") === true);
+  pruef('im Fenster steht der Verlauf',
+    (d.getElementById('wt-detail') || {innerHTML:''}).innerHTML.indexOf('wt-liste') !== -1);
+  w.__T("modalZu('sek-modal')");
+  await new Promise(r => setTimeout(r, 160));
 
   const zeile = w.__T('wetterZeileHTML()');
   pruef('Zeile zeigt Ort und Temperatur',
@@ -543,6 +629,412 @@ setTimeout(async () => {
 
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
+
+  /* ══════════ 2.9.10 — Shortcuts, Sprung, „Noch feucht" ══════════ */
+  w.__T('if(tourLauf) tourSchliessen();');
+  w.__T('S.tutorial = {aus:true, kapitel:{}, einricht:0}; sichern();');
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  await tick();
+
+  /* — Schnellzugriffe aus der Karte — */
+  const kurz = async (tat) => {
+    w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+    w.__T(`karteOeffnen('${pid}')`);
+    await tick();
+    const b = d.querySelector(`#karte-modal [data-do="${tat}"]`);
+    if(b) b.click();
+    await tick();
+    return w.__T('_sekOffen ? _sekOffen.key : null');
+  };
+  pruef('Karte › Doktor öffnet den Doktor', await kurz('doktor-fuer') === 'doktor');
+  pruef('Karte › Substrat öffnet Substrat', await kurz('substrat-fuer') === 'substrat');
+  pruef('Karte › Vermehren öffnet Vermehren', await kurz('vermehren-fuer') === 'vermehren');
+  pruef('Werkzeugfenster bleibt offen', w.__T("modalOffen('sek-modal')") === true);
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  await tick();
+
+  /* Ein echter Reiterwechsel schließt das Fenster weiterhin. */
+  w.__T("sektionOeffnen('doktor')");
+  await tick();
+  w.__T("ansichtZeigen('mehr')");
+  await tick();
+  pruef('Reiterwechsel schließt weiterhin', w.__T("modalOffen('sek-modal')") === false);
+
+  /* — „Ansehen" springt in den Bereich — */
+  const sprung = async (k) => {
+    w.__T('if(tourLauf) tourSchliessen();');
+    w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+    await tick();
+    w.__T(`tourHin('${k}')`);
+    await tick();
+    return w.__T('JSON.stringify({a:S.ansicht, sek:_sekOffen?_sekOffen.key:null, stapel:MODAL_STAPEL})');
+  };
+  pruef('Sprung Doktor', JSON.parse(await sprung('doktor')).sek === 'doktor');
+  pruef('Sprung Substrat', JSON.parse(await sprung('substrat')).sek === 'substrat');
+  pruef('Sprung Sicherung', JSON.parse(await sprung('sicherung')).sek === 'sicherung');
+  pruef('Sprung Vermehren', JSON.parse(await sprung('vermehren')).sek === 'vermehren');
+  pruef('Sprung Grundriss', JSON.parse(await sprung('grundriss')).sek === 'grundriss');
+  pruef('Sprung Mehr', JSON.parse(await sprung('mehr')).a === 'mehr');
+  pruef('Sprung Sammlung', JSON.parse(await sprung('sammlung')).a === 'sammlung');
+  const sk = JSON.parse(await sprung('karte'));
+  pruef('Sprung Karte öffnet eine Karte', sk.stapel.indexOf('karte-modal') !== -1, JSON.stringify(sk));
+  pruef('jedes Kapitel kennt seinen Weg', w.__T(`
+    Object.keys(TOUR_KAPITEL).filter(k => k !== 'einricht' && k !== 'plan'
+      && typeof TOUR_KAPITEL[k].hin !== 'function').join(',')`) === '');
+
+  /* Der Sprung darf kein zweites Kapitel auslösen. */
+  w.__T('if(tourLauf) tourSchliessen();');
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  w.__T('S.tutorial = {aus:false, kapitel:{}, einricht:0}; sichern();');
+  await tick();
+  pruef('Doktorkapitel startet', w.__T("tourStart('doktor')") === true);
+  await tick();
+  pruef('und beginnt bei Schritt 1', w.__T('tourLauf.i') === 0, w.__T('tourLauf && tourLauf.i'));
+  pruef('im richtigen Kapitel', w.__T('tourLauf.key') === 'doktor', w.__T('tourLauf && tourLauf.key'));
+  pruef('Doktorfenster steht offen', w.__T("modalOffen('sek-modal')") === true);
+  d.getElementById('tour-weiter').click();
+  await tick();
+  pruef('Schritt 2 erreichbar', w.__T('tourLauf.i') === 1, w.__T('tourLauf && tourLauf.i'));
+  d.getElementById('tour-weiter').click();
+  await tick();
+  pruef('Schritt 3 erreichbar', w.__T('tourLauf.i') === 2, w.__T('tourLauf && tourLauf.i'));
+  w.__T('tourAbbruch()');
+  w.__T('S.tutorial.aus = true; sichern();');
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  await tick();
+
+  /* — „Noch feucht" verschiebt auf morgen — */
+  w.__T(`(function(){
+    const p = allePflanzen()[0];
+    S.water[p.id] = [];
+    const alt = new Date(Date.now() - 40*86400000);
+    S.water[p.id] = [iso(alt)];
+    S.feuchtRueck = {};
+    sichern();
+  })()`);
+  pruef('Pflanze ist überfällig', w.__T("giessStatus(allePflanzen()[0]).stand") === 'over');
+  pruef('steht auf der Gießliste',
+    w.__T(`giessListe().some(x=>x.id === '${pid}')`) === true);
+  w.__T(`feuchtGemeldet(allePflanzen().find(x=>x.id==='${pid}'))`);
+  pruef('Meldung vermerkt', w.__T(`!!S.feuchtRueck['${pid}']`) === true);
+  pruef('heute als feucht gemeldet', w.__T(`giessStatus(allePflanzen()[0]).feuchtHeute`) === true);
+  pruef('heute von der Liste runter',
+    w.__T(`giessListe().some(x=>x.id === '${pid}')`) === false);
+  pruef('Gießabstand unverändert',
+    w.__T(`giessStatus(allePflanzen()[0]).iv === intervallVon(allePflanzen()[0])`) === true);
+  pruef('kein Gießvermerk eingetragen',
+    w.__T(`(S.water['${pid}']||[]).indexOf(iso(HEUTE))`) === -1);
+  /* Morgen ist sie wieder da: der Vermerk trägt das gestrige Datum. */
+  w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - 86400000)); sichern();`);
+  pruef('morgen wieder fällig',
+    w.__T(`giessListe().some(x=>x.id === '${pid}')`) === true);
+  pruef('zweite Meldung am selben Tag zählt nicht doppelt', w.__T(`(function(){
+    const p = allePflanzen().find(x=>x.id==='${pid}');
+    feuchtGemeldet(p); const a = S.feuchtRueck['${pid}'].zahl;
+    feuchtGemeldet(p); return S.feuchtRueck['${pid}'].zahl === a; })()`) === true);
+
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  await tick();
+
+  /* ══════════ 2.9.11 — Botanisch näher am Entwurf ══════════ */
+  const stil = w.__T(`(function(){ let t=''; Array.prototype.forEach.call(
+    document.querySelectorAll('style'), s=>{ t += s.textContent; }); return t; })()`);
+
+  const et = d.getElementById('kopf-etikett');
+  const ti = d.getElementById('kopf-titel');
+  const setzen = async (a) => { w.__T(`ansichtZeigen('${a}')`); await tick(); return ti.textContent; };
+  pruef('Kopf auf Heute', await setzen('heute') === 'Heute');
+  pruef('Kopf auf Sammlung', await setzen('sammlung') === 'Sammlung');
+  pruef('Kopf auf Werkzeuge', await setzen('werkzeuge') === 'Werkzeuge');
+  pruef('Kopf auf Mehr', await setzen('mehr') === 'Mehr');
+  pruef('Etikett bleibt leer', et.textContent === '', et.textContent);
+  pruef('leeres Etikett verschwindet', /\.top-etikett:empty\{display:none/.test(stil));
+  pruef('Etikett vor der Überschrift',
+    et.nextElementSibling && et.nextElementSibling.id === 'kopf-titel');
+
+  const dsn = (n) => { d.documentElement.setAttribute('data-design', n);
+    return w.getComputedStyle(d.documentElement); };
+  pruef('Botanisch nutzt die Serifenschrift',
+    dsn('botanisch').getPropertyValue('--f-display').indexOf('Newsreader') !== -1);
+  pruef('Terrarium nutzt die Serifenschrift',
+    dsn('terrarium').getPropertyValue('--f-display').indexOf('Newsreader') !== -1);
+  pruef('Klartext bleibt bei der Grotesk',
+    dsn('klartext').getPropertyValue('--f-display').indexOf('Newsreader') === -1);
+  pruef('Titelgewicht liegt im geladenen Bereich',
+    dsn('botanisch').getPropertyValue('--gewicht-titel').trim() === '500');
+  pruef('Klartext ohne Versalien im Etikett',
+    stil.indexOf('html[data-design="klartext"] .top-etikett{text-transform:none') !== -1);
+  d.documentElement.setAttribute('data-design', 'botanisch');
+
+  pruef('Zonengrün aufgehellt',
+    dsn('botanisch').getPropertyValue('--zone-grund').trim().toUpperCase() === '#44574A');
+  pruef('Notfarbe zieht mit',
+    w.__T("DESIGNS.botanisch.dunkel") === '#44574A', w.__T("DESIGNS.botanisch.dunkel"));
+  pruef('heller Hauptknopf auf Heute',
+    stil.indexOf('body[data-ansicht="heute"] .wrap .haupttat,') !== -1);
+  pruef('helle Karte setzt color selbst',
+    /\.wrap \.stich\{[^}]*color:#1C2620/.test(stil));
+  pruef('Kacheln gleich hoch', stil.indexOf('grid-auto-rows:1fr') !== -1);
+  pruef('Aktionswort statt Pfeil', stil.indexOf(".wz-p::after{content:'Öffnen'") !== -1);
+
+  /* ══════════ 2.9.12 — Kacheln und Raster ══════════ */
+  const stil2 = w.__T(`(function(){ let t=''; Array.prototype.forEach.call(
+    document.querySelectorAll('style'), s=>{ t += s.textContent; }); return t; })()`);
+
+  const kacheln = Array.prototype.slice.call(
+    d.querySelectorAll('.kachelgitter section[data-wz]'));
+  pruef('sechs Werkzeugkacheln', kacheln.length === 6, String(kacheln.length));
+  pruef('jede Kachel hat ein Symbol',
+    kacheln.every(k => k.querySelector('.wz-ikon svg')),
+    kacheln.filter(k=>!k.querySelector('.wz-ikon svg')).map(k=>k.dataset.wz).join(','));
+  pruef('jede Kachel hat eine Unterzeile',
+    kacheln.every(k => (k.querySelector('.wz-unter') || {}).textContent),
+    kacheln.filter(k=>!k.querySelector('.wz-unter')).map(k=>k.dataset.wz).join(','));
+  pruef('Symbol wird nicht vorgelesen',
+    kacheln.every(k => k.querySelector('.wz-ikon').getAttribute('aria-hidden') === 'true'));
+  pruef('Symbol steht vor dem Namen',
+    kacheln.every(k => {
+      const kopf = k.querySelector('.wz-kopf');
+      return kopf.firstElementChild && kopf.firstElementChild.classList.contains('wz-ikon');
+    }));
+  pruef('Name bleibt lesbarer Text',
+    kacheln.every(k => (k.querySelector('.wz-t') || {}).textContent.trim().length > 2));
+  /* Ein zweiter Aufruf darf nichts verdoppeln. */
+  w.__T('werkzeugKachelnAusstatten()');
+  pruef('kein doppeltes Symbol',
+    kacheln.every(k => k.querySelectorAll('.wz-ikon').length === 1));
+  pruef('kein doppelter Untertitel',
+    kacheln.every(k => k.querySelectorAll('.wz-unter').length === 1));
+  pruef('zwei Spalten', stil2.indexOf('.kachelgitter{display:grid;grid-template-columns:repeat(2,1fr)') !== -1);
+  pruef('Kacheln höher', stil2.indexOf('min-height:158px') !== -1);
+  pruef('Strich statt Fläche', /\.wz-ikon svg\{[^}]*fill:none/.test(stil2));
+
+  pruef('Raster ohne Zeilenabstand',
+    /botanisch"\] \.sam-raster \.grid\{[^}]*row-gap:0/.test(stil2));
+  pruef('Abstand hängt an der Kachel',
+    /botanisch"\] \.sam-raster \.card\{[^}]*margin:0 0 12px/.test(stil2));
+  pruef('alte gerechnete Spanne ist raus',
+    stil2.indexOf('span calc(var(--spanne') === -1);
+
+  /* ══════════ 2.9.13 — Aufgeräumt ══════════ */
+  const stil3 = w.__T(`(function(){ let t=''; Array.prototype.forEach.call(
+    document.querySelectorAll('style'), s=>{ t += s.textContent; }); return t; })()`);
+
+  /* — Kopf ohne Dopplung — */
+  w.__T("ansichtZeigen('werkzeuge')"); await tick();
+  pruef('Werkzeuge doppelt nicht',
+    d.getElementById('kopf-etikett').textContent.toLowerCase()
+      !== d.getElementById('kopf-titel').textContent.toLowerCase(),
+    d.getElementById('kopf-titel').textContent);
+  w.__T("ansichtZeigen('sammlung')"); await tick();
+  pruef('Kopf nennt nur den Reiter',
+    d.getElementById('kopf-titel').textContent === 'Sammlung',
+    d.getElementById('kopf-titel').textContent);
+  w.__T("ansichtZeigen('heute')"); await tick();
+  pruef('kein Zusatz mehr im Kopf',
+    d.getElementById('kopf-titel').textContent === 'Heute',
+    d.getElementById('kopf-titel').textContent);
+  pruef('Reitername steht groß',
+    /header\.top h1\{font-size:clamp\(2\.4rem/.test(stil3));
+  pruef('Etikett klein und gesperrt',
+    /\.top-etikett\{[^}]*letter-spacing:\.18em/.test(stil3));
+
+  /* — Schriften — */
+  const dsn3 = (n) => { d.documentElement.setAttribute('data-design', n);
+    return w.getComputedStyle(d.documentElement); };
+  pruef('Botanisch: Fließtext in der Grotesk',
+    dsn3('botanisch').getPropertyValue('--f-body').indexOf('Bricolage') !== -1);
+  pruef('Botanisch: Überschriften mit Serifen',
+    dsn3('botanisch').getPropertyValue('--f-display').indexOf('Newsreader') !== -1);
+  d.documentElement.setAttribute('data-design', 'botanisch');
+
+  /* — Werkzeugkacheln — */
+  pruef('Kachelabschnitt streckt sich',
+    /\.kachelgitter section\[data-wz\]\{[^}]*height:100%/.test(stil3));
+  pruef('Kachelknopf streckt sich mit',
+    stil3.indexOf('.kachelgitter .wz-kopfzeile{height:100%}') !== -1);
+
+  /* — Mehr als Menü — */
+  const mh = Array.prototype.slice.call(d.querySelectorAll('section[data-mh]'));
+  pruef('Mehr hat Einträge', mh.length >= 10, String(mh.length));
+  pruef('jeder Menüpunkt hat ein Symbol',
+    mh.every(x => x.querySelector('.mh-ikon svg')),
+    mh.filter(x=>!x.querySelector('.mh-ikon svg')).map(x=>x.dataset.mh).join(','));
+  w.__T('mehrMenueAusstatten()');
+  pruef('kein doppeltes Menüsymbol',
+    mh.every(x => x.querySelectorAll('.mh-ikon').length === 1));
+  pruef('Klartext behält die großen Zeilen',
+    stil3.indexOf('html:not([data-design="klartext"]) section[data-mh] .wz-kopf{') !== -1);
+
+  /* — Aufgaben und Wunschliste — */
+  pruef('Aufgaben stehen unter Mehr',
+    d.getElementById('todo-sec').dataset.ans === 'mehr'
+    && d.getElementById('todo-sec').dataset.mh === 'aufgaben');
+  pruef('Wunschliste steht unter Mehr',
+    d.getElementById('wunsch-sec').dataset.ans === 'mehr'
+    && d.getElementById('wunsch-sec').dataset.mh === 'wunsch');
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());'); await tick();
+  pruef('Aufgaben öffnen als Fenster', w.__T("sektionOeffnen('aufgaben')") === true);
+  pruef('und der Inhalt ist drin', !!d.querySelector('#sekm-rumpf #alltodo'));
+  await zu('sek-modal');
+  pruef('Wunschliste öffnet als Fenster', w.__T("sektionOeffnen('wunsch')") === true);
+  pruef('und der Inhalt ist drin', !!d.querySelector('#sekm-rumpf #wunsch'));
+  await zu('sek-modal');
+  w.__T('S.wish = []; sichern(); wunschSichtbarkeit();');
+  pruef('leere Wunschliste bleibt erreichbar',
+    d.getElementById('wunsch-sec').hidden === false);
+
+  /* — Heute aufgeräumt — */
+  pruef('keine Raumknöpfe mehr auf Heute', !d.getElementById('raumknoepfe'));
+  pruef('Heute zeigt nur noch das Wetter',
+    w.__T("String(render).indexOf('heuteStatusHTML') === -1") === true);
+  pruef('Aufgabenliste nicht mehr auf Heute',
+    !d.querySelector('section[data-ans="heute"] #alltodo'));
+
+  /* — Ortsfrage — */
+  pruef('Ortsfrage existiert', w.__T('typeof ortFrageStellen') === 'function');
+  pruef('Ortsfrage merkt sich das Fragen', w.__T(`(function(){
+    S.wetter = {ort:null, gefragt:false}; sichern();
+    if(!allePflanzen().length) return 'keine Pflanze';
+    ortFrageStellen();
+    return S.wetter.gefragt === true; })()`) === true);
+  pruef('und fragt kein zweites Mal', w.__T(`(function(){
+    let mal = 0; const alt = window.prompt;
+    window.prompt = ()=>{ mal++; return ''; };
+    ortFrageStellen();
+    window.prompt = alt; return mal === 0; })()`) === true);
+  pruef('ohne Pflanzen wird nicht gefragt', w.__T(`(function(){
+    const merk = S.eigene;
+    const alt = window.allePflanzen;
+    S.eigene = [];
+    S.wetter = {ort:null, gefragt:false};
+    ortFrageStellen();
+    const r = S.wetter.gefragt === false;
+    S.eigene = merk; sichern();
+    return r === true ? true : 'noch ' + allePflanzen().length; })()`) === true);
+
+  /* — Sammlung — */
+  pruef('Umschalter sitzt in der Filterklappe',
+    !!d.querySelector('#ctrl-klapp #sammel-ansicht'));
+  pruef('Umschalter ist erreichbar',
+    d.getElementById('sammel-ansicht').hidden === false);
+  pruef('drei Ansichten bleiben',
+    d.querySelectorAll('#sammel-ansicht [data-samview]').length === 3);
+  pruef('Terrarium steht auf Raster',
+    w.__T('DESIGNS.terrarium.sammlung') === 'raster');
+  pruef('Terrarium schneidet Vielecke',
+    (stil3.match(/clip-path:polygon/g) || []).length >= 4);
+  pruef('Vielecke leuchten', stil3.indexOf('drop-shadow(0 0 12px rgba(94,230,160,.30))') !== -1);
+  pruef('Bild füllt sein Format',
+    /\.sam-raster \.card:not\(\.open\) \.thumb,[\s\S]{0,180}object-fit:cover/.test(stil3));
+  /* Die allgemeine Rasterregel steht bei vier Klassen. Wer das
+     Bildformat setzt, muss mindestens gleichziehen, sonst bleibt
+     jede Kachel quadratisch. */
+  pruef('Bildformat schlaegt die allgemeine Rasterregel',
+    /\.sam-raster \.card:not\(\.open\) \.thumb\{[^}]*aspect-ratio:1 \/ var\(--bildhoehe/.test(
+      stil3.replace(/\n/g, '')) ||
+    /aspect-ratio:1 \/ var\(--bildhoehe, 1\);/.test(
+      (stil3.split('html[data-design="botanisch"] .sam-raster .card:not(.open) .thumb,')[1] || '').slice(0, 260)));
+
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+  await tick();
+
+  /* ══════════ 2.9.14 — eine Hauptsache ══════════ */
+  const stil4 = w.__T(`(function(){ let t=''; Array.prototype.forEach.call(
+    document.querySelectorAll('style'), s=>{ t += s.textContent; }); return t; })()`);
+  const haupt = d.getElementById('btn-giessmodus');
+  pruef('Gießen ist der Hauptknopf', haupt && haupt.classList.contains('haupttat'));
+  pruef('Hauptknopf trägt Marke, Text und Pfeil',
+    haupt && haupt.querySelector('.ht-marke svg') && haupt.querySelector('.ht-txt b')
+    && haupt.querySelector('.ht-pfeil'));
+  pruef('Untertitel bleibt ansprechbar', !!d.getElementById('gm-start-sub'));
+  const neben = Array.prototype.slice.call(d.querySelectorAll('.nebentaten .nt'));
+  pruef('zwei Nebenknöpfe', neben.length === 2, String(neben.length));
+  pruef('Rundgang ist einer davon',
+    neben.some(b => b.id === 'btn-rundgang'));
+  pruef('Doktor ist der andere',
+    neben.some(b => b.id === 'btn-doktor-heute'));
+  pruef('Nebenknöpfe haben Symbole', neben.every(b => b.querySelector('svg')));
+  pruef('Symbole werden nicht vorgelesen',
+    neben.every(b => b.querySelector('svg').getAttribute('aria-hidden') === 'true'));
+  pruef('Klartext stapelt die Nebenknöpfe',
+    stil4.indexOf('html[data-design="klartext"] .nebentaten{grid-template-columns:1fr}') !== -1);
+  pruef('leerer Hauptknopf tritt zurück', /\.haupttat\.leer\{[^}]*background:var\(--fl-karte\)/.test(stil4));
+  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());'); await tick();
+  d.getElementById('btn-doktor-heute').click();
+  await tick();
+  pruef('Doktor öffnet von Heute aus', w.__T("_sekOffen ? _sekOffen.key : null") === 'doktor');
+  await zu('sek-modal');
+
+  /* ══════════ 2.9.15 — geradegezogen ══════════ */
+  const stil5 = w.__T(`(function(){ let t=''; Array.prototype.forEach.call(
+    document.querySelectorAll('style'), s=>{ t += s.textContent; }); return t; })()`);
+
+  pruef('Startzeile stapelt statt zu spalten',
+    /\.heute-start\{display:block/.test(stil5));
+  pruef('Nebenknöpfe stehen unter dem Hauptknopf',
+    d.querySelector('.heute-start .haupttat').nextElementSibling
+      .classList.contains('nebentaten'));
+  pruef('Stempel sitzt in der oberen rechten Ecke',
+    /\.sich-stempel\{position:absolute;top:5px;right:0/.test(stil5));
+  pruef('Stempel bleibt voll deckend', !/\.sich-stempel\{[^}]*opacity:/.test(stil5));
+
+  /* Stempeltext: Datum und Fassung */
+  w.__T("S.eigene = S.eigene || []; if(!S.eigene.length) S.eigene.push({id:'x', name:'Probe'});");
+  w.__T("S.letzteSicherung = iso(HEUTE); S.sicherFassung = FASSUNG; sicherungStempel();");
+  const stp = d.getElementById('sich-stempel');
+  pruef('Stempel nennt Datum und Fassung',
+    stp.textContent === 'Sicherung · heute · aktuelle Fassung', stp.textContent);
+  pruef('aktuelle Fassung faerbt nicht', !stp.classList.contains('alt'));
+  w.__T("S.sicherFassung = '2.8.0'; sicherungStempel();");
+  pruef('alte Fassung wird benannt', stp.textContent.indexOf('Fassung 2.8.0') !== -1, stp.textContent);
+  pruef('alte Fassung faellt auf', stp.classList.contains('alt'));
+  w.__T("S.sicherFassung = null; sicherungStempel();");
+  pruef('ohne Angabe wird nichts erfunden',
+    stp.textContent.indexOf('Fassung unbekannt') !== -1, stp.textContent);
+  w.__T("S.letzteSicherung = null; sicherungStempel();");
+  pruef('nie gesichert steht als Wort da',
+    stp.textContent === 'Sicherung · nie', stp.textContent);
+  w.__T("S.letzteSicherung = iso(HEUTE); S.sicherFassung = FASSUNG; sicherungStempel();");
+  stp.dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  await new Promise(r => setTimeout(r, 160));
+  pruef('Stempel fuehrt zur Sicherung', w.__T("modalOffen('sek-modal')") === true);
+  pruef('und zwar in den richtigen Abschnitt',
+    d.getElementById('sekm-titel').textContent.indexOf('Sicherung') !== -1,
+    d.getElementById('sekm-titel').textContent);
+  w.__T("modalZu('sek-modal')");
+  await new Promise(r => setTimeout(r, 160));
+
+  /* Wetterleiste: dieselbe Schriftgroesze wie die Nebenknoepfe */
+  pruef('Wetterschrift wie die Knoepfe daneben',
+    /\.wt-oben\{[^}]*font-size:1\.02rem/.test(stil5) && /\.nt b\{[^}]*font-size:1\.02rem/.test(stil5));
+  pruef('Vorschaubilder werden beschnitten, nicht gedehnt',
+    stil5.indexOf('img.thumb{object-fit:cover') !== -1);
+
+  /* Wetterlage */
+  const lage = (c) => w.__T(`(function(){ const l = wetterLage(${c}); return l ? l.wort : null; })()`);
+  pruef('klar', lage(0) === 'klar');
+  pruef('teils bewölkt', lage(2) === 'teils bewölkt');
+  pruef('bedeckt', lage(3) === 'bedeckt');
+  pruef('Regen', lage(61) === 'Regen');
+  pruef('Schnee', lage(73) === 'Schnee');
+  pruef('Schneeschauer zählt als Schnee', lage(85) === 'Schnee');
+  pruef('ohne Schlüssel keine Lage', lage(null) === null);
+  pruef('Lage wird mit abgerufen',
+    w.__T("String(wetterHolen).indexOf('weather_code') !== -1") === true);
+
+  w.__T(`(function(){
+    S.wetter = {ort:'Leipzig', lat:51.34, lon:12.37,
+      daten:{jetzt:14, lage:61, hoch:18, tief:9, regen:3, regenMorgen:0},
+      stand:new Date().toISOString(), gefragt:true};
+    sichern(); })()`);
+  const wz = w.__T('wetterZeileHTML()');
+  pruef('Wetter steht in einer Leiste', wz.indexOf('wt-leiste') !== -1);
+  pruef('mit Zeichnung', wz.indexOf('wt-bild') !== -1 && wz.indexOf('<svg') !== -1);
+  pruef('Zeichnung wird nicht vorgelesen', wz.indexOf('aria-hidden="true"') !== -1);
+  pruef('Lage steht auch als Wort', wz.indexOf('Regen') !== -1);
+  pruef('Leiste hat Rahmen und Fläche',
+    /\.wt-leiste\{[^}]*border:1px solid var\(--linie\)/.test(stil5));
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

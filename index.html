@@ -833,17 +833,25 @@ html[data-design="botanisch"] body[data-ansicht="heute"] .wrap .wt-leiste{
   background:rgba(245,242,234,.10);border-color:var(--linie);box-shadow:none}
 html[data-design="terrarium"] .wt-leiste{box-shadow:var(--glanz)}
 html[data-design="klartext"] .wt-leiste{border-width:2px}
+/* Schriftbild wie bei den Nebenknoepfen darunter: dieselbe Flaeche,
+   dieselbe Groesse, dieselben zwei Farbstufen. Vorher war die Leiste
+   eine Spur groesser und eine Spur dunkler und sah daneben aus wie
+   von einer anderen Seite. */
 .wt-text{flex:1 1 auto;min-width:0;display:block}
 .wt-oben{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 6px;
-  font-size:var(--t-m);color:var(--ink)}
+  font-size:1.02rem;font-weight:600;color:var(--schrift)}
 .wt-oben b{font-weight:600}
 .wt-grad{font-family:var(--f-data)}
-.wt-lage{color:var(--ink-2);font-size:var(--t-s)}
-.wt-tr{color:var(--ink-2);opacity:.6}
-.wt-unten{display:block;margin-top:2px;font-size:var(--t-s);color:var(--ink-2)}
-.wt-rat{display:block;margin-top:4px;font-size:var(--t-s);color:var(--ink)}
-.wt-alt{display:block;margin-top:3px;font-size:var(--t-xs);color:var(--ink-2);font-style:italic}
-.wt-pfeil{flex:0 0 auto;font-size:var(--t-l);line-height:1;color:var(--ink-2)}
+.wt-lage{color:var(--schrift-2);font-size:var(--t-xs);font-weight:400}
+.wt-tr{color:var(--schrift-2)}
+.wt-unten{display:block;margin-top:2px;font-size:var(--t-xs);color:var(--schrift-2)}
+.wt-rat{display:block;margin-top:4px;font-size:var(--t-xs);color:var(--schrift-2)}
+.wt-alt{display:block;margin-top:3px;font-size:var(--t-xs);color:var(--schrift-2);font-style:italic}
+.wt-pfeil{flex:0 0 auto;font-size:var(--t-l);line-height:1;color:var(--schrift-2)}
+.wt-leiste .wt-bild svg{stroke:var(--schrift-2)}
+html[data-design="klartext"] .wt-lage,
+html[data-design="klartext"] .wt-unten,
+html[data-design="klartext"] .wt-rat{color:var(--schrift);font-size:var(--t-s)}
 
 /* ── Verlauf und Ausblick ─────────────────────────────────────
    Zwei schmale Tabellen im Wetterfenster. Zeit, Zeichnung, Lage
@@ -1152,17 +1160,22 @@ body{padding-bottom:76px}
 /* ── Kleiner Stempel: wann wurde zuletzt gesichert ──────────
    Steht bewusst winzig in der Ecke. Wer ihn antippt, landet bei der
    Sicherung; wer ihn nicht braucht, sieht ihn kaum. */
-/* Der Stempel lag frei ueber dem Kopf und schnitt in die
-   Ueberschrift. Auf dunklem Grund war er ausserdem kaum zu lesen.
-   Jetzt steht er als eigene Zeile darueber, in derselben Groesse
-   wie das Reiter-Etikett daneben. */
+/* Der Stempel ist eine Randnotiz, kein Bestandteil der Seite. Er
+   sitzt oben rechts in der Ecke, klein genug, um nicht mitzureden,
+   gross genug, um lesbar zu bleiben. Angetippt fuehrt er zur
+   Sicherung. Keine Deckkraft unter 100 Prozent — die Farbe macht
+   die Zuruecknahme, nicht die Transparenz. */
 .top{position:relative;display:flex;flex-direction:column}
-.sich-stempel{order:-1;align-self:flex-start;border:0;background:none;
-  padding:0 0 8px;margin:0;min-height:0;
-  font:inherit;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;
-  text-transform:uppercase;color:var(--schrift-2);cursor:pointer;text-align:left;line-height:1.3}
+.sich-stempel{position:absolute;top:5px;right:0;z-index:2;
+  border:0;background:none;padding:2px 0 2px 10px;margin:0;min-height:0;max-width:62%;
+  font:inherit;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;
+  color:var(--schrift-2);cursor:pointer;text-align:right;line-height:1.25}
 .sich-stempel[hidden]{display:none}
 .sich-stempel.alt{color:var(--gift)}
+.sich-stempel:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+html[data-design="klartext"] .sich-stempel{position:static;align-self:flex-start;
+  text-align:left;max-width:none;padding:0 0 8px;font-size:var(--t-xs);
+  color:var(--schrift);letter-spacing:0}
 .wz-i{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);
   background:none;color:var(--ink-2);font:inherit;font-size:var(--t-m);font-style:italic;
   line-height:1;cursor:pointer}
@@ -1447,8 +1460,8 @@ html[data-design="terrarium"] .plan h2{font-weight:500;letter-spacing:-.005em}
 html[data-design="botanisch"] h1,
 html[data-design="terrarium"] h1{line-height:1.02}
 
-header.top{padding:26px 0 14px}
-header.top h1{font-size:clamp(1.9rem,7.4vw,2.5rem);margin:0 0 9px;line-height:1.05}
+header.top{padding:30px 0 14px}
+header.top h1{font-size:clamp(2.4rem,9.5vw,3.4rem);margin:0;line-height:1.02}
 header.top .sub{font-size:var(--t-md);line-height:1.55;max-width:46ch}
 /* Erste Überschrift einer Ansicht weglassen — der Kopf sagt es schon */
 .tabs:not(.flach) ~ .wrap [data-ans]:not(.ans-aus) > h2:first-of-type{display:none}
@@ -1803,8 +1816,14 @@ html[data-design="botanisch"] .sam-raster .card{
   border:0;box-shadow:0 1px 2px rgba(28,38,32,.06),0 6px 18px rgba(28,38,32,.05);
 }
 html[data-design="botanisch"] .sam-raster .card:not(.open) .card-body{padding:11px 13px 13px}
-html[data-design="botanisch"] .sam-raster .thumb,
-html[data-design="terrarium"] .sam-raster .thumb{
+/* Die allgemeine Rasterregel weiter oben setzt `aspect-ratio:1/1`
+   und steht mit `.card:not(.open)` bei vier Klassen. Diese Regel
+   hier kam auf drei Klassen plus ein Attribut und verlor damit den
+   Vergleich — jedes Bild blieb quadratisch, und das Raster sah aus
+   wie eine Tabelle, obwohl Formate und Spannen laengst stimmten.
+   Deshalb steht der Kartenzustand jetzt auch hier im Weg. */
+html[data-design="botanisch"] .sam-raster .card:not(.open) .thumb,
+html[data-design="terrarium"] .sam-raster .card:not(.open) .thumb{
   aspect-ratio:1 / var(--bildhoehe, 1);
   width:100%;height:auto;object-fit:cover;display:block;
 }
@@ -6888,7 +6907,7 @@ function papierkorbRender(){
   <header class="top">
     <button class="sich-stempel" id="sich-stempel" type="button" aria-label="Letzte Sicherung" hidden></button>
     <p class="top-etikett" id="kopf-etikett" aria-hidden="true">Heute</p>
-    <h1 id="kopf-titel">Was heute<br>Wasser braucht</h1>
+    <h1 id="kopf-titel">Heute</h1>
   </header>
 
   <section data-ans="heute" class="faellig" id="faellig-sec">
@@ -7868,8 +7887,25 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.16';
+const FASSUNG = '2.9.18';
 const PATCHNOTES = [
+  {
+    nr: '2.9.18', datum: '2026-08-26', titel: 'Das Raster versetzt',
+    besser: [
+      'Im Rasterblick sind die Kacheln endlich unterschiedlich hoch und stehen versetzt gegeneinander. Jede Pflanze hat schon seit 2.9.12 ein festes Format bekommen — eine ältere Regel hat es überschrieben und alle Bilder wieder quadratisch gemacht.'
+    ]
+  },
+  {
+    nr: '2.9.17', datum: '2026-08-26', titel: 'Kopf frei',
+    neu: [
+      'Der Sicherungsstempel nennt jetzt auch die Fassung: „Sicherung · gestern · aktuelle Fassung“. Stammt die Sicherung aus einer älteren Fassung, steht deren Nummer da — und der Stempel färbt sich, wie er es auch tut, wenn zu lange nicht gesichert wurde.'
+    ],
+    besser: [
+      'Der Seitenkopf trägt nur noch den Namen des Reiters, dafür groß. Der Zusatz darunter — „26 Pflanzen“, „Einstellungen“ — sagte nichts, was nicht eine Zeile weiter unten ohnehin stand.',
+      'Der Sicherungsstempel sitzt klein in der oberen rechten Ecke statt als eigene Zeile über der Überschrift. Er führt jetzt direkt zur Sicherung statt nur nach „Mehr“.',
+      'Die Wetterleiste auf „Heute“ hat dieselbe Schrift wie die Knöpfe darunter. Vorher war sie eine Spur größer und dunkler und sah aus wie von einer anderen Seite.'
+    ]
+  },
   {
     nr: '2.9.16', datum: '2026-08-26', titel: 'Wetter, ausgebaut',
     neu: [
@@ -8467,7 +8503,7 @@ const LEERSTAND = () => ({
   ereignisse:{}, gesehen:{}, orte:{}, acc:{giessen:1, aufgaben:1},
   balkon:null, raeume:null, raumAktiv:null, rundgang:null, meldeMail:'', sammlungOffen:null,
   design:'botanisch', wetter:null,
-  letzteSicherung:null, startGesehen:null, grundrissWunsch:null,
+  letzteSicherung:null, sicherFassung:null, startGesehen:null, grundrissWunsch:null,
   /* Erklärungen: aus schaltet alles ab, kapitel merkt sich die
      gesehenen, einricht den Stand der Ersteinrichtung. */
   tutorial:{aus:false, kapitel:{}, einricht:0},
@@ -10887,6 +10923,7 @@ function statusText(){
 /* Beim Herunterladen merken, wann zuletzt gesichert wurde. */
 function sicherungGemerkt(){
   S.letzteSicherung = iso(HEUTE);
+  S.sicherFassung = FASSUNG;
   sichern();
   if(typeof sicherungHinweis === 'function') sicherungHinweis();
   if(typeof sicherungStempel === 'function') sicherungStempel();
@@ -10900,17 +10937,27 @@ function sicherungStempel(){
   if(!daten){ el.hidden = true; return; }
   el.hidden = false;
   if(!S.letzteSicherung){
-    el.textContent = 'Nie gesichert';
+    el.textContent = 'Sicherung · nie';
     el.classList.add('alt');
+    el.setAttribute('aria-label', 'Von diesen Daten gibt es noch keine Sicherung. Zur Sicherung.');
   } else {
     const t = tageSeit(S.letzteSicherung);
-    el.textContent = 'Sicherung ' + (t === 0 ? 'heute'
-      : t === 1 ? 'gestern'
+    const wann = t === 0 ? 'heute' : t === 1 ? 'gestern'
       : new Date(S.letzteSicherung + 'T12:00:00').toLocaleDateString('de-DE',
-          {day:'numeric', month:'short'}));
-    el.classList.toggle('alt', t >= SICHER_TAGE);
+          {day:'numeric', month:'short'});
+    /* Dritter Teil: aus welcher Fassung stammt die Sicherung? Wer
+       aeltere Sicherungen hat, sieht deren Nummer; wer vor 2.9.17
+       gesichert hat, hat gar keine hinterlegt — dann steht dort
+       „Fassung unbekannt" statt einer erfundenen Zahl. */
+    const f = S.sicherFassung;
+    const fass = !f ? 'Fassung unbekannt'
+      : f === FASSUNG ? 'aktuelle Fassung'
+      : 'Fassung ' + f;
+    el.textContent = 'Sicherung · ' + wann + ' · ' + fass;
+    el.classList.toggle('alt', t >= SICHER_TAGE || f !== FASSUNG);
+    el.setAttribute('aria-label', 'Letzte Sicherung ' + wann + ', ' + fass + '. Zur Sicherung.');
   }
-  el.onclick = ()=>{ ansichtZeigen('mehr'); };
+  el.onclick = ()=>{ sektionOeffnen('sicherung', el); };
 }
 
 /* Sanfter Streifen auf der Heute-Seite, wenn seit über fünf Tagen keine
@@ -14066,11 +14113,14 @@ function ansichtZeigen(name, merken){
       .find(el => !el.hidden);
     if(erste) erste.classList.add('ans-erste');
   }
+  /* Der Kopf traegt nur noch den Reiternamen. Der Zusatz darunter
+     („26 Pflanzen", „Einstellungen") sagte nichts, was nicht eine
+     Zeile weiter unten ohnehin steht, und nahm dem Namen den Platz.
+     Das Etikett bleibt im Markup, aber leer — `:empty` blendet es aus. */
   const kopf = ANSICHT_KOPF[name];
-  if(kopf) $('#kopf-titel').innerHTML =
-    (typeof kopf[0] === 'function' ? kopf[0]() : kopf[0]);
+  if(kopf) $('#kopf-titel').textContent = kopf[1] || '';
   const etikett = document.getElementById('kopf-etikett');
-  if(etikett) etikett.textContent = (kopf && kopf[1]) || '';
+  if(etikett) etikett.textContent = '';
   /* Ein Reiterwechsel schliesst ein offenes Abschnittsfenster —
      sonst stuende man hinter einem Fenster auf der falschen Seite. */
   if(!werkzeug && typeof modalOffen === 'function' && modalOffen('sek-modal')) modalZu('sek-modal');
