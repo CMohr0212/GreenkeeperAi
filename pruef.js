@@ -89,7 +89,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.18', w.__T('FASSUNG') === '2.9.18', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.19', w.__T('FASSUNG') === '2.9.19', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -930,6 +930,35 @@ setTimeout(async () => {
   /* Die allgemeine Rasterregel steht bei vier Klassen. Wer das
      Bildformat setzt, muss mindestens gleichziehen, sonst bleibt
      jede Kachel quadratisch. */
+  /* Die Rasterkachel traegt nur Name und Standzeile. */
+  pruef('Kachel zeigt keine Kennung',
+    /\.sam-raster \.card:not\(\.open\) \.card-id,/.test(stil3));
+  pruef('Kachel zeigt keinen botanischen Zweitnamen',
+    /\.sam-raster \.card:not\(\.open\) \.card-bot,/.test(stil3));
+  pruef('Kachel zeigt keinen Standort',
+    /\.sam-raster \.card:not\(\.open\) \.card-lage,/.test(stil3));
+  pruef('Kachel zeigt keinen Feuchtebalken',
+    /\.sam-raster \.card:not\(\.open\) \.bar\{display:none/.test(stil3));
+  pruef('Standzeile steht im Raster',
+    /\.sam-raster \.card:not\(\.open\) \.card-stand\{display:flex/.test(stil3));
+  pruef('Standzeile sonst still', /\.card-stand\{display:none/.test(stil3));
+  pruef('Punkt traegt nicht allein',
+    /\.card-stand::before\{content:''/.test(stil3));
+
+  const karte1 = w.__T(`(function(){
+    const p = allePflanzen()[0]; return p ? cardHTML(p) : ''; })()`);
+  pruef('Karte hat eine Standzeile', karte1.indexOf('class="card-stand"') !== -1);
+  pruef('Standzeile nennt einen Ton', /data-ton="(wasser|gift|sicher|warn|still)"/.test(karte1),
+    karte1.slice(0, 200));
+  pruef('Name haengt nicht mehr zwei Namen aneinander',
+    !/class="card-name">[^<]*\(/.test(karte1),
+    (karte1.match(/class="card-name">[^<]*/) || [''])[0]);
+
+  const stand = (o) => w.__T(`(function(){
+    const p = Object.assign({id:'PRUEF-1', klasse:'normal'}, ${o});
+    return karteStand(p).text; })()`);
+  pruef('ohne Gievermerk keine Panik', stand("{}") === 'Noch nicht erfasst', stand("{}"));
+
   pruef('Bildformat schlaegt die allgemeine Rasterregel',
     /\.sam-raster \.card:not\(\.open\) \.thumb\{[^}]*aspect-ratio:1 \/ var\(--bildhoehe/.test(
       stil3.replace(/\n/g, '')) ||

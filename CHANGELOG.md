@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.19 — 26. August 2026
+**Die Kachel räumt auf**
+
+### Besser
+- Auf einer Rasterkachel stehen jetzt nur noch der Name und eine Zeile zum Stand — „Gießen: heute“, „Alles in Ordnung“ — mit farbigem Punkt davor. Kennung, botanischer Name, Standort und Feuchtebalken sind weg; sie stehen alle in der Karte selbst, und der Standort geht schon aus der Gruppierung hervor.
+- Der Kartenname ist der Spitzname, wenn einer vergeben ist, sonst der botanische. Vorher standen beide aneinandergehängt in einer Zeile.
+
+---
+
 ## 2.9.18 — 26. August 2026
 **Das Raster versetzt**
 
