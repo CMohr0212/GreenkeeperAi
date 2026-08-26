@@ -4,6 +4,16 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.22 — 26. August 2026
+**Nachgezogen**
+
+### Besser
+- Die Pflanzenkarten hoben sich vom neuen Salbeigrund nicht mehr ab — sie lagen auf demselben Ton wie der Hintergrund. Jetzt tragen sie dieselbe helle Fläche wie die Knöpfe.
+- Bei den Werkzeugkacheln stand das Pfeilzeichen quer im Wort „Öffnen“.
+- In Terrarium hatte die Sammlung wieder rechteckige Karten mit Rahmen. Jetzt leuchtet die Kristallform selbst in der Zustandsfarbe, ohne Kasten drumherum.
+
+---
+
 ## 2.9.21 — 26. August 2026
 **Alles hell**
 

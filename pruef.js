@@ -89,7 +89,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.21', w.__T('FASSUNG') === '2.9.21', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.22', w.__T('FASSUNG') === '2.9.22', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -992,9 +992,19 @@ setTimeout(async () => {
     /<article class="card" data-karte="[^"]*" data-ton="/.test(karte1), karte1.slice(0,90));
 
   /* Terrarium: Rand nach Zustand, botanischer Name bleibt */
-  pruef('Zustandsrand leuchtet',
-    /html\[data-design="terrarium"\] \.sam-raster \.card:not\(\.open\)\{[^}]*box-shadow:0 0 0 1px var\(--zst\)/
+  pruef('Zustandston faerbt das Vieleck',
+    /card:not\(\.open\) \.card-btn::after\{background:var\(--zst\)/
       .test(stil3.replace(/\n\s*/g, '')));
+  pruef('und leuchtet um die Form herum',
+    /card:not\(\.open\) \.card-btn\{filter:drop-shadow\(0 0 4px var\(--zst\)\)/
+      .test(stil3.replace(/\n\s*/g, '')));
+  pruef('kein Rechteck um die Kristallform',
+    /"terrarium"\] \.sam-raster \.card:not\(\.open\)\{border:0;box-shadow:none\}/
+      .test(stil3.replace(/\n\s*/g, '')));
+  pruef('Karte hebt sich vom Grund ab',
+    /\.card\{background:var\(--fl-karte\)/.test(stil3));
+  pruef('Kein Pfeil mehr im Wort Oeffnen',
+    /\.kachelgitter \.wz-kopf \.wz-p,/.test(stil3));
   pruef('jeder Zustandston faerbt den Rand',
     (stil3.match(/\.sam-raster \.card\[data-zton="[a-z]+"\]\{--zst:/g) || []).length >= 5);
   /* Der Rand meldet den Zustand, nicht die naechste Aufgabe:

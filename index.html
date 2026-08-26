@@ -440,7 +440,11 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .card,.card-btn{min-width:0}
 .card-body{min-width:0;flex:1 1 auto}
 @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
-.card{background:var(--sand);border:1px solid var(--line);border-radius:var(--r-klein);overflow:clip;transition:border-color .18s}
+/* Die Karte lag auf --sand, also auf --fl-tief. Solange der Grund
+   Creme war, sah man den Unterschied noch. Auf dem Salbeigrund ist
+   --fl-tief dunkler als der Grund — die Karten verschwanden darin.
+   Richtig ist ohnehin --fl-karte: dafuer gibt es das Token. */
+.card{background:var(--fl-karte);border:1px solid var(--line);border-radius:var(--r-klein);overflow:clip;transition:border-color .18s}
 .card.open{border-color:var(--ink);grid-column:1/-1}
 .card-btn{width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit;display:flex;gap:0;align-items:stretch}
 .card-btn:focus-visible{outline:2px solid var(--water);outline-offset:-3px}
@@ -1011,6 +1015,10 @@ html[data-design="klartext"] .wz-unter{font-size:var(--t-s)}
 /* Der Pfeil wird durch ein Wort ersetzt — in der Vorlage steht unter
    jedem Werkzeug, was der Griff danach ausloest. Ein Wort sagt das
    verlaesslicher als ein Zeichen, und es ist vorlesbar. */
+/* `.wz-kopf .wz-p` weiter unten setzt 1.1rem und stand bei gleicher
+   Spezifitaet spaeter in der Datei — dadurch blieb das Zeichen
+   sichtbar und lag quer im Wort darunter. */
+.kachelgitter .wz-kopf .wz-p,
 .kachelgitter .wz-p{font-size:0;line-height:0;color:var(--etikett,var(--schrift-2))}
 .kachelgitter .wz-p::after{content:'Öffnen';font-size:var(--t-xs);line-height:1.4;
   letter-spacing:.09em;text-transform:uppercase;display:block}
@@ -1982,12 +1990,15 @@ html[data-design="terrarium"] .sam-raster .card[data-zton="warn"]{--zst:var(--du
 html[data-design="terrarium"] .sam-raster .card[data-zton="alarm"]{--zst:var(--alarm)}
 html[data-design="terrarium"] .sam-raster .card[data-zton="ruhe"]{--zst:var(--ruhe)}
 html[data-design="terrarium"] .sam-raster .card[data-zton="bluete"]{--zst:var(--bluete)}
+/* Der Ton faerbt das Vieleck, nicht die Karte. Ein Rahmen auf der
+   Karte selbst ist ein Rechteck um eine Kristallform — genau die
+   Kartenoptik, die Terrarium loswerden wollte. */
 html[data-design="terrarium"] .sam-raster .card:not(.open){
-  border-color:var(--zst);
-  box-shadow:0 0 0 1px var(--zst), 0 0 13px -2px var(--zst)}
-html[data-design="terrarium"] .sam-raster .card:not(.open) .thumb,
-html[data-design="terrarium"] .sam-raster .card:not(.open) .card-btn::before{
-  filter:drop-shadow(0 0 6px var(--zst))}
+  border:0;box-shadow:none}
+html[data-design="terrarium"] .sam-raster .card:not(.open) .card-btn{
+  filter:drop-shadow(0 0 4px var(--zst)) drop-shadow(0 0 13px var(--zst))}
+html[data-design="terrarium"] .sam-raster .card:not(.open) .card-btn::after{
+  background:var(--zst);opacity:.92}
 
 html[data-design="terrarium"] .sam-raster .card:nth-child(4n+1) .thumb,
 html[data-design="terrarium"] .sam-raster .card:nth-child(4n+1) .card-btn::before,
@@ -7988,8 +7999,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.21';
+const FASSUNG = '2.9.22';
 const PATCHNOTES = [
+  {
+    nr: '2.9.22', datum: '2026-08-26', titel: 'Nachgezogen',
+    besser: [
+      'Die Pflanzenkarten hoben sich vom neuen Salbeigrund nicht mehr ab — sie lagen auf demselben Ton wie der Hintergrund. Jetzt tragen sie dieselbe helle Fläche wie die Knöpfe.',
+      'Bei den Werkzeugkacheln stand das Pfeilzeichen quer im Wort „Öffnen“.',
+      'In Terrarium hatte die Sammlung wieder rechteckige Karten mit Rahmen. Jetzt leuchtet die Kristallform selbst in der Zustandsfarbe, ohne Kasten drumherum.'
+    ]
+  },
   {
     nr: '2.9.21', datum: '2026-08-26', titel: 'Alles hell',
     neu: [
