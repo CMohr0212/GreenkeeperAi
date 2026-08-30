@@ -20,6 +20,13 @@ const dom = new JSDOM(html, {
     w.IntersectionObserver = class { observe(){} unobserve(){} disconnect(){} };
     w.ResizeObserver = class { observe(){} unobserve(){} disconnect(){} };
     w.HTMLCanvasElement.prototype.getContext = () => null;
+    /* jsdom rechnet kein Layout: jedes Element meldet 0×0. tourZiel()
+       verwirft Ziele ohne Ausdehnung — ohne diese Attrappe spulte
+       jedes Kapitel wortlos durch und galt sofort als gesehen. */
+    w.Element.prototype.getBoundingClientRect = function(){
+      return {x:20, y:120, width:280, height:60, top:120, left:20,
+              right:300, bottom:180, toJSON(){ return this; }};
+    };
     w.requestAnimationFrame = cb => setTimeout(() => cb(Date.now()), 0);
     w.cancelAnimationFrame = id => clearTimeout(id);
     w.indexedDB = undefined;
@@ -89,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.28', w.__T('FASSUNG') === '2.9.28', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.9.29', w.__T('FASSUNG') === '2.9.29', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -733,6 +740,121 @@ setTimeout(async () => {
   pruef('jedes Kapitel kennt seinen Weg', w.__T(`
     Object.keys(TOUR_KAPITEL).filter(k => k !== 'einricht' && k !== 'plan'
       && typeof TOUR_KAPITEL[k].hin !== 'function').join(',')`) === '');
+
+  /* ══ Overlays behalten ihre Verankerung ═══════════════════════
+     In 2.9.28 hob eine Regel fuer den Hintergrund alle Body-Kinder
+     mit `body>*{position:relative}` an. Das traf auch die elf
+     Overlays: ihr `position:fixed` wurde zu `relative`, sie fielen
+     in den Textfluss und standen mitten auf der Seite. Die App war
+     unbenutzbar, und keine der 610 Pruefungen schlug an \u2014 jsdom
+     rechnet kein Layout, aber die Kaskade rechnet es sehr wohl. */
+  {
+    const overlays = ['willkommen','tour','giessmodus','rundgang','urlaub-blatt',
+                      'karte-modal','sek-modal','lightbox','foto-modal',
+                      'gift-modal','neu-modal'];
+    ['botanisch','klartext','terrarium'].forEach(dz => {
+      d.querySelector('[data-design-go="' + dz + '"]').click();
+      const kaputt = overlays.filter(id => {
+        const el = d.getElementById(id);
+        return el && w.getComputedStyle(el).position !== 'fixed';
+      });
+      pruef('Overlays bleiben verankert in ' + dz,
+        kaputt.length === 0, kaputt.join(','));
+    });
+    pruef('Die Leiste unten bleibt verankert',
+      w.getComputedStyle(d.querySelector('nav.tabs')).position === 'fixed');
+    /* Der Hintergrund darf die Kinder nicht anfassen. */
+    /* Nur im Stilblock suchen \u2014 im Kommentar daneben steht die Regel
+       als abschreckendes Beispiel und soll dort stehen bleiben. */
+    pruef('Keine Sammelregel auf den Body-Kindern',
+      !/[^`]body>\*\{[^}]*position:relative/.test(
+        [...d.querySelectorAll('style')].map(x=>x.textContent).join('')));
+    d.querySelector('[data-design-go="botanisch"]').click();
+  }
+
+  /* ══ Durchlauf durch alle Fenster ══════════════════════════════
+     Reiter wechseln, jeden Abschnitt oeffnen und schliessen, die
+     Kartenreiter durchklicken, die Runde von vorn bis hinten laufen
+     lassen. Fasst das, was am Schreibtisch nie auffaellt: ein Fenster,
+     das sich nicht mehr oeffnet, ein Reiter ohne Inhalt, eine Tour,
+     die sich selbst abbricht. */
+  {
+    for(const a of ['heute','sammlung','werkzeuge','mehr']){
+      w.__T(`ansichtZeigen('${a}')`);
+      await tick();
+      pruef('Reiter ' + a + ' erreichbar', d.body.dataset.ansicht === a,
+        d.body.dataset.ansicht);
+      pruef('Reiter ' + a + ' zeigt Inhalt',
+        [...d.querySelectorAll(`[data-ans="${a}"]`)]
+          .some(x => !x.classList.contains('ans-aus')));
+    }
+
+    const abschnitte = [...d.querySelectorAll('section[data-wz],section[data-mh]')]
+      .map(x => x.dataset.wz || x.dataset.mh);
+    pruef('Alle Abschnitte gefunden', abschnitte.length >= 25, String(abschnitte.length));
+    const stumm = [], leer = [], klemmt = [];
+    for(const k of abschnitte){
+      const auf = w.__T(`sektionOeffnen('${k}')`);
+      await tick();
+      if(auf !== true){ stumm.push(k); continue; }
+      const rumpf = d.getElementById('sekm-rumpf');
+      if(!rumpf || rumpf.textContent.trim().length < 20) leer.push(k);
+      w.__T("modalZu('sek-modal')");
+      await tick();
+      if(w.__T("modalOffen('sek-modal')")) klemmt.push(k);
+    }
+    pruef('Jeder Abschnitt \u00f6ffnet', stumm.length === 0, stumm.join(','));
+    pruef('Keiner ist leer', leer.length === 0, leer.join(','));
+    pruef('Jeder schlie\u00dft wieder', klemmt.length === 0, klemmt.join(','));
+
+    /* Kartenfenster mit seinen drei Reitern */
+    w.__T("ansichtZeigen('sammlung')"); await tick();
+    const kid = w.__T('allePflanzen()[0].id');
+    w.__T(`karteOeffnen('${kid}')`); await tick();
+    pruef('Kartenfenster \u00f6ffnet', w.__T("modalOffen('karte-modal')"));
+    const tot = [];
+    for(const t of ['pflege','standort','verlauf']){
+      const b = d.querySelector(`#karte-rumpf .ktab[data-ktab="${t}"]`);
+      if(!b){ tot.push(t + ' (Knopf fehlt)'); continue; }
+      b.click(); await tick();
+      const pane = d.querySelector(`#karte-rumpf [data-kpane="${t}"]`);
+      if(!pane || pane.hidden) tot.push(t);
+    }
+    pruef('Alle drei Kartenreiter schalten um', tot.length === 0, tot.join(','));
+    w.__T("modalZu('karte-modal')"); await tick();
+    pruef('Kartenfenster schlie\u00dft', !w.__T("modalOffen('karte-modal')"));
+
+    /* Die Runde von vorn bis hinten. Sie wechselt dabei viermal die
+       Ansicht \u2014 genau daran ist sie zuerst gescheitert. */
+    /* Fruehere Pruefungen haben Kapitel durchlaufen lassen; „runde"
+       gilt danach als gesehen und tourStart verweigert. Zuruecksetzen. */
+    w.__T("const _t = tourZustand(); _t.aus = false; delete _t.kapitel.runde; sichern()");
+    w.__T("tourStart('runde')"); await tick();
+    pruef('Die Runde startet', !!w.__T('tourLauf'),
+      'aus=' + String(w.__T('tourZustand().aus'))
+      + ' noetig=' + String(w.__T("tourNoetig('runde')")));
+    pruef('Der Deckel liegt auf', d.getElementById('tour').hidden === false);
+    for(let i = 0; i < 5; i++){
+      d.getElementById('tour-weiter').click();
+      await tick();
+      if(!w.__T('tourLauf')) break;
+    }
+    pruef('Sie \u00fcbersteht den Ansichtswechsel', !!w.__T('tourLauf'),
+      'nach Schritt ' + String(w.__T('tourLauf && tourLauf.i')));
+    pruef('Sie ist \u00fcber Heute hinaus',
+      w.__T('tourLauf && tourLauf.i') >= 2,
+      String(w.__T('tourLauf && tourLauf.i')));
+    w.__T('tourAbbruch()'); await tick();
+    pruef('Sie r\u00e4umt sich weg', d.getElementById('tour').hidden === true);
+    pruef('Kein Deckel bleibt liegen', !w.__T('tourLauf'));
+
+    /* Nach der Tour muss alles weiter bedienbar sein */
+    w.__T("ansichtZeigen('werkzeuge')"); await tick();
+    pruef('Reiter nach der Tour erreichbar', d.body.dataset.ansicht === 'werkzeuge');
+    pruef('Fenster nach der Tour bedienbar', w.__T("sektionOeffnen('doktor')") === true);
+    w.__T("modalZu('sek-modal')"); await tick();
+    w.__T("ansichtZeigen('heute')"); await tick();
+  }
 
   /* ══ App Tour ══════════════════════════════════════════════════
      Frueher startete auf jedem Reiter und beim ersten Oeffnen jedes

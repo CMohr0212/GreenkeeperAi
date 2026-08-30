@@ -4,7 +4,7 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 2.9.28 — 30. August 2026
+## 2.9.29 — 30. August 2026
 **Ruhe und eine Runde**
 
 ### Neu
@@ -17,6 +17,10 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - An jeder Stelle zum Wegtippen steht jetzt, wo die Runde wiederzufinden ist.
 - Der Hintergrund in Botanisch ist ein Papierbild statt des gekachelten Blattmusters. Es gilt auf allen vier Reitern.
 - Die Werkzeugkacheln sind alle gleich hoch, unabhängig von der Länge der Beschriftung.
+
+### Behoben
+- Alle Fenster — Willkommen, Tour, Gießmodus, Rundgang, Pflanzenkarte, Werkzeuge — standen mitten auf der Seite statt darüber, ließen sich nicht scrollen und blockierten die Reiter. Eine Regel für den neuen Hintergrund hatte allen elf Overlays ihre Verankerung genommen.
+- Die Runde beendete sich selbst, sobald sie von Heute zur Sammlung wechseln wollte.
 
 ---
 
