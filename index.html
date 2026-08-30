@@ -320,14 +320,36 @@
 
    Nur Heute und Mehr — Sammlung und Werkzeuge sind voll mit Fotos
    und Kacheln, dort waere ein Muster darunter nur Unruhe. */
+/* Ein Papierbild statt des gekachelten Blattmusters. Das Muster
+   wiederholte sich alle 320 Pixel und war nach dem dritten Blick
+   nicht mehr zu übersehen. Das Bild liegt einmal oben, läuft nach
+   unten aus und wiederholt sich nie.
+
+   Es gilt jetzt auf allen vier Reitern, nicht mehr nur auf Heute und
+   Mehr. Möglich wird das durch die Maske: unten ist das Bild ganz
+   verschwunden, darum kommt es Fotos und Kacheln nicht ins Gehege.
+   Sammlung und Werkzeuge tragen es schwächer als Heute und Mehr —
+   dort steht mehr eigener Inhalt auf der Fläche.
+
+   Das Bild liegt als eigene Datei im Verzeichnis, nicht als Text in
+   dieser Datei: 66 KB Bild wären base64-kodiert 90 KB Quelltext. */
+html[data-design="botanisch"] body{position:relative;--bild-staerke:.13}
 html[data-design="botanisch"] body[data-ansicht="heute"],
-html[data-design="botanisch"] body[data-ansicht="mehr"]{
-  background-color:var(--fl-grund);
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cg fill='none' stroke='%237E9670' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' opacity='.34'%3E%3Cg transform='translate(18 14) rotate(-14 60 120)'%3E%3Cpath d='M60 6C112 32 130 96 114 152 104 188 82 212 60 226 38 212 16 188 6 152-10 96 8 32 60 6Z'/%3E%3Cpath d='M60 22V222'/%3E%3Cpath d='M60 54 22 68M60 54 98 68M60 100 12 116M60 100 108 116M60 148 22 164M60 148 98 164'/%3E%3C/g%3E%3Cg transform='translate(186 168) rotate(24 46 92) scale(.78)'%3E%3Cpath d='M60 6C112 32 130 96 114 152 104 188 82 212 60 226 38 212 16 188 6 152-10 96 8 32 60 6Z'/%3E%3Cpath d='M60 22V222'/%3E%3Cpath d='M60 54 22 68M60 54 98 68M60 100 12 116M60 100 108 116M60 148 22 164M60 148 98 164'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  background-repeat:repeat;
-  background-size:320px 320px;
-  background-attachment:fixed;
+html[data-design="botanisch"] body[data-ansicht="mehr"]{--bild-staerke:.2}
+html[data-design="botanisch"] body::before{
+  content:"";position:absolute;left:0;right:0;top:0;
+  height:min(820px,100%);
+  background:url("./bg-papier.webp") top center/100% auto no-repeat;
+  opacity:var(--bild-staerke);
+  pointer-events:none;z-index:0;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.94) 34%,
+    rgba(0,0,0,.52) 66%,rgba(0,0,0,.16) 84%,transparent 96%);
+  mask-image:linear-gradient(180deg,#000 0%,rgba(0,0,0,.94) 34%,
+    rgba(0,0,0,.52) 66%,rgba(0,0,0,.16) 84%,transparent 96%);
 }
+/* Alles im Dokument liegt über dem Bild. Ohne diese Zeile
+   verschwände der Inhalt hinter der Papierfläche. */
+html[data-design="botanisch"] body>*{position:relative;z-index:1}
 
 /* ── Die Knoepfe auf Heute ────────────────────────────────────
    Alle drei tragen dieselbe helle Karte auf dem Salbeigrund und
@@ -717,6 +739,14 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
   border-left:1px solid var(--peat);border-bottom:1px solid var(--peat);border-bottom-left-radius:4px
 }
 .kids li:last-child::after{content:"";position:absolute;left:4px;top:50%;bottom:0;width:1px;background:var(--paper)}
+/* Abstammung ueber dem Zeitstrahl: woher die Pflanze kommt und was
+   von ihr abstammt. Stand bisher nur im Steckbrief des Ablegers. */
+.abstammung{padding:11px 12px;border-radius:var(--r-klein);
+  background:var(--ton-blatt);margin:0 0 13px;font-size:var(--t-s)}
+.ab-zeile{margin:0 0 5px;line-height:1.5}
+.ab-zeile:last-child{margin-bottom:0}
+html[data-design="klartext"] .abstammung{border:2px solid var(--linie);
+  background:transparent;font-size:var(--t-md)}
 .kid-link{background:none;border:0;padding:0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-bottom:1px solid var(--line)}
 .kid-link:hover{border-bottom-color:var(--ink)}
 .kid-note{font-family:var(--f-data);font-size:var(--t-mono);color:var(--peat);display:block}
@@ -986,31 +1016,47 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
 .kachelgitter .wz-kopfzeile{height:100%}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
 .kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
-.kachelgitter .wz-kopf{display:flex;flex-direction:column;justify-content:center;
-  align-items:center;gap:4px;width:100%;height:100%;min-height:158px;
-  padding:20px 12px;text-align:center;cursor:pointer;font:inherit;
+/* Drei feste Zeilen statt Fluss: Symbol, Titel, Unterzeile. Vorher
+   bestimmte die Textlaenge die Hoehe — „Räume und Grundriss" mit zwei
+   Zeilen machte seine Kachel hoeher als „Substrat", und die Symbole
+   sassen dadurch auf verschiedenen Hoehen. Jetzt sind alle sechs
+   Kacheln gleich, gleich wie lang die Beschriftung ist.
+   Die Hoehe waechst mit dem Schirm: clamp haelt sie zwischen 150 und
+   200 px, dazwischen folgt sie der Fensterbreite. */
+.kachelgitter .wz-kopf{display:grid;
+  grid-template-rows:var(--wz-ikon-h,46px) auto auto;
+  justify-items:center;align-content:center;gap:4px;
+  width:100%;height:100%;min-height:clamp(150px,42vw,200px);
+  padding:18px 10px;text-align:center;cursor:pointer;font:inherit;
   background:var(--fl-karte);color:var(--ink);
   border:1px solid var(--line);border-radius:var(--r-mittel);
   box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
 .kachelgitter .wz-kopf:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .kachelgitter .wz-t{font-family:var(--f-display);font-weight:var(--gewicht-titel);
-  font-size:1.06rem;line-height:1.22}
+  font-size:clamp(.96rem,3.6vw,1.06rem);line-height:1.22;
+  display:flex;align-items:center;justify-content:center;
+  min-height:calc(1.22em * 2);overflow-wrap:anywhere;hyphens:auto}
 
 /* ── Symbol auf der Kachel ────────────────────────────────────
    Strichzeichnung, keine Flaeche: in allen drei Designs traegt
    dieselbe Linie eine andere Farbe. Das Symbol steht auf
    aria-hidden — der Kachelname sagt bereits, worum es geht, und
    ein zweites Mal vorgelesen zu werden hilft niemandem. */
-.wz-ikon{display:block;width:46px;height:46px;margin:0 0 6px}
+.wz-ikon{display:block;width:var(--wz-ikon-h,46px);height:var(--wz-ikon-h,46px);
+  margin:0 0 6px}
+.kachelgitter{--wz-ikon-h:clamp(38px,11vw,48px)}
+.kachelgitter .wz-ikon{margin:0}
 .wz-ikon svg{width:100%;height:100%;display:block;fill:none;
   stroke:var(--fl-akzent);stroke-width:1.4;
   stroke-linecap:round;stroke-linejoin:round}
 html[data-design="terrarium"] .wz-ikon svg{
   stroke:var(--fl-akzent);filter:drop-shadow(0 0 9px rgba(94,230,160,.55))}
 html[data-design="klartext"] .wz-ikon svg{stroke:var(--schrift);stroke-width:1.9}
-html[data-design="klartext"] .wz-ikon{width:52px;height:52px}
+html[data-design="klartext"] .kachelgitter{--wz-ikon-h:clamp(44px,13vw,56px)}
 .wz-unter{display:block;font-size:var(--t-xs);line-height:1.35;
   color:var(--schrift-2);max-width:20ch}
+.kachelgitter .wz-unter{display:flex;align-items:flex-start;
+  justify-content:center;min-height:calc(1.35em * 2);max-width:18ch}
 html[data-design="klartext"] .wz-unter{font-size:var(--t-s)}
 /* Der Pfeil wird durch ein Wort ersetzt — in der Vorlage steht unter
    jedem Werkzeug, was der Griff danach ausloest. Ein Wort sagt das
@@ -1055,6 +1101,151 @@ html:not([data-design="klartext"]) section[data-mh] .wz-p{
 html:not([data-design="klartext"]) .mh-ikon{
   flex:0 0 auto;width:24px;height:24px;display:block}
 html[data-design="klartext"] .mh-ikon{display:none}
+/* Unter Einstellungen erreichbar, darum nicht mehr in der Liste.
+   Der Abschnitt bleibt im Dokument — sektionOeffnen braucht ihn. */
+.mh-still{display:none!important}
+
+/* ── Gruppen und Nebenzeilen ──────────────────────────────────
+   Vierzehn Zeilen am Stueck sind eine Wand. In vier Gruppen mit
+   Ueberschrift findet man den Punkt, ohne jede Zeile zu lesen.
+   Die Nebenzeile sagt den Stand, bevor man antippt. */
+.mh-abschnitt{margin:22px 2px 4px;font-size:var(--t-mono);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--schrift-2);
+  font-family:var(--f-display)}
+.mh-gruppe:first-child .mh-abschnitt{margin-top:6px}
+html:not([data-design="klartext"]) section[data-mh] .wz-kopf{
+  align-items:flex-start;padding:12px 2px}
+html:not([data-design="klartext"]) .mh-ikon{margin-top:1px}
+.mh-unter{display:block;width:100%;order:9;margin:2px 0 0 38px;
+  font-size:var(--t-s);color:var(--schrift-2);font-weight:400;line-height:1.4}
+html:not([data-design="klartext"]) section[data-mh] .wz-kopf{flex-wrap:wrap}
+html:not([data-design="klartext"]) section[data-mh] .wz-t{flex:1 1 auto}
+html[data-design="klartext"] .mh-abschnitt{font-size:var(--t-md);
+  text-transform:none;letter-spacing:0;font-weight:600;color:var(--schrift);
+  margin:26px 0 8px}
+html[data-design="klartext"] .mh-unter{margin-left:0;font-size:var(--t-md)}
+
+/* ── Einstellungen: Zeilen und Wahlreihe ──────────────────────
+   Ansicht, Haustiere und Rundgang standen vorher als eigene Punkte
+   in der Mehr-Liste. Sie sind dieselben Abschnitte geblieben — nur
+   der Weg dorthin fuehrt jetzt ueber die Einstellungen. */
+.ein-abschnitt{margin:20px 0 6px;font-size:var(--t-mono);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--schrift-2);
+  font-family:var(--f-display)}
+.ein-abschnitt:first-of-type{margin-top:4px}
+.ein-liste{border-top:1px solid var(--linie)}
+.ein-zeile{display:flex;align-items:center;gap:12px;width:100%;
+  min-height:var(--tap);padding:12px 2px;border:0;
+  border-bottom:1px solid var(--linie);background:none;
+  color:var(--schrift);font:inherit;text-align:left;cursor:pointer}
+.ein-zeile:active{background:var(--ton-hover, rgba(0,0,0,.05))}
+.ein-txt{flex:1;min-width:0}
+.ein-txt b{display:block;font-weight:600;font-size:var(--t-l)}
+.ein-txt i{display:block;font-style:normal;font-size:var(--t-s);
+  color:var(--schrift-2);margin-top:1px}
+.ein-p{flex:0 0 auto;opacity:.5;font-size:1.1rem}
+.ein-wahl{display:flex;gap:6px;margin:8px 0 6px}
+.ein-wahl button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift-2);
+  font:inherit;font-size:var(--t-s);cursor:pointer}
+.ein-wahl button[aria-pressed="true"]{background:var(--fl-akzent);
+  color:var(--schrift-invers);border-color:transparent;font-weight:600}
+html[data-design="klartext"] .ein-abschnitt{font-size:var(--t-md);
+  text-transform:none;letter-spacing:0;font-weight:600;color:var(--schrift)}
+html[data-design="klartext"] .ein-wahl{flex-direction:column}
+html[data-design="klartext"] .ein-wahl button{border-width:2px;font-size:var(--t-md)}
+html[data-design="klartext"] .ein-zeile{border-bottom-width:2px}
+/* Vier Wasserarten nebeneinander waeren vier unlesbare Spalten.
+   Wo die Beschriftung laenger ist als ein Wort, stehen sie
+   untereinander. */
+.ein-wahl.senkrecht{flex-direction:column}
+.ein-wahl.senkrecht button{min-height:44px}
+/* Die Staerke der Saison-Anpassung ist ohne die Anpassung selbst
+   sinnlos — sichtbar bleibt sie trotzdem, damit klar ist, was der
+   Haken darueber steuert. */
+.ein-wahl.aus{opacity:.45;pointer-events:none}
+
+/* ── Umtopf-Assistent ─────────────────────────────────────── */
+.ut-fortschritt{display:flex;gap:5px;list-style:none;margin:0 0 18px;padding:0}
+.ut-fortschritt li{flex:1;height:4px;border-radius:2px;background:var(--linie)}
+.ut-fortschritt li.jetzt{background:var(--fl-akzent)}
+.ut-fortschritt li.fertig{background:var(--sicher)}
+.ut-stufe{display:none}
+.ut-stufe.an{display:block}
+.ut-frage{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-xl);font-weight:600}
+.ut-unter{margin:0 0 14px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.5}
+.ut-gruende{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 12px}
+.ut-grund{padding:11px 12px;border-radius:var(--r-klein);border:1px solid var(--linie);
+  background:transparent;color:var(--schrift);font:inherit;text-align:left;cursor:pointer}
+.ut-grund b{display:block;font-size:var(--t-s);font-weight:600}
+.ut-grund i{display:block;font-style:normal;font-size:var(--t-xs);
+  color:var(--schrift-2);margin-top:2px;line-height:1.35}
+.ut-grund[aria-pressed="true"]{border-color:var(--fl-akzent);
+  box-shadow:inset 0 0 0 1px var(--fl-akzent)}
+.ut-formen{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 14px}
+.ut-form{min-height:var(--tap);padding:10px;border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);
+  font:inherit;font-size:var(--t-s);cursor:pointer}
+.ut-form[aria-pressed="true"]{background:var(--fl-akzent);
+  color:var(--schrift-invers);border-color:transparent;font-weight:600}
+.ut-zsf-liste{margin:0 0 16px}
+.ut-zsf-liste>div{display:flex;gap:12px;padding:9px 0;
+  border-bottom:1px solid var(--linie);font-size:var(--t-s)}
+.ut-zsf-liste dt{flex:0 0 34%;color:var(--schrift-2);margin:0}
+.ut-zsf-liste dd{flex:1;margin:0;font-weight:600;overflow-wrap:anywhere}
+.ut-fertig-melde{padding:11px 12px;border-radius:var(--r-klein);
+  background:var(--ton-ok);color:var(--sicher);font-weight:600;
+  font-size:var(--t-s);margin:0 0 14px}
+.ut-fuss{display:flex;gap:8px;margin-top:18px}
+.ut-fuss button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);
+  font:inherit;cursor:pointer}
+.ut-fuss button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:transparent;font-weight:600}
+html[data-design="klartext"] .ut-gruende,
+html[data-design="klartext"] .ut-formen{grid-template-columns:1fr}
+html[data-design="klartext"] .ut-grund,
+html[data-design="klartext"] .ut-form{border-width:2px;font-size:var(--t-md)}
+html[data-design="klartext"] .ut-zsf-liste>div{font-size:var(--t-md);border-bottom-width:2px}
+
+/* ── Bibliothek ───────────────────────────────────────────── */
+.bib-art{border-bottom:1px solid var(--linie)}
+.bib-art summary{list-style:none;cursor:pointer;display:flex;align-items:center;
+  gap:9px;flex-wrap:wrap;padding:13px 0;min-height:var(--tap)}
+.bib-art summary::-webkit-details-marker{display:none}
+.bib-art summary::after{content:"\203a";margin-left:auto;color:var(--schrift-2);
+  transition:var(--dauer);font-size:1.1rem;line-height:1}
+.bib-art[open] summary::after{transform:rotate(90deg)}
+.bib-art summary b{font-size:var(--t-l);font-weight:600}
+.bib-art summary i{font-style:italic;font-size:var(--t-xs);color:var(--schrift-2)}
+.bib-bahn{flex:0 0 100%;height:4px;border-radius:2px;background:var(--linie);
+  overflow:hidden}
+.bib-bahn span{display:block;height:100%;background:var(--duenger)}
+.bib-art .ut-zsf-liste{margin-bottom:10px}
+.bib-text{margin:0 0 14px;font-size:var(--t-s);line-height:1.55;color:var(--schrift-2)}
+.bib-spez{margin:0 0 14px;padding-left:19px;font-size:var(--t-s);color:var(--schrift-2)}
+.bib-spez li{margin-bottom:4px}
+.bib-achtung{margin:0 0 14px;padding:10px 12px;border-radius:var(--r-klein);
+  background:var(--ton-warn,rgba(155,42,42,.08));font-size:var(--t-s);line-height:1.5}
+html[data-design="klartext"] .bib-art{border-bottom-width:2px}
+html[data-design="klartext"] .bib-art summary i,
+html[data-design="klartext"] .bib-text,
+html[data-design="klartext"] .bib-achtung{font-size:var(--t-md);color:var(--schrift)}
+html[data-design="klartext"] .bib-art summary i{font-style:normal}
+
+/* ── Kennzahlen auf Heute ─────────────────────────────────────
+   Standardmäßig aus. Drei Zahlen ohne Säulen: eine Verlaufsgrafik
+   braucht Verlaufsdaten, und die gibt es erst nach Monaten. */
+.kennzahlen{display:flex;gap:8px;margin:0 0 14px}
+.kz-feld{flex:1;padding:11px 12px;border-radius:var(--r-klein);
+  background:var(--fl-karte);border:1px solid var(--linie);min-width:0}
+.kz-feld em{display:block;font-style:normal;font-size:var(--t-xs);
+  color:var(--schrift-2);margin-bottom:3px;overflow-wrap:anywhere}
+.kz-feld b{display:block;font-size:1.15rem;font-weight:600;
+  font-family:var(--f-display);line-height:1.1}
+html[data-design="klartext"] .kennzahlen{flex-direction:column}
+html[data-design="klartext"] .kz-feld{border-width:2px}
+html[data-design="klartext"] .kz-feld em{font-size:var(--t-md)}
 .mh-ikon svg{width:100%;height:100%;display:block;fill:none;
   stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 
@@ -1716,6 +1907,82 @@ body.gm-offen{overflow:hidden}
 .acc-t{flex:1;min-width:0;overflow-wrap:anywhere}
 .acc-z{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
   color:var(--peat);border:1px solid var(--line);border-radius:var(--r-klein);padding:2px 6px;white-space:nowrap}
+/* ══ Kartenfenster: Kopf mit grossem Bild ══════════════════════════
+   Das Foto lag bisher zwei Ebenen tief: Reiter „Allgemein“, darin das
+   Akkordeon „Fotos“. Wer eine Karte aufklappte, sah den Namen als Text
+   und sonst nichts — obwohl im Raster genau das Bild die Pflanze
+   erkennbar macht. Es steht jetzt oben, der Name liegt darauf.
+   Klartext legt den Namen darunter: Schrift auf Foto ist dort nie
+   verlaesslich zu lesen. */
+.km-held{position:relative;margin:0 0 13px}
+.km-held-bild{aspect-ratio:4/3;border-radius:var(--r-mittel);overflow:hidden;
+  background:var(--fl-bildleer);display:block;width:100%}
+.km-held-bild img{width:100%;height:100%;object-fit:cover;display:block}
+.km-held-leer{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;height:100%;color:var(--schrift-2);font-size:var(--t-s)}
+.km-held-leer svg{width:34px;height:34px;stroke:currentColor;fill:none;stroke-width:1.5;opacity:.6}
+.km-held-schleier{position:absolute;inset:auto 0 0 0;padding:44px 15px 14px;
+  border-radius:0 0 var(--r-mittel) var(--r-mittel);pointer-events:none;
+  background:linear-gradient(to top,rgba(12,16,13,.86),rgba(12,16,13,.32) 55%,rgba(12,16,13,0))}
+.km-held-titel{font-family:var(--f-display);font-size:1.42rem;font-weight:600;
+  color:#fff;margin:0;line-height:1.2}
+.km-held-art{margin:3px 0 0;color:rgba(255,255,255,.82);font-size:var(--t-s);font-style:italic}
+.km-held.leer .km-held-schleier{position:static;background:none;padding:11px 0 0;
+  border-radius:0}
+.km-held.leer .km-held-titel{color:var(--schrift)}
+.km-held.leer .km-held-art{color:var(--schrift-2)}
+html[data-design="klartext"] .km-held-bild{aspect-ratio:3/2;border:2px solid var(--linie)}
+html[data-design="klartext"] .km-held-schleier{position:static;background:none;
+  padding:13px 0 0;border-radius:0}
+html[data-design="klartext"] .km-held-titel{color:var(--schrift);font-size:1.55rem}
+html[data-design="klartext"] .km-held-art{color:var(--schrift);font-style:normal}
+html[data-design="terrarium"] .km-held-bild{box-shadow:0 0 14px rgba(94,230,160,.18)}
+
+/* Das Fotoband ist dieselbe Galerie wie zuvor, nur waagerecht.
+   Profilbild setzen, loeschen und hinzufuegen bleiben damit erhalten —
+   es gibt keine zweite Fotoverwaltung, die getrennt zu pflegen waere. */
+.km-fotoband{margin:0 0 14px}
+.km-fotoband .gal{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;
+  grid-template-columns:none}
+.km-fotoband .gal figure{flex:0 0 auto;width:78px;margin:0}
+.km-fotoband .gal figure img{width:78px;height:78px;object-fit:cover}
+.km-fotoband .foto-add{flex:0 0 auto;width:78px;min-height:78px;display:flex;
+  align-items:center;justify-content:center;text-align:center}
+html[data-design="klartext"] .km-fotoband .gal figure{width:96px}
+html[data-design="klartext"] .km-fotoband .gal figure img{width:96px;height:96px}
+html[data-design="klartext"] .km-fotoband .foto-add{width:96px;min-height:96px}
+
+.km-stand{display:flex;align-items:center;gap:8px;margin:0 0 11px;
+  font-size:var(--t-s);font-weight:600}
+.km-stand .km-punkt{width:9px;height:9px;border-radius:50%;flex:0 0 auto;
+  background:var(--sicher)}
+.km-stand[data-ton="gift"]{color:var(--gift)} .km-stand[data-ton="gift"] .km-punkt{background:var(--gift)}
+.km-stand[data-ton="alarm"]{color:var(--alarm)} .km-stand[data-ton="alarm"] .km-punkt{background:var(--alarm)}
+.km-stand[data-ton="wasser"] .km-punkt{background:var(--wasser)}
+.km-stand[data-ton="warn"] .km-punkt{background:var(--duenger)}
+.km-stand[data-ton="ruhe"] .km-punkt{background:var(--ruhe)}
+.km-stand[data-ton="still"] .km-punkt{background:var(--schrift-2);opacity:.5}
+html[data-design="klartext"] .km-stand{font-size:var(--t-md)}
+html[data-design="klartext"] .km-stand .km-punkt{width:15px;height:15px}
+
+.km-zeichen{margin:0 0 15px}
+
+/* Handlungen. Giessen ist die eine Tat, die taeglich vorkommt und
+   bekommt die volle Breite; der Rest steht klein darunter. Frueher
+   standen alle fuenf gleich gross nebeneinander. */
+.km-taten{margin:0 0 17px}
+.km-haupt{width:100%;min-height:var(--tap);border:0;border-radius:var(--r-klein);
+  background:var(--fl-akzent);color:var(--schrift-invers);font:inherit;
+  font-weight:600;cursor:pointer}
+.km-haupt.erledigt{background:var(--ton-ok);color:var(--sicher);
+  box-shadow:inset 0 0 0 1px var(--sicher)}
+.km-neben{display:flex;gap:7px;margin-top:8px}
+.km-neben button{flex:1 1 0;min-height:40px;border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift-2);
+  font:inherit;font-size:var(--t-xs);cursor:pointer}
+html[data-design="klartext"] .km-neben{flex-direction:column}
+html[data-design="klartext"] .km-neben button{min-height:var(--tap);border-width:2px;
+  font-size:var(--t-md);color:var(--schrift);font-weight:600}
 .acc-in{padding:13px 14px 15px}
 .acc-in>h4{margin:16px 0 6px;font-size:var(--t-md);font-family:var(--f-display)}
 .acc-in>h4:first-child{margin-top:0}
@@ -6617,18 +6884,34 @@ const EREIGNIS_ARTEN = {
   schaedling:  {name:'Schädling gesehen',kurz:'Schädling',     ton:'warn', zustand:'schaedlinge'},
   foto:        {name:'Foto gemacht',     kurz:'Foto',          ton:'info'},
   gesehen:     {name:'Angesehen',        kurz:'angesehen',     ton:'still'},
-  notiz:       {name:'Notiz',            kurz:'Notiz',         ton:'info'}
+  notiz:       {name:'Notiz',            kurz:'Notiz',         ton:'info'},
+  /* Die beiden Seiten einer Vermehrung. Sie stehen bewusst nicht in
+     STANDARD_KNOEPFE: sie entstehen beim Anlegen eines Ablegers von
+     selbst und waeren als Knopf im Rundgang nur eine Fehlerquelle. */
+  vermehrt:    {name:'Steckling abgenommen', kurz:'vermehrt',   ton:'gut'},
+  entstanden:  {name:'Als Ableger entstanden', kurz:'entstanden', ton:'gut'}
 };
 
 function ereignisse(id){ return ((S.ereignisse||{})[id] || []).slice().sort((a,b)=>b.datum.localeCompare(a.datum)); }
 
-function ereignisDazu(id, typ, text){
+/* `bezug` haelt die andere Pflanze fest, wenn ein Ereignis zwei
+   betrifft — bei einer Vermehrung die Mutter beziehungsweise den
+   Ableger. Der Verlauf macht daraus einen Sprung in deren Karte. */
+function ereignisDazu(id, typ, text, bezug){
   if(!S.ereignisse) S.ereignisse = {};
   const liste = S.ereignisse[id] = S.ereignisse[id] || [];
   liste.push({id:'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),
-              datum:iso(HEUTE), typ, text: text || ''});
+              datum:iso(HEUTE), typ, text: text || '',
+              bezug: bezug || null});
   if(typ === 'blatt' && typeof blattDazu === 'function') blattDazu(id);
   if(typ === 'blatt_weg' && typeof blattZurueck === 'function') blattZurueck(id);
+  /* Manche Ereignisse aendern den Zustand — „umgetopft" setzt „frisch
+     umgetopft" und damit die vierwoechige Duengesperre. Das stand
+     vorher bei den Aufrufern, im Rundgang und am Ereignisknopf. Jeder
+     dritte Weg haette es erneut nachbauen muessen. */
+  const art = EREIGNIS_ARTEN[typ];
+  if(art && art.zustand && typeof zustandSetzen === 'function')
+    zustandSetzen(id, art.zustand);
   gesehenSetzen(id);
   sichern();
 }
@@ -6649,11 +6932,36 @@ function tageSeitGesehen(id){
 }
 
 /* ── Auf der Karte ───────────────────────────────────────── */
+/* ── Abstammung ueber dem Zeitstrahl ─────────────────────────
+   Woher die Pflanze kommt und was von ihr abstammt — beides mit
+   Sprung in die jeweilige Karte und in den Stammbaum. */
+function abstammungHTML(p){
+  const alle = allePflanzen();
+  const mutter = p.eltern ? alle.find(x=>x.id === p.eltern) : null;
+  const kinder = alle.filter(k=>k.eltern === p.id);
+  if(!mutter && !kinder.length && !p.linie) return '';
+
+  const zeilen = [];
+  if(mutter)
+    zeilen.push(`<p class="ab-zeile">Ableger von
+      <button class="kid-link" data-go="${mutter.id}">${esc(nice(mutter))}</button>.</p>`);
+  else if(p.linie)
+    zeilen.push(`<p class="ab-zeile">Aus der Linie „${esc(p.linie)}“ — Ursprung nicht in der Sammlung.</p>`);
+
+  if(kinder.length)
+    zeilen.push(`<p class="ab-zeile">${kinder.length === 1 ? 'Ein Ableger' : kinder.length + ' Ableger'}:
+      ${kinder.map(k=>`<button class="kid-link" data-go="${k.id}">${esc(nice(k))}</button>`).join(' · ')}</p>`);
+
+  return `<div class="abstammung">${zeilen.join('')}
+    <p class="ab-zeile"><button class="linkbtn" data-do="stammbaum-auf">Im Stammbaum ansehen</button></p>
+  </div>`;
+}
+
 function statusHTML(p){
   const knoepfe = (S.rundgang && S.rundgang.knoepfe) || STANDARD_KNOEPFE;
   const liste = ereignisse(p.id).slice(0, 12);
   const seit = tageSeitGesehen(p.id);
-  return `<div class="stat">
+  return `${abstammungHTML(p)}<div class="stat">
     <p class="stat-seit">${seit == null ? 'Noch nie als angesehen vermerkt.'
       : (seit === 0 ? 'Heute angesehen.' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`)}</p>
     <div class="stat-chips">
@@ -6663,8 +6971,11 @@ function statusHTML(p){
     </div>
     ${liste.length ? `<ul class="stat-liste">${liste.map(e=>{
       const a = EREIGNIS_ARTEN[e.typ] || {name:e.typ, ton:'info'};
+      const and = e.bezug ? allePflanzen().find(x=>x.id === e.bezug) : null;
       return `<li class="${a.ton}"><span class="stat-d">${new Date(e.datum+'T12:00:00').toLocaleDateString('de-DE')}</span>
-        <span class="stat-t">${esc(a.name)}${e.text?' · '+esc(e.text):''}</span>
+        <span class="stat-t">${esc(a.name)}${e.text?' · '+esc(e.text):''}${and
+          ? ` · <button class="kid-link" data-go="${and.id}">${esc(nice(and))}</button>`
+          : ''}</span>
         <button class="linkbtn" data-do="ereignis-weg" data-p="${p.id}" data-e="${e.id}">×</button></li>`;
     }).join('')}</ul>` : '<p class="stat-leer">Noch keine Einträge.</p>'}
   </div>`;
@@ -6674,12 +6985,21 @@ const STANDARD_KNOEPFE = ['blatt','blatt_weg','geblueht','umgetopft','geschnitte
 
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
+  /* Vom Verlauf einer Pflanze in den Stammbaum. Die Karte muss erst
+     zu sein, sonst oeffnet die Werkzeugsektion hinter dem Fenster. */
+  if(b.dataset.do === 'stammbaum-auf'){
+    e.stopPropagation();
+    if(typeof modalZu === 'function') modalZu('karte-modal');
+    ansichtZeigen('werkzeuge');
+    setTimeout(()=>{
+      if(typeof sektionOeffnen === 'function') sektionOeffnen('stammbaum');
+    }, 90);
+    return;
+  }
   if(b.dataset.do === 'ereignis'){
     e.stopPropagation();
     const typ = b.dataset.typ;
-    ereignisDazu(b.dataset.p, typ);
-    const a = EREIGNIS_ARTEN[typ];
-    if(a && a.zustand && typeof zustandSetzen === 'function') zustandSetzen(b.dataset.p, a.zustand);
+    ereignisDazu(b.dataset.p, typ);   /* setzt den Zustand selbst */
     render();
     return;
   }
@@ -6924,19 +7244,17 @@ function papierkorbRender(){
     <div class="wk-schritt" data-wk="1">
       <p class="wk-nr">Willkommen</p>
       <h1 class="wk-titel">GreenkeeperAi</h1>
+      <!-- Hier stand eine Liste der fünf Bereiche. Die Runde am Ende
+           zeigt dieselben Bereiche gleich darauf am echten Ort — die
+           Liste war die erste von drei Erklärungen desselben. -->
       <p class="wk-lead">Ein Notizbuch für deine Pflanzen. Alles bleibt auf diesem Gerät —
         kein Konto, keine Anmeldung, keine Daten irgendwo draußen.</p>
-      <ul class="wk-liste">
-        <li><b>Sammlung</b><span>Steckbrief, Fotos und Gießstand für jede Pflanze.</span></li>
-        <li><b>Heute</b><span>Was dran ist — und ein Gießmodus, der dich Pflanze für Pflanze durchführt.</span></li>
-        <li><b>Doktor</b><span>Schritt für Schritt zur wahrscheinlichsten Ursache, wenn etwas nicht stimmt.</span></li>
-        <li><b>Substrat</b><span>Mischung nach Pflanzenart, mit Mengenrechner für deinen Topf.</span></li>
-        <li><b>Grundriss</b><span>Deinen Raum zeichnen und sehen, wie viel Sonne wo ankommt.</span></li>
-      </ul>
+      <p class="wk-lead">Zwei kurze Fragen, dann kannst du loslegen.</p>
       <div class="wk-knoepfe">
         <button class="wk-haupt" data-wkgo="2">Los geht's</button>
         <button class="wk-neben" data-wkfertig="0">Überspringen</button>
       </div>
+      <p class="wk-klein">Übersprungenes findest du später unter Mehr › App Tour.</p>
     </div>
 
     <div class="wk-schritt" data-wk="2" hidden>
@@ -6985,9 +7303,11 @@ function papierkorbRender(){
       </div>
 
       <div class="wk-knoepfe">
-        <button class="wk-haupt" data-wkfertig="1">Schritt für Schritt einrichten</button>
-        <button class="wk-neben" data-wkfertig="0">Erstmal allein umsehen</button>
+        <button class="wk-haupt" data-wkfertig="1">Kurze Runde durch die App</button>
+        <button class="wk-neben" data-wkfertig="0">Selbst umsehen</button>
       </div>
+      <p class="wk-klein">Die Runde dauert eine Minute und steht später
+        jederzeit unter Mehr › App Tour.</p>
     </div>
   </div>
 </div>
@@ -7024,6 +7344,7 @@ function papierkorbRender(){
   </header>
 
   <section data-ans="heute" class="faellig" id="faellig-sec">
+    <div id="runde-angebot" hidden></div>
     <div id="erststart" hidden></div>
     <div id="install-band" class="inst-band" hidden></div>
     <h2>Heute dran</h2>
@@ -7303,6 +7624,85 @@ function papierkorbRender(){
       <div id="dok-ergebnis"></div>
     </div>
 
+    </div>
+  </section>
+
+  <!-- Umtopfen war bisher nur ein Satz in den Doktor-Empfehlungen.
+       Als Ablauf führt es die Faeden zusammen, die ohnehin da sind:
+       Substratmenge, Zustand „frisch umgetopft" samt Duengesperre,
+       Verlaufseintrag und — falls dabei Stecklinge abgehen — die
+       Vermehrung mitsamt Stammbaum. -->
+  <section data-ans="werkzeuge" class="plan wz" data-wz="umtopfen">
+    <h2 class="wz-h2">Umtopfen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-wz-go="umtopfen" aria-expanded="false" aria-controls="wz-in-umtopfen">
+        <span class="wz-t">Umtopfen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="umtopfen" aria-expanded="false" aria-label="Wozu ist der Umtopf-Assistent da?">i</button>
+    </div>
+    <div class="wz-in" id="wz-in-umtopfen" hidden>
+      <p class="wz-hilfe" hidden>Führt in fünf Schritten durch das Umtopfen und trägt am Ende alles ein, was danach gilt: neue Topfgröße, Verlaufseintrag, vier Wochen keine Düngung. Wenn dabei Stecklinge abgehen, werden sie als eigene Pflanzen angelegt und im Stammbaum mit der Mutter verbunden — du musst nichts doppelt eintragen.</p>
+
+      <ol class="ut-fortschritt" id="ut-fortschritt" aria-label="Fortschritt">
+        <li class="jetzt"></li><li></li><li></li><li></li><li></li>
+      </ol>
+
+      <!-- 1 Pflanze -->
+      <div class="ut-stufe an" data-ut-stufe="1">
+        <p class="ut-frage">Welche Pflanze wird umgetopft?</p>
+        <p class="ut-unter">Die Auswahl bestimmt, wo Topfgröße, Zustand und Verlaufseintrag am Ende landen.</p>
+        <label><span class="lab">Pflanze</span>
+          <select id="ut-pflanze"></select></label>
+        <p class="fhint" id="ut-pflanze-lage"></p>
+      </div>
+
+      <!-- 2 Grund -->
+      <div class="ut-stufe" data-ut-stufe="2">
+        <p class="ut-frage">Warum wird umgetopft?</p>
+        <p class="ut-unter">Mehrfach wählbar. Der Grund landet im Verlauf und entscheidet mit, was im Schritt „So gehst du vor“ steht.</p>
+        <div class="ut-gruende" id="ut-gruende"></div>
+        <p class="fhint" id="ut-grund-text"></p>
+      </div>
+
+      <!-- 3 Topf -->
+      <div class="ut-stufe" data-ut-stufe="3">
+        <p class="ut-frage">Der neue Topf</p>
+        <p class="ut-unter">Zwei bis vier Zentimeter mehr als bisher reichen. Ein zu großer Topf bleibt lange nass — das ist die häufigste Ursache für Wurzelfäule nach dem Umtopfen.</p>
+        <div class="ut-formen" id="ut-formen"></div>
+        <label><span class="lab">Durchmesser in cm</span>
+          <input id="ut-topf" type="number" min="5" max="80" step="1" value="18"></label>
+        <p class="fhint" id="ut-volumen"></p>
+        <p class="fhint" id="ut-sprung"></p>
+        <button class="linkbtn" id="ut-zum-substrat">Mischung im Substratmischer rechnen</button>
+      </div>
+
+      <!-- 4 Stecklinge -->
+      <div class="ut-stufe" data-ut-stufe="4">
+        <p class="ut-frage">Sind dabei Stecklinge abgegangen?</p>
+        <p class="ut-unter">Beim Teilen oder Auslichten fällt oft etwas ab, das sich bewurzeln lässt. Was du hier einträgst, wird als eigene Pflanze angelegt und im Stammbaum mit der Mutter verbunden.</p>
+        <label class="fspan check">
+          <input type="checkbox" id="ut-hat-stecklinge"> <span class="lab" style="display:inline">Ja, Stecklinge gezogen</span></label>
+        <div id="ut-steckling-feld" hidden>
+          <label><span class="lab">Wie viele</span>
+            <input id="ut-steckling-zahl" type="number" min="1" max="12" step="1" value="1"></label>
+          <label><span class="lab">Methode</span>
+            <select id="ut-steckling-art"></select></label>
+          <p class="fhint" id="ut-steckling-text"></p>
+        </div>
+      </div>
+
+      <!-- 5 Abschluss -->
+      <div class="ut-stufe" data-ut-stufe="5">
+        <p class="ut-frage">Das wird eingetragen</p>
+        <div class="ut-zsf" id="ut-zsf"></div>
+        <div class="tools">
+          <button class="haupt" id="ut-fertig">Umtopfen eintragen</button>
+        </div>
+      </div>
+
+      <div class="ut-fuss">
+        <button id="ut-zurueck" hidden>Zurück</button>
+        <button class="haupt" id="ut-weiter">Weiter</button>
+      </div>
     </div>
   </section>
 
@@ -7587,12 +7987,203 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <!-- Die Artentabelle mit ihren 245 Einträgen war bisher nur beim
+       Anlegen einer Pflanze zu sehen. Wer vor einem Kauf nachschlagen
+       wollte, musste eine Pflanze anlegen, die es noch gar nicht gibt. -->
+  <section data-ans="mehr" class="plan mh" id="bib-sec" data-mh="bibliothek">
+    <h2 class="wz-h2">Bibliothek</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="bibliothek" aria-expanded="false" aria-controls="mh-in-bibliothek">
+        <span class="wz-t">Bibliothek</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="bibliothek" aria-expanded="false" aria-label="Wozu ist die Bibliothek da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-bibliothek" hidden>
+      <p class="wz-hilfe" hidden>Zum Nachschlagen, unabhängig von deiner Sammlung. Die Artentabelle sagt, was eine Pflanze braucht, bevor du sie kaufst. Die Rezepte sind Dünger, den du aus Küchenabfällen ansetzen kannst. Unter Wissenswertes steht, was rund um Wasser, Substrat und Nährstoffe immer wieder aufkommt.</p>
+
+      <div class="ein-liste">
+        <button class="ein-zeile" data-mh-go="bib-arten">
+          <span class="ein-txt"><b>Steckbriefe</b><i id="bib-u-arten">Artentabelle</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="bib-rezepte">
+          <span class="ein-txt"><b>Dünger selbst ansetzen</b><i>Rezepte aus Küchenabfällen</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="bib-wissen">
+          <span class="ein-txt"><b>Wissenswertes</b><i>Wasser, Substrat, Nährstoffe</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="bibarten-sec" data-mh="bib-arten">
+    <h2 class="wz-h2">Steckbriefe</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="bib-arten" aria-expanded="false" aria-controls="mh-in-bib-arten">
+        <span class="wz-t">Steckbriefe</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="bib-arten" aria-expanded="false" aria-label="Wozu sind die Steckbriefe da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-bib-arten" hidden>
+      <p class="wz-hilfe" hidden>Alle Arten, die die App kennt — auch die, die du nicht besitzt. Gedacht zum Nachschlagen vor einem Kauf: Licht, Gießklasse, Giftigkeit für Tiere und Frosthärte stehen hier, bevor die Pflanze bei dir steht.</p>
+      <label><span class="lab">Art suchen</span>
+        <input id="bib-such" placeholder="Name, botanisch oder Familie" autocomplete="off"></label>
+      <p class="fhint" id="bib-such-zahl"></p>
+      <div id="bib-treffer"></div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="bibrezepte-sec" data-mh="bib-rezepte">
+    <h2 class="wz-h2">Dünger selbst ansetzen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="bib-rezepte" aria-expanded="false" aria-controls="mh-in-bib-rezepte">
+        <span class="wz-t">Dünger selbst ansetzen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="bib-rezepte" aria-expanded="false" aria-label="Wozu sind die Rezepte da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-bib-rezepte" hidden>
+      <p class="wz-hilfe" hidden>Selbst angesetzter Dünger ist billig und funktioniert, hat aber einen Haken: der Nährstoffgehalt schwankt stark. Darum gilt hier mehr als bei gekauftem Dünger — lieber schwach und häufiger als kräftig. Keines dieser Rezepte ersetzt bei starkzehrenden Pflanzen einen vollständigen Dünger auf Dauer.</p>
+      <div id="bib-rezepte"></div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="bibwissen-sec" data-mh="bib-wissen">
+    <h2 class="wz-h2">Wissenswertes</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="bib-wissen" aria-expanded="false" aria-controls="mh-in-bib-wissen">
+        <span class="wz-t">Wissenswertes</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="bib-wissen" aria-expanded="false" aria-label="Wozu ist das Nachschlagewerk da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-bib-wissen" hidden>
+      <p class="wz-hilfe" hidden>Was rund um Wasser, Substrat und Nährstoffe immer wieder aufkommt. Zum Aufklappen antippen.</p>
+      <div id="bib-wissen"></div>
+    </div>
+  </section>
+
+  <!-- Das Gießcenter ist ein Dach, kein neues Werkzeug. Gießplan und
+       Vertretungszettel gab es schon, sie lagen nur an zwei Enden der
+       App. Wasser, Dünger und Rhythmus sind neu. -->
+  <section data-ans="mehr" class="plan mh" id="giess-sec" data-mh="giess">
+    <h2 class="wz-h2">Gießcenter</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="giess" aria-expanded="false" aria-controls="mh-in-giess">
+        <span class="wz-t">Gießcenter</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="giess" aria-expanded="false" aria-label="Wozu ist das Gießcenter da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-giess" hidden>
+      <p class="wz-hilfe" hidden>Alles zum Gießen an einer Stelle. Oben, was du planst — wann was dran ist und der Zettel für die Vertretung. Darunter, was für alle Pflanzen gilt: welches Wasser du nimmst, wie du düngst und ob die App im Winter von selbst größere Abstände ansetzt.</p>
+
+      <p class="ein-abschnitt">Planen</p>
+      <div class="ein-liste">
+        <button class="ein-zeile" data-wz-go="giessplan">
+          <span class="ein-txt"><b>Gießplan</b><i id="gc-u-plan">Was wann dran ist</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="urlaub">
+          <span class="ein-txt"><b>Vertretungszettel</b><i>Zettel für die Urlaubsvertretung</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+      </div>
+
+      <p class="ein-abschnitt">Gilt für alle Pflanzen</p>
+      <div class="ein-liste">
+        <button class="ein-zeile" data-mh-go="wasser">
+          <span class="ein-txt"><b>Wasser</b><i id="gc-u-wasser">Wasserart und Härte</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="duenger">
+          <span class="ein-txt"><b>Dünger</b><i id="gc-u-duenger">Düngerart und Winterpause</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="rhythmus">
+          <span class="ein-txt"><b>Rhythmus</b><i id="gc-u-rhythmus">Saison-Anpassung</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ Wasser ══ -->
+  <section data-ans="mehr" class="plan mh" id="wasser-sec" data-mh="wasser">
+    <h2 class="wz-h2">Wasser</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="wasser" aria-expanded="false" aria-controls="mh-in-wasser">
+        <span class="wz-t">Wasser</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="wasser" aria-expanded="false" aria-label="Wozu ist die Wasser-Einstellung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-wasser" hidden>
+      <p class="wz-hilfe" hidden>Womit du gießt, entscheidet bei einigen Arten mehr als wie oft. Karnivoren sterben an Leitungswasser, Calathea und Orchideen bekommen braune Blattränder von hartem Wasser. Wenn hier steht, was aus deinem Hahn kommt, kann die App bei den betroffenen Pflanzen rechtzeitig warnen statt allgemein.</p>
+
+      <p class="ein-abschnitt">Was du normalerweise nimmst</p>
+      <div class="ein-wahl senkrecht" role="group" aria-label="Wasserart wählen" id="wasser-wahl">
+        <button data-wasser="leitung">Leitungswasser</button>
+        <button data-wasser="abgestanden">Leitungswasser, abgestanden</button>
+        <button data-wasser="regen">Regenwasser</button>
+        <button data-wasser="osmose">Osmose oder destilliert</button>
+      </div>
+      <p class="fhint" id="wasser-text"></p>
+
+      <p class="ein-abschnitt">Härte deines Leitungswassers</p>
+      <p class="fhint">Steht auf der Rechnung des Wasserwerks oder auf dessen Netzseite. Unbekannt ist in Ordnung — dann warnt die App nur bei Arten, die grundsätzlich kein Leitungswasser vertragen.</p>
+      <div class="ein-wahl" role="group" aria-label="Wasserhärte wählen" id="haerte-wahl">
+        <button data-haerte="weich">Weich</button>
+        <button data-haerte="mittel">Mittel</button>
+        <button data-haerte="hart">Hart</button>
+        <button data-haerte="">Unbekannt</button>
+      </div>
+      <p class="fhint" id="haerte-text"></p>
+    </div>
+  </section>
+
+  <!-- ══ Dünger ══ -->
+  <section data-ans="mehr" class="plan mh" id="duenger-sec" data-mh="duenger">
+    <h2 class="wz-h2">Dünger</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="duenger" aria-expanded="false" aria-controls="mh-in-duenger">
+        <span class="wz-t">Dünger</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="duenger" aria-expanded="false" aria-label="Wozu ist die Dünger-Einstellung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-duenger" hidden>
+      <p class="wz-hilfe" hidden>Wie oft eine einzelne Pflanze Dünger braucht, steht in ihrem Steckbrief. Hier steht, was für alle gilt: womit du düngst und ob im Winter Pause ist. Die Winterpause ist kein Vorschlag — Dünger auf eine Pflanze, die gerade nicht wächst, sammelt sich als Salz im Topf an.</p>
+
+      <p class="ein-abschnitt">Womit du düngst</p>
+      <div class="ein-wahl senkrecht" role="group" aria-label="Düngerart wählen" id="dgart-wahl">
+        <button data-dgart="fluessig">Flüssigdünger im Gießwasser</button>
+        <button data-dgart="stab">Düngestäbchen</button>
+        <button data-dgart="langzeit">Langzeitdünger im Substrat</button>
+        <button data-dgart="selbst">Selbst angesetzt</button>
+      </div>
+      <p class="fhint" id="dgart-text"></p>
+
+      <p class="ein-abschnitt">Winterpause</p>
+      <label class="fspan check">
+        <input type="checkbox" id="ck-winterpause"> <span class="lab" style="display:inline">Von Oktober bis Februar nicht düngen</span></label>
+      <p class="fhint" id="winterpause-text"></p>
+    </div>
+  </section>
+
+  <!-- ══ Rhythmus ══ -->
+  <section data-ans="mehr" class="plan mh" id="rhythmus-sec" data-mh="rhythmus">
+    <h2 class="wz-h2">Rhythmus</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="rhythmus" aria-expanded="false" aria-controls="mh-in-rhythmus">
+        <span class="wz-t">Rhythmus</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="rhythmus" aria-expanded="false" aria-label="Wozu ist die Rhythmus-Einstellung da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-rhythmus" hidden>
+      <p class="wz-hilfe" hidden>Im Winter verdunstet eine Pflanze deutlich weniger. Wer dann weitergießt wie im Juli, ersäuft sie — der häufigste Fehler überhaupt. Die App rechnet die Abstände von selbst größer, sobald die kalte Hälfte des Jahres beginnt. Abschalten kannst du das, wenn du in einem Wintergarten oder unter Lampen hältst, wo sich über das Jahr wenig ändert.</p>
+
+      <label class="fspan check">
+        <input type="checkbox" id="ck-saison"> <span class="lab" style="display:inline">Im Winter größere Abstände ansetzen</span></label>
+      <p class="fhint" id="saison-text"></p>
+
+      <p class="ein-abschnitt">Wie stark</p>
+      <div class="ein-wahl" role="group" aria-label="Stärke der Anpassung" id="saison-wahl">
+        <button data-saison="sanft">Sanft</button>
+        <button data-saison="normal" aria-pressed="true">Normal</button>
+        <button data-saison="stark">Stark</button>
+      </div>
+      <p class="fhint" id="saison-staerke-text"></p>
+    </div>
+  </section>
+
   <section data-ans="mehr" class="plan mh" id="urlaub-sec" data-mh="urlaub">
-    <h2 class="wz-h2">Urlaubszettel</h2>
+    <h2 class="wz-h2">Vertretungszettel</h2>
     <div class="wz-kopfzeile">
       <button class="wz-kopf" data-mh-go="urlaub" aria-expanded="false" aria-controls="mh-in-urlaub">
-        <span class="wz-t">Urlaubszettel</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-mh-info="urlaub" aria-expanded="false" aria-label="Wozu ist der Urlaubszettel da?">i</button>
+        <span class="wz-t">Vertretungszettel</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="urlaub" aria-expanded="false" aria-label="Wozu ist der Vertretungszettel da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-urlaub" hidden>
       <p class="wz-hilfe" hidden>Wer während deiner Abwesenheit gießt, bekommt einen Zettel mit Raumplan, Nummern, Bildern und Terminen — darauf stehen nur die Pflanzen, die im Zeitraum wirklich drankommen. Pflanzen in der Gießpause und Pflanzen ohne Eintrag werden getrennt aufgeführt, damit die Vertretung weiß, warum sie fehlen. Der Zettel wird immer in Schwarzweiß gesetzt, damit er auf jedem Drucker lesbar bleibt.</p>
@@ -7747,6 +8338,58 @@ function papierkorbRender(){
     </div>
     <p class="fhint" id="einfach-text" hidden></p>
     <p class="fhint" id="hinweise-text" hidden></p>
+    </div>
+  </section>
+
+  <!-- Einstellungen buendeln, was vorher als drei eigene Punkte in
+       der Mehr-Liste stand: Ansicht, Haustiere, Rundgang. Die drei
+       Abschnitte bleiben bestehen und behalten ihre Kennungen — hier
+       stehen nur die Wege dorthin, plus was es vorher nirgends gab. -->
+  <section data-ans="mehr" class="plan mh" id="einstell-sec" data-mh="einstell">
+    <h2 class="wz-h2">Einstellungen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="einstell" aria-expanded="false" aria-controls="mh-in-einstell">
+        <span class="wz-t">Einstellungen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="einstell" aria-expanded="false" aria-label="Wozu sind die Einstellungen da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-einstell" hidden>
+      <p class="wz-hilfe" hidden>Alles, was die App als Ganzes betrifft: wie sie aussieht, wie viel auf einer Karte steht, welche Tiere bei dir wohnen und was der Rundgang fragt. Nichts davon greift in deine Pflanzendaten ein — jede Einstellung lässt sich jederzeit zurücknehmen.</p>
+
+      <p class="ein-abschnitt">Aussehen</p>
+      <div class="ein-liste">
+        <button class="ein-zeile" data-mh-go="ansicht">
+          <span class="ein-txt"><b>Ansicht</b><i id="ein-u-ansicht">Botanisch</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+      </div>
+
+      <p class="ein-abschnitt">Kartendichte</p>
+      <p class="fhint">Wie viel auf einer aufgeklappten Pflanzenkarte steht. Nichts geht verloren — Knapp klappt nur mehr zu.</p>
+      <div class="ein-wahl" role="group" aria-label="Kartendichte wählen" id="dichte-wahl">
+        <button data-dichte="knapp">Knapp</button>
+        <button data-dichte="normal" aria-pressed="true">Normal</button>
+        <button data-dichte="voll">Ausführlich</button>
+      </div>
+      <p class="fhint" id="dichte-text"></p>
+
+      <p class="ein-abschnitt">Auf der Heute-Seite</p>
+      <p class="fhint">Zusatzzeilen über den Aufgaben. Beides lässt sich jederzeit wieder einblenden.</p>
+      <div class="mh-spalte">
+        <label class="fspan check">
+          <input type="checkbox" id="ck-wetterzeile"> <span class="lab" style="display:inline">Wetter und Standortklima</span></label>
+        <label class="fspan check">
+          <input type="checkbox" id="ck-kennzahlen"> <span class="lab" style="display:inline">Kennzahlen</span></label>
+      </div>
+      <p class="fhint">Kennzahlen zeigen Gesundheit, Gießtreue und Zuwachs als Zahlenleiste.</p>
+
+      <p class="ein-abschnitt">Weiteres</p>
+      <div class="ein-liste">
+        <button class="ein-zeile" data-mh-go="tiere">
+          <span class="ein-txt"><b>Haustiere</b><i id="ein-u-tiere">Welche Warnungen kommen</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="rundgang">
+          <span class="ein-txt"><b>Rundgang</b><i id="ein-u-rundgang">Welche Knöpfe erscheinen</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
+      </div>
     </div>
   </section>
 
@@ -8000,8 +8643,84 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.22';
+const FASSUNG = '2.9.28';
 const PATCHNOTES = [
+  {
+    nr: '2.9.28', datum: '2026-08-30', titel: 'Ruhe und eine Runde',
+    neu: [
+      'Eine kurze Runde durch die App: sieben Schritte, je ein Satz, zeigt wo was liegt. Läuft nach dem Willkommen oder auf Anforderung unter Mehr › App Tour.',
+      'Wer die App schon nutzt, bekommt die Runde einmal angeboten. Weggetippt kommt das Angebot nie wieder.'
+    ],
+    besser: [
+      'Kein Kapitel startet mehr von allein. Früher ploppte auf jedem Reiter, beim ersten Öffnen jedes Werkzeugs und beim ersten Aufklappen einer Karte ungefragt eine Erklärung auf — vier Stück, bevor man eine Pflanze angelegt hatte. Alle Kapitel bleiben unter Mehr › App Tour einzeln abrufbar, und dieselben Erklärungen stehen hinter dem i in jedem Bereich.',
+      'Das Willkommen ist kürzer: die Liste der fünf Bereiche ist raus, weil die Runde sie gleich danach am echten Ort zeigt. Die beiden Fragen zu Haustieren und Grundriss bleiben.',
+      'An jeder Stelle zum Wegtippen steht jetzt, wo die Runde wiederzufinden ist.',
+      'Der Hintergrund in Botanisch ist ein Papierbild statt des gekachelten Blattmusters, das sich alle 320 Pixel wiederholte. Es gilt auf allen vier Reitern.',
+      'Die Werkzeugkacheln sind alle gleich hoch, unabhängig von der Länge der Beschriftung.'
+    ]
+  },
+  {
+    nr: '2.9.27', datum: '2026-08-30', titel: 'Umtopfen und Bibliothek',
+    neu: [
+      'Umtopf-Assistent unter Werkzeuge. Fünf Schritte — Pflanze, Grund, neuer Topf, Stecklinge, Abschluss. Am Ende wird alles auf einmal eingetragen: neue Topfgröße, Verlaufseintrag, Zustand „frisch umgetopft“ samt vierwöchiger Düngesperre.',
+      'Gehen beim Umtopfen Stecklinge ab, werden sie als eigene Pflanzen angelegt und im Stammbaum mit der Mutter verbunden — auf demselben Weg wie im Vermehren-Werkzeug.',
+      'Findet der Doktor einen zu kleinen oder durchwurzelten Topf, merkt er die Pflanze vor. Sie steht dann im Assistenten in einer eigenen Gruppe ganz oben.',
+      'Bibliothek unter Mehr › Pflege: alle Arten zum Nachschlagen, auch die, die du nicht besitzt. Dazu vier Rezepte für selbst angesetzten Dünger und acht Nachschlagetexte zu Wasser, Substrat und Nährstoffen.'
+    ],
+    besser: [
+      'In verschachtelten Fenstern führt der Knopf oben links jetzt eine Ebene zurück statt gleich aus dem Fenster heraus. Von „Einstellungen › Ansicht“ landete man vorher mit einem Druck wieder auf der Mehr-Seite.',
+      'Die Werkzeugkacheln sind alle gleich hoch, unabhängig davon, wie lang die Beschriftung ist. Höhe und Symbolgröße folgen der Fensterbreite.',
+      'Ereignisse setzen den Zustand jetzt selbst. Der Code dafür stand doppelt am Ereignisknopf und im Rundgang — jeder neue Weg hätte ihn erneut nachbauen müssen.'
+    ]
+  },
+  {
+    nr: '2.9.26', datum: '2026-08-30', titel: 'Gießcenter',
+    neu: [
+      'Alles zum Gießen unter einem Dach: Mehr › Gießcenter führt zum Gießplan, zum Vertretungszettel und zu den drei Einstellungen, die für alle Pflanzen gelten.',
+      'Wasser: welche Wasserart du nimmst und wie hart dein Leitungswasser ist. Die Härte bleibt leer, solange du sie nicht nachgeschlagen hast — geraten wäre schlechter als nichts.',
+      'Dünger: womit du düngst und ob von Oktober bis Februar Pause ist.',
+      'Rhythmus: im Winter setzt die App größere Gießabstände an. Sanft, normal oder stark, je nachdem wie kühl und dunkel du hältst. Abschaltbar für Wintergarten und Pflanzenlampen.'
+    ],
+    besser: [
+      'Der Urlaubszettel heißt jetzt Vertretungszettel — er wird nicht nur im Urlaub gebraucht — und liegt im Gießcenter statt einzeln unter Mehr.',
+      'Der Gießplan ist aus dem Gießcenter heraus erreichbar und bleibt zugleich in den Werkzeugen.'
+    ]
+  },
+  {
+    nr: '2.9.25', datum: '2026-08-30', titel: 'Mehr, sortiert',
+    neu: [
+      '„Einstellungen“ bündelt jetzt, was die App als Ganzes betrifft: Ansicht, Kartendichte, die Heute-Zeilen, Haustiere und Rundgang. Die drei Punkte standen vorher einzeln in der Mehr-Liste.',
+      'Kartendichte: Knapp lässt alle Abschnitte einer Pflanzenkarte zugeklappt starten, Ausführlich klappt alles auf, Normal folgt weiter dem, was du zuletzt offen hattest.',
+      'Kennzahlen auf der Heute-Seite — Gesundheit, Gießtreue und Zuwachs im Monat. Standardmäßig aus, einzuschalten unter Einstellungen.',
+      'Die Wetterzeile auf Heute lässt sich abschalten. Mehr › Wetter zeigt die Vorhersage weiterhin.'
+    ],
+    besser: [
+      'Die Mehr-Seite ist in vier Gruppen geteilt: Sammlung, Pflege, App, Hilfe. Vierzehn Zeilen am Stück waren eine Wand.',
+      'Jeder Punkt trägt eine Nebenzeile mit seinem Stand — wie viele Aufgaben offen sind, wann zuletzt gesichert wurde, welcher Ort beim Wetter eingetragen ist.'
+    ]
+  },
+  {
+    nr: '2.9.24', datum: '2026-08-30', titel: 'Die Karte von vorn',
+    neu: [
+      'Die aufgeklappte Pflanzenkarte beginnt jetzt mit dem Profilbild in voller Breite, der Name liegt darauf. Darunter läuft ein Band mit allen Fotos dieser Pflanze — Profilbild wählen, löschen und hinzufügen funktionieren dort wie zuvor.',
+      'Unter dem Bild steht in einer Zeile, wie es ums Gießen bestellt ist, daneben die Zeichenreihe mit Licht, Wasser, Tieren, Frost und Dünger.',
+      '„Gießen“ ist jetzt ein breiter Knopf über die ganze Zeile. Doktor, Substrat, Vermehren und Bearbeiten stehen kleiner darunter.',
+      'Vermehrungen stehen jetzt im Verlauf beider Pflanzen: bei der Mutter „Steckling abgenommen“, beim Ableger „Als Ableger entstanden“ — jeweils mit Sprung in die Karte der anderen.',
+      'Über dem Zeitstrahl steht, woher eine Pflanze kommt und was von ihr abstammt, mit einem Weg in den Stammbaum.'
+    ],
+    besser: [
+      'Aus vier Reitern wurden drei: Pflege, Standort, Verlauf. Der Steckbrief der Art liegt jetzt in Pflege, die Notizen im Verlauf. Der Reiter „Allgemein“ entfällt — seine Inhalte standen ohnehin an drei Stellen verteilt.',
+      'Die Fotos sind aus dem Akkordeon heraus: sie lagen zwei Ebenen tief, obwohl im Raster genau das Bild die Pflanze erkennbar macht.',
+      'Offene Aufgaben stehen vor den Reitern statt darin versteckt.',
+      'Die feste Knopfleiste unter dem Fenstertitel ist aufgelöst. Sie hätte das große Bild zerschnitten.'
+    ]
+  },
+  {
+    nr: '2.9.23', datum: '2026-08-26', titel: 'Raster repariert',
+    besser: [
+      'In Botanisch liefen die Bilder in der Sammlung übereinander, sobald mehr als eine Gruppe zu sehen war — nur die erste Gruppe hatte ein sauberes Raster. Jetzt bekommt jede Gruppe ihre eigene Zeilenhöhe.'
+    ]
+  },
   {
     nr: '2.9.22', datum: '2026-08-26', titel: 'Nachgezogen',
     besser: [
@@ -8664,7 +9383,20 @@ const LEERSTAND = () => ({
   tutorial:{aus:false, kapitel:{}, einricht:0},
   /* Tierhaltung: aktiv sagt, ob überhaupt Warnungen kommen sollen. */
   tiere:{aktiv:null, arten:['katze']},
-  feuchtRueck:{}   /* Rückmeldungen „noch feucht“ je Pflanze */
+  feuchtRueck:{},  /* Rückmeldungen „noch feucht“ je Pflanze */
+  /* Wie viel auf einer aufgeklappten Karte steht: knapp, normal,
+     voll. Steuert nur, was zugeklappt startet — nichts verschwindet. */
+  dichte:'normal',
+  /* Zusatzzeilen über den Aufgaben auf Heute. Das Wetter war bisher
+     immer an, die Kennzahlen gab es gar nicht. */
+  heuteWetter:true, heuteKennzahlen:false,
+  /* Einmaliges Angebot der Runde an Bestandsnutzer. */
+  rundeAngeboten:null,
+  /* Gießcenter: was fuer alle Pflanzen gilt. `art` ist das Wasser aus
+     dem Hahn oder der Tonne, `haerte` bleibt leer, solange es niemand
+     nachgeschlagen hat — raten waere hier schlechter als schweigen. */
+  giess:{art:'leitung', haerte:'', dgArt:'fluessig', winterpause:true,
+         saison:true, saisonStaerke:'normal'}
 });
 let S = LEERSTAND();
 
@@ -9171,6 +9903,14 @@ function intervallVon(p){
   if(w) return sommer() ? w[0] : w[1];
   const iv = intervallBasis(p);
   let basis = sommer() ? iv[0] : iv[1];
+  /* Saison-Anpassung aus dem Gießcenter. Die Winterwerte der Arten
+     sind Mittelwerte für eine normale Wohnung — wer kühl oder dunkel
+     hält, braucht deutlich längere Abstände. Greift nur im Winter,
+     weil saisonFaktor() zwischen März und Oktober 1 zurückgibt. */
+  if(!sommer() && typeof saisonFaktor === 'function'){
+    const f = saisonFaktor();
+    if(f !== 1) basis = Math.max(1, Math.round(basis * f));
+  }
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
   if(z && z.def && z.def.f && z.def.f !== 1) basis = Math.max(1, Math.round(basis * z.def.f));
   else if(p.uebergang && p.uebergangBis && HEUTE < new Date(p.uebergangBis+'T23:59:59')) basis = p.uebergang;
@@ -9706,7 +10446,16 @@ function lageFilterZeichnen(){
 /* ══════════════════ Karte ══════════════════ */
 /* Welche Abschnitte offen sind, merkt sich die App abschnittsweise —
    wer immer die Pflege aufhat, bekommt sie überall aufgeklappt. */
-function accOffen(key){ return !!(S.acc||{})[key]; }
+/* Die Kartendichte entscheidet, was beim Aufklappen einer Karte
+   schon offen steht. „Knapp“ laesst alles zu, „Voll“ klappt alles
+   auf; „Normal“ folgt dem, was man zuletzt selbst offen hatte.
+   Zugeklappt heisst nie: nicht vorhanden. */
+function accOffen(key){
+  const d = S.dichte || 'normal';
+  if(d === 'knapp') return false;
+  if(d === 'voll')  return true;
+  return !!(S.acc||{})[key];
+}
 function acc(key, titel, inhalt, zusatz){
   if(!inhalt || !String(inhalt).trim()) return '';
   const auf = accOffen(key);
@@ -9715,29 +10464,61 @@ function acc(key, titel, inhalt, zusatz){
     <div class="acc-in">${inhalt}</div></details>`;
 }
 
-function schnellLeiste(p){
+/* ── Der Kopf des Kartenfensters ─────────────────────────────
+   Bild, Name, Zustand, Handlungen — in dieser Reihenfolge, weil
+   genau so gelesen wird: erst erkennen, dann einordnen, dann tun.
+   Der Name steht doppelt (Fensterkopf und hier), das ist Absicht:
+   der Fensterkopf scrollt weg, dieser bleibt am Bild. */
+function kartenKopfHTML(p){
   const st = giessStatus(p);
   const heute = giessLog(p.id)[0] === iso(HEUTE);
   const z = zustandVon(p);
+  const stand = karteStand(p);
+  const pf = profilFoto(p.id);
+
+  /* Ohne Foto steht der Name nicht auf einer leeren Flaeche, sondern
+     darunter — heller Text auf hellem Platzhalter waere unlesbar. */
+  const bild = pf
+    ? `<div class="km-held-bild"><img src="${pf.src}" alt="${esc(nice(p))}" decoding="async"></div>`
+    : `<div class="km-held-bild"><div class="km-held-leer">
+         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3"/></svg>
+         <span>Noch kein Foto</span></div></div>`;
+
+  const spitz = (p.name && p.name !== 'Name offen') ? p.name : '';
+  const titel = spitz || (p.botanisch || '').trim() || (p.art || '').trim() || p.id;
+  const unter = [spitz ? (p.art || '') : '', p.botanisch || '', p.id]
+    .filter(Boolean).join(' · ');
+
   const lage = st.stand === 'stopp' ? 'Gießpause'
-    : st.stand === 'unbekannt' ? 'noch nichts eingetragen'
-    : st.rest < 0 ? `${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig`
-    : st.rest === 0 ? 'heute dran' : `wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`;
-  const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
-  return `<div class="schnell">
-    <div class="schnell-lage ${st.stand==='over'||st.stand==='stopp'?'warn':''}">
-      <b>${esc(lage)}</b>${z.code!=='gesund'?` · ${esc(z.def.name)}`:''}${offeneAufgaben?` · ${offeneAufgaben} offen`:''}
+    : st.stand === 'unbekannt' ? 'Noch nichts eingetragen'
+    : st.rest < 0 ? `Gießen: ${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig`
+    : st.rest === 0 ? 'Gießen: heute fällig'
+    : `Gießen: wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`;
+
+  return `<div class="km-held${pf?'':' leer'}">
+      ${bild}
+      <div class="km-held-schleier">
+        <p class="km-held-titel">${esc(titel)}</p>
+        ${unter?`<p class="km-held-art">${esc(unter)}</p>`:''}
+      </div>
     </div>
-    <div class="schnell-btns">
-      <button class="sb sb-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute erledigt ✓':giessTat(p)}</button>
-      <button class="sb" data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
-      <button class="sb" data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
-      <button class="sb" data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
-      <button class="sb" data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
+    <div class="km-fotoband">${galerieHTML(p)}</div>
+    <p class="km-stand" data-ton="${stand.ton}">
+      <i class="km-punkt" aria-hidden="true"></i>${esc(lage)}${z.code!=='gesund'?` · ${esc(z.def.name)}`:''}
+    </p>
+    <div class="km-zeichen">${iconRow(p)}</div>
+    <div class="km-taten">
+      <button class="km-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute erledigt ✓':giessTat(p)}</button>
+      <div class="km-neben">
+        <button data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
+        <button data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
+        <button data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
+        <button data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
+      </div>
     </div>
-  </div>
-  <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
+    <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
 }
+
 
 function giessAbschnitt(p){
   const K = KLASSEN[p.klasse];
@@ -9970,19 +10751,17 @@ function kartenDetailHTML(p){
      eine tote App. */
   if(p.eigen || !p.stamm || !p.bedingungen || !p.probleme){
     detail = `<div class="detail">
-      ${schnellLeiste(p)}
+      ${kartenKopfHTML(p)}
       ${warnungenHTML(p)}
       ${pflegeHinweiseHTML(p)}
+      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
       ${kartenReiter(p.id, [
-        {key:'allgemein', titel:'Allgemein', inhalt:
-          acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
-          + acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')
-          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')},
         {key:'pflege', titel:'Pflege', inhalt:
           acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))},
-        {key:'lage', titel:'Lage', inhalt: lagePaneHTML(p)},
-        {key:'geschichte', titel:'Geschichte', inhalt:
-          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')}
+        {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
+        {key:'verlauf', titel:'Verlauf', inhalt:
+          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
+          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')}
       ])}
     </div>`;
   } else {
@@ -9998,16 +10777,12 @@ function kartenDetailHTML(p){
       <h4>Lebensumstände</h4><dl class="spec">${bed}</dl>${eltern}`;
 
     detail = `<div class="detail">
-      ${schnellLeiste(p)}
+      ${kartenKopfHTML(p)}
+      ${hinweis}
       ${warnungenHTML(p)}
       ${pflegeHinweiseHTML(p)}
+      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
       ${kartenReiter(p.id, [
-        {key:'allgemein', titel:'Allgemein', inhalt:
-          hinweis
-          + acc('fotos', 'Fotos', galerieHTML(p), fs.length?`${fs.length}`:'')
-          + acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')
-          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')
-          + acc('steckbrief', 'Steckbrief', steckbrief)},
         {key:'pflege', titel:'Pflege', inhalt:
           winter
           + acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
@@ -10021,11 +10796,13 @@ function kartenDetailHTML(p){
               return acc('katzen', 'Katzen',
                 `<div class="alert ${g === false ? 'safe' : ''}"><strong>${kopf}</strong> ${esc(text)}</div>`,
                 g === true ? 'giftig' : g === false ? 'sicher' : 'ungeprüft');
-            })()},
-        {key:'lage', titel:'Lage', inhalt: lagePaneHTML(p)},
-        {key:'geschichte', titel:'Geschichte', inhalt:
+            })()
+          + acc('steckbrief', 'Steckbrief der Art', steckbrief)},
+        {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
+        {key:'verlauf', titel:'Verlauf', inhalt:
           acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
           + acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
+          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')
           + acc('herkunft', 'Herkunft', herkunft)}
       ])}
     </div>`;
@@ -10318,7 +11095,61 @@ function wetterSymbolHTML(lage, gross){
     + '<svg viewBox="0 0 24 24">' + lage.svg + '</svg></span>';
 }
 
+/* ── Kennzahlen ueber den Aufgaben ───────────────────────────
+   Drei Zahlen, die den Zustand der Sammlung auf einen Blick geben.
+   Standardmäßig aus: wer vierzehn Pflanzen hat, kennt sie ohnehin.
+   Ab etwa dreissig wird die Übersicht nützlich. */
+function kennzahlen(){
+  const alle = allePflanzen();
+  const gesamt = alle.length;
+
+  /* Gesund: alles ausser Alarmzustaenden. Winterruhe und
+     Eingewöhnung zählen als gesund — sie sind kein Schaden. */
+  const gesund = alle.filter(p=>{
+    const z = zustandVon(p);
+    return !z || z.code === 'gesund' || (z.def && z.def.ton !== 'alarm');
+  }).length;
+
+  /* Gießtreue: der Anteil der Pflanzen, die gerade nicht überfällig
+     sind. Eine Pflanze in Gießpause zählt nicht mit — sie kann
+     nicht überfällig sein. */
+  const zaehlbar = alle.filter(p=>{
+    const st = giessStatus(p);
+    return st.stand !== 'stopp' && st.stand !== 'unbekannt';
+  });
+  const puenktlich = zaehlbar.filter(p=>giessStatus(p).stand !== 'over').length;
+  const treue = zaehlbar.length ? Math.round(puenktlich / zaehlbar.length * 100) : null;
+
+  /* Zuwachs im laufenden Monat, aus dem Zugangsdatum. */
+  const jetzt = new Date(HEUTE);
+  const marke = jetzt.getFullYear() + '-' + String(jetzt.getMonth() + 1).padStart(2, '0');
+  const neu = alle.filter(p=>{
+    const d = p.seit && /^\d{4}-\d{2}/.test(p.seit) ? p.seit.slice(0, 7) : null;
+    return d === marke;
+  }).length;
+
+  return {gesamt, gesund, treue, neu};
+}
+
+function kennzahlenHTML(){
+  if(!S.heuteKennzahlen) return '';
+  const k = kennzahlen();
+  if(!k.gesamt) return '';
+  const feld = (name, wert, zusatz)=>
+    `<div class="kz-feld"><em>${esc(name)}</em><b>${esc(String(wert))}</b>`
+    + (zusatz ? `<i>${esc(zusatz)}</i>` : '') + '</div>';
+  return '<div class="kennzahlen">'
+    + feld('Gesund', k.gesund + '/' + k.gesamt, '')
+    + feld('Gießtreue', k.treue == null ? '—' : k.treue + '%', '')
+    + feld('Neu im Monat', (k.neu > 0 ? '+' : '') + k.neu, '')
+    + '</div>';
+}
+
 function wetterZeileHTML(){
+  /* Abgeschaltet unter Einstellungen › Auf der Heute-Seite. Der
+     Wetterdienst laeuft weiter, nur die Zeile bleibt weg — Mehr ›
+     Wetter zeigt die Vorhersage unverändert. */
+  if(S.heuteWetter === false) return '';
   const w = wetterStand();
   if(!w.ort || !w.daten) return '';
   const d = w.daten;
@@ -10634,15 +11465,13 @@ function karteRumpfFuellen(){
   document.getElementById('karte-titel').textContent = nice(p);
   rumpf.innerHTML = '<article class="card open" id="c-' + p.id + '">'
     + kartenDetailHTML(p) + '</article>';
-  /* Der Schnellzugriff wandert aus dem Scrollbereich in die feste
-     Leiste unter dem Kopf. `position:sticky` hat das nicht gehalten:
-     die Karte darum herum steht auf `overflow:clip`. */
+  /* Die feste Leiste unter dem Kopf ist leer geraeumt. Frueher hing
+     dort der Schnellzugriff; jetzt beginnt die Karte mit dem Bild und
+     die Handlungen stehen direkt darunter im Fluss. Eine zweite
+     Knopfreihe ueber dem Foto haette das Bild nur zerschnitten.
+     `.sekm-fest:empty` blendet den Streifen aus. */
   const fest = document.getElementById('karte-fest');
-  if(fest){
-    fest.innerHTML = '';
-    const sch = rumpf.querySelector('.schnell');
-    if(sch) fest.appendChild(sch);
-  }
+  if(fest) fest.innerHTML = '';
   const i = _karteListe.indexOf(_karteId);
   const vor = document.getElementById('karte-vor');
   const zur = document.getElementById('karte-zurueck');
@@ -10895,10 +11724,11 @@ function render(){
      auf dem Giessknopf darunter, und die Massenaktion „ganzen Raum
      eintragen" sucht dort niemand — sie steht weiterhin im Raum
      selbst. */
-  $('#heute-status').innerHTML = wetterZeileHTML();
+  $('#heute-status').innerHTML = wetterZeileHTML() + kennzahlenHTML();
   $('#stichtage').innerHTML = stichtageHTML();
   meldeRender();
   if(typeof papierkorbRender === 'function') papierkorbRender();
+  if(typeof rundeAngebotZeichnen === 'function') rundeAngebotZeichnen();
   $('#tree').innerHTML = treeHTML();
   const alleTasks = alle.flatMap(aufgabenVon);
   $('#alltodo').innerHTML = taskBlockHTML(alleTasks, 'global', true, null);
@@ -12099,8 +12929,14 @@ function wkFertig(mitTutorial){
      Tutorial Schritt fuer Schritt weiter. Wer es nicht will, bleibt
      einfach auf der Karte stehen; der Knopf dort holt es spaeter. */
   if(typeof ansichtZeigen === 'function') ansichtZeigen('heute');
-  if(mitTutorial && typeof tourStart === 'function' && typeof tourNoetig === 'function'){
-    if(tourNoetig('einricht')) requestAnimationFrame(()=>tourStart('einricht'));
+  /* Der Knopf startet jetzt die Runde, nicht mehr den Sperrablauf.
+     Der Unterschied ist wesentlich: die Runde zeigt in sieben
+     Schritten, wo was liegt, und lässt sich jederzeit abbrechen. Die
+     Ersteinrichtung führt durch das Anlegen einer Pflanze und sperrt
+     dabei den Rest der Seite — sie steht weiter auf der
+     Leerstart-Karte bereit, aber niemand landet ungefragt darin. */
+  if(mitTutorial && typeof tourStart === 'function'){
+    requestAnimationFrame(()=>tourStart('runde'));
   }
 }
 
@@ -12155,6 +12991,38 @@ document.addEventListener('click', e=>{
   if(S.startGesehen || schonDa) return;
   modalAuf('willkommen');
 })();
+
+/* ── Angebot an alle, die es schon benutzen ──────────────────
+   Die Runde ist neu; wer die App seit Monaten hat, hat sie nie
+   gesehen. Ein Hinweis, ein Mal. Wird er weggetippt, kommt er nie
+   wieder — der Weg über Mehr › App Tour bleibt. */
+function rundeAngebotZeichnen(){
+  const box = document.getElementById('runde-angebot');
+  if(!box) return;
+  const neu = !S.startGesehen ? false : true;
+  const zeigen = neu && !S.rundeAngeboten && allePflanzen().length > 0;
+  box.hidden = !zeigen;
+  if(!zeigen) return;
+  box.innerHTML = `<div class="angebot">
+    <p><b>Neu: eine kurze Runde durch die App.</b>
+      Sieben Schritte, eine Minute — zeigt, wo was liegt.</p>
+    <div class="tools">
+      <button class="haupt" data-do="angebot-ja">Ansehen</button>
+      <button data-do="angebot-nein">Nicht nötig</button>
+    </div>
+    <p class="start-fuss">Später jederzeit unter Mehr › App Tour.</p>
+  </div>`;
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do]'); if(!b) return;
+  if(b.dataset.do === 'angebot-ja' || b.dataset.do === 'angebot-nein'){
+    S.rundeAngeboten = iso(HEUTE);
+    sichern();
+    rundeAngebotZeichnen();
+    if(b.dataset.do === 'angebot-ja' && typeof tourStart === 'function') tourStart('runde');
+  }
+});
 
 /* Wetter beim Start auffrischen — aber nur, wenn ein Ort eingetragen
    ist und der letzte Wert aelter als eine Stunde. Sonst laeuft bei
@@ -14458,6 +15326,11 @@ document.addEventListener('click', e=>{
 
 const MEHR_BLOECKE = ['sicherung','urlaub','wetter','tiere','rundgang','ansicht','tour','rueck','install','weg','melde','patch'];
 let _sekOffen = null;
+/* Seit Einstellungen und Gießcenter selbst in Fenster führen, gibt es
+   Ebenen. Ohne Gedächtnis landete man von „Einstellungen › Ansicht“
+   mit einem Druck wieder auf der Mehr-Seite — zwei Ebenen auf einmal.
+   Der Stapel merkt den Weg zurueck. */
+let _sekWeg = [];
 
 function sekAbschnitt(key){
   return document.querySelector('[data-wz="' + key + '"]')
@@ -14475,6 +15348,12 @@ function sektionOeffnen(key, ausloeser){
   if(!sec) return false;
   const box = sec.querySelector('.wz-in');
   if(!box) return false;
+  /* Kam der Anstoss aus dem offenen Fenster selbst, ist das eine
+     Ebene tiefer und kein Wechsel. */
+  const tiefer = !!(_sekOffen && ausloeser && ausloeser.closest
+                    && ausloeser.closest('#sekm-rumpf'));
+  if(tiefer) _sekWeg.push(_sekOffen.key);
+  else _sekWeg = [];
   if(_sekOffen) sekZurueckhaengen();
 
   const titel = sec.querySelector('.wz-t');
@@ -14497,10 +15376,21 @@ function sektionOeffnen(key, ausloeser){
     iknopf.setAttribute('aria-label', 'Wozu ist ' + (titel ? titel.textContent.trim() : 'das') + ' da?');
   }
 
+  sekZurueckKnopf();
   modalAuf('sek-modal', ausloeser);
   if(key === 'grundriss' && typeof planRender === 'function') planRender();
   if(key === 'ansicht' && typeof designWahlZeichnen === 'function') designWahlZeichnen();
   if(key === 'wetter' && typeof wetterEinstellungZeichnen === 'function') wetterEinstellungZeichnen();
+  if(key === 'einstell'){
+    if(typeof dichteZeichnen === 'function') dichteZeichnen();
+    if(typeof heuteSchalterZeichnen === 'function') heuteSchalterZeichnen();
+  }
+  if(['giess','wasser','duenger','rhythmus'].indexOf(key) !== -1
+     && typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
+  if(key === 'umtopfen' && typeof utAufbauen === 'function') utAufbauen();
+  if(key === 'bib-arten' && typeof bibTrefferZeichnen === 'function') bibTrefferZeichnen();
+  if(key === 'bib-rezepte' && typeof bibRezepteZeichnen === 'function') bibRezepteZeichnen();
+  if(key === 'bib-wissen' && typeof bibWissenZeichnen === 'function') bibWissenZeichnen();
   return true;
 }
 
@@ -14514,10 +15404,32 @@ function sekZurueckhaengen(){
 
 modalAnmelden('sek-modal', {
   groesse:'voll', schleier:false,
-  nachZu: ()=>sekZurueckhaengen()
+  nachZu: ()=>{ sekZurueckhaengen(); _sekWeg = []; sekZurueckKnopf(); }
 });
 
-document.getElementById('sekm-zu').onclick = ()=>modalZu('sek-modal');
+/* Auf der obersten Ebene schliesst der Knopf das Fenster, tiefer
+   drinnen führt er eine Ebene zurueck. Die Beschriftung sagt, was
+   passiert — „Fertig" an einer Stelle, von der es noch weitergeht,
+   war die eigentliche Irreführung. */
+function sekZurueckKnopf(){
+  const b = document.getElementById('sekm-zu');
+  if(!b) return;
+  const tief = _sekWeg.length > 0;
+  b.textContent = tief ? '‹ Zurück' : 'Fertig';
+  b.setAttribute('aria-label', tief ? 'Eine Ebene zurück' : 'Fenster schließen');
+}
+
+document.getElementById('sekm-zu').onclick = ()=>{
+  if(_sekWeg.length){
+    const zurueck = _sekWeg.pop();
+    const merk = _sekWeg.slice();
+    sektionOeffnen(zurueck);
+    _sekWeg = merk;
+    sekZurueckKnopf();
+    return;
+  }
+  modalZu('sek-modal');
+};
 document.getElementById('sekm-info').onclick = function(){
   if(!_sekOffen) return;
   const hilfe = _sekOffen.box.querySelector('.wz-hilfe');
@@ -14563,6 +15475,11 @@ document.addEventListener('click', e=>{
    dieselbe Struktur von Hand tragen muessten — und beim siebten
    Werkzeug haette man es an einer Stelle vergessen. */
 const WZ_KACHEL = {
+  umtopfen: {unter:'In den nächsten Topf', svg:
+    '<path d="M5.5 12h13l-1.2 7.2a1.6 1.6 0 0 1-1.6 1.3H8.3a1.6 1.6 0 0 1-1.6-1.3z"/>'
+    + '<path d="M4.4 12h15.2"/><path d="M12 9.6V5.4"/>'
+    + '<path d="M12 6.8c0-2 1.5-3.2 4.2-3.2 0 2.5-1.6 3.8-4.2 3.2z"/>'
+    + '<path d="M12 8.4c0-1.7-1.3-2.7-3.4-2.7 0 2.1 1.3 3.2 3.4 2.7z"/>'},
   doktor: {unter:'Symptome deuten', svg:
     '<circle cx="12" cy="12" r="3"/><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/>'},
   giessplan: {unter:'Die nächsten Tage', svg:
@@ -14599,8 +15516,76 @@ const MH_IKON = {
   install:   '<path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 18h16"/>',
   weg:       '<path d="M4 6h16"/><path d="M9 6V4h6v2"/><path d="M7 6l1 14h8l1-14"/>',
   aufgaben:  '<path d="M4 6h4v4H4zM4 14h4v4H4z"/><path d="M11 8h9M11 16h9"/>',
-  wunsch:    '<path d="M12 20s-7-4.4-7-9.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7-1.2c0 4.8-7 13.2-7 13.2z"/>'
+  wunsch:    '<path d="M12 20s-7-4.4-7-9.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7-1.2c0 4.8-7 13.2-7 13.2z"/>',
+  giess:     '<path d="M4 10h9v6.5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M13 12l5.4-3.4v6.8L13 12"/><path d="M6.5 10V8.2a2.5 2.5 0 0 1 5 0V10"/>',
+  bibliothek:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10a2 2 0 0 1 2 2v13a1.7 1.7 0 0 0-1.7-1.5H4z"/>'
+    + '<path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H14a2 2 0 0 0-2 2v13a1.7 1.7 0 0 1 1.7-1.5H20z"/>',
+  'bib-arten':'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H10a2 2 0 0 1 2 2v13a1.7 1.7 0 0 0-1.7-1.5H4z"/>',
+  'bib-rezepte':'<path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/>',
+  'bib-wissen':'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8.5h.01"/>',
+  wasser:    '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
+  duenger:   '<path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M12 13c0-3-2.4-4.6-6.4-4.6 0 4 2.4 5.6 6.4 4.6z"/>',
+  rhythmus:  '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V7h-3.5"/><path d="M12 8v4.4l2.8 1.6"/>',
+  einstell:  '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-.9a7.6 7.6 0 0 0 2.6 1.5l.5 2.5h4l.5-2.5a7.6 7.6 0 0 0 2.6-1.5l2.3.9 2-3.4z"/>'
 };
+
+/* Eine Nebenzeile je Punkt. Wer die Mehr-Seite aufschlaegt, sieht
+   damit ohne Antippen, was ihn erwartet — und bei Sicherung und
+   Einstellungen sogar den aktuellen Stand. */
+const MH_UNTER = {
+  aufgaben:  ()=>{
+    const n = allePflanzen().flatMap(aufgabenVon).filter(t=>!t.done).length;
+    return n ? (n === 1 ? 'Eine offene Aufgabe' : n + ' offene Aufgaben') : 'Nichts offen';
+  },
+  wunsch:    ()=>{
+    const n = (S.wish||[]).filter(w=>!w.done).length;
+    return n ? (n === 1 ? 'Ein Eintrag' : n + ' Einträge') : 'Leer';
+  },
+  sicherung: ()=>{
+    const d = S.letzteSicherung;
+    if(!d) return 'Noch nie gesichert';
+    const t = (typeof tageSeit === 'function') ? tageSeit(String(d).slice(0,10)) : null;
+    return t === 0 ? 'Heute gesichert'
+      : t === 1 ? 'Gestern gesichert'
+      : t != null ? 'Zuletzt vor ' + t + ' Tagen' : 'Sicherung anlegen';
+  },
+  bibliothek:()=>BIB.length + ' Arten \u00b7 Rezepte \u00b7 Wissenswertes',
+  giess:     ()=>{
+    const n = allePflanzen().filter(p=>giessStatus(p).stand === 'over').length;
+    return n ? (n === 1 ? 'Eine Pflanze überfällig' : n + ' Pflanzen überfällig')
+             : 'Plan, Vertretung, Wasser, Dünger';
+  },
+  wetter:    ()=>{
+    const o = (S.wetter && S.wetter.ort) ? S.wetter.ort : null;
+    return o ? o + ' · Vorhersage und Frost' : 'Ort noch nicht gesetzt';
+  },
+  einstell:  ()=>{
+    const d = {botanisch:'Botanisch', klartext:'Klartext', terrarium:'Terrarium'}[S.design] || 'Botanisch';
+    const dd = {knapp:'Knapp', normal:'Normal', voll:'Ausführlich'}[S.dichte || 'normal'];
+    return d + ' · ' + dd;
+  },
+  tour:      ()=>((S.tutorial||{}).aus ? 'Abgeschaltet' : 'Kapitel erneut ansehen'),
+  install:   ()=>'Auf den Startbildschirm legen',
+  weg:       ()=>{
+    const n = Object.keys(S.weg||{}).length;
+    return n ? (n === 1 ? 'Eine Pflanze' : n + ' Pflanzen') : 'Nichts abgelegt';
+  },
+  melde:     ()=>'Fehlende Art nachtragen',
+  rueck:     ()=>'Fehler und Wünsche',
+  patch:     ()=>'Fassung ' + FASSUNG
+};
+
+/* Vier Gruppen statt einer Liste aus vierzehn. Die Reihenfolge im
+   Dokument bleibt, wie sie ist — gruppiert wird beim Aufbau. */
+const MH_STILL = ['ansicht','tiere','rundgang','wasser','duenger','rhythmus','urlaub',
+                  'bib-arten','bib-rezepte','bib-wissen'];
+
+const MH_GRUPPEN = [
+  {titel:'Sammlung', punkte:['aufgaben','wunsch','weg']},
+  {titel:'Pflege',   punkte:['giess','wetter','bibliothek']},
+  {titel:'App',      punkte:['sicherung','einstell','tour','install']},
+  {titel:'Hilfe',    punkte:['patch','rueck','melde']}
+];
 
 function mehrMenueAusstatten(){
   document.querySelectorAll('section[data-mh]').forEach(sec=>{
@@ -14611,6 +15596,238 @@ function mehrMenueAusstatten(){
       '<span class="mh-ikon" aria-hidden="true">'
       + '<svg viewBox="0 0 24 24">' + d + '</svg></span>');
   });
+  mehrNebenzeilen();
+}
+
+/* Die Nebenzeilen tragen Zahlen, die sich aendern. Darum werden sie
+   bei jedem Aufbau neu geschrieben, nicht einmal beim Start. */
+/* ── Gießcenter ──────────────────────────────────────────────── */
+const WASSER_ART = {
+  leitung:     {name:'Leitungswasser',
+    text:'Passt für die meisten Zimmerpflanzen. Bei Karnivoren, Calathea und Orchideen meldet sich die App, weil die es nicht vertragen.'},
+  abgestanden: {name:'Leitungswasser, abgestanden',
+    text:'Ueber Nacht stehen lassen treibt Chlor aus und bringt es auf Zimmertemperatur. Am Kalk ändert es nichts — der bleibt.'},
+  regen:       {name:'Regenwasser',
+    text:'Weich und kalkfrei, das Beste für fast alles. Nur aus einer offenen Tonne im Sommer nicht über Wochen stehen lassen.'},
+  osmose:      {name:'Osmose oder destilliert',
+    text:'Nährstofffrei und kalkfrei. Notwendig für Karnivoren, für alle anderen unnötig teuer — die brauchen die Mineralien.'}
+};
+const HAERTE_TEXT = {
+  weich:  'Unter 8 °dH. Du kannst fast alles direkt aus dem Hahn gießen.',
+  mittel: '8 bis 14 °dH. Für die meisten unproblematisch, empfindliche Arten danken Regenwasser.',
+  hart:   'Ueber 14 °dH. Kalkränder auf der Erde und braune Blattspitzen bei empfindlichen Arten sind zu erwarten.',
+  '':     'Nicht gesetzt. Die App warnt dann nur bei Arten, die grundsätzlich kein Leitungswasser vertragen.'
+};
+const DGART_TEXT = {
+  fluessig: 'Ins Gießwasser, in der auf der Flasche angegebenen Verdünnung. Am besten steuerbar — du kannst jederzeit aussetzen.',
+  stab:     'Bequem, aber die Menge lässt sich nicht mehr zurücknehmen. Bei kleinen Töpfen leicht zu viel.',
+  langzeit: 'Beim Umtopfen untergemischt, gibt über Monate ab. Danach für etwa ein halbes Jahr nichts zusätzlich düngen.',
+  selbst:   'Bananenschalen, Kaffeesatz, Brennnesseljauche. Nährstoffgehalt schwankt — lieber schwach und häufig als kräftig.'
+};
+const SAISON_TEXT = {
+  sanft:  'Im Winter etwa ein Fünftel längere Abstände. Für helle, warme Wohnungen.',
+  normal: 'Im Winter rund ein Drittel längere Abstände. Passt für die meisten Wohnungen.',
+  stark:  'Im Winter etwa doppelt so lange Abstände. Für kühle oder dunkle Räume.'
+};
+
+function giessEinst(){
+  if(!S.giess) S.giess = {art:'leitung', haerte:'', dgArt:'fluessig',
+                          winterpause:true, saison:true, saisonStaerke:'normal'};
+  return S.giess;
+}
+
+/* Der Faktor, mit dem der Winterabstand gestreckt wird. Greift nur
+   zwischen November und Februar — dazwischen liegt die Uebergangszeit,
+   in der die vorhandenen Sommer- und Winterwerte ohnehin schon
+   auseinanderlaufen. */
+function saisonFaktor(){
+  const g = giessEinst();
+  if(!g.saison) return 1;
+  const m = new Date(HEUTE).getMonth() + 1;
+  if(m >= 3 && m <= 10) return 1;
+  return {sanft:1.2, normal:1.35, stark:1.9}[g.saisonStaerke] || 1.35;
+}
+
+function giessCenterZeichnen(){
+  const g = giessEinst();
+  const setz = (id, attr, wert)=>{
+    const w = document.getElementById(id);
+    if(!w) return;
+    w.querySelectorAll('[' + attr + ']').forEach(b=>
+      b.setAttribute('aria-pressed', String(b.getAttribute(attr) === wert)));
+  };
+  setz('wasser-wahl', 'data-wasser', g.art);
+  setz('haerte-wahl', 'data-haerte', g.haerte || '');
+  setz('dgart-wahl',  'data-dgart',  g.dgArt);
+  setz('saison-wahl', 'data-saison', g.saisonStaerke);
+
+  const txt = (id, t)=>{ const e = document.getElementById(id); if(e) e.textContent = t || ''; };
+  txt('wasser-text', (WASSER_ART[g.art] || {}).text);
+  txt('haerte-text', HAERTE_TEXT[g.haerte || '']);
+  txt('dgart-text',  DGART_TEXT[g.dgArt]);
+  txt('winterpause-text', g.winterpause
+    ? 'Zwischen Oktober und Februar schlägt die App kein Düngen vor.'
+    : 'Es wird das ganze Jahr über gedüngt. Nur sinnvoll, wenn deine Pflanzen unter Lampen durchwachsen.');
+  txt('saison-text', g.saison
+    ? 'Die Gießabstände werden von November bis Februar länger.'
+    : 'Die Abstände bleiben das ganze Jahr gleich.');
+  txt('saison-staerke-text', SAISON_TEXT[g.saisonStaerke]);
+
+  const w = document.getElementById('ck-winterpause');
+  if(w) w.checked = g.winterpause !== false;
+  const sa = document.getElementById('ck-saison');
+  if(sa) sa.checked = g.saison !== false;
+  const st = document.getElementById('saison-wahl');
+  if(st) st.classList.toggle('aus', g.saison === false);
+
+  /* Nebenzeilen im Gießcenter mitziehen */
+  const u = (id, t)=>{ const e = document.getElementById(id); if(e) e.textContent = t; };
+  u('gc-u-wasser', (WASSER_ART[g.art] || {}).name
+    + (g.haerte ? ' · ' + {weich:'weich', mittel:'mittel', hart:'hart'}[g.haerte] : ''));
+  u('gc-u-duenger', {fluessig:'Flüssig', stab:'Stäbchen', langzeit:'Langzeit', selbst:'Selbst angesetzt'}[g.dgArt]
+    + (g.winterpause ? ' · Winterpause' : ''));
+  u('gc-u-rhythmus', g.saison
+    ? 'Saison-Anpassung: ' + {sanft:'sanft', normal:'normal', stark:'stark'}[g.saisonStaerke]
+    : 'Ohne Saison-Anpassung');
+  const pl = document.getElementById('gc-u-plan');
+  if(pl){
+    const n = allePflanzen().filter(p=>giessStatus(p).stand === 'over').length;
+    pl.textContent = n ? (n === 1 ? 'Eine Pflanze überfällig' : n + ' Pflanzen überfällig')
+                       : 'Nichts überfällig';
+  }
+}
+
+document.addEventListener('click', e=>{
+  const paare = [['[data-wasser]','wasser','art'], ['[data-haerte]','haerte','haerte'],
+                 ['[data-dgart]','dgart','dgArt'], ['[data-saison]','saison','saisonStaerke']];
+  for(const [wahl, attr, feld] of paare){
+    const b = e.target.closest('#' + (attr === 'wasser' ? 'wasser-wahl'
+      : attr === 'haerte' ? 'haerte-wahl' : attr === 'dgart' ? 'dgart-wahl' : 'saison-wahl')
+      + ' ' + wahl);
+    if(!b) continue;
+    giessEinst()[feld] = b.getAttribute('data-' + attr);
+    sichern();
+    giessCenterZeichnen();
+    mehrNebenzeilen();
+    if(feld === 'saisonStaerke') render();
+    return;
+  }
+});
+
+document.addEventListener('change', e=>{
+  if(e.target.id === 'ck-winterpause'){
+    giessEinst().winterpause = e.target.checked; sichern(); giessCenterZeichnen(); mehrNebenzeilen();
+  }
+  if(e.target.id === 'ck-saison'){
+    giessEinst().saison = e.target.checked; sichern(); giessCenterZeichnen(); mehrNebenzeilen(); render();
+  }
+});
+
+const DICHTE_TEXT = {
+  knapp:  'Alle Abschnitte starten zugeklappt. Am schnellsten zu überblicken.',
+  normal: 'Was du zuletzt offen hattest, bleibt bei der nächsten Pflanze offen.',
+  voll:   'Alle Abschnitte stehen offen. Am meisten zu scrollen, dafür nichts zu suchen.'
+};
+
+function dichteZeichnen(){
+  const w = document.getElementById('dichte-wahl');
+  if(!w) return;
+  const d = S.dichte || 'normal';
+  w.querySelectorAll('[data-dichte]').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.dichte === d)));
+  const t = document.getElementById('dichte-text');
+  if(t) t.textContent = DICHTE_TEXT[d] || '';
+}
+
+function heuteSchalterZeichnen(){
+  const a = document.getElementById('ck-wetterzeile');
+  const b = document.getElementById('ck-kennzahlen');
+  if(a) a.checked = S.heuteWetter !== false;
+  if(b) b.checked = !!S.heuteKennzahlen;
+}
+
+document.addEventListener('click', e=>{
+  const d = e.target.closest('#dichte-wahl [data-dichte]');
+  if(!d) return;
+  S.dichte = d.dataset.dichte;
+  sichern();
+  dichteZeichnen();
+  mehrNebenzeilen();
+  /* Eine offene Karte soll die neue Dichte sofort zeigen. */
+  if(typeof karteNeuZeichnen === 'function') karteNeuZeichnen();
+});
+
+document.addEventListener('change', e=>{
+  if(e.target.id === 'ck-wetterzeile'){
+    S.heuteWetter = e.target.checked; sichern(); render();
+  }
+  if(e.target.id === 'ck-kennzahlen'){
+    S.heuteKennzahlen = e.target.checked; sichern(); render();
+  }
+});
+
+function mehrNebenzeilen(){
+  document.querySelectorAll('section[data-mh]:not(.mh-still)').forEach(sec=>{
+    const f = MH_UNTER[sec.dataset.mh];
+    const t = sec.querySelector('.wz-t');
+    if(!f || !t) return;
+    let u = t.nextElementSibling;
+    if(!u || !u.classList.contains('mh-unter')){
+      t.insertAdjacentHTML('afterend', '<span class="mh-unter"></span>');
+      u = t.nextElementSibling;
+    }
+    let txt = '';
+    try{ txt = f() || ''; }catch(e){ txt = ''; }
+    u.textContent = txt;
+  });
+}
+
+/* Gruppiert die Abschnitte und setzt Ueberschriften dazwischen.
+   Wie beim Kachelgitter der Werkzeuge: die Abschnitte sind
+   Geschwister im Dokument, eine Gruppe braucht einen Elternteil. */
+function mehrGruppenBauen(){
+  const erste = document.querySelector('section[data-mh]');
+  if(!erste || document.querySelector('.mh-gruppe')) return;
+  const eltern = erste.parentNode;
+  const marke = document.createElement('div');
+  marke.className = 'mh-menue';
+  marke.dataset.ans = 'mehr';
+  eltern.insertBefore(marke, erste);
+
+  /* Erst stilllegen, dann gruppieren: sonst landen sie in der
+     Restgruppe und stehen doppelt in der App. */
+  MH_STILL.forEach(k=>{
+    const sec = document.querySelector('section[data-mh="' + k + '"]');
+    if(sec) sec.classList.add('mh-still');
+  });
+
+  MH_GRUPPEN.forEach(g=>{
+    const kasten = document.createElement('div');
+    kasten.className = 'mh-gruppe';
+    kasten.insertAdjacentHTML('afterbegin',
+      '<p class="mh-abschnitt">' + esc(g.titel) + '</p>');
+    let hat = false;
+    g.punkte.forEach(k=>{
+      const sec = document.querySelector('section[data-mh="' + k + '"]');
+      if(!sec) return;
+      kasten.appendChild(sec);
+      hat = true;
+    });
+    if(hat) marke.appendChild(kasten);
+  });
+
+  /* Was in keiner Gruppe steht, haengt hinten dran statt zu
+     verschwinden — ein neuer Punkt faellt so auf, statt lautlos
+     unsichtbar zu werden. */
+  const rest = Array.prototype.slice.call(document.querySelectorAll('section[data-mh]'))
+    .filter(sec=>!sec.closest('.mh-gruppe') && !sec.classList.contains('mh-still'));
+  if(rest.length){
+    const kasten = document.createElement('div');
+    kasten.className = 'mh-gruppe';
+    kasten.insertAdjacentHTML('afterbegin', '<p class="mh-abschnitt">Weiteres</p>');
+    rest.forEach(sec=>kasten.appendChild(sec));
+    marke.appendChild(kasten);
+  }
 }
 
 function werkzeugKachelnAusstatten(){
@@ -14627,6 +15844,7 @@ function werkzeugKachelnAusstatten(){
   });
 }
 werkzeugKachelnAusstatten();
+mehrGruppenBauen();
 mehrMenueAusstatten();
 
 /* Auf „Mehr" bleibt die Liste, nur zugeklappt. */
@@ -15389,8 +16607,12 @@ function erststartZeigen(){
       <button class="haupt" data-do="start-anlegen">Erste Pflanze anlegen</button>
       <button data-do="start-import">Sicherung laden</button>
     </div>
-    ${(typeof tourNoetig === 'function' && tourNoetig('einricht'))
-      ? '<p class="start-fuss"><button class="linkbtn" data-do="start-tour">Lieber Schritt f\u00fcr Schritt f\u00fchren lassen</button></p>' : ''}
+    <p class="start-fuss">
+      <button class="linkbtn" data-do="start-runde">Kurze Runde durch die App</button>
+      &nbsp;·&nbsp;
+      <button class="linkbtn" data-do="start-tour">Schritt für Schritt führen lassen</button>
+    </p>
+    <p class="start-fuss">Beides findest du jederzeit unter Mehr › App Tour wieder.</p>
     <ol class="start-weg">
       <li><b>Anlegen</b> — Art suchen, Name vergeben, fertig.</li>
       <li><b>Grundriss</b> — Raum zeichnen und die Pflanze hineinstellen, dann kennt die App ihr Licht.</li>
@@ -15402,6 +16624,10 @@ function erststartZeigen(){
 }
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
+  if(b.dataset.do === 'start-runde'){
+    if(typeof tourStart === 'function') tourStart('runde');
+    return;
+  }
   if(b.dataset.do === 'start-anlegen'){
     ansichtZeigen('sammlung');
     const f = document.getElementById('form-neu');
@@ -16287,6 +17513,14 @@ $('#btn-dok-paste').onclick = ()=>{
       && /kein(e)?\s+umtopfen|nicht\s+n(ö|oe)tig|nichts\s+zu\s+tun/i.test(topf.empfehlung || '');
     if(topf && topf.empfehlung && !topfEgal) notiz.push('Topf und Platz: ' + topf.groesse
       + (topf.material ? ', ' + topf.material : '') + ', ' + topf.ablauf + '. ' + topf.empfehlung);
+    /* Sagt der Befund, dass der Topf nicht mehr passt, ist das kein
+       Notizthema, sondern eine Handlung. Die Pflanze wird vorgemerkt —
+       der Umtopf-Assistent findet sie dann von selbst. */
+    if(topf && !topfEgal && /zu klein|durchwurzelt|wurzelgebunden|zu groß/i
+         .test((topf.groesse || '') + ' ' + (topf.empfehlung || ''))){
+      umtopfVormerken(dokPflanze, topf.empfehlung || topf.groesse);
+      teile.push('Fürs Umtopfen vorgemerkt');
+    }
     if(notiz.length){
       const p = allePflanzen().find(x=>x.id===dokPflanze);
       const alt = (p.notiz||'').trim();
@@ -16423,6 +17657,410 @@ suchHinweisZeigen();
 /* ══════════════════ Substrat: Bedienung ══════════════════ */
 let subPflanze = null;
 let subZiel = 'standard';
+/* ══════════════════ Bibliothek ══════════════════
+   Die Artentabelle war bisher nur beim Anlegen zu erreichen. Wer vor
+   einem Kauf wissen wollte, ob eine Art fuer Katzen giftig ist, musste
+   eine Pflanze anlegen, die es noch gar nicht gibt.
+   ═══════════════════════════════════════════════════ */
+const DIY_REZEPTE = [
+  {name:'Bananenschalen-Sud', profil:'Kaliumbetont', staerke:55,
+   zutaten:'Eine Bananenschale, ein Liter Wasser.',
+   ansatz:'Schale klein schneiden, 24 bis 48 Stunden im Wasser ziehen lassen, danach abseihen.',
+   wann:'Alle vier Wochen anstelle einer normalen Gießung. Besonders während Knospen und Blüte.',
+   achtung:'Nicht länger ziehen lassen — danach kippt der Ansatz und riecht entsprechend.'},
+  {name:'Kaffeesatz-Aufguss', profil:'Stickstoffbetont', staerke:70,
+   zutaten:'Zwei Eßlöffel getrockneter Kaffeesatz, ein Liter Wasser.',
+   ansatz:'Einige Stunden ziehen lassen, abseihen.',
+   wann:'Alle drei bis vier Wochen während der Wachstumszeit.',
+   achtung:'Kaffeesatz säuert leicht an. Für Kalkliebhaber wie Zimmerlinde ungeeignet, für die meisten Grünpflanzen gut. Nie trocken auf die Erde streuen — er schimmelt.'},
+  {name:'Brennnesseljauche', profil:'Vollwertig, sehr kräftig', staerke:90,
+   zutaten:'Eine Handvoll frische Brennnesseln, ein Liter Wasser.',
+   ansatz:'Ein bis zwei Wochen im offenen Gefäß gären lassen, täglich umrühren, dann abseihen.',
+   wann:'Nur stark verdünnt, etwa eins zu zehn. Alle vier Wochen für starkzehrende Pflanzen.',
+   achtung:'Riecht während der Gärung erheblich — auf dem Balkon ansetzen, nicht im Bad. Unverdünnt verbrennt sie Wurzeln.'},
+  {name:'Eierschalen-Wasser', profil:'Kalzium', staerke:30,
+   zutaten:'Schalen von fünf Eiern, ein Liter Wasser.',
+   ansatz:'Schalen zerdrücken, ein bis zwei Tage einlegen, abseihen.',
+   wann:'Selten, alle sechs bis acht Wochen. Vor allem für Pflanzen in weichem Wasser.',
+   achtung:'Bringt Kalk mit. Bei Karnivoren, Calathea und Orchideen auf keinen Fall verwenden.'}
+];
+
+const BIB_WISSEN = [
+  {gruppe:'Wasser', titel:'Wasserhärte', kurz:'Gemessen in Grad deutscher Härte',
+   text:'Unter 8 °dH gilt Wasser als weich, über 14 als hart. Der Wert steht auf der Rechnung des Wasserwerks. Hartes Wasser hinterlässt weiße Ränder auf der Erde und führt bei empfindlichen Arten zu braunen Blattspitzen — dem Wasser selbst ist das nicht anzusehen. Das Problem ist nicht der Kalk im Wasser, sondern der Kalk, der nach dem Verdunsten im Topf bleibt und sich über Jahre anreichert.'},
+  {gruppe:'Wasser', titel:'Welches Wasser wofür', kurz:'Leitung, Regen, Osmose',
+   text:'Die meisten Zimmerpflanzen kommen mit Leitungswasser aus. Drei Gruppen nicht: Karnivoren sterben daran, weil ihre Wurzeln auf nährstofffreies Moorwasser eingestellt sind. Calathea und Maranten bekommen braune Ränder. Orchideen vertragen es, danken aber weiches Wasser. Regenwasser ist für alle drei die einfachste Lösung, Osmosewasser die teure.'},
+  {gruppe:'Wasser', titel:'Von oben, von unten, getaucht', kurz:'Drei Wege, dieselbe Menge',
+   text:'Von oben ist der Normalfall: gießen, bis unten Wasser austritt, nach einer Viertelstunde den Untersetzer leeren. Von unten heißt, das Wasser in den Untersetzer zu geben — richtig für alles mit empfindlichem Blattherz wie Usambaraveilchen. Tauchen bedeutet, den Topf zehn Minuten in einen Eimer zu stellen; das ist der einzige Weg, einen völlig ausgetrockneten Ballen wieder zu benetzen, weil trockener Torf Wasser sonst abweißt.'},
+  {gruppe:'Substrat', titel:'Was die Bestandteile tun', kurz:'Struktur, Speicher, Nährstoff',
+   text:'Ein Substrat hat drei Aufgaben: es hält die Pflanze fest, speichert Wasser und lässt Luft an die Wurzeln. Blumenerde kann das erste und zweite, das dritte nur anfangs — sie verdichtet mit der Zeit. Rindenhäcksel, Perlite und Blähton bringen Struktur, Kokos und Torf speichern, Wurmhumus und Kompost bringen Nährstoffe. Fast jede Fertigmischung wird besser, wenn man ein Drittel grobes Material untermischt.'},
+  {gruppe:'Substrat', titel:'Woher bekommt man das', kurz:'Bezugsquellen',
+   text:'Perlite, Blähton und Rindenhäcksel gibt es im Gartencenter, oft aber nur in großen Säcken. Kleinere Mengen bekommt man über Aquarien- und Terrarienbedarf oder im Netz bei Händlern für Aroideen. Sphagnum-Moos und Pinienrinde laufen dort meist unter Orchideenbedarf. Wer nur wenige Pflanzen hat, kommt mit Blumenerde plus einer Tüte Perlite lange aus.'},
+  {gruppe:'Nährstoffe', titel:'Was N, P und K bedeuten', kurz:'Die drei Zahlen auf der Flasche',
+   text:'Stickstoff (N) treibt Blätter und Triebe. Phosphor (P) geht in Wurzeln und Blüten. Kalium (K) steuert den Wasserhaushalt und macht das Gewebe fest. Ein Grünpflanzendünger hat viel N, ein Blühdünger mehr P und K. Für die meisten Zimmerpflanzen reicht ein ausgewogener Volldünger — die Feinabstimmung lohnt erst, wenn eine Pflanze ein erkennbares Problem hat.'},
+  {gruppe:'Nährstoffe', titel:'Düngerarten', kurz:'Flüssig, Stab, Langzeit',
+   text:'Flüssigdünger ins Gießwasser ist am besten steuerbar: du kannst jederzeit aussetzen. Düngestäbchen sind bequem, lassen sich aber nicht zurücknehmen — in kleinen Töpfen wird es leicht zu viel und die Wurzeln direkt am Stab nehmen Schaden. Langzeitdünger wird beim Umtopfen untergemischt und gibt über Monate ab; danach ein halbes Jahr nichts zusätzlich geben.'},
+  {gruppe:'Nährstoffe', titel:'Zu viel Dünger', kurz:'Häufiger als zu wenig',
+   text:'Überdüngung sieht aus wie Trockenheit: braune Blattränder, hängende Blätter trotz feuchter Erde. Der Grund ist, dass angesammeltes Salz den Wurzeln Wasser entzieht. Erste Hilfe ist, den Ballen mehrfach mit klarem Wasser durchzuspülen und den Untersetzer jedes Mal zu leeren. Im Winter zu düngen ist der häufigste Weg dorthin — die Pflanze wächst nicht, das Salz bleibt.'}
+];
+
+function bibSuchen(text){
+  const q = norm(text);
+  if(!q) return [];
+  return BIB.filter(a=>
+    norm(a.de).indexOf(q) !== -1 || norm(a.bot).indexOf(q) !== -1
+    || norm(a.fam || '').indexOf(q) !== -1 || norm(a.en || '').indexOf(q) !== -1
+  ).slice(0, 40);
+}
+
+function bibArtHTML(a){
+  const kl = KLASSEN[a.klasse] || {};
+  const gift = a.giftig === 'ja' ? 'Für Katzen und Hunde giftig'
+    : a.giftig === 'nein' ? 'Ungiftig für Katzen und Hunde'
+    : 'Giftigkeit nicht gesichert';
+  const zeilen = [
+    ['Botanisch', a.bot], ['Familie', a.fam || '—'],
+    ['Gießklasse', (kl.name || a.klasse) + (kl.sommer ? ' · ' + kl.sommer : '')],
+    ['Licht', (typeof SONNE === 'object' && SONNE[a.licht] ? SONNE[a.licht].name : a.licht) || '—'],
+    ['Tiere', gift],
+    ['Dünger', a.duenger || '—'],
+    ['Verträgt bis', a.frost != null ? a.frost + ' °C' : 'keine Angabe']
+  ];
+  return `<details class="bib-art"><summary><b>${esc(a.de)}</b><i>${esc(a.bot)}</i></summary>
+    <dl class="ut-zsf-liste">${zeilen.map(([k, v])=>
+      `<div><dt>${esc(k)}</dt><dd>${esc(String(v))}</dd></div>`).join('')}</dl>
+    ${a.spez && a.spez.length ? `<ul class="bib-spez">${a.spez.map(x=>
+      `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</details>`;
+}
+
+function bibTrefferZeichnen(){
+  const feld = document.getElementById('bib-such');
+  const box = document.getElementById('bib-treffer');
+  const zahl = document.getElementById('bib-such-zahl');
+  if(!box) return;
+  const q = feld ? feld.value : '';
+  if(!q.trim()){
+    box.innerHTML = '';
+    if(zahl) zahl.textContent = BIB.length + ' Arten in der Tabelle. Tippe einen Namen ein.';
+    return;
+  }
+  const t = bibSuchen(q);
+  if(zahl) zahl.textContent = t.length
+    ? (t.length === 1 ? 'Ein Treffer' : t.length + ' Treffer'
+       + (t.length === 40 ? ' — die ersten vierzig' : ''))
+    : 'Nichts gefunden. Auch der botanische Name und die Familie werden durchsucht.';
+  box.innerHTML = t.map(bibArtHTML).join('');
+}
+
+function bibRezepteZeichnen(){
+  const box = document.getElementById('bib-rezepte');
+  if(!box || box.children.length) return;
+  box.innerHTML = DIY_REZEPTE.map(r=>
+    `<details class="bib-art"><summary><b>${esc(r.name)}</b><i>${esc(r.profil)}</i>
+      <span class="bib-bahn"><span style="width:${r.staerke}%"></span></span></summary>
+      <dl class="ut-zsf-liste">
+        <div><dt>Zutaten</dt><dd>${esc(r.zutaten)}</dd></div>
+        <div><dt>Ansatz</dt><dd>${esc(r.ansatz)}</dd></div>
+        <div><dt>Anwendung</dt><dd>${esc(r.wann)}</dd></div>
+      </dl>
+      <p class="bib-achtung">${esc(r.achtung)}</p></details>`).join('');
+}
+
+function bibWissenZeichnen(){
+  const box = document.getElementById('bib-wissen');
+  if(!box || box.children.length) return;
+  const gruppen = [];
+  BIB_WISSEN.forEach(x=>{
+    if(!gruppen.length || gruppen[gruppen.length - 1].name !== x.gruppe)
+      gruppen.push({name:x.gruppe, punkte:[]});
+    gruppen[gruppen.length - 1].punkte.push(x);
+  });
+  box.innerHTML = gruppen.map(g=>
+    `<p class="ein-abschnitt">${esc(g.name)}</p>` + g.punkte.map(x=>
+      `<details class="bib-art"><summary><b>${esc(x.titel)}</b><i>${esc(x.kurz)}</i></summary>
+        <p class="bib-text">${esc(x.text)}</p></details>`).join('')).join('');
+}
+
+document.addEventListener('input', e=>{
+  if(e.target.id === 'bib-such') bibTrefferZeichnen();
+});
+
+/* ══════════════════ Umtopf-Assistent ══════════════════
+   Fuenf Stufen. Der Wert liegt nicht im Ablauf selbst, sondern
+   darin, was am Ende zusammenlaeuft: ohne diesen Weg muesste man
+   Topfgroesse, Verlaufseintrag, Zustand und die Stecklinge an vier
+   Stellen von Hand nachtragen — und die Haelfte davon vergessen.
+   ═══════════════════════════════════════════════════════ */
+const UT_GRUENDE = {
+  wurzelig:  {name:'Wurzelgebunden', kurz:'Wurzeln drehen sich im Topf',
+    hinweis:'Den Ballen vorsichtig auflösen und die äußeren Wurzeln aufreissen, sonst wachsen sie weiter im Kreis.'},
+  klein:     {name:'Topf zu klein', kurz:'Pflanze wirkt beengt',
+    hinweis:'Höchstens vier Zentimeter größer wählen. Ein Sprung von 12 auf 24 cm hält monatelang Nässe im Randbereich.'},
+  substrat:  {name:'Substrat verbraucht', kurz:'Erde verdichtet oder ausgelaugt',
+    hinweis:'Alte Erde weitgehend abschuetteln. Der Topf darf dabei derselbe bleiben.'},
+  faeule:    {name:'Wurzelfäule', kurz:'Weiche, dunkle Wurzeln',
+    hinweis:'Alles Weiche wegschneiden, Werkzeug zwischendurch abwischen. Danach mineralisch und grob topfen, Untersetzer leer lassen und sparsam gießen.'},
+  kauf:      {name:'Nach dem Kauf', kurz:'Neuzugang aus dem Handel',
+    hinweis:'Nicht sofort — erst zwei bis drei Wochen eingewöhnen lassen. Ausnahme: der Ballen ist völlig durchwurzelt oder faul.'},
+  teilen:    {name:'Teilen', kurz:'Pflanze wird aufgeteilt',
+    hinweis:'Mit einem sauberen Schnitt trennen, jede Hälfte braucht eigene Wurzeln und Blattmasse.'}
+};
+
+/* Vorgemerkt wird aus dem Doktor heraus oder von Hand. Die Liste ist
+   der Grund, warum der Assistent nicht bei jedem Aufruf mit einer
+   beliebigen Pflanze startet. */
+function umtopfVormerken(id, warum){
+  if(!id) return false;
+  if(!S.umtopfPlan) S.umtopfPlan = {};
+  S.umtopfPlan[id] = {seit:iso(HEUTE), warum: warum || ''};
+  sichern();
+  return true;
+}
+function umtopfVermerkWeg(id){
+  if(S.umtopfPlan) delete S.umtopfPlan[id];
+  sichern();
+}
+function umtopfVorgemerkt(){
+  const plan = S.umtopfPlan || {};
+  return allePflanzen().filter(p=>!!plan[p.id]);
+}
+
+const UT = {stufe:1, pflanze:null, gruende:[], form:'kultur', topf:18,
+            stecklinge:false, zahl:1, art:null};
+const UT_STUFEN = 5;
+
+function utPflanzen(){
+  return allePflanzen().slice().sort((a, b)=>nice(a).localeCompare(nice(b), 'de'));
+}
+
+function utAufbauen(){
+  const sel = document.getElementById('ut-pflanze');
+  if(!sel) return;
+  const liste = utPflanzen();
+  const plan = S.umtopfPlan || {};
+  const vor = liste.filter(p=>plan[p.id]);
+  const rest = liste.filter(p=>!plan[p.id]);
+  /* Vorgemerkte zuerst, in einer eigenen Gruppe — sonst muesste man
+     sie in einer Liste von vierzig Namen wiederfinden. */
+  sel.innerHTML =
+    (vor.length ? '<optgroup label="Vorgemerkt">' + vor.map(p=>
+      `<option value="${p.id}">${esc(nice(p))}</option>`).join('') + '</optgroup>' : '')
+    + (rest.length ? '<optgroup label="Übrige Sammlung">' + rest.map(p=>
+      `<option value="${p.id}">${esc(nice(p))}</option>`).join('') + '</optgroup>' : '');
+  if(!UT.pflanze || !liste.some(p=>p.id === UT.pflanze))
+    UT.pflanze = (vor[0] || liste[0] || {}).id || null;
+  if(UT.pflanze) sel.value = UT.pflanze;
+
+  const gr = document.getElementById('ut-gruende');
+  if(gr && !gr.children.length){
+    gr.innerHTML = Object.keys(UT_GRUENDE).map(k=>
+      `<button class="ut-grund" data-ut-grund="${k}" aria-pressed="false">
+        <b>${esc(UT_GRUENDE[k].name)}</b><i>${esc(UT_GRUENDE[k].kurz)}</i></button>`).join('');
+  }
+
+  const fm = document.getElementById('ut-formen');
+  if(fm && !fm.children.length){
+    fm.innerHTML = Object.keys(TOPFFORMEN).map(k=>
+      `<button class="ut-form" data-ut-form="${k}" aria-pressed="${k === 'kultur'}">
+        <b>${esc(TOPFFORMEN[k].name)}</b></button>`).join('');
+  }
+
+  const art = document.getElementById('ut-steckling-art');
+  if(art && !art.children.length && typeof V_METHODEN === 'object'){
+    art.innerHTML = Object.keys(V_METHODEN).map(k=>
+      `<option value="${k}">${esc(V_METHODEN[k].name)}</option>`).join('');
+    UT.art = Object.keys(V_METHODEN)[0];
+  }
+  utZeichnen();
+}
+
+function utZeichnen(){
+  const wz = document.getElementById('wz-in-umtopfen');
+  if(!wz) return;
+  wz.querySelectorAll('[data-ut-stufe]').forEach(el=>
+    el.classList.toggle('an', Number(el.dataset.utStufe) === UT.stufe));
+  const f = document.getElementById('ut-fortschritt');
+  if(f) [...f.children].forEach((li, i)=>{
+    li.classList.toggle('jetzt', i + 1 === UT.stufe);
+    li.classList.toggle('fertig', i + 1 < UT.stufe);
+  });
+  const zur = document.getElementById('ut-zurueck');
+  const wei = document.getElementById('ut-weiter');
+  if(zur) zur.hidden = UT.stufe === 1;
+  if(wei) wei.hidden = UT.stufe === UT_STUFEN;
+
+  const p = UT.pflanze ? allePflanzen().find(x=>x.id === UT.pflanze) : null;
+
+  /* Stufe 1: was an dieser Pflanze gerade dran ist */
+  const lage = document.getElementById('ut-pflanze-lage');
+  if(lage && p){
+    const z = zustandVon(p);
+    const teile = [];
+    if(p.topf) teile.push('Bisher ' + p.topf + ' cm');
+    if(z && z.code !== 'gesund') teile.push(z.def.name);
+    const letzt = ereignisse(p.id).find(e=>e.typ === 'umgetopft');
+    if(letzt) teile.push('Zuletzt umgetopft am '
+      + new Date(letzt.datum + 'T12:00:00').toLocaleDateString('de-DE'));
+    const merk = (S.umtopfPlan || {})[p.id];
+    if(merk) teile.unshift('Vom Doktor vorgemerkt'
+      + (merk.warum ? ': ' + merk.warum : ''));
+    lage.textContent = teile.join(' · ') || 'Noch keine Angaben zum Topf.';
+  }
+
+  /* Stufe 2 */
+  document.querySelectorAll('[data-ut-grund]').forEach(b=>
+    b.setAttribute('aria-pressed', String(UT.gruende.indexOf(b.dataset.utGrund) !== -1)));
+  const gt = document.getElementById('ut-grund-text');
+  if(gt) gt.textContent = UT.gruende.map(k=>UT_GRUENDE[k].hinweis).join(' ');
+
+  /* Stufe 3 */
+  document.querySelectorAll('[data-ut-form]').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.utForm === UT.form)));
+  const t = document.getElementById('ut-topf');
+  if(t && Number(t.value) !== UT.topf) t.value = UT.topf;
+  const v = document.getElementById('ut-volumen');
+  if(v){
+    const liter = topfVolumen(UT.topf, UT.form);
+    v.textContent = 'Ein ' + TOPFFORMEN[UT.form].name.toLowerCase() + ' mit '
+      + UT.topf + ' cm fasst rund ' + liter.toFixed(1).replace('.', ',') + ' Liter Substrat.';
+  }
+  /* Der Sprung von der alten zur neuen Groesse ist die Angabe, bei
+     der am haeufigsten zu viel gewollt wird. */
+  const sp = document.getElementById('ut-sprung');
+  if(sp){
+    const alt = p && p.topf ? Number(p.topf) : null;
+    if(!alt) sp.textContent = '';
+    else if(UT.topf <= alt) sp.textContent = 'Gleich groß oder kleiner als bisher — in Ordnung, wenn nur das Substrat getauscht wird.';
+    else if(UT.topf - alt > 4) sp.textContent = 'Das sind ' + (UT.topf - alt)
+      + ' cm mehr. Mehr als vier Zentimeter Sprung hält lange Nässe im Randbereich.';
+    else sp.textContent = (UT.topf - alt) + ' cm mehr als bisher — ein guter Sprung.';
+  }
+
+  /* Stufe 4 */
+  const feld = document.getElementById('ut-steckling-feld');
+  if(feld) feld.hidden = !UT.stecklinge;
+  const ck = document.getElementById('ut-hat-stecklinge');
+  if(ck) ck.checked = UT.stecklinge;
+  const stx = document.getElementById('ut-steckling-text');
+  if(stx && UT.art && typeof V_METHODEN === 'object' && V_METHODEN[UT.art])
+    stx.textContent = V_METHODEN[UT.art].kurz || '';
+
+  /* Stufe 5 */
+  const z = document.getElementById('ut-zsf');
+  if(z && p) z.innerHTML = utZusammenfassung(p);
+}
+
+function utZusammenfassung(p){
+  const zeilen = [];
+  zeilen.push(['Pflanze', nice(p)]);
+  zeilen.push(['Neuer Topf', UT.topf + ' cm · ' + TOPFFORMEN[UT.form].name]);
+  zeilen.push(['Substratmenge', topfVolumen(UT.topf, UT.form).toFixed(1).replace('.', ',') + ' Liter']);
+  if(UT.gruende.length)
+    zeilen.push(['Grund', UT.gruende.map(k=>UT_GRUENDE[k].name).join(', ')]);
+  zeilen.push(['Verlauf', 'Eintrag „Umgetopft“ am heutigen Tag']);
+  zeilen.push(['Zustand', 'Frisch umgetopft — vier Wochen nicht düngen']);
+  if(UT.stecklinge && UT.zahl > 0)
+    zeilen.push(['Stecklinge', UT.zahl + ' × ' + (V_METHODEN[UT.art] || {}).name
+      + ' — als eigene Pflanzen angelegt und im Stammbaum verbunden']);
+  return '<dl class="ut-zsf-liste">' + zeilen.map(([a, b])=>
+    `<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join('') + '</dl>';
+}
+
+/* Der Abschluss. Hier laufen die Faeden zusammen — jeder einzelne
+   Schritt waere sonst Handarbeit an einer anderen Stelle der App. */
+function utEintragen(){
+  const p = allePflanzen().find(x=>x.id === UT.pflanze);
+  if(!p) return false;
+
+  /* 1. Neue Topfgroesse an die Pflanze */
+  aenderungSetzen(p.id, {topf:String(UT.topf), topfform:UT.form});
+
+  /* 2. Verlauf. EREIGNIS_ARTEN.umgetopft traegt zustand:'frisch' —
+        damit greift zugleich die Duengesperre ueber ZUSTAENDE.frisch
+        mit ihren 28 Tagen. Ein zweiter Eintrag ist nicht noetig. */
+  const grund = UT.gruende.map(k=>UT_GRUENDE[k].name).join(', ');
+  ereignisDazu(p.id, 'umgetopft',
+    UT.topf + ' cm' + (grund ? ' · ' + grund : ''));
+
+  /* 3. Stecklinge: dieselbe Bahn wie im Vermehren-Werkzeug, damit
+        Verlauf und Stammbaum genau ein Verfahren kennen. */
+  const kinder = [];
+  if(UT.stecklinge && UT.zahl > 0 && UT.art){
+    for(let i = 0; i < Math.min(12, UT.zahl); i++){
+      const k = ablegerAnlegen(p.id, UT.art);
+      if(k) kinder.push(k.id);
+    }
+  }
+
+  /* 4. Die Vormerkung ist erledigt — sonst stuende die Pflanze beim
+        naechsten Aufruf weiter oben in der Liste. */
+  umtopfVermerkWeg(p.id);
+
+  sichern();
+  render();
+  UT.stufe = 1; UT.gruende = []; UT.stecklinge = false; UT.zahl = 1;
+  utZeichnen();
+  return {pflanze:p.id, kinder};
+}
+
+document.addEventListener('click', e=>{
+  const g = e.target.closest('[data-ut-grund]');
+  if(g){
+    const k = g.dataset.utGrund;
+    const i = UT.gruende.indexOf(k);
+    if(i === -1) UT.gruende.push(k); else UT.gruende.splice(i, 1);
+    utZeichnen(); return;
+  }
+  const f = e.target.closest('[data-ut-form]');
+  if(f){ UT.form = f.dataset.utForm; utZeichnen(); return; }
+
+  if(e.target.closest('#ut-weiter')){
+    if(UT.stufe < UT_STUFEN) UT.stufe++;
+    utZeichnen(); return;
+  }
+  if(e.target.closest('#ut-zurueck')){
+    if(UT.stufe > 1) UT.stufe--;
+    utZeichnen(); return;
+  }
+  if(e.target.closest('#ut-fertig')){
+    const r = utEintragen();
+    if(r){
+      const z = document.getElementById('ut-zsf');
+      if(z) z.innerHTML = '<p class="ut-fertig-melde">Eingetragen.'
+        + (r.kinder.length ? ' ' + r.kinder.length + ' Steckling'
+           + (r.kinder.length === 1 ? '' : 'e') + ' angelegt und im Stammbaum verbunden.' : '')
+        + '</p>' + z.innerHTML;
+    }
+    return;
+  }
+  /* Der Substratmischer rechnet dieselbe Menge — mit Topfgroesse und
+     Form vorbelegt, damit niemand sie zweimal eintippt. */
+  if(e.target.closest('#ut-zum-substrat')){
+    subTopf = UT.topf; subForm = UT.form;
+    if(UT.pflanze){
+      const sp = document.getElementById('sub-pflanze');
+      if(sp) sp.value = UT.pflanze;
+    }
+    sektionOeffnen('substrat', e.target.closest('#ut-zum-substrat'));
+    if(typeof subAufbau === 'function') subAufbau();
+    if(typeof subErgebnis === 'function') subErgebnis();
+    return;
+  }
+});
+
+document.addEventListener('change', e=>{
+  if(e.target.id === 'ut-pflanze'){ UT.pflanze = e.target.value; utZeichnen(); }
+  if(e.target.id === 'ut-topf'){
+    UT.topf = Math.max(5, Math.min(80, Number(e.target.value) || 18));
+    utZeichnen();
+  }
+  if(e.target.id === 'ut-hat-stecklinge'){ UT.stecklinge = e.target.checked; utZeichnen(); }
+  if(e.target.id === 'ut-steckling-zahl'){
+    UT.zahl = Math.max(1, Math.min(12, Number(e.target.value) || 1));
+  }
+  if(e.target.id === 'ut-steckling-art'){ UT.art = e.target.value; utZeichnen(); }
+});
+
 let subTopf = 18;
 let subForm = 'kultur';
 
@@ -16913,6 +18551,13 @@ function ablegerAnlegen(mutterId, methodeId){
   const liste = S.added[id] = S.added[id] || [];
   m.schritte.slice(0, 2).forEach(t=>liste.push(
     {id:'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), text:t}));
+  /* Beide Verlaeufe bekommen ihren Eintrag. Bisher stand die
+     Abstammung nur im Steckbrief des Ablegers — bei der Mutter war
+     nirgends zu sehen, dass ihr etwas abgenommen wurde. */
+  if(typeof ereignisDazu === 'function'){
+    ereignisDazu(mutterId, 'vermehrt', m.name, id);
+    ereignisDazu(id, 'entstanden', m.name + ' von ' + nice(mutter), mutterId);
+  }
   sichern();
   return p;
 }
@@ -17178,9 +18823,7 @@ document.addEventListener('click', e=>{
   if(a === 'blatt-weg'){ ereignisDazu(p.id, 'blatt_weg'); rgErfasst++; rgZeichnen(); return; }
   if(a.indexOf('ev:') === 0){
     const typ = a.slice(3);
-    ereignisDazu(p.id, typ); rgErfasst++;
-    const art = EREIGNIS_ARTEN[typ];
-    if(art && art.zustand && typeof zustandSetzen === 'function') zustandSetzen(p.id, art.zustand);
+    ereignisDazu(p.id, typ); rgErfasst++;   /* setzt den Zustand selbst */
     rgZeichnen();
   }
 });
@@ -17451,6 +19094,57 @@ let tourTakt = null;
 
 const TOUR_KAPITEL = {
 
+  /* ── Die Runde ────────────────────────────────────────────────
+     Sieben Schritte, je ein Satz. Sie zeigt, *dass* es etwas gibt —
+     nicht, wie es geht. Das steht in den i-Knöpfen der Bereiche.
+
+     Sie läuft auch bei leerer Sammlung, weil jeder Schritt auf einen
+     Ort zeigt und nicht auf einen Inhalt. Wo eine Pflanze stehen
+     könnte, greift der Komma-Fallback auf die Leerstart-Karte. */
+  runde: {
+    name: 'Kurze Runde durch die App',
+    hin: ()=>{ ansichtZeigen('heute'); },
+    schritte: ()=>[
+      { vor: ()=>ansichtZeigen('heute'),
+        ziel: ()=>document.getElementById('btn-giessmodus'),
+        titel: 'Der Tagesknopf',
+        text: 'Hier steht, was heute zu gießen ist. Ein Antippen führt dich durch alle fälligen Pflanzen nacheinander.',
+        warte: 320 },
+
+      { ziel: ()=>document.querySelector('.nebentaten'),
+        titel: 'Was sonst ansteht',
+        text: 'Der Rundgang hält deine Sammlung auf dem Stand, der Pflanzendoktor hilft, wenn etwas nicht stimmt.' },
+
+      { vor: ()=>ansichtZeigen('sammlung'),
+        ziel: ()=>document.querySelector('.sam-raster .card, #erststart, .sam-raster'),
+        titel: 'Deine Sammlung',
+        text: 'Jede Pflanze bekommt eine Karte mit Foto, Gießstand und allem, was zu ihr gehört.',
+        warte: 320 },
+
+      { ziel: ()=>document.querySelector('.such-zeile'),
+        titel: 'Wiederfinden',
+        text: 'Gesucht wird über Name, Art, Standort und Symptom — auch nach „gelbe Blätter“.' },
+
+      { vor: ()=>ansichtZeigen('werkzeuge'),
+        ziel: ()=>document.querySelector('.kachelgitter'),
+        titel: 'Die Werkzeuge',
+        text: 'Umtopfen, Substrat mischen, Stecklinge ziehen, Stammbaum, Pflanzendoktor, Grundriss.',
+        warte: 320 },
+
+      { vor: ()=>ansichtZeigen('mehr'),
+        ziel: ()=>document.querySelector('.mh-menue, .mh-gruppe'),
+        titel: 'Alles Weitere',
+        text: 'Sicherung, Gießcenter, Bibliothek und die Einstellungen. Hier findest du auch diese Runde wieder.',
+        warte: 320 },
+
+      { vor: ()=>ansichtZeigen('sammlung'),
+        ziel: ()=>document.querySelector('#erststart [data-do="start-anlegen"], .sam-raster .card, #btn-neu'),
+        titel: 'Das war die Runde',
+        text: 'Am besten legst du jetzt deine erste Pflanze an — fast alles in der App hängt daran. Die Runde steht unter Mehr › App Tour, falls du sie noch einmal sehen willst.',
+        warte: 320 }
+    ]
+  },
+
   einricht: {
     name: 'Einrichtung',
     modus: 'sperre',
@@ -17537,14 +19231,19 @@ const TOUR_KAPITEL = {
     name: 'Die Pflanzenkarte',
     schritte: ()=>[
       { fenster: 'karte-modal',
-        ziel: ()=>document.querySelector('#karte-fest .schnell'),
-        titel: 'Der Schnellzugriff',
-        text: 'Ganz oben in der Karte steht, wie es ums Gießen bestellt ist, darunter die Knöpfe, die du am häufigsten brauchst — gießen, Aufgabe anlegen, Ereignis eintragen.' },
+        ziel: ()=>document.querySelector('#karte-rumpf .km-held'),
+        titel: 'Das Bild zuerst',
+        text: 'Oben steht das Profilbild groß, darunter das Band mit allen Fotos dieser Pflanze. Über die drei Punkte an einem Bild wählst du das Profilbild oder löschst es.' },
+
+      { fenster: 'karte-modal',
+        ziel: ()=>document.querySelector('#karte-rumpf .km-taten'),
+        titel: 'Zustand und Handlungen',
+        text: 'Eine Zeile sagt, wie es ums Gießen steht. Der breite Knopf trägt das Gießen ein, darunter stehen Doktor, Substrat, Vermehren und Bearbeiten.' },
 
       { fenster: 'karte-modal',
         ziel: ()=>document.querySelector('#karte-rumpf .ktabs'),
-        titel: 'Vier Reiter',
-        text: 'Allgemein für Fotos und Aufgaben, Pflege für die Angaben zur Art, Lage für Raum und Stellplatz samt Tierwarnung, Geschichte für Zustand und Verlauf. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
+        titel: 'Drei Reiter',
+        text: 'Pflege für Gießen, Art und Probleme. Standort für Raum und Stellplatz samt Tierwarnung. Verlauf für Zustand, Notizen und Herkunft. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
 
       { fenster: 'karte-modal',
         ziel: ()=>document.querySelector('#karte-rumpf .acc'),
@@ -17713,12 +19412,17 @@ const TOUR_KAPITEL = {
         titel: 'Das Wichtigste steht oben',
         text: 'Alle Daten liegen nur in diesem Browser. Die Sicherung ist der einzige Schutz davor, sie bei einem Aufräumlauf oder Gerätewechsel zu verlieren.',
         warte: 320 },
-      { ziel: ()=>document.querySelector('[data-mh="ansicht"] .wz-kopfzeile'),
+      /* „ansicht" liegt seit 2.9.25 unter Einstellungen und ist als
+         eigener Punkt ausgeblendet — das Ziel gab es nicht mehr. */
+      { ziel: ()=>document.querySelector('[data-mh="einstell"] .wz-kopfzeile'),
         titel: 'Wenn es zu viel ist',
-        text: 'Unter Ansicht liegt der einfache Modus: er blendet Grundriss, Gießart und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Es geht dabei nichts verloren, der Haken lässt sich jederzeit wieder wegnehmen.' },
+        text: 'Unter Einstellungen liegt der einfache Modus: er blendet Grundriss, Gießart und Blattzähler aus und kürzt den Rundgang auf drei Knöpfe. Es geht dabei nichts verloren, der Haken lässt sich jederzeit wieder wegnehmen. Daneben stehen dort Kartendichte, Haustiere und die Heute-Zeilen.' },
+      { ziel: ()=>document.querySelector('[data-mh="giess"] .wz-kopfzeile'),
+        titel: 'Alles zum Gießen an einer Stelle',
+        text: 'Gießplan und Vertretungszettel, dazu die Angaben, die für alle Pflanzen gelten: welches Wasser du nimmst, wie du düngst und ob im Winter größere Abstände gelten.' },
       { ziel: ()=>document.querySelector('[data-mh="tour"] .wz-kopfzeile'),
         titel: 'Und hier steht die App Tour',
-        text: 'Jedes Kapitel lässt sich noch einmal ansehen, alle zusammen zurücksetzen oder ganz abschalten. Die übrigen Abschnitte hier erklären sich über ihr i.' }
+        text: 'Die kurze Runde und jedes einzelne Kapitel lassen sich hier noch einmal ansehen. Die übrigen Abschnitte erklären sich über ihr i oben rechts.' }
     ]
   },
 
@@ -18091,8 +19795,24 @@ function tourAbbruch(){
   const sk  = document.getElementById('tour-skip');
   if(zur) zur.onclick = ()=>{ if(tourLauf) tourGehe(tourLauf.i - 1, -1); };
   if(wei) wei.onclick = ()=>{ if(tourLauf) tourGehe(tourLauf.i + 1, 1); };
-  if(zu)  zu.onclick  = tourAbbruch;
-  if(sk)  sk.onclick  = tourAbbruch;
+  /* Wer wegtippt, soll wissen, wo das Weggetippte wiederzufinden ist —
+     sonst ist es fuer immer verschwunden. Der Hinweis steht deshalb an
+     jedem Ausgang, nicht nur an einem. */
+  const wegMitHinweis = ()=>{
+    const t = document.getElementById('tour-text');
+    const ti = document.getElementById('tour-titel');
+    if(t && ti && tourLauf){
+      ti.textContent = 'Abgebrochen';
+      t.textContent = 'Du findest die Runde jederzeit unter Mehr › App Tour wieder.';
+      const f = document.getElementById('tour-fuss');
+      if(f) f.hidden = true;
+      setTimeout(()=>{ if(f) f.hidden = false; tourAbbruch(); }, 1600);
+      return;
+    }
+    tourAbbruch();
+  };
+  if(zu)  zu.onclick  = wegMitHinweis;
+  if(sk)  sk.onclick  = wegMitHinweis;
 })();
 
 window.addEventListener('resize', ()=>{ if(tourLauf) tourMalen(); });
@@ -18107,16 +19827,18 @@ document.addEventListener('keydown', e=>{
    einer Absicht heraus kam — etwa von einer Karte in den Grundriss:
    wer dort zum ersten Mal landet, hat die Erklärung eher nötiger als
    jemand, der den Reiter absichtlich aufsucht. Wegtippen geht immer. */
-function tourAnsichtPruefen(name){
-  if(tourLauf || _tourSpringt) return;
-  let hat = 0;
-  try{ hat = allePflanzen().length; }catch(e){ hat = 0; }
-  if(name === 'werkzeuge' && tourNoetig('werkzeuge')){ tourStart('werkzeuge'); return; }
-  if(name === 'mehr' && tourNoetig('mehr')){ tourStart('mehr'); return; }
-  if(!hat) return;
-  if(name === 'sammlung' && tourNoetig('sammlung')) tourStart('sammlung');
-  else if(name === 'heute' && tourNoetig('heute'))  tourStart('heute');
-}
+/* Früher startete hier bei jedem Ansichtswechsel ein Kapitel, das
+   noch nicht gesehen war. Beim ersten Rundgang durch die App ploppte
+   damit auf jedem Reiter ungefragt eine Erklärung auf — vier Stück,
+   bevor man auch nur eine Pflanze angelegt hatte.
+
+   Die Kapitel bleiben alle bestehen und sind unter Mehr › App Tour
+   einzeln aufrufbar. Was sie erklären, steht außerdem in den i-Knöpfen
+   der jeweiligen Bereiche. Sie starten nur nicht mehr von selbst.
+
+   Die Funktion bleibt als leerer Rumpf: ansichtZeigen ruft sie auf,
+   und ein paar Prüfungen fassen sie an. */
+function tourAnsichtPruefen(name){ return; }
 const _ansichtVorherTour = ansichtZeigen;
 ansichtZeigen = function(name, merken){
   /* Der Deckel lag sonst über einem Ziel, das nach dem Wechsel gar
@@ -18135,10 +19857,11 @@ ansichtZeigen = function(name, merken){
 /* Der Verzug ist weg: tourGehe wartet selbst darauf, dass das Ziel
    vermessbar ist. Ein Bildaufbau-Rahmen genügt, damit der eben
    geöffnete Bereich überhaupt im Baum steht. */
-function tourNachOeffnen(key){
-  if(!tourNoetig(key)) return;
-  requestAnimationFrame(()=>{ if(tourNoetig(key)) tourStart(key); });
-}
+/* Dasselbe beim ersten Öffnen eines Werkzeugs oder Mehr-Punkts:
+   wer den Substratmischer aufschlug, bekam erst eine Tour darüber
+   statt des Mischers. Das i oben rechts sagt jetzt dasselbe, aber
+   nur wenn man es antippt. */
+function tourNachOeffnen(key){ return; }
 if(typeof werkzeugOeffnen === 'function'){
   const _wzVorherTour = werkzeugOeffnen;
   werkzeugOeffnen = function(key, springen){
@@ -18189,34 +19912,37 @@ if(typeof rgStarten === 'function'){
   if(r && typeof rgStarten === 'function') r.onclick = rgStarten;
 })();
 
-/* Erstes Aufklappen einer Karte. */
-document.addEventListener('click', e=>{
-  if(!e.target.closest || !e.target.closest('.card-btn')) return;
-  if(tourLauf || !tourNoetig('karte')) return;
-  setTimeout(()=>{
-    if(tourLauf || !tourNoetig('karte')) return;
-    if(modalOffen('karte-modal')) tourStart('karte');
-  }, 460);
-});
+/* Das erste Aufklappen einer Karte löste ebenfalls ein Kapitel aus —
+   ausgerechnet in dem Moment, in dem jemand seine erste Pflanze
+   ansehen wollte. Der Listener ist ersatzlos weg. */
 
 /* ── Eintrag unter ‚Mehr‘ ───────────────────── */
 function tourListeZeichnen(){
   const box = document.getElementById('tour-liste');
   const t = tourZustand();
   if(box){
-    box.innerHTML = Object.keys(TOUR_KAPITEL).map(k=>{
+    /* Die Runde steht abgesetzt oben: sie ist der Weg für jemanden,
+       der wissen will, wo was liegt. Die übrigen Kapitel sind
+       Einzelerklärungen, die man gezielt holt. */
+    const zeile = k=>{
       const gesehen = !!t.kapitel[k];
       return '<div class="mrow"><b>' + esc(TOUR_KAPITEL[k].name) + '</b>'
         + '<span class="weg-datum">' + (gesehen ? 'gesehen' : 'offen') + '</span>'
         + '<button class="linkbtn" data-tourgo="' + k + '">ansehen</button></div>';
-    }).join('');
+    };
+    box.innerHTML =
+      (TOUR_KAPITEL.runde ? '<p class="ein-abschnitt">Von vorn</p>' + zeile('runde') : '')
+      + '<p class="ein-abschnitt">Einzelne Bereiche</p>'
+      + Object.keys(TOUR_KAPITEL).filter(k=>k !== 'runde').map(zeile).join('');
   }
   const schalter = document.getElementById('tour-aus');
   if(schalter) schalter.checked = !!t.aus;
   const txt = document.getElementById('tour-aus-text');
+  /* Seit 2.9.28 startet kein Kapitel mehr von allein — der alte Text
+     versprach das Gegenteil. */
   if(txt) txt.textContent = t.aus
-    ? 'Aus. Die App Tour meldet sich nicht mehr von allein. Über „ansehen“ lässt sich trotzdem jederzeit ein Kapitel holen.'
-    : 'Jedes Kapitel erscheint genau einmal, beim ersten Mal in seinem Bereich.';
+    ? 'Aus. Auch das einmalige Angebot der Runde bleibt weg. Über „ansehen“ lässt sich trotzdem jederzeit ein Kapitel holen.'
+    : 'Kein Kapitel startet von allein. Tippe auf „ansehen“, um eines zu holen — kurze Erklärungen stehen außerdem hinter dem i oben rechts in jedem Bereich.';
 }
 
 document.addEventListener('click', e=>{

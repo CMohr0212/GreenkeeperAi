@@ -4,6 +4,86 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.9.28 — 30. August 2026
+**Ruhe und eine Runde**
+
+### Neu
+- Eine kurze Runde durch die App: sieben Schritte, je ein Satz, zeigt wo was liegt. Läuft nach dem Willkommen oder auf Anforderung unter Mehr › App Tour.
+- Wer die App schon nutzt, bekommt die Runde einmal angeboten. Weggetippt kommt das Angebot nie wieder.
+
+### Besser
+- Kein Kapitel startet mehr von allein. Früher ploppte auf jedem Reiter, beim ersten Öffnen jedes Werkzeugs und beim ersten Aufklappen einer Karte ungefragt eine Erklärung auf. Alle Kapitel bleiben unter Mehr › App Tour einzeln abrufbar, und dieselben Erklärungen stehen hinter dem i in jedem Bereich.
+- Das Willkommen ist kürzer: die Liste der fünf Bereiche ist raus, weil die Runde sie gleich danach am echten Ort zeigt. Die beiden Fragen zu Haustieren und Grundriss bleiben.
+- An jeder Stelle zum Wegtippen steht jetzt, wo die Runde wiederzufinden ist.
+- Der Hintergrund in Botanisch ist ein Papierbild statt des gekachelten Blattmusters. Es gilt auf allen vier Reitern.
+- Die Werkzeugkacheln sind alle gleich hoch, unabhängig von der Länge der Beschriftung.
+
+---
+
+## 2.9.27 — 30. August 2026
+**Umtopfen und Bibliothek**
+
+### Neu
+- Umtopf-Assistent unter Werkzeuge. Fünf Schritte — Pflanze, Grund, neuer Topf, Stecklinge, Abschluss. Am Ende wird alles auf einmal eingetragen: neue Topfgröße, Verlaufseintrag, Zustand „frisch umgetopft“ samt vierwöchiger Düngesperre.
+- Gehen beim Umtopfen Stecklinge ab, werden sie als eigene Pflanzen angelegt und im Stammbaum mit der Mutter verbunden — auf demselben Weg wie im Vermehren-Werkzeug.
+- Findet der Doktor einen zu kleinen oder durchwurzelten Topf, merkt er die Pflanze vor. Sie steht dann im Assistenten in einer eigenen Gruppe ganz oben.
+- Bibliothek unter Mehr › Pflege: alle Arten zum Nachschlagen, auch die, die du nicht besitzt. Dazu vier Rezepte für selbst angesetzten Dünger und acht Nachschlagetexte zu Wasser, Substrat und Nährstoffen.
+
+### Besser
+- In verschachtelten Fenstern führt der Knopf oben links eine Ebene zurück statt gleich aus dem Fenster heraus.
+- Die Werkzeugkacheln sind alle gleich hoch, unabhängig von der Länge der Beschriftung. Höhe und Symbolgröße folgen der Fensterbreite.
+- Ereignisse setzen den Zustand jetzt selbst. Der Code dafür stand doppelt am Ereignisknopf und im Rundgang.
+
+---
+
+## 2.9.26 — 30. August 2026
+**Gießcenter**
+
+### Neu
+- Alles zum Gießen unter einem Dach: Mehr › Gießcenter führt zum Gießplan, zum Vertretungszettel und zu den drei Einstellungen, die für alle Pflanzen gelten.
+- Wasser: welche Wasserart du nimmst und wie hart dein Leitungswasser ist. Die Härte bleibt leer, solange du sie nicht nachgeschlagen hast.
+- Dünger: womit du düngst und ob von Oktober bis Februar Pause ist.
+- Rhythmus: im Winter setzt die App größere Gießabstände an. Sanft, normal oder stark. Abschaltbar für Wintergarten und Pflanzenlampen.
+
+### Besser
+- Der Urlaubszettel heißt jetzt Vertretungszettel und liegt im Gießcenter statt einzeln unter Mehr.
+- Der Gießplan ist aus dem Gießcenter heraus erreichbar und bleibt zugleich in den Werkzeugen.
+
+---
+
+## 2.9.25 — 30. August 2026
+**Mehr, sortiert**
+
+### Neu
+- „Einstellungen“ bündelt, was die App als Ganzes betrifft: Ansicht, Kartendichte, die Heute-Zeilen, Haustiere und Rundgang. Die drei Punkte standen vorher einzeln in der Mehr-Liste.
+- Kartendichte: Knapp lässt alle Abschnitte einer Pflanzenkarte zugeklappt starten, Ausführlich klappt alles auf, Normal folgt weiter dem, was du zuletzt offen hattest.
+- Kennzahlen auf der Heute-Seite — Gesundheit, Gießtreue und Zuwachs im Monat. Standardmäßig aus.
+- Die Wetterzeile auf Heute lässt sich abschalten. Mehr › Wetter zeigt die Vorhersage weiterhin.
+
+### Besser
+- Die Mehr-Seite ist in vier Gruppen geteilt: Sammlung, Pflege, App, Hilfe.
+- Jeder Punkt trägt eine Nebenzeile mit seinem Stand — wie viele Aufgaben offen sind, wann zuletzt gesichert wurde, welcher Ort beim Wetter eingetragen ist.
+
+---
+
+## 2.9.24 — 30. August 2026
+**Die Karte von vorn**
+
+### Neu
+- Die aufgeklappte Pflanzenkarte beginnt mit dem Profilbild in voller Breite, der Name liegt darauf. Darunter läuft ein Band mit allen Fotos dieser Pflanze — Profilbild wählen, löschen und hinzufügen funktionieren dort wie zuvor.
+- Unter dem Bild steht in einer Zeile, wie es ums Gießen bestellt ist, daneben die Zeichenreihe mit Licht, Wasser, Tieren, Frost und Dünger.
+- „Gießen“ ist ein breiter Knopf über die ganze Zeile. Doktor, Substrat, Vermehren und Bearbeiten stehen kleiner darunter.
+- Vermehrungen stehen im Verlauf beider Pflanzen: bei der Mutter „Steckling abgenommen“, beim Ableger „Als Ableger entstanden“ — jeweils mit Sprung in die Karte der anderen. Bisher stand die Abstammung nur im Steckbrief des Ablegers, und bei der Mutter war nirgends zu sehen, dass ihr etwas abgenommen wurde.
+- Über dem Zeitstrahl steht, woher eine Pflanze kommt und was von ihr abstammt, mit einem Weg in den Stammbaum.
+
+### Besser
+- Aus vier Reitern wurden drei: Pflege, Standort, Verlauf. Der Steckbrief der Art liegt jetzt in Pflege, die Notizen im Verlauf. Der Reiter „Allgemein“ entfällt — seine Inhalte standen ohnehin an drei Stellen verteilt.
+- Die Fotos sind aus dem Akkordeon heraus: sie lagen zwei Ebenen tief, obwohl im Raster genau das Bild die Pflanze erkennbar macht.
+- Offene Aufgaben stehen vor den Reitern statt darin versteckt.
+- Die feste Knopfleiste unter dem Fenstertitel ist aufgelöst. Sie hätte das große Bild zerschnitten.
+
+---
+
 ## 2.9.23 — 26. August 2026
 **Raster repariert**
 
