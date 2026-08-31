@@ -4,7 +4,33 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 2.9.29 — 30. August 2026
+## 2.10.0 — 30. August 2026
+**Düngen**
+
+### Neu
+- Die App weiß jetzt, wann eine Pflanze Dünger braucht. Grundlage ist die Bedarfsstufe aus der Artentabelle: Starkzehrer alle sieben Tage, normal alle drei Wochen, sparsam alle drei Monate. Die Düngerart aus dem Gießcenter streckt das — Stäbchen halten doppelt so lange, Langzeitdünger ein Vielfaches.
+- Auf der Pflanzenkarte steht unter Pflege, wann zuletzt gedüngt wurde und wann es wieder dran ist.
+- Ist beim Gießen eine Pflanze auch zum Düngen fällig, erscheint im Gießmodus ein Haken „Mit Dünger gießen“. Ein Antippen trägt beides ein. Bei Stäbchen und Langzeitdünger bleibt der Haken weg.
+- Auf Heute steht eine Zeile, wie viele Pflanzen dran sind. Sie führt in die Sammlung, gefiltert auf genau diese.
+- Der Umtopf-Assistent fragt, ob Langzeitdünger untergemischt wurde. Dann ist ein halbes Jahr Ruhe.
+
+### Besser
+- Vier Gründe halten das Düngen an, und jeder nennt sich beim Namen: Arten, die nie gedüngt werden, die Winterpause, frisch umgetopfte Pflanzen und alles, was gerade nicht gesund ist.
+- Es wird nichts nachgeholt. Wer drei Monate nicht gedüngt hat, düngt jetzt einmal, nicht viermal.
+
+---
+
+## 2.9.32 — 30. August 2026
+**Noch feucht heißt länger Ruhe**
+
+### Besser
+- „Noch feucht“ galt bisher nur bis Mitternacht — am nächsten Tag stand dieselbe Pflanze wieder als überfällig auf der Liste. Substrat, das heute feucht ist, ist es morgen aber meistens auch. Die Rückmeldung setzt jetzt eine Frist: einen Tag bei Anstau- und Durstig-Pflanzen, zwei bei normalen, fünf beim Kakteenmodus.
+- Der Knopf im Gießmodus sagt vorher, wie lange Ruhe ist. Auf der Pflanzenkarte steht dann „Noch feucht — wieder in zwei Tagen“ statt „überfällig“.
+- Am Gießabstand ändert die Frist nichts. Der verschiebt sich weiterhin nur, wenn die Rückmeldung mehrfach kommt und du zustimmst.
+
+---
+
+## 2.9.31 — 30. August 2026
 **Ruhe und eine Runde**
 
 ### Neu
@@ -21,6 +47,8 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 ### Behoben
 - Alle Fenster — Willkommen, Tour, Gießmodus, Rundgang, Pflanzenkarte, Werkzeuge — standen mitten auf der Seite statt darüber, ließen sich nicht scrollen und blockierten die Reiter. Eine Regel für den neuen Hintergrund hatte allen elf Overlays ihre Verankerung genommen.
 - Die Runde beendete sich selbst, sobald sie von Heute zur Sammlung wechseln wollte.
+- Woher eine Pflanze stammt und was von ihr abstammt, lag im Reiter Verlauf noch einmal in einem zugeklappten Akkordeon. Der Block steht jetzt offen am Anfang des Reiters.
+- Der Gießplan stand doppelt: als eigene Kachel in den Werkzeugen und im Gießcenter. Die Kachel ist weg, seine Heimat ist das Gießcenter.
 
 ---
 

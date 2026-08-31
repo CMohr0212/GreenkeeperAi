@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.9.29', w.__T('FASSUNG') === '2.9.29', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.10.0', w.__T('FASSUNG') === '2.10.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -246,8 +246,17 @@ setTimeout(async () => {
     keys.filter(k => !w.__T(`!!sekAbschnitt('${k}')`)).join(','));
 
   pruef('Kachelgitter gebaut',
-    d.querySelectorAll('.kachelgitter section[data-wz]').length === 7,
+    d.querySelectorAll('.kachelgitter section[data-wz]').length === 6,
     String(d.querySelectorAll('.kachelgitter section[data-wz]').length));
+  /* Der Gießplan hat seine Heimat im Gießcenter und darum keine
+     eigene Kachel mehr — erreichbar bleibt er trotzdem. */
+  pruef('Gießplan hat keine Kachel',
+    !d.querySelector('.kachelgitter section[data-wz="giessplan"]'));
+  pruef('Sein Abschnitt bleibt im Dokument',
+    !!d.querySelector('section[data-wz="giessplan"]'));
+  pruef('und ist weiter aufrufbar', !!w.__T("!!sekAbschnitt('giessplan')"));
+  pruef('Das Gießcenter führt hin',
+    !!d.querySelector('#mh-in-giess [data-wz-go="giessplan"]'));
 
   let kaputt = [];
   for (const k of keys) {
@@ -821,6 +830,47 @@ setTimeout(async () => {
       if(!pane || pane.hidden) tot.push(t);
     }
     pruef('Alle drei Kartenreiter schalten um', tot.length === 0, tot.join(','));
+
+    /* Abstammung: offen im Verlauf-Reiter, nicht in einem Akkordeon.
+       Sie greift auch bei Pflanzen aus alten Fass\u00fcngen \u2014 sie liest
+       p.eltern, nicht die Ereignisse. */
+    {
+      /* Zwei Pflanzen anlegen, wie sie aus einer alten Fassung
+         stammen koennten: das Kind kennt seine Mutter ueber
+         p.eltern, Ereignisse dazu gibt es keine. */
+      const alt = w.__T(`(function(){
+        S.eigene = (S.eigene||[]).filter(x=>x.id!=='AM1' && x.id!=='AK1');
+        const roh = id => ({id, name:id==='AM1'?'Mutter':'Ableger',
+          art:'Monstera deliciosa', botanisch:'Monstera deliciosa',
+          klasse:'B', licht:'indirekt', seit:iso(HEUTE),
+          probleme:[], katzentext:'', beob:[], todo:[], log:[], notiz:''});
+        const m = roh('AM1'), k = roh('AK1');
+        k.eltern = 'AM1';
+        S.eigene.push(m, k); sichern(); render();
+        return JSON.stringify({m:'AM1', k:'AK1'}); })()`);
+      await tick();
+      if(alt){
+        const ids = JSON.parse(alt);
+        pruef('Abstammung greift ohne Ereignisse',
+          w.__T(`abstammungHTML(allePflanzen().find(x=>x.id==='${ids.k}'))`) !== '');
+        w.__T(`karteOeffnen('${ids.k}')`); await tick();
+        const b = d.querySelector('#karte-rumpf .ktab[data-ktab="verlauf"]');
+        if(b){ b.click(); await tick(); }
+        const blk = d.querySelector('#karte-rumpf [data-kpane="verlauf"] .abstammung');
+        pruef('Abstammung steht im Verlauf-Reiter', !!blk);
+        pruef('und nicht in einem Akkordeon',
+          !!blk && !blk.closest('.acc'));
+        pruef('Sie nennt die Mutter mit Sprung',
+          !!blk && !!blk.querySelector(`[data-go="${ids.m}"]`));
+        pruef('und den Weg in den Stammbaum',
+          !!blk && !!blk.querySelector('[data-do="stammbaum-auf"]'));
+        w.__T("modalZu('karte-modal')"); await tick();
+        w.__T(`S.eigene = (S.eigene||[]).filter(x=>x.id!=='AM1' && x.id!=='AK1');
+          sichern(); render()`);
+        pruef('Testpflanzen wieder entfernt',
+          !w.__T("allePflanzen().some(x=>x.id==='AM1')"));
+      }
+    }
     w.__T("modalZu('karte-modal')"); await tick();
     pruef('Kartenfenster schlie\u00dft', !w.__T("modalOffen('karte-modal')"));
 
@@ -854,6 +904,160 @@ setTimeout(async () => {
     pruef('Fenster nach der Tour bedienbar', w.__T("sektionOeffnen('doktor')") === true);
     w.__T("modalZu('sek-modal')"); await tick();
     w.__T("ansichtZeigen('heute')"); await tick();
+  }
+
+  /* ══ Düngen ════════════════════════════════════════════════════
+     Die Stufen gab es schon, die Rechnung darueber nicht. Wichtig
+     sind die Sperren: Duenger zur falschen Zeit reichert Salz an und
+     verbrennt Wurzeln \u2014 lieber gar nicht als zu frueh. */
+  {
+    const dp = w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(x=>x.id!=='DG1');
+      S.eigene.push({id:'DG1', name:'D\u00fcngetest', art:'Monstera deliciosa',
+        botanisch:'Monstera deliciosa', klasse:'B', licht:'indirekt',
+        duenger:'normal', seit:iso(HEUTE), probleme:[], katzentext:'',
+        beob:[], todo:[], log:[], notiz:''});
+      S.dueng = {}; S.duengLangzeit = {};
+      if(S.zustand) delete S.zustand['DG1'];
+      S.giess = {art:'leitung', haerte:'', dgArt:'fluessig',
+                 winterpause:false, saison:true, saisonStaerke:'normal'};
+      sichern(); render(); return 'DG1'; })()`);
+    await tick();
+
+    /* Abstand nach Bedarfsstufe */
+    pruef('Normal ergibt 21 Tage',
+      w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) === 21,
+      String(w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`)));
+    pruef('Starkzehrer h\u00e4ufiger als normal',
+      w.__T('DUENG_ABSTAND.viel') < w.__T('DUENG_ABSTAND.normal'));
+    pruef('Sparsam seltener als normal',
+      w.__T('DUENG_ABSTAND.sparsam') > w.__T('DUENG_ABSTAND.normal'));
+
+    /* Die Duengerart streckt den Abstand */
+    w.__T("S.giess.dgArt = 'stab'; sichern()");
+    pruef('St\u00e4bchen strecken den Abstand',
+      w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) === 42,
+      String(w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`)));
+    w.__T("S.giess.dgArt = 'selbst'; sichern()");
+    pruef('Selbst Angesetztes darf h\u00e4ufiger',
+      w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) < 21);
+    pruef('Nie unter einer Woche',
+      w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) >= 7);
+    w.__T("S.giess.dgArt = 'fluessig'; sichern()");
+
+    /* ── Die vier Sperren ── */
+    pruef('Ohne Sperre ist nichts im Weg',
+      w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`) === null);
+
+    w.__T(`(function(){ S.eigene.find(x=>x.id==='${dp}').duenger = 'nie'; sichern(); })()`);
+    pruef('Karnivoren werden nie ged\u00fcngt',
+      (w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'nie');
+    pruef('und haben keinen Abstand',
+      w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) === 0);
+    w.__T(`(function(){ S.eigene.find(x=>x.id==='${dp}').duenger = 'normal'; sichern(); })()`);
+
+    w.__T("S.giess.winterpause = true; sichern()");
+    const m = new Date().getMonth() + 1;
+    const imWinter = (m >= 10 || m <= 2);
+    pruef('Winterpause greift nur von Oktober bis Februar',
+      ((w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'winter')
+        === imWinter, 'Monat ' + m);
+    w.__T("S.giess.winterpause = false; sichern()");
+
+    /* Frisch umgetopft \u2014 die Verknuepfung zum Umtopf-Assistenten */
+    w.__T(`zustandSetzen('${dp}', 'frisch')`);
+    pruef('Frisch umgetopft sperrt das D\u00fcngen',
+      (w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'frisch');
+    pruef('Der Grund steht im Klartext dabei',
+      /Substrat/.test((w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).text || ''));
+    w.__T(`if(S.zustand) delete S.zustand['${dp}']; sichern()`);
+
+    /* Langzeitduenger \u2014 feste Sperre statt Rechnung */
+    w.__T(`S.duengLangzeit = {'${dp}': iso(HEUTE)}; sichern()`);
+    pruef('Langzeitd\u00fcnger sperrt ein halbes Jahr',
+      (w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'langzeit');
+    w.__T(`S.duengLangzeit = {'${dp}': iso(new Date(Date.now() - 200*86400000))}; sichern()`);
+    pruef('Nach einem halben Jahr wieder frei',
+      w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`) === null);
+    w.__T("S.duengLangzeit = {}; sichern()");
+
+    /* ── Quittieren ── */
+    pruef('Ohne Eintrag ist der Stand unbekannt',
+      w.__T(`duengStatus(allePflanzen().find(x=>x.id==='${dp}')).stand`) === 'unbekannt');
+    pruef('D\u00fcngen l\u00e4sst sich eintragen', w.__T(`duengen('${dp}')`) === true);
+    pruef('Der Eintrag tr\u00e4gt das heutige Datum',
+      w.__T(`duengLog('${dp}')[0]`) === w.__T('iso(HEUTE)'));
+    pruef('Danach ist sie nicht mehr f\u00e4llig',
+      w.__T(`duengStatus(allePflanzen().find(x=>x.id==='${dp}')).stand`) === 'ok');
+    pruef('Zweimal am selben Tag z\u00e4hlt einmal', w.__T(`(function(){
+      duengen('${dp}'); return S.dueng['${dp}'].length; })()`) === 1);
+    pruef('R\u00fccknahme geht', w.__T(`(function(){
+      duengWeg('${dp}'); return (S.dueng['${dp}']||[]).length; })()`) === 0);
+
+    /* Gesperrt heisst: gar nicht eintragbar. */
+    w.__T(`zustandSetzen('${dp}', 'frisch')`);
+    pruef('Gesperrt l\u00e4sst sich nichts eintragen', w.__T(`duengen('${dp}')`) === false);
+    w.__T(`if(S.zustand) delete S.zustand['${dp}']; sichern()`);
+
+    /* Kein Nachholen: 90 Tage her ergibt einen Termin, nicht vier. */
+    w.__T(`S.dueng['${dp}'] = [iso(new Date(Date.now() - 90*86400000))]; sichern()`);
+    pruef('Lange \u00fcberf\u00e4llig ist genau einmal f\u00e4llig',
+      w.__T(`duengListe().filter(x=>x.id==='${dp}').length`) === 1);
+    w.__T(`duengen('${dp}')`);
+    pruef('Eintragen setzt den Z\u00e4hler zur\u00fcck, ohne Rest',
+      w.__T(`duengStatus(allePflanzen().find(x=>x.id==='${dp}')).stand`) === 'ok');
+
+    /* ── Anzeige ── */
+    w.__T(`S.dueng['${dp}'] = [iso(new Date(Date.now() - 40*86400000))]; sichern(); render()`);
+    await tick();
+    pruef('Die Karte zeigt den D\u00fcngeabschnitt',
+      /dg-block/.test(w.__T(`duengAbschnittHTML(allePflanzen().find(x=>x.id==='${dp}'))`)));
+    pruef('Sie nennt die Bedarfsstufe',
+      /Normal/.test(w.__T(`duengAbschnittHTML(allePflanzen().find(x=>x.id==='${dp}'))`)));
+    pruef('Gesperrt zeigt sie den Grund statt eines Knopfes', w.__T(`(function(){
+      zustandSetzen('${dp}', 'frisch');
+      const h = duengAbschnittHTML(allePflanzen().find(x=>x.id==='${dp}'));
+      if(S.zustand) delete S.zustand['${dp}'];
+      return h.indexOf('gesperrt') !== -1 && h.indexOf('dg-knopf') === -1; })()`));
+    pruef('Die Zeile auf Heute erscheint',
+      /dg-zeile/.test(w.__T('duengZeileHTML()')), w.__T('duengZeileHTML()').slice(0, 40));
+    pruef('Ohne F\u00e4llige bleibt sie weg', w.__T(`(function(){
+      const merk = S.dueng['${dp}'];
+      S.dueng['${dp}'] = [iso(HEUTE)];
+      const leer = duengListe().length === 0 ? duengZeileHTML() === '' : true;
+      S.dueng['${dp}'] = merk; return leer; })()`));
+
+    /* Der Haken im Giessmodus laeuft nur bei Fl\u00fcssigd\u00fcnger mit. */
+    pruef('Fl\u00fcssig l\u00e4uft im Giesswasser mit', w.__T('duengImGiesswasser()') === true);
+    w.__T("S.giess.dgArt = 'stab'; sichern()");
+    pruef('St\u00e4bchen nicht', w.__T('duengImGiesswasser()') === false);
+    w.__T("S.giess.dgArt = 'langzeit'; sichern()");
+    pruef('Langzeit auch nicht', w.__T('duengImGiesswasser()') === false);
+    w.__T("S.giess.dgArt = 'fluessig'; sichern()");
+
+    /* Der Umtopf-Assistent setzt die Langzeitsperre. */
+    pruef('Der Assistent fragt nach Langzeitd\u00fcnger', !!d.getElementById('ut-langzeit'));
+    w.__T(`(function(){ UT.pflanze = '${dp}'; UT.langzeit = true;
+      UT.stecklinge = false; UT.gruende = []; utEintragen(); })()`);
+    pruef('Er tr\u00e4gt die Sperre ein',
+      !!w.__T(`(S.duengLangzeit||{})['${dp}']`));
+    pruef('Damit ist D\u00fcngen gesperrt',
+      (w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code
+        === 'frisch' || (w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code
+        === 'langzeit');
+
+    /* Aufraeumen */
+    w.__T(`S.eigene = (S.eigene||[]).filter(x=>x.id!=='${dp}');
+      delete S.dueng['${dp}']; delete S.duengLangzeit['${dp}'];
+      if(S.zustand) delete S.zustand['${dp}'];
+      if(S.ereignisse) delete S.ereignisse['${dp}'];
+      if(S.edits) delete S.edits['${dp}'];
+      S.giess = {art:'leitung', haerte:'', dgArt:'fluessig', winterpause:true,
+                 saison:true, saisonStaerke:'normal'};
+      filterDueng = false; sichern(); render()`);
+    await tick();
+    pruef('Testpflanze wieder entfernt',
+      !w.__T(`allePflanzen().some(x=>x.id==='${dp}')`));
   }
 
   /* ══ App Tour ══════════════════════════════════════════════════
@@ -1010,10 +1214,12 @@ setTimeout(async () => {
     pruef('Der Zeitstrahl verlinkt das Gegenüber',
       w.__T(`statusHTML(allePflanzen().find(x=>x.id==='${mid}'))`)
         .indexOf('data-go="' + kid + '"') !== -1);
-    pruef('Abstammung steht über dem Zeitstrahl',
+    /* Die Abstammung lag zuerst in statusHTML und landete damit im
+       Akkordeon „Statusänderung und Verlauf“ — zwei Ebenen tief und
+       zugeklappt. Sie gehört offen an den Anfang des Reiters. */
+    pruef('Abstammung steckt nicht im Zeitstrahl',
       w.__T(`statusHTML(allePflanzen().find(x=>x.id==='${mid}'))`)
-        .indexOf('abstammung') < w.__T(`statusHTML(allePflanzen().find(x=>x.id==='${mid}'))`)
-        .indexOf('stat-liste'));
+        .indexOf('abstammung') === -1);
 
     /* Ohne Abstammung bleibt der Block weg — sonst hätte jede
        Pflanze einen leeren Kasten im Verlauf. */
@@ -1555,10 +1761,52 @@ setTimeout(async () => {
     w.__T(`giessStatus(allePflanzen()[0]).iv === intervallVon(allePflanzen()[0])`) === true);
   pruef('kein Gießvermerk eingetragen',
     w.__T(`(S.water['${pid}']||[]).indexOf(iso(HEUTE))`) === -1);
-  /* Morgen ist sie wieder da: der Vermerk trägt das gestrige Datum. */
-  w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - 86400000)); sichern();`);
-  pruef('morgen wieder fällig',
-    w.__T(`giessListe().some(x=>x.id === '${pid}')`) === true);
+  /* Die Meldung galt frueher nur bis Mitternacht — am naechsten Tag
+     stand dieselbe Pflanze wieder als ueberfaellig da, obwohl feuchtes
+     Substrat ueber Nacht selten abtrocknet. Sie setzt jetzt eine Frist
+     nach Giessklasse. */
+  {
+    const kl = w.__T(`allePflanzen().find(x=>x.id==='${pid}').klasse`);
+    const frist = w.__T(`feuchtFrist(allePflanzen().find(x=>x.id==='${pid}'))`);
+    pruef('Frist passt zur Gie\u00dfklasse ' + kl,
+      frist === ({S:1, A:1, B:2, C:5})[kl], String(frist));
+    pruef('Heute sind noch ' + frist + ' Tage \u00fcbrig',
+      w.__T(`feuchtRest('${pid}')`) === frist, String(w.__T(`feuchtRest('${pid}')`)));
+
+    /* Einen Tag weiter: bei Klasse B und C noch Ruhe, bei S und A vorbei. */
+    w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - 86400000)); sichern();`);
+    const nochRuhe = frist > 1;
+    pruef('Nach einem Tag stimmt die Lage',
+      w.__T(`giessListe().some(x=>x.id === '${pid}')`) === !nochRuhe,
+      'Frist ' + frist + ', auf der Liste: '
+        + String(w.__T(`giessListe().some(x=>x.id === '${pid}')`)));
+
+    /* Nach Ablauf der Frist ist sie in jedem Fall wieder dran. */
+    w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - ${'${frist + 1}'} * 86400000)); sichern();`
+      .replace('${frist + 1}', String(frist + 1)));
+    pruef('Nach Ablauf der Frist wieder f\u00e4llig',
+      w.__T(`giessListe().some(x=>x.id === '${pid}')`) === true);
+    pruef('Rest steht dann auf null',
+      w.__T(`feuchtRest('${pid}')`) === 0);
+
+    /* Die Frist muss man sehen koennen, sonst wirkt sie willkuerlich. */
+    w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(HEUTE); sichern();`);
+    const kopf = w.__T(`kartenKopfHTML(allePflanzen().find(x=>x.id==='${pid}'))`);
+    pruef('Die Karte nennt die Ruhezeit',
+      /Noch feucht \u2014 wieder in/.test(kopf), kopf.slice(kopf.indexOf('km-stand'), kopf.indexOf('km-stand')+120));
+    pruef('und nicht mehr \u201e\u00fcberf\u00e4llig\u201c',
+      kopf.indexOf('\u00fcberf\u00e4llig') === -1);
+
+    /* Alle vier Klassen haben eine Frist, keine ist null. */
+    pruef('Jede Gie\u00dfklasse hat eine Frist', w.__T(`
+      Object.keys(KLASSEN).every(k => FEUCHT_FRIST[k] > 0)`),
+      w.__T('JSON.stringify(FEUCHT_FRIST)'));
+    pruef('Ein Kaktus bekommt l\u00e4nger Ruhe als ein Anstautopf',
+      w.__T('FEUCHT_FRIST.C') > w.__T('FEUCHT_FRIST.S'));
+
+    /* Zurueck auf gestern fuer die folgenden Pruefungen. */
+    w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - 86400000)); sichern();`);
+  }
   pruef('zweite Meldung am selben Tag zählt nicht doppelt', w.__T(`(function(){
     const p = allePflanzen().find(x=>x.id==='${pid}');
     feuchtGemeldet(p); const a = S.feuchtRueck['${pid}'].zahl;
@@ -1620,7 +1868,7 @@ setTimeout(async () => {
 
   const kacheln = Array.prototype.slice.call(
     d.querySelectorAll('.kachelgitter section[data-wz]'));
-  pruef('sieben Werkzeugkacheln', kacheln.length === 7, String(kacheln.length));
+  pruef('sechs Werkzeugkacheln', kacheln.length === 6, String(kacheln.length));
   pruef('jede Kachel hat ein Symbol',
     kacheln.every(k => k.querySelector('.wz-ikon svg')),
     kacheln.filter(k=>!k.querySelector('.wz-ikon svg')).map(k=>k.dataset.wz).join(','));

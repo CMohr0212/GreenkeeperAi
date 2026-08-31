@@ -1022,6 +1022,39 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
    Hoehen blieb der Knopf auf seiner Inhaltshoehe und „Raeume und
    Grundriss" mit zwei Zeilen Text ragte ueber die anderen hinaus. */
 .kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none;height:100%}
+/* Über das Gießcenter erreichbar, darum keine eigene Kachel. Der
+   Abschnitt bleibt im Dokument — sektionOeffnen braucht ihn. */
+.wz-still{display:none!important}
+
+/* ── Düngen ───────────────────────────────────────────────── */
+.dg-block{padding:2px 0}
+.dg-lage{margin:0 0 4px;font-size:var(--t-m);font-weight:600}
+.dg-lage.warn{color:var(--duenger)}
+.dg-block.gesperrt .dg-lage{font-weight:400;color:var(--schrift-2);line-height:1.5}
+.dg-fuss{margin:0 0 11px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.45}
+.dg-knopf{width:100%;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--duenger);background:transparent;color:var(--duenger);
+  font:inherit;font-weight:600;cursor:pointer}
+.dg-knopf.erledigt{background:var(--ton-ok);border-color:var(--sicher);color:var(--sicher)}
+html[data-design="klartext"] .dg-knopf{border-width:2px;font-size:var(--t-md)}
+html[data-design="klartext"] .dg-fuss{font-size:var(--t-md);color:var(--schrift)}
+
+/* Die Zeile auf Heute. Kein eigener Kasten wie die Nebentaten —
+   Düngen ist zu selten für eine Fläche. */
+.dg-zeile{display:flex;align-items:center;gap:10px;width:100%;
+  min-height:var(--tap);padding:12px 13px;margin:0 0 14px;
+  border-radius:var(--r-klein);border:1px solid var(--linie);
+  background:transparent;color:var(--schrift);font:inherit;
+  font-size:var(--t-m);text-align:left;cursor:pointer}
+.dg-zeile svg{width:19px;height:19px;flex:0 0 auto;stroke:var(--duenger);
+  fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dg-zeile .pfeil{margin-left:auto;color:var(--schrift-2)}
+html[data-design="klartext"] .dg-zeile{border-width:2px;font-size:var(--t-md)}
+
+.gm-dueng{display:flex;align-items:center;gap:9px;padding:12px 13px;
+  border-radius:var(--r-mittel);background:var(--ton-blatt);
+  font-size:var(--t-m);cursor:pointer}
+.gm-dueng input{width:20px;height:20px;accent-color:var(--duenger)}
 .kachelgitter .wz-kopfzeile{height:100%}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
 .kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
@@ -1810,6 +1843,7 @@ body.gm-offen{overflow:hidden}
 .gm-fuss button{font:inherit;font-size:var(--t-l);padding:16px;border-radius:var(--r-mittel);border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
 .gm-fuss .gm-ja{background:var(--water);border-color:var(--water);color:var(--schrift-invers);font-weight:600}
 .gm-fuss .gm-spaeter{font-size:var(--t-m);padding:11px;color:var(--ink-2)}
+.gm-fuss .gm-nein i{font-style:normal;opacity:.62;font-size:var(--t-xs)}
 @media(min-width:520px){.gm-fuss{grid-template-columns:1fr 1fr}.gm-fuss .gm-spaeter{grid-column:1/-1}}
 
 /* ── Verlauf und Wachstum ────────────────────────────────── */
@@ -6970,7 +7004,7 @@ function statusHTML(p){
   const knoepfe = (S.rundgang && S.rundgang.knoepfe) || STANDARD_KNOEPFE;
   const liste = ereignisse(p.id).slice(0, 12);
   const seit = tageSeitGesehen(p.id);
-  return `${abstammungHTML(p)}<div class="stat">
+  return `<div class="stat">
     <p class="stat-seit">${seit == null ? 'Noch nie als angesehen vermerkt.'
       : (seit === 0 ? 'Heute angesehen.' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`)}</p>
     <div class="stat-chips">
@@ -7003,6 +7037,29 @@ document.addEventListener('click', e=>{
     setTimeout(()=>{
       if(typeof sektionOeffnen === 'function') sektionOeffnen('stammbaum');
     }, 90);
+    return;
+  }
+  if(b.dataset.do === 'dueng-liste'){
+    /* Kein eigenes Fenster: die Sammlung kann das schon, sie muss nur
+       wissen, wonach sie filtern soll. */
+    if(!duengListe().length) return;
+    filterDueng = true;
+    ansichtZeigen('sammlung');
+    render();
+    return;
+  }
+  if(b.dataset.do === 'duengen'){
+    e.stopPropagation();
+    duengen(b.dataset.p);
+    render();
+    if(typeof karteRumpfFuellen === 'function') karteRumpfFuellen();
+    return;
+  }
+  if(b.dataset.do === 'dueng-weg'){
+    e.stopPropagation();
+    duengWeg(b.dataset.p);
+    render();
+    if(typeof karteRumpfFuellen === 'function') karteRumpfFuellen();
     return;
   }
   if(b.dataset.do === 'ereignis'){
@@ -7679,6 +7736,9 @@ function papierkorbRender(){
         <div class="ut-formen" id="ut-formen"></div>
         <label><span class="lab">Durchmesser in cm</span>
           <input id="ut-topf" type="number" min="5" max="80" step="1" value="18"></label>
+        <label class="fspan check">
+          <input type="checkbox" id="ut-langzeit"> <span class="lab" style="display:inline">Langzeitdünger untergemischt</span></label>
+        <p class="fhint">Dann ist ein halbes Jahr Ruhe — die App schlägt in dieser Zeit kein Düngen vor.</p>
         <p class="fhint" id="ut-volumen"></p>
         <p class="fhint" id="ut-sprung"></p>
         <button class="linkbtn" id="ut-zum-substrat">Mischung im Substratmischer rechnen</button>
@@ -8652,10 +8712,32 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.9.29';
+const FASSUNG = '2.10.0';
 const PATCHNOTES = [
   {
-    nr: '2.9.29', datum: '2026-08-30', titel: 'Ruhe und eine Runde',
+    nr: '2.10.0', datum: '2026-08-30', titel: 'Düngen',
+    neu: [
+      'Die App weiß jetzt, wann eine Pflanze Dünger braucht. Grundlage ist die Bedarfsstufe aus der Artentabelle: Starkzehrer alle sieben Tage, normal alle drei Wochen, sparsam alle drei Monate. Die Düngerart aus dem Gießcenter streckt das — Stäbchen halten doppelt so lange, Langzeitdünger ein Vielfaches.',
+      'Auf der Pflanzenkarte steht unter Pflege, wann zuletzt gedüngt wurde und wann es wieder dran ist. Ein Knopf trägt es ein.',
+      'Ist beim Gießen eine Pflanze auch zum Düngen fällig, erscheint im Gießmodus ein Haken „Mit Dünger gießen“. Ein Antippen trägt beides ein. Bei Stäbchen und Langzeitdünger bleibt der Haken weg — das sind keine Gießvorgänge.',
+      'Auf Heute steht eine Zeile, wie viele Pflanzen dran sind. Sie führt in die Sammlung, gefiltert auf genau diese.',
+      'Der Umtopf-Assistent fragt, ob Langzeitdünger untergemischt wurde. Dann ist ein halbes Jahr Ruhe.'
+    ],
+    besser: [
+      'Vier Gründe halten das Düngen an, und jeder nennt sich beim Namen: Arten, die nie gedüngt werden, die Winterpause, frisch umgetopfte Pflanzen und alles, was gerade nicht gesund ist. Dünger zur falschen Zeit reichert Salz im Topf an und verbrennt Wurzeln.',
+      'Es wird nichts nachgeholt. Wer drei Monate nicht gedüngt hat, düngt jetzt einmal, nicht viermal.'
+    ]
+  },
+  {
+    nr: '2.9.32', datum: '2026-08-30', titel: 'Noch feucht heißt länger Ruhe',
+    besser: [
+      '„Noch feucht“ galt bisher nur bis Mitternacht — am nächsten Tag stand dieselbe Pflanze wieder als überfällig auf der Liste. Substrat, das heute feucht ist, ist es morgen aber meistens auch. Die Rückmeldung setzt jetzt eine Frist: einen Tag bei Anstau- und Durstig-Pflanzen, zwei bei normalen, fünf beim Kakteenmodus.',
+      'Der Knopf im Gießmodus sagt vorher, wie lange Ruhe ist. Auf der Pflanzenkarte steht dann „Noch feucht — wieder in zwei Tagen“ statt „überfällig“.',
+      'Am Gießabstand ändert die Frist nichts. Der verschiebt sich weiterhin nur, wenn die Rückmeldung mehrfach kommt und du zustimmst.'
+    ]
+  },
+  {
+    nr: '2.9.31', datum: '2026-08-30', titel: 'Ruhe und eine Runde',
     neu: [
       'Eine kurze Runde durch die App: sieben Schritte, je ein Satz, zeigt wo was liegt. Läuft nach dem Willkommen oder auf Anforderung unter Mehr › App Tour.',
       'Wer die App schon nutzt, bekommt die Runde einmal angeboten. Weggetippt kommt das Angebot nie wieder.'
@@ -8669,7 +8751,9 @@ const PATCHNOTES = [
     ],
     behoben: [
       'Alle Fenster — Willkommen, Tour, Gießmodus, Rundgang, Pflanzenkarte, Werkzeuge — standen mitten auf der Seite statt darüber, ließen sich nicht scrollen und blockierten die Reiter. Eine Regel für den neuen Hintergrund hatte allen elf Overlays ihre Verankerung genommen.',
-      'Die Runde beendete sich selbst, sobald sie von Heute zur Sammlung wechseln wollte: ein Ansichtswechsel galt als „Nutzer ist weggetippt“, auch wenn die Tour selbst gewechselt hat.'
+      'Die Runde beendete sich selbst, sobald sie von Heute zur Sammlung wechseln wollte: ein Ansichtswechsel galt als „Nutzer ist weggetippt“, auch wenn die Tour selbst gewechselt hat.',
+      'Woher eine Pflanze stammt und was von ihr abstammt, lag im Reiter Verlauf noch einmal in einem zugeklappten Akkordeon. Der Block steht jetzt offen am Anfang des Reiters.',
+      'Der Gießplan stand doppelt: als eigene Kachel in den Werkzeugen und im Gießcenter. Die Kachel ist weg, seine Heimat ist das Gießcenter.'
     ]
   },
   {
@@ -8869,7 +8953,7 @@ const PATCHNOTES = [
     nr: '2.9.10', datum: '2026-08-25', titel: 'Hin statt hingewiesen',
     neu: [
       '„Ansehen“ in der App Tour führt jetzt in den Bereich, um den es geht: der Gießmodus startet, das Werkzeug geht auf, eine Pflanzenkarte öffnet sich. Vorher stand nur Text neben einem Schirm, auf dem nichts davon zu sehen war.',
-      '„Noch feucht“ im Gießmodus setzt die Pflanze für heute ab. Sie kommt morgen wieder — vorher blieb sie sofort wieder auf der Liste stehen, als wäre nichts gewesen. Am Gießabstand ändert das nichts; der verschiebt sich erst, wenn die Rückmeldung mehrfach kommt.'
+      '„Noch feucht“ im Gießmodus setzt die Pflanze ab — nicht nur für heute, sondern für ein bis fünf Tage, je nach Gießklasse. Substrat, das heute feucht ist, ist es morgen meistens auch. Am Gießabstand ändert das nichts; der verschiebt sich erst, wenn die Rückmeldung mehrfach kommt.'
     ],
     besser: [
       'Die Schnellzugriffe aus einer Pflanzenkarte — Doktor, Substrat, Vermehren, Platz — führen wieder zum Werkzeug. Sie öffneten es und schlossen es im selben Moment wieder.',
@@ -9405,6 +9489,10 @@ const LEERSTAND = () => ({
   heuteWetter:true, heuteKennzahlen:false,
   /* Einmaliges Angebot der Runde an Bestandsnutzer. */
   rundeAngeboten:null,
+  /* Wann zuletzt gedüngt wurde, je Pflanze — wie S.water aufgebaut.
+     `duengLangzeit` hält das Datum, an dem Langzeitdünger untergemischt
+     wurde; danach ist ein halbes Jahr Ruhe. */
+  dueng:{}, duengLangzeit:{},
   /* Gießcenter: was fuer alle Pflanzen gilt. `art` ist das Wasser aus
      dem Hahn oder der Tonne, `haerte` bleibt leer, solange es niemand
      nachgeschlagen hat — raten waere hier schlechter als schweigen. */
@@ -9947,14 +10035,159 @@ function giessTermine(id){
   return [];
 }
 function giessLog(id){ return giessTermine(id).slice().sort().reverse(); }
-/* Wer im Giessmodus „Noch feucht" antippt, hat nachgesehen. Bis dahin
-   blieb die Pflanze trotzdem faellig und stand sofort wieder auf der
-   Liste. Die Meldung gilt jetzt fuer den laufenden Tag: morgen wird
-   erneut gefragt. Der Giessabstand selbst bleibt unberuehrt — der
-   aendert sich erst, wenn die Rueckmeldung mehrfach kommt. */
-function feuchtHeuteGemeldet(id){
+/* Wer im Giessmodus „Noch feucht" antippt, hat nachgesehen — und
+   Substrat, das heute feucht ist, ist es morgen meistens auch. Die
+   Meldung galt trotzdem nur bis Mitternacht: am naechsten Tag stand
+   dieselbe Pflanze wieder als ueberfaellig auf der Liste, und man
+   musste sie erneut wegtippen.
+
+   Sie setzt jetzt eine Frist. Wie lang, haengt an der Giessklasse:
+   ein Anstautopf trocknet anders ab als ein Kaktus. Grob ein Viertel
+   des Sommerabstands, gerundet.
+
+   Der Giessabstand selbst bleibt unberuehrt — der aendert sich erst,
+   wenn die Rueckmeldung mehrfach kommt. Die Frist verschiebt nur
+   diesen einen Termin, dauerhaft wird nichts umgestellt, ohne dass
+   gefragt wurde. */
+/* ══════════════════ Düngen ══════════════════
+   Die Stufen aus DUENGER gab es schon, jede Art trägt eine davon.
+   Was fehlte, war die Rechnung darüber: wann eine Pflanze dran ist.
+
+   Die Reihenfolge ist wichtig. Erst die vier Sperren, dann erst der
+   Abstand — Dünger auf eine Pflanze, die gerade nicht wächst oder
+   frisch umgetopft ist, sammelt sich als Salz im Topf an und
+   verbrennt Wurzeln. Lieber gar nicht düngen als zur falschen Zeit.
+   ═════════════════════════════════════════════ */
+const DUENG_ABSTAND = {nie:0, sparsam:90, normal:21, viel:7};
+
+/* Wie lange eine Gabe vorhält, hängt an der Form. Flüssigdünger im
+   Gießwasser ist der Maßstab; Stäbchen geben ueber Wochen ab,
+   Langzeitdünger über Monate. Selbst Angesetztes ist schwächer und
+   darf entsprechend häufiger. */
+const DUENG_FAKTOR = {fluessig:1, selbst:0.7, stab:2, langzeit:6};
+
+function duengLog(id){
+  const l = (S.dueng && S.dueng[id]) || [];
+  return l.slice().sort().reverse();
+}
+
+function duengAbstand(p){
+  const stufe = p.duenger || 'normal';
+  const grund = DUENG_ABSTAND[stufe];
+  if(!grund) return 0;
+  const art = (typeof giessEinst === 'function') ? giessEinst().dgArt : 'fluessig';
+  const f = DUENG_FAKTOR[art] != null ? DUENG_FAKTOR[art] : 1;
+  return Math.max(7, Math.round(grund * f));
+}
+
+/* Warum gerade nicht gedüngt wird — oder null, wenn nichts dagegen
+   spricht. Der Text landet unverändert in der Anzeige, damit niemand
+   raten muss, warum der Knopf fehlt. */
+function duengSperre(p){
+  if((p.duenger || 'normal') === 'nie')
+    return {code:'nie', text:'Diese Art wird nie gedüngt — Dünger schadet ihr.'};
+
+  const g = (typeof giessEinst === 'function') ? giessEinst() : {};
+  const m = new Date(HEUTE).getMonth() + 1;
+  if(g.winterpause !== false && (m >= 10 || m <= 2))
+    return {code:'winter', text:'Winterpause bis März. Wer jetzt düngt, reichert Salz im Topf an — die Pflanze wächst nicht und nimmt nichts auf.'};
+
+  const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
+  if(z && z.code === 'frisch'){
+    const rest = (typeof stoppRest === 'function') ? stoppRest(p) : 0;
+    return {code:'frisch', text:'Frisch umgetopft. Im neuen Substrat steckt genug — '
+      + (rest > 0 ? 'noch ' + rest + ' ' + (rest === 1 ? 'Tag' : 'Tage') : 'noch einige Tage') + ' warten.'};
+  }
+  if(z && z.code !== 'gesund' && z.def && z.def.ton === 'alarm')
+    return {code:'zustand', text:'Erst gesund werden lassen. „' + z.def.name
+      + '“ und Dünger vertragen sich nicht — geschwächte Wurzeln nehmen ihn nicht auf.'};
+
+  /* Langzeitdünger beim Umtopfen: eine feste Sperre statt einer
+     Rechnung. Der Assistent trägt das Datum ein. */
+  const lz = (S.duengLangzeit || {})[p.id];
+  if(lz){
+    const t = tageSeit(lz);
+    if(t != null && t < 180)
+      return {code:'langzeit', text:'Langzeitdünger im Substrat, gegeben vor '
+        + t + ' ' + (t === 1 ? 'Tag' : 'Tagen') + '. Noch etwa '
+        + Math.ceil((180 - t) / 30) + ' Monate nichts zusätzlich geben.'};
+  }
+  return null;
+}
+
+/* Wie beim Giessen: over, soon, ok, unbekannt — plus 'sperre'. */
+function duengStatus(p){
+  const sperre = duengSperre(p);
+  const iv = duengAbstand(p);
+  if(sperre) return {stand:'sperre', sperre, iv, rest:null, letzte:null};
+  const log = duengLog(p.id);
+  if(!log.length) return {stand:'unbekannt', sperre:null, iv, rest:null, letzte:null};
+  const t = tageSeit(log[0]);
+  const rest = iv - t;
+  return {stand: rest < 0 ? 'over' : (rest <= 2 ? 'soon' : 'ok'),
+          sperre:null, iv, rest, tage:t, letzte:log[0]};
+}
+
+/* Kein Nachholen: wer drei Monate nicht gedüngt hat, düngt jetzt
+   einmal, nicht viermal. Der Zähler startet neu. */
+function duengen(id){
+  const p = allePflanzen().find(x => x.id === id);
+  if(!p) return false;
+  if(duengSperre(p)) return false;
+  if(!S.dueng) S.dueng = {};
+  const l = S.dueng[id] = S.dueng[id] || [];
+  const heute = iso(HEUTE);
+  if(l.indexOf(heute) === -1) l.push(heute);
+  gesehenSetzen(id);
+  sichern();
+  return true;
+}
+
+function duengWeg(id){
+  if(!S.dueng || !S.dueng[id]) return false;
+  S.dueng[id] = S.dueng[id].filter(d => d !== iso(HEUTE));
+  sichern();
+  return true;
+}
+
+/* Alle, die dran sind. Grundlage für die Zeile auf Heute und für den
+   Zusatzhaken im Giessmodus. */
+function duengListe(){
+  return allePflanzen().filter(p => {
+    const st = duengStatus(p);
+    return st.stand === 'over' || (st.stand === 'soon' && st.rest <= 0);
+  });
+}
+
+/* Nur bei Flüssigdünger läuft das Düngen im Giesswasser mit. Bei
+   Stäbchen und Langzeit wäre ein Haken im Giessmodus irreführend —
+   das sind keine Giessvorgänge. */
+function duengImGiesswasser(){
+  const art = (typeof giessEinst === 'function') ? giessEinst().dgArt : 'fluessig';
+  return art === 'fluessig' || art === 'selbst';
+}
+
+const FEUCHT_FRIST = {S:1, A:1, B:2, C:5};
+
+function feuchtFrist(p){
+  const k = (p && p.klasse) || 'B';
+  return FEUCHT_FRIST[k] != null ? FEUCHT_FRIST[k] : 2;
+}
+
+/* Bis wann die Meldung noch gilt. Gerechnet wird ab dem Tag der
+   Meldung, nicht ab dem Giessdatum. */
+function feuchtRest(id){
   const e = S.feuchtRueck && S.feuchtRueck[id];
-  return !!(e && e.zuletzt === iso(HEUTE));
+  if(!e || !e.zuletzt) return 0;
+  const p = allePflanzen().find(x => x.id === id);
+  if(!p) return 0;
+  const vergangen = tageSeit(e.zuletzt);
+  if(vergangen == null) return 0;
+  return Math.max(0, feuchtFrist(p) - vergangen);
+}
+
+function feuchtHeuteGemeldet(id){
+  return feuchtRest(id) > 0;
 }
 
 function giessStatus(p){
@@ -10330,6 +10563,9 @@ function taskBlockHTML(tasks, scope, mitPflanze, addPlant){
 
 /* ══════════════════ Steuerung ══════════════════ */
 let gruppierung = 'raum', filterKlasse = null, filterKatze = null;
+/* Zeigt nur, was zum Düngen ansteht. Wird von der Zeile auf Heute
+   gesetzt und beim Zurücksetzen der Filter wieder geleert. */
+let filterDueng = false;
 let filterRaum = null, filterPlatz = null;
 const offen = new Set(), zu = new Set();
 
@@ -10502,7 +10738,12 @@ function kartenKopfHTML(p){
   const unter = [spitz ? (p.art || '') : '', p.botanisch || '', p.id]
     .filter(Boolean).join(' · ');
 
+  /* War die Pflanze als feucht gemeldet, ist das die wichtigere
+     Auskunft: „überfällig“ stimmt zwar rechnerisch, aber sie wurde ja
+     gerade nachgesehen. */
+  const ruhe = (typeof feuchtRest === 'function') ? feuchtRest(p.id) : 0;
   const lage = st.stand === 'stopp' ? 'Gießpause'
+    : ruhe > 0 ? `Noch feucht — wieder in ${ruhe} ${ruhe===1?'Tag':'Tagen'}`
     : st.stand === 'unbekannt' ? 'Noch nichts eingetragen'
     : st.rest < 0 ? `Gießen: ${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig`
     : st.rest === 0 ? 'Gießen: heute fällig'
@@ -10532,6 +10773,33 @@ function kartenKopfHTML(p){
     <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
 }
 
+
+/* Die Düngezeile im Reiter Pflege. Sie zeigt immer etwas an — auch
+   wenn gerade gesperrt ist, denn genau dann will man wissen warum. */
+function duengAbschnittHTML(p){
+  const st = duengStatus(p);
+  const stufe = DUENGER[p.duenger || 'normal'] || DUENGER.normal;
+
+  if(st.stand === 'sperre')
+    return `<div class="dg-block gesperrt">
+      <p class="dg-lage">${esc(st.sperre.text)}</p>
+      <p class="dg-fuss">${esc(stufe.text)} · ${esc(stufe.lang)}</p>
+    </div>`;
+
+  const lage = st.stand === 'unbekannt' ? 'Noch nie gedüngt eingetragen'
+    : st.rest < 0 ? `Seit ${-st.rest} ${-st.rest===1?'Tag':'Tagen'} fällig`
+    : st.rest === 0 ? 'Heute fällig'
+    : `Wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`;
+  const heute = duengLog(p.id)[0] === iso(HEUTE);
+
+  return `<div class="dg-block">
+    <p class="dg-lage${st.stand==='over'?' warn':''}">${esc(lage)}${
+      st.letzte ? ` · zuletzt am ${new Date(st.letzte+'T12:00:00').toLocaleDateString('de-DE')}` : ''}</p>
+    <p class="dg-fuss">${esc(stufe.text)} · alle ${st.iv} Tage · ${esc(stufe.lang)}</p>
+    <button class="dg-knopf${heute?' erledigt':''}" data-do="${heute?'dueng-weg':'duengen'}" data-p="${p.id}">${
+      heute ? 'Heute gedüngt ✓' : 'Gedüngt eintragen'}</button>
+  </div>`;
+}
 
 function giessAbschnitt(p){
   const K = KLASSEN[p.klasse];
@@ -10770,10 +11038,12 @@ function kartenDetailHTML(p){
       ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
       ${kartenReiter(p.id, [
         {key:'pflege', titel:'Pflege', inhalt:
-          acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))},
+          acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
+          + acc('duengen', 'Düngen', duengAbschnittHTML(p))},
         {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
         {key:'verlauf', titel:'Verlauf', inhalt:
-          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
+          abstammungHTML(p)
+          + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
           + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')}
       ])}
     </div>`;
@@ -10799,6 +11069,7 @@ function kartenDetailHTML(p){
         {key:'pflege', titel:'Pflege', inhalt:
           winter
           + acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
+          + acc('duengen', 'Düngen', duengAbschnittHTML(p))
           + acc('pflege', 'Pflege', `<ul>${p.pflege.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
           + acc('probleme', 'Wenn etwas nicht stimmt', probs, `${p.probleme.length}`)
           + (function(){
@@ -10813,7 +11084,8 @@ function kartenDetailHTML(p){
           + acc('steckbrief', 'Steckbrief der Art', steckbrief)},
         {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
         {key:'verlauf', titel:'Verlauf', inhalt:
-          acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
+          abstammungHTML(p)
+          + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
           + acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
           + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')
           + acc('herkunft', 'Herkunft', herkunft)}
@@ -11550,7 +11822,7 @@ function treeHTML(){
 
 /* ══════════════════ Rendern ══════════════════ */
 function oeffne(id){
-  $('#q').value=''; filterKlasse=null; filterKatze=null;
+  $('#q').value=''; filterKlasse=null; filterKatze=null; filterDueng=false;
   document.querySelectorAll('#filters .chip').forEach(x=>x.setAttribute('aria-pressed','false'));
   render();
   karteOeffnen(id);
@@ -11667,6 +11939,12 @@ function render(){
   lageFilterZeichnen();
   if(typeof formLageZeichnen === 'function') formLageZeichnen();
   const list = alle.filter(p=>{
+    /* Von der Düngezeile auf Heute aus gesetzt. Ein Suchwort hätte
+       hier nichts gefunden — „düngen" steht in keinem Textfeld. */
+    if(filterDueng){
+      const st = duengStatus(p);
+      if(!(st.stand === 'over' || (st.stand === 'soon' && st.rest <= 0))) return false;
+    }
     if(filterKlasse && p.klasse!==filterKlasse) return false;
     /* Dieselbe Auskunft wie auf der Karte — sonst zeigt der Filter
        „katzensicher“ einen Oleander. */
@@ -11737,7 +12015,10 @@ function render(){
      auf dem Giessknopf darunter, und die Massenaktion „ganzen Raum
      eintragen" sucht dort niemand — sie steht weiterhin im Raum
      selbst. */
-  $('#heute-status').innerHTML = wetterZeileHTML() + kennzahlenHTML();
+  /* duengZeileHTML steht in einem spaeteren Script-Block — ueber
+     Blockgrenzen hinweg gibt es kein Hoisting. */
+  $('#heute-status').innerHTML = wetterZeileHTML() + kennzahlenHTML()
+    + (typeof duengZeileHTML === 'function' ? duengZeileHTML() : '');
   $('#stichtage').innerHTML = stichtageHTML();
   meldeRender();
   if(typeof papierkorbRender === 'function') papierkorbRender();
@@ -14897,8 +15178,12 @@ function gmZeichnen(){
 
   $('#gm-knoepfe').innerHTML = stopp > 0
     ? `<button class="gm-nein" data-gm="nein">Verstanden, nicht gegossen</button>`
-    : `<button class="gm-ja" data-gm="ja">${giessTat(p)}</button>
-       <button class="gm-nein" data-gm="nein">Noch feucht</button>
+    : `${(duengImGiesswasser() && duengStatus(p).stand === 'over')
+        ? `<label class="gm-dueng"><input type="checkbox" id="gm-mit-duenger"> Mit Dünger gießen</label>` : ''}
+       <button class="gm-ja" data-gm="ja">${giessTat(p)}</button>
+       <button class="gm-nein" data-gm="nein">Noch feucht${
+         (typeof feuchtFrist === 'function' && feuchtFrist(p) > 1)
+           ? ` <i>· ${feuchtFrist(p)} Tage Ruhe</i>` : ''}</button>
        <button class="gm-spaeter" data-gm="spaeter">Später</button>`;
   $('#gm-fort').style.width = ((gmIndex)/gmListe.length*100).toFixed(1)+'%';
 }
@@ -14977,7 +15262,15 @@ document.addEventListener('click', e=>{
   const a = b.dataset.gm;
   if(a === 'zu'){ gmBeenden(); return; }
   const p = gmListe[gmIndex];
-  if(a === 'ja'){ if(giessLog(p.id)[0] !== iso(HEUTE)) giessen(p.id); gmErledigt++; }
+  if(a === 'ja'){
+    if(giessLog(p.id)[0] !== iso(HEUTE)) giessen(p.id);
+    /* Ein Antippen, zwei Einträge: wer mit Dünger giesst, hat beides
+       getan. Der Haken erscheint nur, wenn die Pflanze auch fällig war
+       und die Düngerart im Giesswasser mitläuft. */
+    const ck = document.getElementById('gm-mit-duenger');
+    if(ck && ck.checked && typeof duengen === 'function') duengen(p.id);
+    gmErledigt++;
+  }
   if(a === 'nein' || a === 'spaeter') gmUebersprungen++;
   /* „Noch feucht" ist eine echte Rückmeldung über die Pflanze und wird
      gespeichert. „Später" sagt nur etwas über den Moment aus und zählt
@@ -14996,6 +15289,19 @@ $('#btn-giessmodus').onclick = gmStarten;
 })();
 
 /* Beschriftung des Startknopfs an die Lage anpassen */
+/* Wie viele zum Düngen dran sind — als Zeile auf Heute, nicht als
+   eigene Kachel. Düngen ist zu selten für eine Fläche, aber zu
+   wichtig, um nur in der Karte zu stehen. */
+function duengZeileHTML(){
+  if(typeof duengListe !== 'function') return '';
+  const n = duengListe().length;
+  if(!n) return '';
+  return `<button class="dg-zeile" data-do="dueng-liste">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M12 13c0-3-2.4-4.6-6.4-4.6 0 4 2.4 5.6 6.4 4.6z"/></svg>
+    <span><b>${n} ${n === 1 ? 'Pflanze' : 'Pflanzen'} zum Düngen</b></span>
+    <span class="pfeil">›</span></button>`;
+}
+
 function gmKnopfAktualisieren(){
   const n = giessListe().length;
   const sub = document.getElementById('gm-start-sub');
@@ -15463,11 +15769,26 @@ document.addEventListener('click', e=>{
   sektionOeffnen(kopf.dataset.wzGo || kopf.dataset.mhGo, kopf);
 });
 
-/* Die sechs Werkzeuge kommen ins Kachelgitter. Der Behaelter wird
-   erst hier erzeugt: die Abschnitte sind Geschwister im Dokument,
-   und ein Raster braucht einen gemeinsamen Elternteil. */
+/* Der Gießplan hat seine Heimat seit 2.9.26 im Gießcenter. Die Kachel
+   in den Werkzeugen war ein Überbleibsel — derselbe Plan an zwei
+   Stellen, von denen nur eine seinen Zusammenhang zeigt. Der Abschnitt
+   bleibt im Dokument: das Gießcenter, die Tour und die Sprungmarken
+   rufen ihn weiterhin über `sektionOeffnen('giessplan')` auf. */
+const WZ_OHNE_KACHEL = ['giessplan'];
+
+/* Die Werkzeuge kommen ins Kachelgitter. Der Behaelter wird erst hier
+   erzeugt: die Abschnitte sind Geschwister im Dokument, und ein Raster
+   braucht einen gemeinsamen Elternteil. */
 (function(){
-  const secs = Array.prototype.slice.call(document.querySelectorAll('section[data-wz]'));
+  const secs = Array.prototype.slice.call(document.querySelectorAll('section[data-wz]'))
+    .filter(sec=>WZ_OHNE_KACHEL.indexOf(sec.dataset.wz) === -1);
+  document.querySelectorAll('section[data-wz]').forEach(sec=>{
+    if(WZ_OHNE_KACHEL.indexOf(sec.dataset.wz) !== -1){
+      sec.classList.add('wz-still');
+      const box = sec.querySelector('.wz-in');
+      if(box) box.hidden = true;
+    }
+  });
   if(!secs.length) return;
   const gitter = document.createElement('div');
   gitter.className = 'kachelgitter';
@@ -17839,7 +18160,7 @@ function umtopfVorgemerkt(){
 }
 
 const UT = {stufe:1, pflanze:null, gruende:[], form:'kultur', topf:18,
-            stecklinge:false, zahl:1, art:null};
+            stecklinge:false, zahl:1, art:null, langzeit:false};
 const UT_STUFEN = 5;
 
 function utPflanzen(){
@@ -17954,6 +18275,8 @@ function utZeichnen(){
   if(feld) feld.hidden = !UT.stecklinge;
   const ck = document.getElementById('ut-hat-stecklinge');
   if(ck) ck.checked = UT.stecklinge;
+  const lz = document.getElementById('ut-langzeit');
+  if(lz) lz.checked = UT.langzeit;
   const stx = document.getElementById('ut-steckling-text');
   if(stx && UT.art && typeof V_METHODEN === 'object' && V_METHODEN[UT.art])
     stx.textContent = V_METHODEN[UT.art].kurz || '';
@@ -17972,6 +18295,8 @@ function utZusammenfassung(p){
     zeilen.push(['Grund', UT.gruende.map(k=>UT_GRUENDE[k].name).join(', ')]);
   zeilen.push(['Verlauf', 'Eintrag „Umgetopft“ am heutigen Tag']);
   zeilen.push(['Zustand', 'Frisch umgetopft — vier Wochen nicht düngen']);
+  if(UT.langzeit)
+    zeilen.push(['Dünger', 'Langzeitdünger — ein halbes Jahr keine weitere Gabe']);
   if(UT.stecklinge && UT.zahl > 0)
     zeilen.push(['Stecklinge', UT.zahl + ' × ' + (V_METHODEN[UT.art] || {}).name
       + ' — als eigene Pflanzen angelegt und im Stammbaum verbunden']);
@@ -18005,13 +18330,23 @@ function utEintragen(){
     }
   }
 
-  /* 4. Die Vormerkung ist erledigt — sonst stuende die Pflanze beim
+  /* 4. Langzeitdünger: eine feste Sperre statt einer Rechnung. Ohne
+        sie würde die App drei Wochen später Düngen vorschlagen, obwohl
+        im frischen Substrat für Monate genug steckt. */
+  if(UT.langzeit){
+    if(!S.duengLangzeit) S.duengLangzeit = {};
+    S.duengLangzeit[p.id] = iso(HEUTE);
+  } else if(S.duengLangzeit) {
+    delete S.duengLangzeit[p.id];
+  }
+
+  /* 5. Die Vormerkung ist erledigt — sonst stuende die Pflanze beim
         naechsten Aufruf weiter oben in der Liste. */
   umtopfVermerkWeg(p.id);
 
   sichern();
   render();
-  UT.stufe = 1; UT.gruende = []; UT.stecklinge = false; UT.zahl = 1;
+  UT.stufe = 1; UT.gruende = []; UT.stecklinge = false; UT.zahl = 1; UT.langzeit = false;
   utZeichnen();
   return {pflanze:p.id, kinder};
 }
@@ -18068,6 +18403,7 @@ document.addEventListener('change', e=>{
     utZeichnen();
   }
   if(e.target.id === 'ut-hat-stecklinge'){ UT.stecklinge = e.target.checked; utZeichnen(); }
+  if(e.target.id === 'ut-langzeit'){ UT.langzeit = e.target.checked; utZeichnen(); }
   if(e.target.id === 'ut-steckling-zahl'){
     UT.zahl = Math.max(1, Math.min(12, Number(e.target.value) || 1));
   }
@@ -19309,7 +19645,7 @@ const TOUR_KAPITEL = {
       { fenster: 'giessmodus',
         ziel: ()=>document.getElementById('gm-knoepfe'),
         titel: 'Gegossen, übersprungen, noch feucht',
-        text: '„Noch feucht“ ist kein Überspringen: die App merkt sich das und verlängert den Abstand für diese Pflanze. So lernt der Rhythmus mit, statt jedes Mal danebenzuliegen.' }
+        text: '„Noch feucht“ ist kein Überspringen. Die Pflanze bekommt ein bis fünf Tage Ruhe, je nach Gießklasse — ein Kaktus länger als ein Farn. Kommt die Rückmeldung mehrfach, fragt die App, ob sie den Abstand dauerhaft verlängern soll.' }
     ]
   },
 
