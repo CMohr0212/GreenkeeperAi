@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.10.0', w.__T('FASSUNG') === '2.10.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.10.1', w.__T('FASSUNG') === '2.10.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1058,6 +1058,129 @@ setTimeout(async () => {
     await tick();
     pruef('Testpflanze wieder entfernt',
       !w.__T(`allePflanzen().some(x=>x.id==='${dp}')`));
+  }
+
+  /* ══ Stammbaum ═════════════════════════════════════════════════
+     Vorher eine flache Liste: Mutter, darunter die Kinder als Zeilen.
+     Ab der zweiten Generation stand ein Enkel gleichberechtigt neben
+     einem Kind \u2014 die Abstammung war nicht mehr abzulesen. */
+  {
+    /* Drei Generationen bauen: Mutter, zwei Kinder, zwei Enkel. */
+    w.__T(`(function(){
+      const roh = (id, name, eltern) => ({id, name,
+        art:'Monstera deliciosa', botanisch:'Monstera deliciosa',
+        klasse:'B', licht:'indirekt', duenger:'normal', seit:iso(HEUTE),
+        eltern: eltern || undefined,
+        probleme:[], katzentext:'', beob:[], todo:[], log:[], notiz:''});
+      S.sbMerk = S.eigene;
+      S.eigene = [roh('SW0','Ausgangspflanze'), roh('SK1','Ableger A','SW0'),
+                  roh('SK2','Ableger B','SW0'), roh('SE1','Enkel 1','SK1'),
+                  roh('SE2','Enkel 2','SK1')];
+      S.ereignisse = Object.assign({}, S.ereignisse, {
+        SW0:[{id:'se1', datum:iso(HEUTE), typ:'vermehrt', text:'Kopfsteckling', bezug:'SK1'}],
+        SK1:[{id:'se2', datum:iso(HEUTE), typ:'entstanden', text:'Kopfsteckling', bezug:'SW0'}]});
+      S.added = Object.assign({}, S.added, {SK1:[{id:'sa1', text:'Im Wasserglas angesetzt'}]});
+      sichern(); render(); })()`);
+    await tick();
+    w.__T("sektionOeffnen('stammbaum')");
+    await tick();
+
+    /* ── Liste ── */
+    pruef('Genau eine Wurzel', w.__T('sbWurzeln().length') === 1,
+      w.__T('JSON.stringify(sbWurzeln().map(x=>x.id))'));
+    pruef('Ein Kind ist keine eigene Wurzel',
+      !w.__T("sbWurzeln().some(x=>x.id==='SK1')"));
+    pruef('Die Liste zeigt sie',
+      d.querySelectorAll('#sb-liste .sb-linie').length === 1,
+      String(d.querySelectorAll('#sb-liste .sb-linie').length));
+    pruef('Der Umfang stimmt', w.__T('JSON.stringify(sbUmfang(sbWurzeln()[0]))')
+      === '{"zahl":4,"tiefe":2}', w.__T('JSON.stringify(sbUmfang(sbWurzeln()[0]))'));
+    pruef('Die Zeile nennt die Generationen',
+      /Generationen/.test(d.querySelector('#sb-liste .sb-gen').textContent),
+      d.querySelector('#sb-liste .sb-gen').textContent);
+
+    /* Suche */
+    w.__T("sbListeRendern('Ausgangs')");
+    pruef('Suche findet die Linie',
+      d.querySelectorAll('#sb-liste .sb-linie').length === 1);
+    w.__T("sbListeRendern('xyzqfg')");
+    pruef('Unsinn findet nichts',
+      d.querySelectorAll('#sb-liste .sb-linie').length === 0
+      && /Keine Linie/.test(d.getElementById('sb-liste').textContent));
+    w.__T("sbListeRendern('')");
+
+    /* ── Baum ── */
+    const dat = JSON.parse(w.__T('JSON.stringify(sbBaumDaten(sbWurzeln()[0]))'));
+    pruef('Drei Ebenen', dat.ebenen === 3, String(dat.ebenen));
+    pruef('F\u00fcnf Knoten', dat.knoten.length === 5, String(dat.knoten.length));
+    pruef('Vier Verbindungslinien', dat.linien.length === 4, String(dat.linien.length));
+    pruef('Jede Ebene liegt tiefer als die vorige',
+      dat.knoten.every(k => k.y === k.ebene * w.__T('SB_ZEILE')));
+    /* Geschwister duerfen sich nicht ueberlappen, sonst liest man
+       nicht mehr, wer wohin geh\u00f6rt. */
+    const e1 = dat.knoten.filter(k => k.ebene === 1).sort((a,b)=>a.x-b.x);
+    pruef('Geschwister \u00fcberlappen nicht',
+      e1.length < 2 || (e1[0].x + e1[0].w) <= e1[1].x + 0.01,
+      e1.map(k=>k.x+'+'+k.w).join(' | '));
+    pruef('Alles bleibt im Feld',
+      dat.knoten.every(k => k.x >= 0 && k.x + k.w <= 100));
+
+    d.querySelector('#sb-liste .sb-linie').click();
+    await tick();
+    pruef('Antippen zeigt den Baum',
+      d.getElementById('sb-baum-ansicht').classList.contains('an'));
+    pruef('Die Liste tritt zur\u00fcck',
+      !d.getElementById('sb-liste-ansicht').classList.contains('an'));
+    pruef('Der Titel steht \u00fcber dem Baum',
+      d.getElementById('sb-baum-titel').textContent === 'Ausgangspflanze',
+      d.getElementById('sb-baum-titel').textContent);
+    pruef('Alle Knoten sind gezeichnet',
+      d.querySelectorAll('.sb-knoten').length === 5,
+      String(d.querySelectorAll('.sb-knoten').length));
+    pruef('Die Ausgangspflanze ist hervorgehoben',
+      d.querySelectorAll('.sb-knoten.mutter').length === 1);
+    pruef('Die Linien sind gezeichnet',
+      d.querySelectorAll('#sb-linien path').length === 4);
+
+    /* ── Blatt ── */
+    d.querySelector('[data-sbknoten="SK1"]').click();
+    await tick();
+    pruef('Ein Knoten \u00f6ffnet sein Blatt',
+      d.getElementById('sb-blatt').classList.contains('an'));
+    pruef('Es nennt die Pflanze',
+      d.getElementById('sb-blatt-name').textContent === 'Ableger A',
+      d.getElementById('sb-blatt-name').textContent);
+    pruef('Ein Ableger zeigt seinen Vermehrungsablauf',
+      d.getElementById('sb-blatt-untertitel').textContent === 'Vermehrungsablauf');
+    pruef('Vermehrungsschritt und Ereignis stehen zusammen',
+      d.querySelectorAll('#sb-blatt-inhalt .sb-schritt').length === 2,
+      String(d.querySelectorAll('#sb-blatt-inhalt .sb-schritt').length));
+    pruef('Der Weg in die Karte ist da',
+      !!d.querySelector('#sb-blatt-inhalt [data-go="SK1"]'));
+
+    d.getElementById('sb-blatt-zu').click();
+    await tick();
+    pruef('Das Blatt schlie\u00dft', !d.getElementById('sb-blatt').classList.contains('an'));
+    d.getElementById('sb-zurueck').click();
+    await tick();
+    pruef('Zur\u00fcck f\u00fchrt zur Liste',
+      d.getElementById('sb-liste-ansicht').classList.contains('an'));
+
+    /* Ohne Abstammung ein Hinweis statt einer leeren Fl\u00e4che. */
+    w.__T("S.eigene = []; sichern(); sbListeRendern('')");
+    pruef('Leere Sammlung erkl\u00e4rt sich',
+      /Noch keine Abstammungen/.test(d.getElementById('sb-liste').textContent));
+
+    w.__T(`S.eigene = S.sbMerk || []; delete S.sbMerk;
+      ['SW0','SK1','SK2','SE1','SE2'].forEach(id=>{
+        if(S.ereignisse) delete S.ereignisse[id];
+        if(S.added) delete S.added[id]; });
+      sichern(); render()`);
+    await tick();
+    w.__T("modalZu('sek-modal')");
+    await tick();
+    pruef('Testbaum wieder entfernt',
+      !w.__T("allePflanzen().some(x=>x.id==='SW0')"));
   }
 
   /* ══ App Tour ══════════════════════════════════════════════════

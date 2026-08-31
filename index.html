@@ -736,18 +736,9 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .foto-add:hover{border-color:var(--ink);color:var(--ink)}
 .foto-add input{display:none}
 
-/* ---- Stammbaum ---- */
-.tree{display:grid;gap:18px}
-.branch{border:1px solid var(--line);border-radius:var(--r-klein);background:var(--sand);padding:15px 16px}
-.branch-top{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);margin:0 0 3px}
-.branch-sub{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--peat);margin:0 0 12px}
-.kids{list-style:none;margin:0;padding:0 0 0 4px}
-.kids li{position:relative;padding:6px 0 6px 26px}
-.kids li::before{
-  content:"";position:absolute;left:4px;top:0;bottom:50%;width:11px;
-  border-left:1px solid var(--peat);border-bottom:1px solid var(--peat);border-bottom-left-radius:4px
-}
-.kids li:last-child::after{content:"";position:absolute;left:4px;top:50%;bottom:0;width:1px;background:var(--paper)}
+/* Die alten Regeln .tree, .branch und .kids sind mit der flachen
+   Liste entfallen — der Stammbaum zeichnet jetzt Ebenen. Sein CSS
+   steht weiter unten bei .sb-ansicht. */
 /* Abstammung ueber dem Zeitstrahl: woher die Pflanze kommt und was
    von ihr abstammt. Stand bisher nur im Steckbrief des Ablegers. */
 .abstammung{padding:11px 12px;border-radius:var(--r-klein);
@@ -1055,6 +1046,108 @@ html[data-design="klartext"] .dg-zeile{border-width:2px;font-size:var(--t-md)}
   border-radius:var(--r-mittel);background:var(--ton-blatt);
   font-size:var(--t-m);cursor:pointer}
 .gm-dueng input{width:20px;height:20px;accent-color:var(--duenger)}
+
+/* ── Stammbaum ────────────────────────────────────────────────
+   Drei Ebenen: Liste aller Linien, Baum einer einzelnen, Blatt mit
+   dem Verlauf einer Pflanze. Frueher stand hier eine flache Liste,
+   in der Enkel neben Kindern hingen. */
+.sb-ansicht{display:none}
+.sb-ansicht.an{display:block}
+.sb-suche{position:relative;margin-bottom:8px}
+.sb-suche svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;stroke:var(--schrift-2);fill:none;stroke-width:1.8;
+  stroke-linecap:round;pointer-events:none}
+.sb-suche input{width:100%;min-height:var(--tap);padding:0 14px 0 38px;
+  border-radius:var(--r-mittel);border:1px solid var(--linie);
+  background:var(--fl-karte);color:var(--schrift);font:inherit}
+html[data-design="klartext"] .sb-suche input{border-width:2px;font-size:var(--t-md)}
+.sb-liste{display:flex;flex-direction:column}
+.sb-linie{display:flex;align-items:center;gap:12px;width:100%;padding:12px 2px;
+  border:0;border-bottom:1px solid var(--linie);background:none;
+  color:var(--schrift);font:inherit;text-align:left;cursor:pointer;
+  min-height:var(--tap)}
+.sb-linie-bild{width:44px;height:44px;border-radius:var(--r-klein);flex:0 0 auto;
+  overflow:hidden;background:var(--fl-bildleer)}
+.sb-linie-bild img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-linie-txt{flex:1;min-width:0}
+.sb-linie-txt b{display:block;font-size:var(--t-l);font-weight:600}
+.sb-linie-txt i{display:block;font-style:normal;font-size:var(--t-xs);
+  color:var(--schrift-2);margin-top:1px;overflow-wrap:anywhere}
+.sb-gen{flex:0 0 auto;font-size:var(--t-xs);color:var(--schrift-2);white-space:nowrap}
+.sb-leer{padding:22px 4px;text-align:center;font-size:var(--t-s);
+  color:var(--schrift-2);line-height:1.55}
+html[data-design="klartext"] .sb-linie{border-bottom-width:2px}
+html[data-design="klartext"] .sb-gen,
+html[data-design="klartext"] .sb-linie-txt i{font-size:var(--t-md)}
+
+.sb-baum-kopf{margin-bottom:12px}
+.sb-baum-kopf h4{margin:6px 0 0;font-family:var(--f-display);
+  font-size:1.15rem;font-weight:600}
+.sb-baum-kopf p{margin:2px 0 0;font-size:var(--t-s);color:var(--schrift-2)}
+.sb-baumfeld{position:relative;margin:6px 0 8px}
+.sb-linien{position:absolute;inset:0;width:100%;height:100%;
+  fill:none;stroke:var(--linie);stroke-width:1.4;vector-effect:non-scaling-stroke}
+.sb-knotenschicht{position:relative;height:100%}
+.sb-knoten{position:absolute;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;padding:6px 4px;
+  border-radius:var(--r-klein);border:1px solid var(--linie);
+  background:var(--fl-karte);color:var(--schrift);font:inherit;
+  cursor:pointer;overflow:hidden}
+.sb-knoten.mutter{border-color:var(--fl-akzent);border-width:2px}
+.sb-knoten[data-ton="gift"],.sb-knoten[data-ton="alarm"]{border-color:var(--alarm)}
+.sb-knoten-bild{width:24px;height:24px;border-radius:5px;flex:0 0 auto;
+  overflow:hidden;background:var(--fl-bildleer)}
+.sb-knoten-bild img{width:100%;height:100%;object-fit:cover;display:block}
+.sb-knoten-txt{min-width:0;text-align:center;width:100%}
+.sb-knoten-txt b{display:block;font-size:var(--t-xs);font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-knoten-txt i{display:block;font-style:normal;font-size:var(--t-mono);
+  color:var(--schrift-2)}
+html[data-design="klartext"] .sb-knoten{border-width:2px}
+html[data-design="klartext"] .sb-knoten-txt b{font-size:var(--t-s)}
+
+/* Das Blatt faehrt von unten ein, wie ein Zettel, den man aus der
+   Mappe zieht. Es liegt im Fenster, nicht darueber. */
+.sb-blatt-deckel{position:absolute;inset:0;background:rgba(12,16,13,.42);
+  opacity:0;pointer-events:none;transition:opacity var(--dauer);z-index:5}
+.sb-blatt-deckel.an{opacity:1;pointer-events:auto}
+.sb-blatt{position:absolute;left:0;right:0;bottom:0;z-index:6;
+  max-height:78%;display:flex;flex-direction:column;
+  background:var(--fl-karte);border-radius:var(--r-gross) var(--r-gross) 0 0;
+  box-shadow:0 -8px 28px rgba(0,0,0,.18);
+  transform:translateY(102%);transition:transform var(--dauer);
+  pointer-events:none}
+.sb-blatt.an{transform:translateY(0);pointer-events:auto}
+.sb-griff{width:38px;height:4px;border-radius:2px;background:var(--linie);
+  margin:9px auto 4px;flex:0 0 auto}
+.sb-blatt-kopf{display:flex;align-items:center;gap:12px;
+  padding:6px 15px 11px;border-bottom:1px solid var(--linie);flex:0 0 auto}
+.sb-blatt-kopf b{display:block;font-size:var(--t-l);font-weight:600}
+.sb-blatt-kopf i{display:block;font-style:normal;font-size:var(--t-xs);
+  color:var(--schrift-2)}
+.sb-blatt-zu{margin-left:auto;min-width:var(--tap);min-height:var(--tap);
+  border:0;background:none;color:var(--schrift-2);font-size:1.1rem;cursor:pointer}
+.sb-blatt-inhalt{padding:13px 15px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sb-blatt-taten{margin-bottom:12px}
+
+.sb-schritt{padding:0 0 14px}
+.sb-schritt-kopf{display:flex;gap:11px;align-items:flex-start}
+.sb-punkt{flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+  background:var(--fl-akzent);color:var(--schrift-invers);
+  font-size:var(--t-mono);display:flex;align-items:center;justify-content:center}
+.sb-schritt-txt{flex:1;min-width:0}
+.sb-schritt-status{display:inline-block;padding:2px 8px;border-radius:100px;
+  font-size:var(--t-mono);letter-spacing:.05em;text-transform:uppercase;
+  background:var(--fl-tief);color:var(--schrift-2);margin-bottom:3px}
+.sb-schritt-status.vermehrung{color:var(--sicher)}
+.sb-schritt-status.doktor{color:var(--alarm)}
+.sb-schritt-status.wachstum{color:var(--fl-akzent)}
+.sb-schritt-datum{margin:0;font-size:var(--t-xs);color:var(--schrift-2)}
+.sb-schritt-titel{margin:1px 0 0;font-size:var(--t-m);font-weight:600}
+.sb-schritt-text{margin:3px 0 0;font-size:var(--t-s);color:var(--schrift-2);
+  line-height:1.5}
+html[data-design="klartext"] .sb-schritt-text,
+html[data-design="klartext"] .sb-schritt-datum{font-size:var(--t-md);color:var(--schrift)}
 .kachelgitter .wz-kopfzeile{height:100%}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
 .kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
@@ -7879,8 +7972,40 @@ function papierkorbRender(){
       <button class="wz-i" data-wz-info="stammbaum" aria-expanded="false" aria-label="Wozu ist der Stammbaum da?">i</button>
     </div>
     <div class="wz-in" id="wz-in-stammbaum" hidden>
-      <p class="wz-hilfe" hidden>Wer von wem abstammt. Ableger und Teilungen behalten die Eigenschaften der Mutterpflanze.</p>
-    <div class="tree" id="tree"></div>
+      <p class="wz-hilfe" hidden>Wer von wem abstammt. Erst die Liste aller Linien, dann der Baum einer einzelnen — und ein Antippen zeigt, was mit dieser Pflanze seit ihrer Abnahme passiert ist. Ableger und Teilungen erben die Eigenschaften der Mutterpflanze.</p>
+
+      <!-- Ansicht 1: alle Linien -->
+      <div class="sb-ansicht an" id="sb-liste-ansicht">
+        <div class="sb-suche">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+          <input type="search" id="sb-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Stammbaum suchen">
+        </div>
+        <div class="sb-liste" id="sb-liste"></div>
+      </div>
+
+      <!-- Ansicht 2: ein Baum -->
+      <div class="sb-ansicht" id="sb-baum-ansicht">
+        <div class="sb-baum-kopf">
+          <button class="linkbtn" id="sb-zurueck">‹ Alle Linien</button>
+          <h4 id="sb-baum-titel">—</h4>
+          <p>Eine Pflanze antippen für ihren Verlauf.</p>
+        </div>
+        <div class="sb-baumfeld" id="sb-baumfeld">
+          <svg class="sb-linien" id="sb-linien" viewBox="0 0 100 280" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="sb-knotenschicht" id="sb-knotenschicht"></div>
+        </div>
+      </div>
+
+      <!-- Blatt: der Verlauf einer einzelnen Pflanze -->
+      <div class="sb-blatt-deckel" id="sb-blatt-deckel"></div>
+      <div class="sb-blatt" id="sb-blatt" role="dialog" aria-labelledby="sb-blatt-name">
+        <div class="sb-griff" aria-hidden="true"></div>
+        <div class="sb-blatt-kopf">
+          <span><b id="sb-blatt-name">—</b><i id="sb-blatt-untertitel">Verlauf</i></span>
+          <button class="sb-blatt-zu" id="sb-blatt-zu" aria-label="Schließen">✕</button>
+        </div>
+        <div class="sb-blatt-inhalt" id="sb-blatt-inhalt"></div>
+      </div>
     </div>
   </section>
 
@@ -8712,8 +8837,19 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.10.0';
+const FASSUNG = '2.10.1';
 const PATCHNOTES = [
+  {
+    nr: '2.10.1', datum: '2026-08-30', titel: 'Der Stammbaum als Baum',
+    neu: [
+      'Der Stammbaum beginnt mit einer Liste aller Linien, durchsuchbar, mit Foto und Angabe der Generationen. Ein Antippen zeigt den Baum dieser einen Linie.',
+      'Der Baum zeichnet echte Ebenen: Ausgangspflanze oben, Ableger darunter, deren Ableger wieder darunter — verbunden durch Linien. Die Lage wird gerechnet, es passt sich also an, wenn die Sammlung wächst.',
+      'Eine Pflanze im Baum antippen öffnet ein Blatt mit ihrem Verlauf: Vermehrungsschritte und Ereignisse in einer Zeitleiste, dazu der Weg in ihre Karte.'
+    ],
+    besser: [
+      'Vorher war der Stammbaum eine flache Liste — Mutterpflanze, darunter die Kinder als Zeilen. Ab der zweiten Generation stand ein Enkel gleichberechtigt neben einem Kind, und die Abstammung war nicht mehr abzulesen.'
+    ]
+  },
   {
     nr: '2.10.0', datum: '2026-08-30', titel: 'Düngen',
     neu: [
@@ -11799,26 +11935,279 @@ document.addEventListener('toggle', e=>{
 }, true);
 
 /* ══════════════════ Stammbaum ══════════════════ */
-function treeHTML(){
+/* ══════════════════ Stammbaum ══════════════════
+   Frueher eine flache Liste: Mutterpflanze, darunter ihre Kinder als
+   Textzeilen. Ab der zweiten Generation war nicht mehr zu sehen, wer
+   von wem kommt — Enkel standen gleichberechtigt neben Kindern.
+
+   Jetzt drei Ebenen: eine Liste aller Linien, der Baum einer
+   einzelnen, und pro Pflanze ein Blatt mit ihrem Verlauf. Die
+   Positionen werden gerechnet, nicht eingetragen — die Sammlung
+   waechst ja weiter.
+   ═══════════════════════════════════════════════ */
+const SB_ZEILE = 100;      /* Hoehe einer Generation in Pixel */
+const SB_KNOTEN_H = 62;    /* Hoehe eines Knotens */
+
+/* Alle Wurzeln: Pflanzen mit Nachkommen, die selbst keine Mutter in
+   der Sammlung haben. Dazu die Linien, deren Ursprung fehlt. */
+function sbWurzeln(){
   const alle = allePflanzen();
-  const zweige = [];
-  alle.forEach(m=>{
-    const kinder = alle.filter(k=>k.eltern===m.id);
-    if(kinder.length) zweige.push({titel:nice(m), sub:'Mutterpflanze in der Sammlung · '+m.id, id:m.id, kinder});
-  });
+  const hatKinder = id => alle.some(k => k.eltern === id);
+  const wurzeln = alle
+    .filter(p => hatKinder(p.id) && !alle.some(m => m.id === p.eltern))
+    .map(p => ({art:'pflanze', id:p.id, titel:nice(p), sub:p.art || p.botanisch || '',
+                p}));
+
+  /* Linien ohne Mutterpflanze in der Sammlung: alle Mitglieder ohne
+     eigene Eltern bilden zusammen eine Wurzel. */
   const linien = {};
-  alle.filter(p=>p.linie).forEach(p=>{ (linien[p.linie] = linien[p.linie]||[]).push(p); });
-  Object.entries(linien).forEach(([l, ps])=>{
-    zweige.push({titel:l, sub:'Ursprung nicht in der Sammlung', id:null, kinder:ps});
+  alle.filter(p => p.linie && !alle.some(m => m.id === p.eltern))
+      .forEach(p => { (linien[p.linie] = linien[p.linie] || []).push(p); });
+  Object.keys(linien).forEach(l => {
+    wurzeln.push({art:'linie', id:'linie:' + l, titel:l,
+                  sub:'Ursprung nicht in der Sammlung', mitglieder:linien[l]});
   });
-  if(!zweige.length) return '<p class="sub">Noch keine Abstammungen erfasst.</p>';
-  return zweige.map(z=>`<div class="branch">
-    <p class="branch-top">${z.id?`<button class="kid-link" data-go="${z.id}">${esc(z.titel)}</button>`:esc(z.titel)}</p>
-    <p class="branch-sub">${esc(z.sub)}</p>
-    <ul class="kids">${z.kinder.map(k=>`<li>
-      <button class="kid-link" data-go="${k.id}">${esc(nice(k))}</button>
-      <span class="kid-note">${esc(k.art)} · ${k.id}</span></li>`).join('')}</ul></div>`).join('');
+  return wurzeln;
 }
+
+/* Wie viele Nachkommen und Generationen unter einer Wurzel haengen. */
+function sbUmfang(wurzel){
+  const alle = allePflanzen();
+  let zahl = 0, tiefe = 0;
+  const lauf = (ids, ebene) => {
+    if(!ids.length) return;
+    tiefe = Math.max(tiefe, ebene);
+    zahl += ids.length;
+    const naechste = alle.filter(k => ids.indexOf(k.eltern) !== -1).map(k => k.id);
+    if(naechste.length && ebene < 8) lauf(naechste, ebene + 1);
+  };
+  if(wurzel.art === 'linie'){
+    zahl = wurzel.mitglieder.length;
+    lauf(wurzel.mitglieder.map(x => x.id), 1);
+  } else {
+    lauf(alle.filter(k => k.eltern === wurzel.id).map(k => k.id), 1);
+  }
+  return {zahl, tiefe};
+}
+
+/* Der Baum als Ebenen. Jede Ebene verteilt ihre Knoten gleichmaessig
+   ueber die Breite; die Linien laufen von der Mitte des Elternknotens
+   zur Mitte des Kindes. */
+function sbBaumDaten(wurzel){
+  const alle = allePflanzen();
+  const ebenen = [];
+
+  if(wurzel.art === 'linie') ebenen.push(wurzel.mitglieder.slice());
+  else {
+    const w = alle.find(x => x.id === wurzel.id);
+    if(!w) return null;
+    ebenen.push([w]);
+  }
+
+  for(let i = 0; i < 8; i++){
+    const eltern = ebenen[ebenen.length - 1].map(x => x.id);
+    const kinder = alle.filter(k => eltern.indexOf(k.eltern) !== -1);
+    if(!kinder.length) break;
+    ebenen.push(kinder);
+  }
+
+  /* Waagerechte Lage in Prozent, senkrechte in Pixeln. Bei vielen
+     Geschwistern werden die Kaesten schmaler statt zu ueberlappen. */
+  const pos = {};
+  const knoten = [];
+  ebenen.forEach((reihe, e) => {
+    const n = reihe.length;
+    const breite = Math.max(16, Math.min(62, (96 / n) - 4));
+    const luecke = n > 1 ? (96 - breite * n) / (n - 1) : 0;
+    reihe.forEach((p, i) => {
+      const x = n === 1 ? (50 - breite / 2) : (2 + i * (breite + luecke));
+      const y = e * SB_ZEILE;
+      pos[p.id] = {x, y, w:breite, mitte:x + breite / 2};
+      knoten.push({p, x, y, w:breite, ebene:e,
+                   wurzel: e === 0 && wurzel.art !== 'linie'});
+    });
+  });
+
+  /* Linien: senkrecht aus dem Elternknoten heraus, waagerecht zum
+     Kind, senkrecht hinein. Drei Segmente statt einer Diagonalen —
+     das liest sich als Verwandtschaft, nicht als Diagramm. */
+  const linien = [];
+  knoten.forEach(k => {
+    const e = k.p.eltern && pos[k.p.eltern];
+    if(!e) return;
+    const vonY = e.y + SB_KNOTEN_H;
+    const zuY = k.y;
+    const mitteY = vonY + (zuY - vonY) / 2;
+    const a = pos[k.p.eltern].mitte, b = pos[k.p.id].mitte;
+    linien.push(`M${a} ${vonY} V${mitteY} H${b} V${zuY}`);
+  });
+
+  return {knoten, linien, hoehe:(ebenen.length - 1) * SB_ZEILE + SB_KNOTEN_H + 6,
+          ebenen:ebenen.length};
+}
+
+let sbAnsicht = 'liste';
+let sbBaumJetzt = null;
+
+function sbListeRendern(filter){
+  const box = document.getElementById('sb-liste');
+  if(!box) return;
+  const f = norm(filter || '');
+  const treffer = sbWurzeln().filter(w =>
+    !f || norm(w.titel).indexOf(f) !== -1 || norm(w.sub || '').indexOf(f) !== -1);
+
+  if(!treffer.length){
+    box.innerHTML = sbWurzeln().length
+      ? '<p class="sb-leer">Keine Linie gefunden.</p>'
+      : '<p class="sb-leer">Noch keine Abstammungen erfasst. Sobald du über „Vermehren“ oder beim Umtopfen einen Ableger anlegst, erscheint hier seine Linie.</p>';
+    return;
+  }
+
+  box.innerHTML = treffer.map(w => {
+    const u = sbUmfang(w);
+    const foto = w.art === 'pflanze' ? profilFoto(w.id) : null;
+    const gen = u.tiefe > 1
+      ? (u.tiefe + 1) + ' Generationen'
+      : (u.zahl === 1 ? 'Ein Ableger' : u.zahl + ' Ableger');
+    return `<button class="sb-linie" data-sbbaum="${esc(w.id)}">
+      <span class="sb-linie-bild">${foto
+        ? `<img src="${foto.src}" alt="" decoding="async">` : ''}</span>
+      <span class="sb-linie-txt"><b>${esc(w.titel)}</b><i>${esc(w.sub || '')}</i></span>
+      <span class="sb-gen">${esc(gen)}</span>
+    </button>`;
+  }).join('');
+}
+
+function sbBaumRendern(schluessel){
+  const w = sbWurzeln().find(x => x.id === schluessel);
+  if(!w) return false;
+  const d = sbBaumDaten(w);
+  if(!d) return false;
+  sbBaumJetzt = schluessel;
+
+  document.getElementById('sb-baum-titel').textContent = w.titel;
+  const feld = document.getElementById('sb-baumfeld');
+  feld.style.height = d.hoehe + 'px';
+  const svg = document.getElementById('sb-linien');
+  svg.setAttribute('viewBox', '0 0 100 ' + d.hoehe);
+  svg.innerHTML = d.linien.map(p => `<path d="${p}"/>`).join('');
+
+  document.getElementById('sb-knotenschicht').innerHTML = d.knoten.map(k => {
+    const foto = profilFoto(k.p.id);
+    const st = giessStatus(k.p);
+    return `<button class="sb-knoten${k.wurzel ? ' mutter' : ''}"
+      data-sbknoten="${k.p.id}" data-ton="${karteStand(k.p).ton}"
+      style="left:${k.x}%;top:${k.y}px;width:${k.w}%;height:${SB_KNOTEN_H}px">
+      <span class="sb-knoten-bild">${foto
+        ? `<img src="${foto.src}" alt="" decoding="async">` : ''}</span>
+      <span class="sb-knoten-txt"><b>${esc(nice(k.p))}</b><i>${
+        k.ebene === 0 ? 'Ausgangspflanze' : 'Gen ' + k.ebene}</i></span>
+    </button>`;
+  }).join('');
+  return true;
+}
+
+/* Das Blatt zeigt, was mit dieser einen Pflanze passiert ist:
+   Vermehrungsschritte aus dem Vermehren-Werkzeug und Ereignisse aus
+   dem Verlauf, zusammen in einer Zeitleiste. */
+const SB_TON = {vermehrt:'vermehrung', entstanden:'vermehrung',
+                umgetopft:'pflege', gegossen:'pflege', geduengt:'pflege',
+                blatt:'wachstum', blatt_weg:'wachstum', bluete:'wachstum',
+                schaedling:'doktor', krank:'doktor', notiz:'pflege'};
+const SB_TON_WORT = {wachstum:'Wachstum', pflege:'Pflege',
+                     doktor:'Doktor', vermehrung:'Vermehrung'};
+
+function sbBlattPunkte(p){
+  const punkte = [];
+
+  (S.added[p.id] || []).forEach((a, i) => {
+    punkte.push({datum:null, ton:'vermehrung', titel:'Schritt ' + (i + 1),
+                 text:a.text || '', erledigt:!!a.done});
+  });
+
+  ereignisse(p.id).forEach(e => {
+    const art = EREIGNIS_ARTEN[e.typ] || {};
+    const and = e.bezug ? allePflanzen().find(x => x.id === e.bezug) : null;
+    punkte.push({datum:e.datum, ton:SB_TON[e.typ] || 'pflege',
+                 titel:art.name || e.typ,
+                 text:(e.text || '') + (and ? ' · ' + nice(and) : '')});
+  });
+
+  /* Nach Datum, Undatiertes zuerst — das sind die Schritte einer
+     laufenden Vermehrung, die noch keinen Termin haben. */
+  punkte.sort((a, b) => (a.datum || '') < (b.datum || '') ? -1 : 1);
+  return punkte;
+}
+
+function sbBlattOeffnen(id){
+  const p = allePflanzen().find(x => x.id === id);
+  if(!p) return false;
+  const punkte = sbBlattPunkte(p);
+  document.getElementById('sb-blatt-name').textContent = nice(p);
+  document.getElementById('sb-blatt-untertitel').textContent =
+    p.eltern ? 'Vermehrungsablauf' : 'Verlauf';
+
+  const kopf = `<div class="sb-blatt-taten">
+    <button class="linkbtn" data-go="${p.id}">Karte öffnen</button>
+  </div>`;
+
+  document.getElementById('sb-blatt-inhalt').innerHTML = kopf + (punkte.length
+    ? punkte.map((s, i) => `<div class="sb-schritt">
+        <div class="sb-schritt-kopf">
+          <span class="sb-punkt">${i + 1}</span>
+          <span class="sb-schritt-txt">
+            <span class="sb-schritt-status ${s.ton}">${SB_TON_WORT[s.ton] || ''}</span>
+            ${s.datum ? `<p class="sb-schritt-datum">${
+              new Date(s.datum + 'T12:00:00').toLocaleDateString('de-DE')}</p>` : ''}
+            <p class="sb-schritt-titel">${esc(s.titel)}</p>
+            ${s.text ? `<p class="sb-schritt-text">${esc(s.text)}</p>` : ''}
+          </span>
+        </div>
+      </div>`).join('')
+    : '<p class="sb-leer">Für diese Pflanze ist noch nichts eingetragen.</p>');
+
+  document.getElementById('sb-blatt').classList.add('an');
+  document.getElementById('sb-blatt-deckel').classList.add('an');
+  return true;
+}
+
+function sbBlattSchliessen(){
+  const b = document.getElementById('sb-blatt');
+  const d = document.getElementById('sb-blatt-deckel');
+  if(b) b.classList.remove('an');
+  if(d) d.classList.remove('an');
+}
+
+function sbZeigeListe(){
+  sbAnsicht = 'liste';
+  sbBaumJetzt = null;
+  document.getElementById('sb-liste-ansicht').classList.add('an');
+  document.getElementById('sb-baum-ansicht').classList.remove('an');
+  sbBlattSchliessen();
+  sbListeRendern(document.getElementById('sb-such').value);
+}
+
+function sbZeigeBaum(schluessel){
+  if(!sbBaumRendern(schluessel)) return;
+  sbAnsicht = 'baum';
+  document.getElementById('sb-liste-ansicht').classList.remove('an');
+  document.getElementById('sb-baum-ansicht').classList.add('an');
+}
+
+document.addEventListener('click', e=>{
+  const l = e.target.closest('[data-sbbaum]');
+  if(l){ sbZeigeBaum(l.dataset.sbbaum); return; }
+  const k = e.target.closest('[data-sbknoten]');
+  if(k){ sbBlattOeffnen(k.dataset.sbknoten); return; }
+  if(e.target.closest('#sb-zurueck')){ sbZeigeListe(); return; }
+  if(e.target.closest('#sb-blatt-zu') || e.target.closest('#sb-blatt-deckel')){
+    sbBlattSchliessen(); return;
+  }
+});
+
+document.addEventListener('input', e=>{
+  if(e.target.id === 'sb-such') sbListeRendern(e.target.value);
+});
 
 /* ══════════════════ Rendern ══════════════════ */
 function oeffne(id){
@@ -12023,7 +12412,11 @@ function render(){
   meldeRender();
   if(typeof papierkorbRender === 'function') papierkorbRender();
   if(typeof rundeAngebotZeichnen === 'function') rundeAngebotZeichnen();
-  $('#tree').innerHTML = treeHTML();
+  /* Der Stammbaum baut sich beim Öffnen auf, nicht bei jedem Rendern —
+     er hängt in einem Fenster und niemand sieht ihn nebenbei. */
+  if(typeof sbListeRendern === 'function' && sbAnsicht === 'liste'
+     && document.getElementById('sb-liste')) sbListeRendern(
+       (document.getElementById('sb-such')||{}).value || '');
   const alleTasks = alle.flatMap(aufgabenVon);
   $('#alltodo').innerHTML = taskBlockHTML(alleTasks, 'global', true, null);
   $('#wunsch').innerHTML = taskBlockHTML(S.wish.map(x=>({id:x.id, text:x.text, done:!!x.done, plantName:''})), 'wunsch', false, '__wunsch');
@@ -15707,6 +16100,9 @@ function sektionOeffnen(key, ausloeser){
   if(['giess','wasser','duenger','rhythmus'].indexOf(key) !== -1
      && typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
   if(key === 'umtopfen' && typeof utAufbauen === 'function') utAufbauen();
+  /* Immer mit der Liste beginnen: wer den Stammbaum aufschlägt, will
+     wählen, nicht dort weitermachen, wo er letztes Mal aufgehört hat. */
+  if(key === 'stammbaum' && typeof sbZeigeListe === 'function') sbZeigeListe();
   if(key === 'bib-arten' && typeof bibTrefferZeichnen === 'function') bibTrefferZeichnen();
   if(key === 'bib-rezepte' && typeof bibRezepteZeichnen === 'function') bibRezepteZeichnen();
   if(key === 'bib-wissen' && typeof bibWissenZeichnen === 'function') bibWissenZeichnen();

@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.10.1 — 30. August 2026
+**Der Stammbaum als Baum**
+
+### Neu
+- Der Stammbaum beginnt mit einer Liste aller Linien, durchsuchbar, mit Foto und Angabe der Generationen. Ein Antippen zeigt den Baum dieser einen Linie.
+- Der Baum zeichnet echte Ebenen: Ausgangspflanze oben, Ableger darunter, deren Ableger wieder darunter — verbunden durch Linien. Die Lage wird gerechnet, es passt sich also an, wenn die Sammlung wächst.
+- Eine Pflanze im Baum antippen öffnet ein Blatt mit ihrem Verlauf: Vermehrungsschritte und Ereignisse in einer Zeitleiste, dazu der Weg in ihre Karte.
+
+### Besser
+- Vorher war der Stammbaum eine flache Liste — Mutterpflanze, darunter die Kinder als Zeilen. Ab der zweiten Generation stand ein Enkel gleichberechtigt neben einem Kind, und die Abstammung war nicht mehr abzulesen.
+
+---
+
 ## 2.10.0 — 30. August 2026
 **Düngen**
 
