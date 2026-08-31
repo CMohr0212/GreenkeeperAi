@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.10.2', w.__T('FASSUNG') === '2.10.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.10.3', w.__T('FASSUNG') === '2.10.3', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1256,6 +1256,13 @@ setTimeout(async () => {
       pruef('Und die ganze Wand ist wieder gleichm\u00e4\u00dfig',
         Object.values(JSON.parse(w.__T(`JSON.stringify(wandBreiten(raum(),'${kid}').breiten)`)))
           .every(b => b === w.__T('KACHEL')));
+    /* ── Auswahlknopf mit Bild, Pflanzen im Vollbild ── */
+    pruef('Der Auswahlknopf kann ein Bild tragen',
+      typeof w.__T('zchipHTML') === 'function');
+    /* Die Schublade kannte den Pflanzenmodus nicht — im Vollbild gab
+       es damit keine Möglichkeit, eine Pflanze zu setzen. */
+    pruef('Die Vollbild-Schublade kennt den Pflanzenmodus',
+      html.indexOf("['moebel','kanten','pflanzen'].includes(pModus)") !== -1);
     }
     w.__T("modalZu('sek-modal')");
     await tick();
@@ -1836,6 +1843,26 @@ setTimeout(async () => {
     w.__T(`S.ereignisse['${pid3}'] = (S.ereignisse['${pid3}']||[])
       .filter(e=>e.typ!=='umgetopft'); if(S.edits) delete S.edits['${pid3}'];
       if(S.zustand) delete S.zustand['${pid3}']; sichern()`);
+
+    /* Vollbild: Pflanzen setzen und M\u00f6bel wieder verlassen. */
+    w.__T("pModus='pflanzen'; vollbild=true; schubladeFuellen()");
+    const sch = d.getElementById('vb-schublade');
+    pruef('Die Schublade f\u00fchrt auch Pflanzen',
+      sch && sch.hidden === false, sch ? 'hidden='+sch.hidden : 'fehlt');
+    pruef('Sie zeigt Chips oder sagt, dass alles platziert ist',
+      /zchip|Platz/.test(sch.innerHTML));
+    pruef('Chips tragen ein Bild, wenn es eines gibt', w.__T(`(function(){
+      const p = allePflanzen()[0];
+      const h = zchipHTML(p, false, null);
+      return !profilFoto(p.id) || h.indexOf('<img') !== -1; })()`));
+    w.__T("vollbild=false; pModus='pflanzen'; schubladeFuellen()");
+
+    pruef('Das M\u00f6belformular hat oben einen Schlie\u00dfen-Knopf',
+      !!d.getElementById('btn-mb-zu-oben'));
+    w.__T("document.getElementById('moebel-bearb').classList.add('on')");
+    d.getElementById('btn-mb-zu-oben').click();
+    pruef('Er schlie\u00dft das Formular',
+      !d.getElementById('moebel-bearb').classList.contains('on'));
 
     w.__T("modalZu('sek-modal')");
     await tick();

@@ -1017,6 +1017,20 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
    Abschnitt bleibt im Dokument — sektionOeffnen braucht ihn. */
 .wz-still{display:none!important}
 
+/* Daumennagel am Auswahlknopf. Bei fünf Pflanzen reicht der Name,
+   bei fünfzig nicht mehr — drei Efeututen heißen alle gleich. */
+.zchip.mitbild{display:inline-flex;align-items:center;gap:7px;
+  padding-left:5px;text-align:left}
+.zchip.mitbild img{width:26px;height:26px;border-radius:5px;
+  object-fit:cover;display:block;flex:0 0 auto}
+html[data-design="klartext"] .zchip.mitbild img{width:34px;height:34px}
+
+/* Die Pflanzenliste in der Vollbild-Schublade */
+.vb-sch-titel{margin:0 0 8px;font-size:var(--t-xs);color:var(--schrift-2);
+  letter-spacing:.06em;text-transform:uppercase}
+.vb-sch-liste{display:flex;flex-direction:column;gap:6px}
+.vb-sch-liste .zchip{width:100%;justify-content:flex-start}
+
 /* ── Düngen ───────────────────────────────────────────────── */
 .dg-block{padding:2px 0}
 .dg-lage{margin:0 0 4px;font-size:var(--t-m);font-weight:600}
@@ -2700,6 +2714,11 @@ body.vollbild #p-karte{position:absolute;left:52px;right:0;bottom:0;z-index:5;ma
 .pk-kurz .pk-zeile{margin:0 0 3px}
 .pk-kurz .tools{margin-top:var(--a-2)}
 body.vollbild #p-karte .pk{border:0;border-radius:0}
+#moebel-bearb{position:relative}
+.mb-zu-oben{position:absolute;top:6px;right:6px;z-index:2;
+  min-width:38px;min-height:38px;border-radius:50%;
+  border:1px solid var(--linie);background:var(--fl-karte);
+  color:var(--schrift-2);font-size:1rem;cursor:pointer;line-height:1}
 body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-index:6;margin:0;
   max-height:60vh;overflow-y:auto;border-radius:0;border-left:0;border-right:0;border-bottom:0}
 @media(max-width:520px) and (orientation:portrait){
@@ -8198,6 +8217,10 @@ function papierkorbRender(){
       <p class="vb-quer" hidden>Quer halten gibt deutlich mehr Platz.</p>
       <div id="p-karte" hidden></div>
 <div class="formwrap" id="moebel-bearb">
+      <!-- Oben, nicht nur unten: im Vollbild liegt das Formular am
+           unteren Rand, und der Knopf ganz am Ende war nicht mehr zu
+           erreichen — man kam aus der Möbelbearbeitung nicht heraus. -->
+      <button class="mb-zu-oben" id="btn-mb-zu-oben" aria-label="Möbelbearbeitung schließen">✕</button>
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="mb-name"></label>
         <label><span class="lab">Höhe in cm</span><input id="mb-hoehe" type="number" min="0" step="5"></label>
@@ -8920,14 +8943,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.10.2';
+const FASSUNG = '2.10.3';
 const PATCHNOTES = [
   {
-    nr: '2.10.2', datum: '2026-08-30', titel: 'Grundriss repariert',
+    nr: '2.10.3', datum: '2026-08-30', titel: 'Grundriss repariert',
     behoben: [
       'Fenster und Türen ließen sich nicht breiter als 50 cm eintragen — jede Eingabe darüber wurde stillschweigend auf eine Kachel gekürzt. Jetzt gilt, was du einträgst: bei 130 cm rücken die übrigen Abschnitte derselben Wand zusammen, und die Wand bleibt so lang, wie der Raum sie vorgibt. Gezeichnet wird weiter im 50er-Raster — nur die Rechnung wird genauer.',
       'Der Planer sprang beim Öffnen sofort in den zuletzt bearbeiteten Raum. Der Weg zur Raumliste war damit versperrt. Er beginnt jetzt immer oben.',
-      'Im Vollbild kam man nach dem Hineinzoomen nicht mehr ganz heraus: die Untergrenze lag fest bei einfacher Größe, was bei breiten Räumen im Hochformat nicht reichte. Sie wird jetzt aus der Fläche gerechnet, und ⥂ zeigt wieder den ganzen Raum.'
+      'Im Vollbild kam man nach dem Hineinzoomen nicht mehr ganz heraus: die Untergrenze lag fest bei einfacher Größe, was bei breiten Räumen im Hochformat nicht reichte. Sie wird jetzt aus der Fläche gerechnet, und ⥂ zeigt wieder den ganzen Raum.',
+      'Aus der Möbelbearbeitung kam man im Vollbild nicht mehr heraus — der Schließen-Knopf stand ganz unten im Formular und ließ sich dort nicht mehr erreichen. Jetzt steht einer oben in der Ecke, und die Escape-Taste schließt ebenfalls.',
+      'Nach dem Setzen einer Pflanze im Vollbild blieb sie in der Seitenleiste stehen, als hätte sie noch keinen Platz.',
+      'Im Vollbild ließen sich keine Pflanzen in den Raum setzen — die seitliche Leiste kannte nur Möbel und Wände. Jetzt steht dort auch die Liste der Pflanzen ohne Platz.'
+    ],
+    besser: [
+      'Beim Setzen einer Pflanze steht ein kleines Foto neben dem Namen. Bei drei Efeututen half der Name allein nicht weiter.'
     ]
   },
   {
@@ -14938,6 +14967,16 @@ function planKarteHTML(p){
     </div></div>`;
 }
 
+/* Ein Daumennagel am Namen. Bei fünf Pflanzen reicht der Name, bei
+   fünfzig nicht mehr — wer drei Efeututen hat, erkennt am Wort nicht,
+   welche gemeint ist. Ohne Foto bleibt es beim Namen allein. */
+function zchipHTML(p, gew, gz){
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  return `<button class="zchip${gew?' gewaehlt':''}${gz===true?' gift':(gz===false?' safe':'')}${
+    f?' mitbild':''}" data-neu="${p.id}">${
+    f ? `<img src="${f.src}" alt="" decoding="async">` : ''}<span>${esc(kurz(p))}</span></button>`;
+}
+
 function freiHTML(){
   const frei = pflanzenOhneOrt();
   if(!frei.length) return '<p class="allgut">Jede Pflanze hat einen Platz.</p>';
@@ -14945,7 +14984,7 @@ function freiHTML(){
     <div class="zchips">${frei.map(p=>{
       const gew = pGewaehlt && pGewaehlt.typ==='neu' && pGewaehlt.id===p.id;
       const gz = istGiftig(p, 'katze');
-      return `<button class="zchip${gew?' gewaehlt':''}${gz===true?' gift':(gz===false?' safe':'')}" data-neu="${p.id}">${esc(kurz(p))}</button>`;
+      return zchipHTML(p, gew, gz);
     }).join('')}</div>`;
 }
 
@@ -15193,7 +15232,13 @@ function planTipp(ev){
   if(pModus === 'pflanzen' && pGewaehlt && pGewaehlt.typ === 'neu'){
     const p = planPunkt(ev); if(!p || !inRaum(r, p.x, p.y)) return;
     pflanzeSetzen(pGewaehlt.id, r.id, p.x, p.y);
-    pGewaehlt = null; planRender(); return;
+    pGewaehlt = null;
+    planRender();
+    /* Die gesetzte Pflanze fällt aus der Liste der Platzlosen — die
+       steht im Vollbild in der Schublade, nicht im Rumpf, und planRender
+       fasst sie nicht an. */
+    if(typeof schubladeFuellen === 'function') schubladeFuellen();
+    return;
   }
 }
 
@@ -15229,6 +15274,7 @@ document.addEventListener('click', e=>{
   const neu = e.target.closest('[data-neu]');
   if(neu){
     pGewaehlt = pGewaehlt && pGewaehlt.id===neu.dataset.neu ? null : {typ:'neu', id:neu.dataset.neu};
+    if(typeof schubladeFuellen === 'function') schubladeFuellen();
     planRender(); return;
   }
   const btn = e.target.closest('[data-do]');
@@ -15255,7 +15301,20 @@ $('#btn-mb-weg').onclick = ()=>{
   r.moebel = (r.moebel||[]).filter(x=>x.id!==id);
   sichern(); $('#moebel-bearb').classList.remove('on'); pGewaehlt = null; planRender();
 };
-$('#btn-mb-zu').onclick = ()=>{ $('#moebel-bearb').classList.remove('on'); pGewaehlt = null; planRender(); };
+function moebelFormularZu(){
+  $('#moebel-bearb').classList.remove('on');
+  pGewaehlt = null;
+  planRender();
+}
+$('#btn-mb-zu').onclick = moebelFormularZu;
+$('#btn-mb-zu-oben').onclick = moebelFormularZu;
+document.addEventListener('keydown', e=>{
+  const f = document.getElementById('moebel-bearb');
+  if(e.key === 'Escape' && f && f.classList.contains('on')){
+    e.stopPropagation();
+    moebelFormularZu();
+  }
+});
 
 /* ── Räume verwalten ─────────────────────────────────────── */
 /* Die Raumverwaltung war zugeklappt und der Knopf hieß nur „Raum
@@ -15559,10 +15618,26 @@ function mitteJetzt(){
 /* Schublade für Möbel und Wandarten */
 function schubladeFuellen(){
   const box = document.getElementById('vb-schublade'); if(!box) return;
-  const auf = vollbild && ['moebel','kanten'].includes(pModus);
+  /* Der Pflanzenmodus fehlte hier — im Vollbild gab es keine Liste der
+     Pflanzen ohne Platz, und damit keine Möglichkeit, welche zu
+     setzen. Ausgerechnet im Vollbild, wo am meisten Raum dafür ist. */
+  const auf = vollbild && ['moebel','kanten','pflanzen'].includes(pModus);
   document.body.classList.toggle('schublade-auf', auf);
   if(!auf){ box.hidden = true; return; }
   box.hidden = false;
+
+  if(pModus === 'pflanzen'){
+    const frei = pflanzenOhneOrt();
+    box.innerHTML = frei.length
+      ? '<p class="vb-sch-titel">Noch ohne Platz</p>'
+        + '<div class="vb-sch-liste">' + frei.map(p=>{
+            const gew = pGewaehlt && pGewaehlt.typ === 'neu' && pGewaehlt.id === p.id;
+            return zchipHTML(p, gew, istGiftig(p, 'katze'));
+          }).join('') + '</div>'
+      : '<p class="vb-sch-titel">Jede Pflanze hat einen Platz.</p>';
+    return;
+  }
+
   box.innerHTML = pModus === 'moebel'
     ? Object.keys(MOEBEL_ARTEN).map(k=>`<button class="mchip" data-mneu="${k}">${esc(MOEBEL_ARTEN[k].name)}</button>`).join('')
     : Object.keys(KANTEN_ART).map(k=>`<button class="mchip${k===pKanteArt?' on':''}" data-kart="${k}">${esc(KANTEN_ART[k].name)}</button>`).join('');

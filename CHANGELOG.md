@@ -4,13 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 2.10.2 — 30. August 2026
+## 2.10.3 — 30. August 2026
 **Grundriss repariert**
 
 ### Behoben
 - Fenster und Türen ließen sich nicht breiter als 50 cm eintragen — jede Eingabe darüber wurde stillschweigend auf eine Kachel gekürzt. Jetzt gilt, was du einträgst: bei 130 cm rücken die übrigen Abschnitte derselben Wand zusammen, und die Wand bleibt so lang, wie der Raum sie vorgibt. Gezeichnet wird weiter im 50er-Raster.
 - Der Planer sprang beim Öffnen sofort in den zuletzt bearbeiteten Raum. Er beginnt jetzt immer bei der Raumliste.
 - Im Vollbild kam man nach dem Hineinzoomen nicht mehr ganz heraus. Die Untergrenze wird jetzt aus der Fläche gerechnet, und ⥂ zeigt wieder den ganzen Raum.
+- Aus der Möbelbearbeitung kam man im Vollbild nicht mehr heraus — der Schließen-Knopf stand ganz unten im Formular. Jetzt steht einer oben in der Ecke, und Escape schließt ebenfalls.
+- Nach dem Setzen einer Pflanze im Vollbild blieb sie in der Seitenleiste stehen, als hätte sie noch keinen Platz.
+- Im Vollbild ließen sich keine Pflanzen in den Raum setzen — die seitliche Leiste kannte nur Möbel und Wände. Jetzt steht dort auch die Liste der Pflanzen ohne Platz.
+
+### Besser
+- Beim Setzen einer Pflanze steht ein kleines Foto neben dem Namen.
 
 ---
 
