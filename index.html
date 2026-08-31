@@ -5618,20 +5618,103 @@ function kantenArt(r, kante){ return KANTEN_ART[r.kanten[kante.id] || 'wand'] ||
 
 /* ══════════════════ Genaue Maße einzelner Kanten ══════════════════
    Eine Kachel ist 50 cm breit, echte Fenster sind es selten. Wer eine
-   130 cm breite Front hat, markiert drei Kacheln und setzt bei einer
-   davon die Breite auf 30 — dann rechnet das Licht mit 130 statt 150 cm.
-   Sockel- und Oberkante lassen sich ebenso überschreiben. Gezeichnet
-   wird weiterhin im gewohnten Raster; nur die Rechnung wird genauer. */
+   130 cm breite Front hat, markiert drei Kacheln als Fenster und trägt
+   bei einer davon 130 ein — die beiden anderen rücken zusammen, und
+   die Wand bleibt so lang, wie der Raum sie vorgibt.
+
+   Gezeichnet wird weiterhin im 50er-Raster. Nur die Rechnung wird
+   genauer: Licht, Fensterfläche und die Angaben am Stellplatz. */
 function kantenMass(r, kanteId){
   const eigen = (r.kantenMass && r.kantenMass[kanteId]) || {};
   const art = KANTEN_ART[r.kanten[kanteId] || 'wand'] || KANTEN_ART.wand;
   return {
-    b:      eigen.b      != null ? eigen.b      : KACHEL,
+    /* Nicht mehr stur KACHEL: gibt ein Nachbar auf derselben Wand
+       Platz ab oder braucht welchen, wirkt sich das hier aus. */
+    b:      eigen.b != null ? eigen.b
+              : (typeof kantenBreite === 'function' ? kantenBreite(r, kanteId) : KACHEL),
     sockel: eigen.sockel != null ? eigen.sockel : art.sockel,
     oben:   eigen.oben   != null ? eigen.oben   : art.oben,
     eigen:  Object.keys(eigen).length > 0
   };
 }
+/* ── Eine Wand und ihre Glieder ───────────────────────────────
+   Gezeichnet wird weiter im 50er-Raster — daran ändert sich nichts.
+   Aber ein Fenster ist selten 50 oder 100 cm breit. Wer 130 einträgt,
+   soll 130 bekommen; die übrigen Glieder derselben Wand geben den
+   Platz dafuer her, damit die Wand insgesamt so lang bleibt, wie der
+   Raum es vorgibt.
+
+   Eine Wand ist die zusammenhängende Folge von Aussenkanten auf
+   derselben Seite (oben, rechts, unten, links) in derselben Reihe
+   beziehungsweise Spalte. */
+function wandGlieder(r, kanteId){
+  const teile = String(kanteId).split(':');
+  const seite = teile[0];
+  const xy = (teile[1] || '').split(',');
+  const kx = parseInt(xy[0], 10), ky = parseInt(xy[1], 10);
+  if(isNaN(kx) || isNaN(ky)) return [kanteId];
+
+  const alle = aussenKanten(r).filter(k => k.k === seite);
+  /* Waagerechte Wände (oben, unten) laufen über x, senkrechte über y. */
+  const waagerecht = (seite === 'o' || seite === 'u');
+  const gleich = alle.filter(k => waagerecht ? k.y === ky : k.x === kx);
+  gleich.sort((a, b) => waagerecht ? a.x - b.x : a.y - b.y);
+
+  /* Nur die zusammenhängende Folge um die gesuchte Kante herum. */
+  const eigen = waagerecht ? kx : ky;
+  const folge = [];
+  let start = gleich.findIndex(k => (waagerecht ? k.x : k.y) === eigen);
+  if(start === -1) return [kanteId];
+  folge.push(gleich[start]);
+  for(let i = start - 1; i >= 0; i--){
+    const a = waagerecht ? gleich[i].x : gleich[i].y;
+    const b = waagerecht ? folge[0].x : folge[0].y;
+    if(b - a !== 1) break;
+    folge.unshift(gleich[i]);
+  }
+  for(let i = start + 1; i < gleich.length; i++){
+    const a = waagerecht ? gleich[i].x : gleich[i].y;
+    const b = waagerecht ? folge[folge.length-1].x : folge[folge.length-1].y;
+    if(a - b !== 1) break;
+    folge.push(gleich[i]);
+  }
+  return folge.map(k => k.id);
+}
+
+/* Die tatsächlichen Breiten aller Glieder einer Wand. Was von Hand
+   gesetzt wurde, gilt; der Rest teilt sich, was übrig bleibt. */
+function wandBreiten(r, kanteId){
+  const glieder = wandGlieder(r, kanteId);
+  const gesamt = glieder.length * KACHEL;
+  const mass = (r.kantenMass) || {};
+  const fest = {}, frei = [];
+  let festSumme = 0;
+  glieder.forEach(id => {
+    const b = mass[id] && mass[id].b;
+    if(b != null){ fest[id] = b; festSumme += b; }
+    else frei.push(id);
+  });
+
+  const rest = gesamt - festSumme;
+  const out = {};
+  if(!frei.length){
+    /* Alles von Hand gesetzt: die Wand ist so lang, wie eingetragen. */
+    glieder.forEach(id => { out[id] = fest[id]; });
+    return {breiten:out, gesamt, summe:festSumme, glieder, passt:festSumme <= gesamt};
+  }
+  /* Der Rest verteilt sich gleichmässig — aber nie unter 5 cm, sonst
+     verschwindet ein Glied ganz. */
+  const jeFrei = Math.max(5, rest / frei.length);
+  glieder.forEach(id => { out[id] = fest[id] != null ? fest[id] : jeFrei; });
+  const summe = Object.values(out).reduce((a, b) => a + b, 0);
+  return {breiten:out, gesamt, summe, glieder, passt:festSumme < gesamt};
+}
+
+/* Die Breite einer einzelnen Kante, wie sie wirklich gilt. */
+function kantenBreite(r, kanteId){
+  return wandBreiten(r, kanteId).breiten[kanteId] || KACHEL;
+}
+
 function kantenMassSetzen(r, kanteId, werte){
   r.kantenMass = r.kantenMass || {};
   const sauber = {};
@@ -8837,8 +8920,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.10.1';
+const FASSUNG = '2.10.2';
 const PATCHNOTES = [
+  {
+    nr: '2.10.2', datum: '2026-08-30', titel: 'Grundriss repariert',
+    behoben: [
+      'Fenster und Türen ließen sich nicht breiter als 50 cm eintragen — jede Eingabe darüber wurde stillschweigend auf eine Kachel gekürzt. Jetzt gilt, was du einträgst: bei 130 cm rücken die übrigen Abschnitte derselben Wand zusammen, und die Wand bleibt so lang, wie der Raum sie vorgibt. Gezeichnet wird weiter im 50er-Raster — nur die Rechnung wird genauer.',
+      'Der Planer sprang beim Öffnen sofort in den zuletzt bearbeiteten Raum. Der Weg zur Raumliste war damit versperrt. Er beginnt jetzt immer oben.',
+      'Im Vollbild kam man nach dem Hineinzoomen nicht mehr ganz heraus: die Untergrenze lag fest bei einfacher Größe, was bei breiten Räumen im Hochformat nicht reichte. Sie wird jetzt aus der Fläche gerechnet, und ⥂ zeigt wieder den ganzen Raum.'
+    ]
+  },
   {
     nr: '2.10.1', datum: '2026-08-30', titel: 'Der Stammbaum als Baum',
     neu: [
@@ -15028,16 +15119,36 @@ function planLos(){
 function kantenMassFragen(r, id){
   const art = KANTEN_ART[r.kanten[id] || 'wand'] || KANTEN_ART.wand;
   const m = kantenMass(r, id);
+  const w = wandBreiten(r, id);
+  const andere = Math.round(w.gesamt - (w.breiten[id] || 0));
+
   const roh = prompt(
     art.name + ' — genaue Maße\n\n'
-    + 'Breite in cm (höchstens ' + KACHEL + ', eine Kachel), dann Unterkante, dann Oberkante.\n'
-    + 'Mit Komma trennen. Leer lassen setzt zurück auf die Standardwerte.',
-    m.b + ', ' + m.sockel + ', ' + m.oben);
+    + 'Diese Wand ist ' + w.gesamt + ' cm lang und hat '
+    + w.glieder.length + ' ' + (w.glieder.length === 1 ? 'Abschnitt' : 'Abschnitte') + '.\n'
+    + 'Trägst du hier eine Breite ein, rücken die übrigen zusammen — '
+    + 'die Wand bleibt so lang wie der Raum.\n\n'
+    + 'Breite in cm, dann Unterkante, dann Oberkante. Mit Komma trennen.\n'
+    + 'Leer lassen setzt auf die Standardwerte zurück.',
+    Math.round(m.b) + ', ' + m.sockel + ', ' + m.oben);
+
   if(roh === null) return;
   if(!roh.trim()){ kantenMassSetzen(r, id, {}); planRender(); return; }
   const z = roh.replace(/,/g, ' ').match(/\d+/g);
   if(!z || !z.length){ alert('Das konnte ich nicht lesen.'); return; }
-  const b = Math.max(5, Math.min(KACHEL, parseInt(z[0],10) || KACHEL));
+
+  /* Die Grenze ist die Wandlänge, nicht die Kachel. Ein Fenster darf
+     ueber mehrere Kacheln gehen — genau dafür ist das hier da. */
+  let b = Math.max(5, parseInt(z[0], 10) || KACHEL);
+  const rest = w.glieder.length - 1;
+  const hoechstens = w.gesamt - rest * 5;
+  if(b > hoechstens){
+    alert('Die Wand ist ' + w.gesamt + ' cm lang. Bei '
+      + w.glieder.length + ' Abschnitten bleiben höchstens '
+      + hoechstens + ' cm für diesen — die übrigen brauchen je 5 cm.\n\n'
+      + 'Markiere eine Kachel mehr, wenn das Fenster breiter sein soll.');
+    b = hoechstens;
+  }
   const sockel = z[1] != null ? Math.max(0, Math.min(400, parseInt(z[1],10))) : m.sockel;
   const oben = z[2] != null ? Math.max(sockel + 5, Math.min(500, parseInt(z[2],10))) : m.oben;
   kantenMassSetzen(r, id, {b, sockel, oben});
@@ -15052,7 +15163,7 @@ const MODUS_HINWEISE = {
   kacheln:  'Tippen legt Bodenfläche an oder nimmt sie weg. So schneidest du Erker und Nischen zurecht.',
   licht:    'Zeigt nur an, verändert nichts. Monat und Uhrzeit schieben, der Grundriss färbt sich mit.',
   raum:     'Name, Drehung auf dem Kompass, offener Himmel und Rastergröße — hier wird nicht gezeichnet.',
-  kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. So bekommst du ein 130 cm breites Fenster genau hin: drei Kacheln setzen, bei einer davon 30 eintragen.'
+  kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. Ein 130 cm breites Fenster: drei Kacheln als Fenster setzen, bei einer davon 130 eintragen. Die anderen beiden rücken zusammen, die Wand bleibt so lang wie der Raum. Gezeichnet wird weiter im 50er-Raster.'
 };
 function modusHinweisZeichnen(){
   const el = document.getElementById('modus-hinweis');
@@ -15351,10 +15462,30 @@ render = function(){ _renderVorherPlan(); planRender(); };
 /* ══════════════════ Vollbild, Zoom und Verschieben ══════════════════ */
 let vollbild = false;
 
+/* Kleinster Zoom, bei dem der ganze Raum noch auf die Fläche passt.
+   Früher war die Untergrenze hart 1 — im Vollbild-Hochformat reichte
+   das bei breiten Räumen nicht, und man kam nicht mehr ganz heraus. */
+function zoomMinimum(){
+  const r = raum();
+  const feld = document.getElementById('plan-flaeche');
+  if(!r || !feld) return 1;
+  const sk = planSkala();
+  const rand = 30 * sk;
+  const W = r.sp * KACHEL + rand * 2, H = r.re * KACHEL + rand * 2;
+  const bx = feld.clientWidth || 0, by = feld.clientHeight || 0;
+  if(!bx || !by) return 1;
+  /* Unter 0,4 wird nichts mehr lesbar; darueber darf es beliebig
+     weit heraus, damit auch ein langer Raum ganz sichtbar wird. */
+  return Math.max(0.4, Math.min(1, Math.min(bx / W, by / H)));
+}
+
 function zoomSetzen(f, mitte){
   const r = raum(); if(!r) return;
   const alt = pZoom;
-  pZoom = Math.max(1, Math.min(5, f));
+  const min = zoomMinimum();
+  pZoom = Math.max(min, Math.min(5, f));
+  /* Passt alles ins Bild, gibt es nichts zu verschieben. */
+  if(pZoom <= min){ pPanX = 0; pPanY = 0; grenzenPruefen(); planRender(); return; }
   if(pZoom === 1){ pPanX = 0; pPanY = 0; }
   else if(mitte){
     /* Auf den angegebenen Punkt zuhalten, damit er stehen bleibt */
@@ -15393,6 +15524,12 @@ function vollbildAn(an){
     if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(()=>{});
   }
   planRender();
+  /* Die Flaeche hat jetzt eine andere Groesse — und damit ein anderes
+     Zoom-Minimum. Erst nach dem Zeichnen messbar. */
+  requestAnimationFrame(()=>{
+    if(typeof zoomMinimum === 'function' && pZoom < zoomMinimum())
+      zoomSetzen(zoomMinimum());
+  });
 }
 $('#btn-vollbild').onclick = ()=>vollbildAn(true);
 $('#btn-vollbild-zu').onclick = ()=>vollbildAn(false);
@@ -15410,7 +15547,7 @@ document.addEventListener('click', e=>{
   const a = z.dataset.zoom;
   if(a === 'rein') zoomSetzen(pZoom * 1.5, mitteJetzt());
   else if(a === 'raus') zoomSetzen(pZoom / 1.5, mitteJetzt());
-  else zoomSetzen(1);
+  else zoomSetzen(zoomMinimum());   /* ⥂ zeigt den ganzen Raum */
 });
 function mitteJetzt(){
   const r = raum(); if(!r) return null;
@@ -16103,6 +16240,15 @@ function sektionOeffnen(key, ausloeser){
   /* Immer mit der Liste beginnen: wer den Stammbaum aufschlägt, will
      wählen, nicht dort weitermachen, wo er letztes Mal aufgehört hat. */
   if(key === 'stammbaum' && typeof sbZeigeListe === 'function') sbZeigeListe();
+  /* Der Planer merkte sich, dass er zuletzt im Editor stand — und
+     sprang beim nächsten Öffnen sofort wieder hinein. Der Weg zur
+     Raumliste war damit versperrt. Er beginnt jetzt immer oben. */
+  if(key === 'grundriss'){
+    if(typeof grStufe !== 'undefined') grStufe = 'liste';
+    if(typeof vollbild !== 'undefined' && vollbild
+       && typeof vollbildAn === 'function') vollbildAn(false);
+    if(typeof planRender === 'function') planRender();
+  }
   if(key === 'bib-arten' && typeof bibTrefferZeichnen === 'function') bibTrefferZeichnen();
   if(key === 'bib-rezepte' && typeof bibRezepteZeichnen === 'function') bibRezepteZeichnen();
   if(key === 'bib-wissen' && typeof bibWissenZeichnen === 'function') bibWissenZeichnen();

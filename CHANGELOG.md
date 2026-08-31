@@ -4,6 +4,16 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 2.10.2 — 30. August 2026
+**Grundriss repariert**
+
+### Behoben
+- Fenster und Türen ließen sich nicht breiter als 50 cm eintragen — jede Eingabe darüber wurde stillschweigend auf eine Kachel gekürzt. Jetzt gilt, was du einträgst: bei 130 cm rücken die übrigen Abschnitte derselben Wand zusammen, und die Wand bleibt so lang, wie der Raum sie vorgibt. Gezeichnet wird weiter im 50er-Raster.
+- Der Planer sprang beim Öffnen sofort in den zuletzt bearbeiteten Raum. Er beginnt jetzt immer bei der Raumliste.
+- Im Vollbild kam man nach dem Hineinzoomen nicht mehr ganz heraus. Die Untergrenze wird jetzt aus der Fläche gerechnet, und ⥂ zeigt wieder den ganzen Raum.
+
+---
+
 ## 2.10.1 — 30. August 2026
 **Der Stammbaum als Baum**
 

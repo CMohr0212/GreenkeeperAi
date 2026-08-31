@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.10.1', w.__T('FASSUNG') === '2.10.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 2.10.2', w.__T('FASSUNG') === '2.10.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1181,6 +1181,84 @@ setTimeout(async () => {
     await tick();
     pruef('Testbaum wieder entfernt',
       !w.__T("allePflanzen().some(x=>x.id==='SW0')"));
+  }
+
+  /* ══ Grundriss ═════════════════════════════════════════════════
+     Drei Fehler auf einmal: der Planer sprang immer in den Editor
+     zurueck, im Vollbild kam man nicht mehr ganz heraus, und jede
+     Kantenbreite wurde auf 50 gedeckelt. */
+  {
+    /* Der Planer beginnt in der Raumliste, auch nach einem Besuch
+       im Editor. */
+    w.__T("grStufe = 'editor'");
+    w.__T("sektionOeffnen('grundriss')");
+    await tick();
+    pruef('Der Planer beginnt bei den R\u00e4umen', w.__T('grStufe') === 'liste',
+      String(w.__T('grStufe')));
+    pruef('Die Raumliste ist sichtbar',
+      d.getElementById('gr-liste').hidden === false);
+
+    /* Zoom: das Minimum haengt an der Flaeche, nicht mehr hart auf 1. */
+    pruef('Es gibt ein gerechnetes Zoom-Minimum',
+      typeof w.__T('zoomMinimum()') === 'number');
+    pruef('Es liegt zwischen 0,4 und 1',
+      w.__T('zoomMinimum()') >= 0.4 && w.__T('zoomMinimum()') <= 1,
+      String(w.__T('zoomMinimum()')));
+    w.__T('zoomSetzen(3)');
+    pruef('Hineinzoomen geht', w.__T('pZoom') === 3, String(w.__T('pZoom')));
+    w.__T('zoomSetzen(0.1)');
+    pruef('Herauszoomen endet beim Minimum',
+      Math.abs(w.__T('pZoom') - w.__T('zoomMinimum()')) < 0.001,
+      String(w.__T('pZoom')));
+    pruef('Ganz heraus setzt die Verschiebung zur\u00fcck',
+      w.__T('pPanX') === 0 && w.__T('pPanY') === 0);
+    w.__T('zoomSetzen(1)');
+
+    /* ── Kantenbreiten ── */
+    const kid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
+    if(kid){
+      const wand = JSON.parse(w.__T(`JSON.stringify(wandGlieder(raum(),'${kid}'))`));
+      pruef('Eine Wand kennt ihre Glieder', wand.length > 1, String(wand.length));
+      pruef('Alle liegen auf derselben Seite',
+        wand.every(x => x.indexOf('o:') === 0));
+
+      const vorher = JSON.parse(w.__T(`JSON.stringify(wandBreiten(raum(),'${kid}'))`));
+      pruef('Ohne Vorgabe ist jedes Glied eine Kachel',
+        Object.values(vorher.breiten).every(b => b === w.__T('KACHEL')));
+      pruef('Die Wandl\u00e4nge stimmt',
+        vorher.gesamt === wand.length * w.__T('KACHEL'));
+
+      /* Der eigentliche Punkt: 130 cm gehen ueber eine Kachel hinaus. */
+      w.__T(`kantenMassSetzen(raum(),'${kid}',{b:130, sockel:90, oben:220})`);
+      pruef('130 cm werden \u00fcbernommen',
+        w.__T(`kantenBreite(raum(),'${kid}')`) === 130,
+        String(w.__T(`kantenBreite(raum(),'${kid}')`)));
+      pruef('Auch kantenMass meldet 130',
+        w.__T(`kantenMass(raum(),'${kid}').b`) === 130);
+
+      const nachher = JSON.parse(w.__T(`JSON.stringify(wandBreiten(raum(),'${kid}'))`));
+      pruef('Die Wand bleibt gleich lang',
+        Math.abs(nachher.summe - nachher.gesamt) < 0.01,
+        nachher.summe + ' statt ' + nachher.gesamt);
+      pruef('Die Nachbarn geben Platz ab',
+        w.__T(`kantenBreite(raum(),'${wand[1]}')`) < w.__T('KACHEL'),
+        String(w.__T(`kantenBreite(raum(),'${wand[1]}')`)));
+      pruef('Kein Glied verschwindet ganz',
+        Object.values(nachher.breiten).every(b => b >= 5));
+      pruef('Sockel und Oberkante kommen mit',
+        w.__T(`kantenMass(raum(),'${kid}').sockel`) === 90
+        && w.__T(`kantenMass(raum(),'${kid}').oben`) === 220);
+
+      /* Zuruecksetzen stellt das Raster wieder her. */
+      w.__T(`kantenMassSetzen(raum(),'${kid}',{})`);
+      pruef('Zur\u00fccksetzen bringt die Kachel zur\u00fcck',
+        w.__T(`kantenBreite(raum(),'${kid}')`) === w.__T('KACHEL'));
+      pruef('Und die ganze Wand ist wieder gleichm\u00e4\u00dfig',
+        Object.values(JSON.parse(w.__T(`JSON.stringify(wandBreiten(raum(),'${kid}').breiten)`)))
+          .every(b => b === w.__T('KACHEL')));
+    }
+    w.__T("modalZu('sek-modal')");
+    await tick();
   }
 
   /* ══ App Tour ══════════════════════════════════════════════════
