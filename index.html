@@ -1314,6 +1314,86 @@ html[data-design="klartext"] .ein-zeile{border-bottom-width:2px}
    Haken darueber steuert. */
 .ein-wahl.aus{opacity:.45;pointer-events:none}
 
+/* ── Anlegen-Assistent ─────────────────────────────────────
+   Vorher ein Formblatt mit fünfzehn Feldern am Stück, das unten an
+   der Sammlung hing und die Seite endlos machte. Jetzt ein eigenes
+   Fenster mit fünf Stufen — dasselbe Muster wie der Umtopf-Assistent,
+   damit die App nicht zwei Arten hat, eine Sache Schritt für Schritt
+   zu erledigen. */
+.al-fenster{display:flex;flex-direction:column}
+.al-fortschritt{display:flex;gap:5px;list-style:none;margin:0;padding:10px var(--rand) 0}
+.al-fortschritt li{flex:1;height:4px;border-radius:2px;background:var(--linie)}
+.al-fortschritt li.jetzt{background:var(--fl-akzent)}
+.al-fortschritt li.fertig{background:var(--sicher)}
+.al-stufe{display:none}
+.al-stufe.an{display:block}
+.al-frage{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-xl);font-weight:600}
+.al-unter{margin:0 0 16px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.5}
+.al-wege{display:flex;flex-direction:column;gap:9px;margin-bottom:6px}
+.al-weg{display:block;width:100%;text-align:left;padding:14px 15px;cursor:pointer;
+  border:1px solid var(--linie);border-radius:var(--r-mittel);
+  background:var(--fl-karte);color:var(--schrift);font:inherit}
+.al-weg b{display:block;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
+.al-weg i{display:block;font-style:normal;font-size:var(--t-s);
+  color:var(--schrift-2);margin-top:3px;line-height:1.45}
+.al-weg.on{border-color:var(--fl-akzent);box-shadow:inset 0 0 0 1px var(--fl-akzent)}
+.al-feld{margin:0 0 15px}
+.al-feld>.lab{display:block;margin-bottom:5px;font-family:var(--f-data);
+  font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--schrift-2)}
+.al-feld input:not([type=file]),.al-feld select,.al-feld textarea{width:100%;font:inherit;
+  font-size:var(--t-l);padding:11px 12px;border:1px solid var(--linie);
+  border-radius:var(--r-klein);background:var(--fl-karte);color:var(--schrift)}
+.al-feld textarea{min-height:74px;font-size:var(--t-m);line-height:1.5;resize:vertical}
+.al-knoepfe{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.al-knopf{min-height:var(--tap);padding:10px 12px;cursor:pointer;text-align:left;
+  border:1px solid var(--linie);border-radius:var(--r-klein);
+  background:transparent;color:var(--schrift);font:inherit;font-size:var(--t-s)}
+.al-knopf b{display:block;font-weight:600}
+.al-knopf i{display:block;font-style:normal;font-size:var(--t-xs);
+  color:var(--schrift-2);margin-top:2px;line-height:1.35}
+.al-knopf[aria-pressed="true"]{border-color:var(--fl-akzent);
+  box-shadow:inset 0 0 0 1px var(--fl-akzent);font-weight:600}
+.al-knopf[aria-pressed="true"] i{color:var(--schrift)}
+.al-zsf{margin:0 0 16px}
+.al-zsf>div{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--linie);
+  font-size:var(--t-s)}
+.al-zsf dt{flex:0 0 38%;color:var(--schrift-2);margin:0}
+.al-zsf dd{flex:1;margin:0;font-weight:600;overflow-wrap:anywhere}
+.al-bibzsf{padding:12px 13px;border:1px solid var(--linie);border-radius:var(--r-mittel);
+  background:var(--fl-karte);margin-bottom:15px}
+.al-bibzsf h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
+.al-bibzsf .al-zsf>div:last-child{border-bottom:0}
+.al-fuss{flex:0 0 auto;display:flex;gap:8px;padding:9px var(--rand)
+  calc(9px + env(safe-area-inset-bottom));background:var(--fl-karte);
+  border-top:1.5px solid var(--linie-stark)}
+.al-fuss button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);
+  font:inherit;cursor:pointer}
+.al-fuss button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:transparent;font-weight:600}
+html[data-design="klartext"] .al-knoepfe{grid-template-columns:1fr}
+html[data-design="klartext"] .al-knopf,
+html[data-design="klartext"] .al-weg{border-width:2px;font-size:var(--t-md)}
+html[data-design="klartext"] .al-zsf>div{font-size:var(--t-md);border-bottom-width:2px}
+
+/* ── Pflanzenauswahl im Doktor ─────────────────────────────
+   Vorher ein Auswahlfeld mit zwanzig Zeilen Text. Jetzt dasselbe
+   Muster wie im Stammbaum: suchen, Bild sehen, antippen. Wer seine
+   Pflanzen am Aussehen kennt und nicht am Namen, kommt sonst nicht
+   weiter. */
+.dokwahl{margin-top:4px}
+.dokwahl .sb-liste{max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dok-leer{margin:12px 2px;font-size:var(--t-s);color:var(--schrift-2)}
+.dokwahl-gewaehlt{display:flex;align-items:center;gap:12px;padding:10px 12px;
+  border:1px solid var(--linie-stark);border-radius:var(--r-mittel);
+  background:var(--fl-karte);margin-bottom:10px}
+.dokwahl-gewaehlt .sb-linie-bild{width:48px;height:48px}
+.dokwahl-gewaehlt .sb-linie-txt{flex:1;min-width:0}
+.dokwahl-gewaehlt button{flex:0 0 auto;min-height:var(--tap);padding:0 13px;
+  border:1px solid var(--linie);border-radius:var(--r-klein);
+  background:transparent;color:var(--schrift);font:inherit;font-size:var(--t-s);cursor:pointer}
+html[data-design="klartext"] .dokwahl-gewaehlt{border-width:2px}
+
 /* ── Umtopf-Assistent ─────────────────────────────────────── */
 .ut-fortschritt{display:flex;gap:5px;list-style:none;margin:0 0 18px;padding:0}
 .ut-fortschritt li{flex:1;height:4px;border-radius:2px;background:var(--linie)}
@@ -1931,6 +2011,8 @@ html[data-design="terrarium"] .nt{box-shadow:var(--glanz)}
 .kialt.nurweg{border-top:0;padding-top:0;margin-top:0}
 .kialt.nurweg>summary{display:none}
 .kidirekt{margin-top:9px}
+.kizeile-haupt{margin-top:10px}
+.kizeile-haupt button{width:100%}
 .kimodell{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
 .kimodell select{flex:1 1 130px;min-width:0}
 .ki-empf{display:inline-flex;align-items:center;gap:3px;font-size:var(--t-xs);letter-spacing:.04em;
@@ -2013,7 +2095,6 @@ body.gm-offen{overflow:hidden}
 .such-dok p{margin:0 0 6px;font-size:var(--t-m);line-height:1.55}
 .sd-liste{color:var(--ink-2);font-size:var(--t-s)!important;overflow-wrap:anywhere}
 /* ── Pflanzendoktor ──────────────────────────────────────── */
-#dok-pflanze{width:100%;margin-top:5px;font:inherit;font-size:var(--t-l);padding:10px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .sym-gruppe{margin-bottom:14px}
 .sym-gruppe h4{margin:0 0 7px;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--peat)}
 .sym-liste{display:flex;flex-wrap:wrap;gap:6px}
@@ -5080,12 +5161,7 @@ const KI_DIENSTE = {
   claude:     {name:'Claude', leer:'https://claude.ai/new',
                url:t=>'https://claude.ai/new?q='+encodeURIComponent(t), vorbefuellen:true},
   perplexity: {name:'Perplexity', leer:'https://www.perplexity.ai/',
-               url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true},
-  /* Kein Dienst zum Oeffnen, sondern der eigene Schluessel: die App
-     fragt selbst. Adresse und leer bleiben trotzdem gesetzt, damit
-     jeder alte Aufruf von kiZiel weiterhin irgendwo landet. */
-  direkt:     {name:'Gemini direkt', leer:'https://gemini.google.com/app',
-               url:()=>'https://gemini.google.com/app', vorbefuellen:false, api:true}
+               url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true}
 };
 
 /* Lange Fragen passen nicht in eine Adresse: die Dienste schneiden ab
@@ -7705,123 +7781,6 @@ function papierkorbRender(){
     <p class="empty" id="empty" hidden>Nichts gefunden. Suchbegriff kürzen oder Filter zurücksetzen.</p>
   </div>
 
-  <section data-ans="sammlung" class="plan" id="anlegen-sec">
-    <div class="formwrap" id="form-neu">
-      <div class="dok-wahl neu-wahl">
-        <button class="dok-weg" data-neuweg="bib">
-          <b>Art in der Bibliothek suchen</b>
-          <i>Wenn du weißt, was es ist. Rund 250 Arten mit fertigen Pflegedaten.</i>
-        </button>
-        <button class="dok-weg" data-neuweg="ki">
-          <b>Von einer KI bestimmen lassen</b>
-          <i>Wenn du es nicht weißt. Foto anhängen, Antwort zurückkopieren.</i>
-        </button>
-      </div>
-      <div class="bibbox" id="neu-bibbox" hidden>
-        <div class="bibfeld">
-          <input id="f-art" aria-label="Art suchen" placeholder="z. B. Efeutute, Epipremnum, Pothos" autocomplete="off" spellcheck="false">
-          <button id="btn-bib" type="button">Alle ansehen</button>
-        </div>
-        <div class="biblist" id="bib-liste" hidden></div>
-        <div class="bibpick" id="bib-gewaehlt" hidden></div>
-        </div>
-        <div class="kibox" id="neu-kibox" hidden>
-          <div class="kizeile">
-            <select id="ki-dienst" aria-label="Welcher Dienst">
-              <option value="direkt">Gemini direkt · eigener Schlüssel</option>
-              <option value="gemini">Gemini</option>
-              <option value="chatgpt">ChatGPT</option>
-              <option value="claude">Claude</option>
-              <option value="perplexity">Perplexity</option>
-            </select>
-            <button id="btn-gemini" type="button">Öffnen</button>
-          </div>
-          <div class="kidirekt" id="ki-direkt-anlegen" hidden>
-            <div class="kimodell">
-              <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
-              <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
-            </div>
-            <div class="kibilder" id="ki-bilder-anlegen"></div>
-            <p class="kihinweis" id="ki-lauf-anlegen" hidden></p>
-          </div>
-          <div class="fotokrit">
-            <b>Diese drei Aufnahmen braucht die KI</b>
-            <ol>
-              <li>Die ganze Pflanze, <b>Topf und Untersetzer vollständig im Bild</b> — sonst kann sie zu Topfgröße und Wasserablauf nichts sagen.</li>
-              <li>Eine Nahaufnahme der <b>Blattunterseite und einer Blattachsel</b> — dort sitzen Schädlinge, und ohne diese Sicht bleibt jeder Befund unbestätigt.</li>
-              <li>Die auffällige Stelle selbst, scharf und bei Tageslicht.</li>
-            </ol>
-            <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
-          </div>
-          <p class="kihinweis" id="ki-hinweis"></p>
-          <details class="kialt nurweg" id="neu-alt" open>
-            <summary id="neu-alt-titel">Ohne Schlüssel: Prompt kopieren, Antwort einfügen</summary>
-          <details class="kiprompt">
-            <summary>Prompt anzeigen und selbst kopieren</summary>
-            <textarea id="ki-text" aria-label="Prompt für die KI" readonly></textarea>
-            <div class="tools"><button id="btn-ki-kopie" class="haupt" type="button">Prompt kopieren</button></div>
-            <p class="kihinweis">Falls das Kopieren am Handy nicht greift: langes Tippen ins Feld, alles markieren, kopieren.</p>
-          </details>
-          <div class="tools" style="margin-top:10px">
-            <button id="btn-paste-auf" type="button">Antwort einfügen</button>
-          </div>
-        <div class="pastebox" id="paste-box" hidden>
-          <textarea id="f-paste" aria-label="Antwort der KI einfügen" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
-          <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
-          <p class="pastemeld" id="paste-meld" hidden></p>
-          <div id="neu-unsicher"></div>
-          <div id="neu-massnahmen"></div>
-        </div>
-          </details>
-        </div>
-      <div class="fgrid">
-        <label><span class="lab">Name</span><input id="f-name" placeholder="z. B. Rudi"></label>
-        <label><span class="lab">Botanisch (falls bekannt)</span><input id="f-bot" placeholder="z. B. Epipremnum aureum"></label>
-        <label class="fspan"><span class="lab">Zustand</span><select id="f-zustand"></select>
-          <span class="fhint" id="f-zustand-hint"></span></label>
-        <div class="fspan quar-anbieten" id="f-quar">
-          <p>Neuzugang? Drei Wochen getrennt aufstellen ist die wirksamste Einzelmaßnahme gegen
-            eingeschleppte Schädlinge. Die Pflanze läuft dann nicht im Rundgang mit und bekommt
-            eigene Kontrolltermine.</p>
-          <div class="tools"><button type="button" id="btn-f-quar">Mit Quarantäne anlegen</button></div>
-        </div>
-        <label><span class="lab">Raum</span><select id="f-raum"></select></label>
-        <label><span class="lab">Stellplatz</span><select id="f-stellplatz"></select></label>
-        <label><span class="lab">Gießklasse</span><select id="f-klasse">
-          <option value="B">B — Normal, obere 2–3 cm antrocknen</option>
-          <option value="A">A — Durstig, gleichmäßig feucht</option>
-          <option value="C">C — Kakteenmodus, durchtrocknen</option>
-          <option value="S">S — Karnivoren, Anstau</option>
-        </select></label>
-        <label><span class="lab">Licht</span><select id="f-sonne">
-          <option value="indirekt">Hell, keine direkte Sonne</option>
-          <option value="hell">Hell, verträgt etwas Sonne</option>
-          <option value="voll">Volle Sonne</option>
-          <option value="schatten">Schatten, kommt mit wenig Licht aus</option>
-        </select></label>
-        <label><span class="lab">Typ</span><input id="f-typ" placeholder="z. B. Kletterpflanze"></label>
-        <label><span class="lab">Katzen</span><select id="f-giftig">
-          <option value="unbekannt">Noch nicht geprüft</option>
-          <option value="ja">Giftig</option>
-          <option value="nein">Unbedenklich</option>
-        </select></label>
-        <label class="nur-experte"><span class="lab">Gießart</span><select id="f-giessart">
-          <option value="">automatisch aus Klasse und Typ</option>
-          <option value="durch">Durchdringend — bis unten Wasser austritt</option>
-          <option value="schluck">Schluck — nur die Erde anfeuchten</option>
-          <option value="tauchen">Tauchen — 10 Minuten ins Wasserbad</option>
-          <option value="unten">Von unten — nur in den Untersetzer</option>
-          <option value="anstau">Anstau — Untersetzer dauerhaft gefüllt</option>
-        </select></label>
-        <label class="fspan"><span class="lab">Wichtig zu wissen</span>
-          <textarea id="f-wichtig" rows="2" placeholder="z. B. nur destilliertes oder Regenwasser, Leitungswasser tötet sie"></textarea>
-          <span class="fhint">Pflegehinweise, die über Leben und Tod entscheiden.</span></label>
-        <label class="fspan"><span class="lab">Notizen</span><textarea id="f-notiz" placeholder="Topf, Substrat, seit wann, Zustand …"></textarea></label>
-        <label class="fspan"><span class="lab">Fotos</span><input type="file" id="f-fotos" accept="image/*" multiple></label>
-      </div>
-      <div class="tools"><button id="btn-neu-save" class="haupt">Pflanze anlegen</button><button id="btn-neu-leeren">Formular leeren</button><button id="btn-neu-cancel">Abbrechen</button></div>
-    </div>
-  </section>
 
 
 
@@ -7865,8 +7824,15 @@ function papierkorbRender(){
 
     <div class="dok-stufe" id="dok-s1">
       <h3><span class="dok-nr">1</span> Um welche Pflanze geht es?</h3>
-      <select id="dok-pflanze" aria-label="Pflanze für den Doktor wählen"></select>
-      <p class="fhint">Auch Arten, die du nicht besitzt — dann bekommst du die Einschätzung ohne Übernahme.</p>
+      <div class="dokwahl-gewaehlt" id="dok-gewaehlt" hidden></div>
+      <div class="dokwahl" id="dok-wahl">
+        <div class="sb-suche">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+          <input type="search" id="dok-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Pflanze suchen">
+        </div>
+        <div class="sb-liste" id="dok-liste"></div>
+      </div>
+      <p class="fhint">Steht die Pflanze nicht in deiner Sammlung, wähl „Keine bestimmte Pflanze“ — dann bekommst du die Einschätzung ohne Übernahme.</p>
     </div>
 
     <div class="dok-stufe" id="dok-s2" hidden>
@@ -7896,14 +7862,6 @@ function papierkorbRender(){
     <div class="kibox dok-stufe" id="dok-ki-zeile" hidden>
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
       <div class="kizeile">
-        <select id="dok-dienst" aria-label="Welcher Dienst">
-          <option value="direkt">Gemini direkt · eigener Schlüssel</option>
-          <option value="gemini">Gemini</option>
-          <option value="chatgpt">ChatGPT</option>
-          <option value="claude">Claude</option>
-          <option value="perplexity">Perplexity</option>
-        </select>
-        <button id="btn-dok-ki" type="button">Öffnen</button>
       </div>
       <div class="kidirekt" id="ki-direkt-doktor" hidden>
         <div class="kimodell">
@@ -7916,6 +7874,9 @@ function papierkorbRender(){
           <div class="kigalerie" id="ki-galerie-doktor"></div>
         </details>
         <p class="kihinweis" id="ki-lauf-doktor" hidden></p>
+      </div>
+      <div class="kizeile kizeile-haupt">
+        <button id="btn-dok-ki" class="haupt" type="button">Fragen</button>
       </div>
       <div class="fotokrit">
         <b>Diese drei Aufnahmen braucht die KI</b>
@@ -7931,8 +7892,17 @@ function papierkorbRender(){
         <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
       </label>
       <p class="kihinweis" id="dok-ki-hinweis"></p>
-      <details class="kialt nurweg" id="dok-alt" open>
-        <summary id="dok-alt-titel">Ohne Schlüssel: Frage kopieren, Antwort einfügen</summary>
+      <details class="kialt" id="dok-alt">
+        <summary id="dok-alt-titel">Anderer Weg: Frage kopieren</summary>
+      <div class="kizeile">
+        <select id="dok-dienst" aria-label="Welcher Dienst">
+          <option value="gemini">Gemini</option>
+          <option value="chatgpt">ChatGPT</option>
+          <option value="claude">Claude</option>
+          <option value="perplexity">Perplexity</option>
+        </select>
+        <button id="btn-dok-oeffnen" type="button">Öffnen</button>
+      </div>
       <details class="kiprompt" id="dok-frage-details">
         <summary>Frage anzeigen und selbst kopieren</summary>
         <textarea id="dok-ki-text" aria-label="Frage an die KI" readonly></textarea>
@@ -8996,6 +8966,226 @@ function papierkorbRender(){
   <div class="sekm-rumpf" id="sekm-rumpf"></div>
 </div>
 
+<div id="anleg-modal" class="sekm al-fenster" hidden>
+  <div class="sekm-kopf">
+    <h2 class="sekm-titel" id="al-titel" tabindex="-1">Pflanze anlegen</h2>
+    <button class="sekm-zu" id="btn-neu-cancel" aria-label="Anlegen abbrechen">Abbrechen</button>
+  </div>
+  <ol class="al-fortschritt" id="al-fortschritt" aria-label="Fortschritt"></ol>
+  <div class="sekm-rumpf">
+    <div class="formwrap" id="form-neu">
+
+      <!-- Stufe 1: woher die Daten kommen -->
+      <div class="al-stufe an" data-al="1">
+        <p class="al-frage">Woher kommen die Angaben?</p>
+        <p class="al-unter">Du kannst jederzeit zurück und den Weg wechseln.</p>
+        <div class="al-wege neu-wahl">
+          <button type="button" class="al-weg" data-neuweg="bib">
+            <b>Aus der Bibliothek</b>
+            <i>Wenn du weißt, was es ist. Rund 250 Arten mit fertigen Pflegedaten — Gießklasse, Licht, Dünger und Giftigkeit sind danach gesetzt.</i>
+          </button>
+          <button type="button" class="al-weg" data-neuweg="ki">
+            <b>Von einer KI bestimmen lassen</b>
+            <i>Wenn du es nicht weißt. Ein Bild genügt; mit hinterlegtem Schlüssel fragt die App selbst.</i>
+          </button>
+          <button type="button" class="al-weg" data-neuweg="hand">
+            <b>Von Hand</b>
+            <i>Alles selbst eintragen. Nachtragen geht später jederzeit auf der Karte.</i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stufe 2: die Art -->
+      <div class="al-stufe" data-al="2">
+        <p class="al-frage" id="al-frage-2">Welche Art ist es?</p>
+        <p class="al-unter" id="al-unter-2"></p>
+        <div class="bibbox" id="neu-bibbox" hidden>
+          <div class="bibfeld">
+            <input id="f-art" aria-label="Art suchen" placeholder="z. B. Efeutute, Epipremnum, Pothos" autocomplete="off" spellcheck="false">
+            <button id="btn-bib" type="button">Alle ansehen</button>
+          </div>
+          <div class="biblist" id="bib-liste" hidden></div>
+          <div class="bibpick" id="bib-gewaehlt" hidden></div>
+        </div>
+        <div class="kibox" id="neu-kibox" hidden>
+          <div class="fotokrit">
+            <b>Diese drei Aufnahmen braucht die KI</b>
+            <ol>
+              <li>Die ganze Pflanze, <b>Topf und Untersetzer vollständig im Bild</b> — sonst kann sie zu Topfgröße und Wasserablauf nichts sagen.</li>
+              <li>Eine Nahaufnahme der <b>Blattunterseite und einer Blattachsel</b> — dort sitzen Schädlinge, und ohne diese Sicht bleibt jeder Befund unbestätigt.</li>
+              <li>Die auffällige Stelle selbst, scharf und bei Tageslicht.</li>
+            </ol>
+            <p>Alle drei mitschicken. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
+          </div>
+          <div class="kidirekt" id="ki-direkt-anlegen" hidden>
+            <div class="kimodell">
+              <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
+              <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
+            </div>
+            <div class="kibilder" id="ki-bilder-anlegen"></div>
+            <p class="kihinweis" id="ki-lauf-anlegen" hidden></p>
+          </div>
+          <div class="kizeile kizeile-haupt">
+            <button id="btn-gemini" class="haupt" type="button">Fragen</button>
+          </div>
+          <p class="kihinweis" id="ki-hinweis"></p>
+          <details class="kialt" id="neu-alt">
+            <summary id="neu-alt-titel">Anderer Weg: Prompt kopieren</summary>
+            <div class="kizeile">
+              <select id="ki-dienst" aria-label="Welcher Dienst">
+                <option value="gemini">Gemini</option>
+                <option value="chatgpt">ChatGPT</option>
+                <option value="claude">Claude</option>
+                <option value="perplexity">Perplexity</option>
+              </select>
+              <button id="btn-ki-oeffnen" type="button">Öffnen</button>
+            </div>
+            <details class="kiprompt">
+              <summary>Prompt anzeigen und selbst kopieren</summary>
+              <textarea id="ki-text" aria-label="Prompt für die KI" readonly></textarea>
+              <div class="tools"><button id="btn-ki-kopie" class="haupt" type="button">Prompt kopieren</button></div>
+              <p class="kihinweis">Falls das Kopieren am Handy nicht greift: langes Tippen ins Feld, alles markieren, kopieren.</p>
+            </details>
+            <div class="tools" style="margin-top:10px">
+              <button id="btn-paste-auf" type="button">Antwort einfügen</button>
+            </div>
+            <div class="pastebox" id="paste-box" hidden>
+              <textarea id="f-paste" aria-label="Antwort der KI einfügen" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
+              <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
+              <p class="pastemeld" id="paste-meld" hidden></p>
+              <div id="neu-unsicher"></div>
+              <div id="neu-massnahmen"></div>
+            </div>
+          </details>
+        </div>
+        <p class="fhint" id="al-hand-hinweis" hidden>Nichts weiter zu tun — die Angaben trägst du auf den nächsten Stufen selbst ein.</p>
+      </div>
+
+      <!-- Stufe 3: die Pflanze -->
+      <div class="al-stufe" data-al="3">
+        <p class="al-frage">Wer ist das?</p>
+        <p class="al-unter">Der Name steht auf der Karte, im Gießmodus und auf dem Urlaubszettel. Er darf albern sein — er soll dir helfen, die Pflanze im Raum wiederzuerkennen.</p>
+        <div class="al-feld">
+          <span class="lab">Name</span>
+          <input id="f-name" placeholder="z. B. Rudi">
+        </div>
+        <div class="al-feld">
+          <span class="lab">Botanisch (falls bekannt)</span>
+          <input id="f-bot" placeholder="z. B. Epipremnum aureum">
+        </div>
+        <div class="al-feld">
+          <span class="lab">Zustand</span>
+          <select id="f-zustand" hidden></select>
+          <div class="al-knoepfe" id="f-zustand-knoepfe"></div>
+          <span class="fhint" id="f-zustand-hint"></span>
+        </div>
+        <div class="quar-anbieten" id="f-quar">
+          <p>Neuzugang? Drei Wochen getrennt aufstellen ist die wirksamste Einzelmaßnahme gegen
+            eingeschleppte Schädlinge. Die Pflanze läuft dann nicht im Rundgang mit und bekommt
+            eigene Kontrolltermine.</p>
+          <div class="tools"><button type="button" id="btn-f-quar">Mit Quarantäne anlegen</button></div>
+        </div>
+      </div>
+
+      <!-- Stufe 4: Platz und Pflege -->
+      <div class="al-stufe" data-al="4">
+        <p class="al-frage">Wo steht sie, wie wird sie gepflegt?</p>
+        <p class="al-unter">Raum und Stellplatz kannst du auch später auf der Karte setzen. Daraus rechnet die App das Licht am Platz und warnt, wenn ein Tier drankommt.</p>
+        <div class="al-feld">
+          <span class="lab">Raum</span>
+          <select id="f-raum"></select>
+        </div>
+        <div class="al-feld">
+          <span class="lab">Stellplatz</span>
+          <select id="f-stellplatz"></select>
+        </div>
+        <div class="al-bibzsf" id="al-bibzsf" hidden>
+          <h4>Aus der Bibliothek übernommen</h4>
+          <div class="al-zsf" id="al-bibzsf-liste"></div>
+          <div class="tools"><button type="button" id="btn-al-pflege-auf">Ändern</button></div>
+        </div>
+        <div id="al-pflege">
+          <div class="al-feld">
+            <span class="lab">Gießklasse</span>
+            <select id="f-klasse" hidden>
+              <option value="B">B — Normal, obere 2–3 cm antrocknen</option>
+              <option value="A">A — Durstig, gleichmäßig feucht</option>
+              <option value="C">C — Kakteenmodus, durchtrocknen</option>
+              <option value="S">S — Karnivoren, Anstau</option>
+            </select>
+            <div class="al-knoepfe" id="f-klasse-knoepfe"></div>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Licht</span>
+            <select id="f-sonne" hidden>
+              <option value="indirekt">Hell, keine direkte Sonne</option>
+              <option value="hell">Hell, verträgt etwas Sonne</option>
+              <option value="voll">Volle Sonne</option>
+              <option value="schatten">Schatten, kommt mit wenig Licht aus</option>
+            </select>
+            <div class="al-knoepfe" id="f-sonne-knoepfe"></div>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Für Katzen</span>
+            <select id="f-giftig" hidden>
+              <option value="unbekannt">Noch nicht geprüft</option>
+              <option value="ja">Giftig</option>
+              <option value="nein">Unbedenklich</option>
+            </select>
+            <div class="al-knoepfe" id="f-giftig-knoepfe"></div>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Typ</span>
+            <input id="f-typ" placeholder="z. B. Kletterpflanze">
+          </div>
+          <details class="kiprompt nur-experte">
+            <summary>Gießart von Hand festlegen</summary>
+            <div class="al-feld" style="margin-top:10px">
+              <select id="f-giessart">
+                <option value="">automatisch aus Klasse und Typ</option>
+                <option value="durch">Durchdringend — bis unten Wasser austritt</option>
+                <option value="schluck">Schluck — nur die Erde anfeuchten</option>
+                <option value="tauchen">Tauchen — 10 Minuten ins Wasserbad</option>
+                <option value="unten">Von unten — nur in den Untersetzer</option>
+                <option value="anstau">Anstau — Untersetzer dauerhaft gefüllt</option>
+              </select>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Stufe 5: Bilder, Notizen, Abschluss -->
+      <div class="al-stufe" data-al="5">
+        <p class="al-frage">Noch etwas dazu?</p>
+        <p class="al-unter">Alles hier ist freiwillig. Das erste Bild wird das Profilbild.</p>
+        <div class="al-feld">
+          <span class="lab">Fotos</span>
+          <div class="kibilder" id="al-fotos"></div>
+          <input type="file" id="f-fotos" accept="image/*" multiple hidden>
+        </div>
+        <div class="al-feld">
+          <span class="lab">Wichtig zu wissen</span>
+          <textarea id="f-wichtig" rows="2" placeholder="z. B. nur destilliertes oder Regenwasser, Leitungswasser tötet sie"></textarea>
+          <span class="fhint">Pflegehinweise, die über Leben und Tod entscheiden.</span>
+        </div>
+        <div class="al-feld">
+          <span class="lab">Notizen</span>
+          <textarea id="f-notiz" placeholder="Topf, Substrat, seit wann, Zustand …"></textarea>
+        </div>
+        <p class="al-frage" style="font-size:var(--t-l);margin-top:22px">Das wird angelegt</p>
+        <div class="al-zsf" id="al-zsf"></div>
+        <div class="tools"><button id="btn-neu-leeren" type="button">Formular leeren</button></div>
+      </div>
+
+    </div>
+  </div>
+  <div class="al-fuss">
+    <button id="al-zurueck" type="button" hidden>Zurück</button>
+    <button id="al-weiter" type="button" class="haupt">Weiter</button>
+    <button id="btn-neu-save" type="button" class="haupt" hidden>Pflanze anlegen</button>
+  </div>
+</div>
+
 <nav class="tabs" id="tabs">
   <button data-ans-go="heute"><span class="tab-i"></span>Heute</button>
   <button data-ans-go="sammlung"><span class="tab-i"></span>Sammlung</button>
@@ -9070,8 +9260,26 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.0.0';
+const FASSUNG = '3.0.1';
 const PATCHNOTES = [
+  {
+    nr: '3.0.1', datum: '2026-09-01', titel: 'Anlegen Schritt für Schritt',
+    neu: [
+      'Pflanzen anlegen läuft jetzt in einem eigenen Fenster mit fünf Stufen: woher die Angaben kommen, welche Art, wer sie ist, wo sie steht, und was du noch dazutun willst. Kein endloses Formblatt mehr am Fuß der Sammlung.',
+      'Ein dritter Weg zum Anfangen: „Von Hand“, wenn weder Bibliothek noch KI passen.',
+      'Zustand, Gießklasse, Licht und Giftigkeit wählst du über Knöpfe statt über Auswahlfelder. Was du siehst, ist die Antwort — nicht ein zugeklapptes Feld.',
+      'Kommt die Art aus der Bibliothek, zeigt die Pflegestufe nur noch eine Zusammenfassung und einen Knopf zum Ändern. Was schon beantwortet ist, musst du nicht noch einmal beantworten.',
+      'Fotos wählst du als Miniaturenreihe mit Vorschau. Einzelne Bilder wieder wegzunehmen ging vorher gar nicht.',
+      'Vor dem Anlegen steht eine Zusammenfassung: Name, Art, Zustand, Standort, Pflege, Anzahl der Bilder.',
+      'Der Pflanzendoktor hat statt des langen Auswahlfelds eine durchsuchbare Liste mit Bildern — dieselbe Ansicht wie im Stammbaum. Wer seine Pflanzen am Aussehen kennt und nicht am Namen, kommt endlich weiter.'
+    ],
+    besser: [
+      'Der Direktweg zur KI hängt nicht mehr an der Dienstwahl. Ist ein Schlüssel hinterlegt, ist er die Regel — im Doktor wie beim Anlegen. Der Weg über die Zwischenablage rutscht darunter in eine Klappe und nimmt keinen Platz mehr weg.',
+      'Ohne Schlüssel heißt der Knopf „API-Schlüssel einfügen“ und führt zur Einrichtung, statt einen Dienst zu öffnen. Der Kopierweg steht darunter offen wie bisher.',
+      'Die Wahl von ChatGPT, Claude oder Perplexity ist dorthin gewandert, wo sie gebraucht wird: in den Kopierweg.',
+      'Bei Arten aus der Bibliothek nennt die Zusammenfassung die Giftigkeit im Klartext, statt „Noch nicht geprüft“ zu behaupten, obwohl sie bekannt ist.'
+    ]
+  },
   {
     nr: '3.0.0', datum: '2026-09-01', titel: 'Die App fragt selbst',
     neu: [
@@ -12846,9 +13054,8 @@ document.addEventListener('keydown', e=>{
 
 /* ══════════════════ Pflanze anlegen ══════════════════ */
 $('#btn-neu-cancel').onclick = ()=>{
-  $('#form-neu').classList.remove('on');
+  modalZu('anleg-modal');
   neuWegSetzen(null);
-  fabZeichnen();
 };
 
 /* ── Alles auf Anfang ──────────────────────────────────────
@@ -12863,6 +13070,17 @@ function formularLeeren(){
     const el = $('#'+x); if(el) el.selectedIndex = 0;
   });
   if($('#f-fotos')) $('#f-fotos').value = '';
+  if(typeof AL_FOTOS !== 'undefined'){
+    AL_FOTOS.forEach(f=>{
+      if(f.vorschau && f.vorschau.indexOf('blob:') === 0){
+        try{ URL.revokeObjectURL(f.vorschau); }catch(e){}
+      }
+    });
+    AL_FOTOS.length = 0;
+    if(typeof alFotosZeichnen === 'function') alFotosZeichnen();
+  }
+  const bzsf = document.getElementById('al-bibzsf');
+  if(bzsf) delete bzsf.dataset.offen;
   if(typeof formLageZeichnen === 'function') formLageZeichnen();
   gewaehlteArt = null; artManuell = false; letzteKiAntwort = null;
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
@@ -12873,6 +13091,7 @@ function formularLeeren(){
   zustandListe(null);
   if(typeof zustandHinweis === 'function') zustandHinweis();
   neuWegSetzen(null);
+  if(typeof alKnoepfeAlle === 'function') alKnoepfeAlle();
 }
 $('#btn-neu-leeren').onclick = ()=>{
   formularLeeren();
@@ -12891,34 +13110,37 @@ function neuWegSetzen(weg){
   if(ki)  ki.hidden  = weg !== 'ki';
   document.querySelectorAll('[data-neuweg]').forEach(b=>
     b.classList.toggle('on', b.dataset.neuweg === weg));
+  /* Stufe 2 zeigt je nach Weg etwas anderes — auch beim Wechseln,
+     wenn man schon dort steht. */
+  if(typeof alStufe2Zeichnen === 'function') alStufe2Zeichnen();
 }
 document.addEventListener('click', e=>{
   const w = e.target.closest('[data-neuweg]');
   if(!w) return;
   e.preventDefault();
-  neuWegSetzen(neuWeg === w.dataset.neuweg ? null : w.dataset.neuweg);
-  if(neuWeg === 'bib') setTimeout(()=>$('#f-art').focus(), 120);
+  neuWegSetzen(w.dataset.neuweg);
+  /* Ein Weg gewählt heißt: weiter. Erst tippen und dann noch einmal
+     „Weiter“ antippen wäre ein Klick zu viel. */
+  if(typeof alStufeZeigen === 'function' && alStufe === 1) alStufeZeigen(2);
+  if(neuWeg === 'bib') setTimeout(()=>{
+    const f = document.getElementById('f-art'); if(f) f.focus();
+  }, 160);
 });
 
 /* Der schwebende Knopf ist der einzige Weg ins Formular. Er steht nur
    auf der Sammlung und verschwindet, solange das Formular offen ist. */
+/* Das Anlegen hat seit 3.0.1 keinen Platz mehr in der Seite: es ist
+   ein eigenes Fenster. Der schwebende Knopf öffnet es und
+   verschwindet, solange es offen ist. */
 function fabZeichnen(){
   const fab = document.getElementById('fab-neu'); if(!fab) return;
   const sammlung = document.body.dataset.ansicht === 'sammlung';
-  const offen = $('#form-neu').classList.contains('on');
+  const offen = typeof modalOffen === 'function' && modalOffen('anleg-modal');
   fab.hidden = !sammlung || offen;
-  /* Das Anlegen hat keinen eigenen Platz mehr in der Seite. Es gibt nur
-     den schwebenden Knopf — und den Willkommensblock beim ersten Start. */
-  const sec = document.getElementById('anlegen-sec');
-  if(sec) sec.hidden = !offen;
 }
 const fabKnopf = document.getElementById('fab-neu');
 if(fabKnopf) fabKnopf.onclick = ()=>{
-  $('#form-neu').classList.add('on');
-  neuWegSetzen(null);
-  fabZeichnen();
-  const sec = document.getElementById('anlegen-sec');
-  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+  if(typeof alStart === 'function') alStart();
 };
 /* Die frühere, einfachere Fassung des Anlegen-Knopfes stand hier. Sie wurde
    später durch die Version mit Bibliothekssuche ersetzt, die weiter unten
@@ -13542,6 +13764,275 @@ modalAnmelden('lightbox', {
 modalAnmelden('urlaub-blatt', {
   groesse:'druck', schleier:false,
   nachAuf: ()=>window.scrollTo(0, 0)
+});
+
+
+/* ══════════════════ Anlegen-Assistent ══════════════════
+   Fünf Stufen statt eines Formblatts. Die Felder haben absichtlich
+   dieselben Kennungen wie vorher — Bibliothekssuche, KI-Übernahme
+   und das Speichern lesen sie unverändert. Umgebaut ist nur, was man
+   sieht, nicht was darunter läuft.
+
+   Die Auswahlfelder für Zustand, Gießklasse, Licht und Katzen
+   bleiben als <select> im Dokument und sind die Wahrheit; darüber
+   liegen Knöpfe, die hineinschreiben. So braucht keine der
+   bestehenden Stellen zu wissen, dass sich die Bedienung geändert
+   hat. */
+
+const AL_STUFEN = ['Woher', 'Art', 'Pflanze', 'Pflege', 'Fertig'];
+let alStufe = 1;
+let AL_FOTOS = [];      /* gewählte Dateien, mit Vorschau */
+
+/* ── Knöpfe statt Auswahlfeld ─────────────────────────────────
+   Lange Beschriftungen wie „B — Normal, obere 2–3 cm antrocknen“
+   werden am Gedankenstrich getrennt: vorn fett, hinten klein. */
+function alKnopfGruppe(selId){
+  const sel = document.getElementById(selId);
+  const box = document.getElementById(selId + '-knoepfe');
+  if(!sel || !box) return;
+  box.innerHTML = Array.prototype.map.call(sel.options, o => {
+    const t = String(o.textContent || '');
+    const i = t.indexOf(' — ');
+    const kopf = i > -1 ? t.slice(0, i) : t;
+    const rest = i > -1 ? t.slice(i + 3) : '';
+    return '<button type="button" class="al-knopf" data-alwert="' + esc(o.value) + '"'
+      + ' data-alziel="' + esc(selId) + '"'
+      + ' aria-pressed="' + (o.value === sel.value ? 'true' : 'false') + '">'
+      + '<b>' + esc(kopf) + '</b>' + (rest ? '<i>' + esc(rest) + '</i>' : '') + '</button>';
+  }).join('');
+}
+function alKnoepfeAlle(){
+  ['f-zustand', 'f-klasse', 'f-sonne', 'f-giftig'].forEach(alKnopfGruppe);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.al-knopf');
+  if(!b) return;
+  const sel = document.getElementById(b.dataset.alziel);
+  if(!sel) return;
+  sel.value = b.dataset.alwert;
+  sel.dispatchEvent(new Event('change', {bubbles:true}));
+  alKnopfGruppe(sel.id);
+});
+
+/* ── Fotos ────────────────────────────────────────────────────
+   Das rohe „Dateien auswählen“ des Browsers ist durch dieselbe
+   Miniaturenreihe ersetzt, die auch der KI-Weg benutzt. Einzelne
+   Bilder wieder wegnehmen ging vorher gar nicht. */
+function alFotosZeichnen(){
+  const box = document.getElementById('al-fotos');
+  if(!box) return;
+  box.innerHTML = AL_FOTOS.map((f, i) =>
+      '<span class="kibild"><img alt="" src="' + f.vorschau + '">'
+      + '<button type="button" data-alfoto-weg="' + i + '" aria-label="Bild entfernen">×</button></span>').join('')
+    + '<label class="kibild-neu"><input type="file" accept="image/*" multiple hidden id="al-foto-neu">+</label>'
+    + '<span class="kibild-zahl">'
+    + (AL_FOTOS.length
+        ? AL_FOTOS.length + (AL_FOTOS.length === 1 ? ' Bild' : ' Bilder') + ', das erste wird das Profilbild'
+        : 'Noch kein Bild') + '</span>';
+}
+document.addEventListener('click', e => {
+  const w = e.target.closest('[data-alfoto-weg]');
+  if(!w) return;
+  const i = parseInt(w.dataset.alfotoWeg, 10) || 0;
+  const f = AL_FOTOS[i];
+  if(f && f.vorschau.indexOf('blob:') === 0){ try{ URL.revokeObjectURL(f.vorschau); }catch(err){} }
+  AL_FOTOS.splice(i, 1);
+  alFotosZeichnen();
+});
+document.addEventListener('change', e => {
+  const inp = e.target.closest('#al-foto-neu');
+  if(!inp || !inp.files || !inp.files.length) return;
+  Array.prototype.forEach.call(inp.files, f => {
+    AL_FOTOS.push({datei:f, vorschau:URL.createObjectURL(f)});
+  });
+  inp.value = '';
+  alFotosZeichnen();
+});
+
+/* ── Zusammenfassung ──────────────────────────────────────── */
+function alZeile(t, w){
+  return w ? '<div><dt>' + esc(t) + '</dt><dd>' + esc(w) + '</dd></div>' : '';
+}
+function alBibZsfZeichnen(){
+  const kasten = document.getElementById('al-bibzsf');
+  const pflege = document.getElementById('al-pflege');
+  const liste = document.getElementById('al-bibzsf-liste');
+  if(!kasten || !pflege || !liste) return;
+  const a = (typeof gewaehlteArt !== 'undefined') ? gewaehlteArt : null;
+  /* Kommt die Art aus der Bibliothek, sind sieben Felder bereits
+     beantwortet. Sie trotzdem alle zu zeigen heißt, den Nutzer sieben
+     Entscheidungen treffen zu lassen, die schon getroffen sind. */
+  const zeigen = !!a && !kasten.dataset.offen;
+  kasten.hidden = !a;
+  pflege.hidden = zeigen;
+  if(!a) return;
+  const kl = document.getElementById('f-klasse');
+  const so = document.getElementById('f-sonne');
+  const gi = document.getElementById('f-giftig');
+  const text = sel => {
+    const o = sel && sel.options[sel.selectedIndex];
+    return o ? o.textContent : '';
+  };
+  liste.innerHTML =
+      alZeile('Gießklasse', text(kl))
+    + alZeile('Licht', text(so))
+    + alZeile('Für Katzen', alGiftText())
+    + alZeile('Typ', (document.getElementById('f-typ') || {}).value)
+    + alZeile('Familie', a.fam || '');
+}
+/* Steht „Noch nicht geprüft“ im Auswahlfeld, heißt das nicht, dass
+   nichts bekannt wäre: bei Arten aus der Bibliothek ermittelt die App
+   die Giftigkeit beim Anlegen aus Art und Familie. Die
+   Zusammenfassung soll nicht das Gegenteil behaupten. */
+function alGiftText(){
+  const gi = document.getElementById('f-giftig');
+  const o = gi && gi.options ? gi.options[gi.selectedIndex] : null;
+  const roh = o ? o.textContent : '';
+  if(!gi || gi.value !== 'unbekannt') return roh;
+  const a = (typeof gewaehlteArt !== 'undefined') ? gewaehlteArt : null;
+  if(!a || typeof giftErmitteln !== 'function') return roh;
+  try{
+    const g = giftErmitteln({botanisch:a.bot, bib:a.bot, art:a.de, familie:a.fam});
+    const k = g && g.tiere ? g.tiere.katze : null;
+    const st = k ? GIFT_STUFEN[k] : null;
+    if(st && k !== 'unklar'){
+      return st.wort.charAt(0).toUpperCase() + st.wort.slice(1) + ' · aus der Bibliothek';
+    }
+  }catch(e){}
+  return roh;
+}
+
+function alZsfZeichnen(){
+  const box = document.getElementById('al-zsf');
+  if(!box) return;
+  const wert = id => (document.getElementById(id) || {}).value || '';
+  const text = id => {
+    const sel = document.getElementById(id);
+    const o = sel && sel.options ? sel.options[sel.selectedIndex] : null;
+    return o ? o.textContent : '';
+  };
+  const a = (typeof gewaehlteArt !== 'undefined') ? gewaehlteArt : null;
+  const art = a ? a.de : wert('f-art');
+  const raum = text('f-raum');
+  const platz = text('f-stellplatz');
+  const ort = [raum, platz].filter(x => x && x.indexOf('—') === -1).join(' · ');
+  box.innerHTML =
+      alZeile('Name', wert('f-name') || 'Name offen')
+    + alZeile('Art', art || 'Unbestimmt')
+    + alZeile('Botanisch', wert('f-bot') || (a ? a.bot : ''))
+    + alZeile('Zustand', text('f-zustand'))
+    + alZeile('Standort', ort)
+    + alZeile('Gießklasse', text('f-klasse'))
+    + alZeile('Licht', text('f-sonne'))
+    + alZeile('Für Katzen', alGiftText())
+    + alZeile('Fotos', AL_FOTOS.length ? String(AL_FOTOS.length) : '');
+}
+
+/* ── Die Stufen ───────────────────────────────────────────── */
+function alStufeZeigen(nr){
+  alStufe = Math.max(1, Math.min(AL_STUFEN.length, nr));
+  document.querySelectorAll('#form-neu .al-stufe').forEach(el => {
+    el.classList.toggle('an', Number(el.dataset.al) === alStufe);
+  });
+  const bahn = document.getElementById('al-fortschritt');
+  if(bahn) bahn.innerHTML = AL_STUFEN.map((n, i) =>
+    '<li class="' + (i + 1 === alStufe ? 'jetzt' : '') + (i + 1 < alStufe ? ' fertig' : '') + '">'
+    + '<span class="nurlesbar">' + esc(n) + '</span></li>').join('');
+  const zurueck = document.getElementById('al-zurueck');
+  const weiter = document.getElementById('al-weiter');
+  const speichern = document.getElementById('btn-neu-save');
+  const letzte = alStufe === AL_STUFEN.length;
+  if(zurueck) zurueck.hidden = alStufe === 1;
+  if(weiter) weiter.hidden = letzte;
+  if(speichern) speichern.hidden = !letzte;
+  const titel = document.getElementById('al-titel');
+  if(titel) titel.textContent = 'Pflanze anlegen · ' + AL_STUFEN[alStufe - 1];
+
+  if(alStufe === 2) alStufe2Zeichnen();
+  if(alStufe === 3){ alKnoepfeAlle(); }
+  if(alStufe === 4){ alKnoepfeAlle(); alBibZsfZeichnen(); }
+  if(alStufe === 5){ alFotosZeichnen(); alZsfZeichnen(); }
+  const rumpf = document.querySelector('#anleg-modal .sekm-rumpf');
+  if(rumpf) rumpf.scrollTop = 0;
+}
+function alStufe2Zeichnen(){
+  const weg = (typeof neuWeg !== 'undefined') ? neuWeg : null;
+  const frage = document.getElementById('al-frage-2');
+  const unter = document.getElementById('al-unter-2');
+  const hand = document.getElementById('al-hand-hinweis');
+  if(hand) hand.hidden = weg !== 'hand';
+  if(frage) frage.textContent = weg === 'ki' ? 'Was sagt die KI?'
+    : weg === 'hand' ? 'Von Hand' : 'Welche Art ist es?';
+  if(unter) unter.textContent = weg === 'ki'
+    ? 'Die Antwort füllt Art, Pflege und Zustand auf den nächsten Stufen aus. Was nicht passt, änderst du dort.'
+    : weg === 'hand' ? ''
+    : 'Die ersten Buchstaben genügen, deutscher oder botanischer Name.';
+  if(typeof kiModusZeigen === 'function') kiModusZeigen();
+}
+
+/* Stufe 2 hat nur dann etwas zu zeigen, wenn ein Weg gewählt ist.
+   Ohne Weg wäre sie eine leere Seite, durch die man sich klickt. */
+function alWeiterMoeglich(){
+  if(alStufe === 1) return !!(typeof neuWeg !== 'undefined' && neuWeg);
+  return true;
+}
+function alWeiter(){
+  if(alStufe === 1 && !alWeiterMoeglich()){
+    const w = document.querySelector('#form-neu .al-wege');
+    if(w) w.animate
+      ? w.animate([{opacity:1}, {opacity:.4}, {opacity:1}], {duration:320})
+      : null;
+    return;
+  }
+  alStufeZeigen(alStufe + 1);
+}
+
+function alStart(){
+  formularLeeren();
+  AL_FOTOS = [];
+  alStufeZeigen(1);
+  modalAuf('anleg-modal');
+}
+
+modalAnmelden('anleg-modal', {
+  groesse:'voll', schleier:false,
+  nachAuf: ()=>{
+    document.body.classList.add('gm-offen');
+    const f = document.getElementById('form-neu');
+    if(f) f.classList.add('on');
+    if(typeof fabZeichnen === 'function') fabZeichnen();
+  },
+  nachZu: ()=>{
+    document.body.classList.remove('gm-offen');
+    const f = document.getElementById('form-neu');
+    if(f) f.classList.remove('on');
+    if(typeof fabZeichnen === 'function') fabZeichnen();
+    if(typeof render === 'function') render();
+  }
+});
+
+{
+  const z = document.getElementById('al-zurueck');
+  if(z) z.onclick = ()=>alStufeZeigen(alStufe - 1);
+  const w = document.getElementById('al-weiter');
+  if(w) w.onclick = alWeiter;
+  const p = document.getElementById('btn-al-pflege-auf');
+  if(p) p.onclick = ()=>{
+    const kasten = document.getElementById('al-bibzsf');
+    if(kasten) kasten.dataset.offen = '1';
+    alBibZsfZeichnen();
+    alKnoepfeAlle();
+  };
+}
+
+/* Ändert sich unter der Hand etwas an den Feldern — durch die
+   Bibliothek oder eine KI-Antwort — müssen die Knöpfe nachziehen.
+   Sonst zeigt der Knopf B, während im Auswahlfeld längst S steht. */
+document.addEventListener('change', e => {
+  const t = e.target;
+  if(!t || !t.id) return;
+  if(/^f-(zustand|klasse|sonne|giftig)$/.test(t.id)) alKnopfGruppe(t.id);
+  if(/^f-(klasse|sonne|giftig|typ)$/.test(t.id) && alStufe === 4) alBibZsfZeichnen();
 });
 
 modalAnmelden('willkommen', {
@@ -14289,8 +14780,13 @@ document.addEventListener('change', e => {
   if(sel && sel.value){ S.kiModell = sel.value; sichern(); kiModellZeichnen(); }
 });
 
-/* ── Anzeige ─────────────────────────────────────────────────── */
-function kiDirektAn(){ return S.kiDienst === 'direkt'; }
+/* ── Anzeige ───────────────────────────────────────────────────
+   Der Direktweg hing zuerst an der Dienstwahl — man musste erst
+   „Gemini direkt“ auswählen. Das war falsch herum gedacht: wer einen
+   Schlüssel hinterlegt, will nicht jedes Mal einen Dienst wählen.
+   Jetzt gilt der Schlüssel selbst als Entscheidung. Die Dienstwahl
+   lebt weiter, aber unten im Kopierweg, wo sie hingehört. */
+function kiDirektAn(){ return kiBereit(); }
 
 function kiModellZeichnen(){
   const liste = kiModelle();
@@ -14366,23 +14862,27 @@ function kiModusZeigen(){
   const an = kiDirektAn();
   const paare = [
     ['anlegen', 'ki-direkt-anlegen', 'neu-alt', 'neu-alt-titel', 'btn-gemini',
-     'Ohne Schlüssel: Prompt kopieren, Antwort einfügen'],
+     'Anderer Weg: Prompt kopieren'],
     ['doktor', 'ki-direkt-doktor', 'dok-alt', 'dok-alt-titel', 'btn-dok-ki',
-     'Ohne Schlüssel: Frage kopieren, Antwort einfügen']
+     'Anderer Weg: Frage kopieren']
   ];
   paare.forEach(x => {
     const kasten = document.getElementById(x[1]);
-    const alt = document.getElementById(x[2]);
+    const klappe = document.getElementById(x[2]);
     const titel = document.getElementById(x[3]);
     const knopf = document.getElementById(x[4]);
     if(kasten) kasten.hidden = !an;
-    if(alt){
-      alt.classList.toggle('nurweg', !an);
-      if(!an){ alt.open = true; delete alt.dataset.geoeffnet; }
-      else if(!alt.dataset.geoeffnet) alt.open = false;
+    if(klappe){
+      /* Ohne Schlüssel ist der Kopierweg der einzige Weg — dann steht
+         er offen und ohne Zusammenfassung da, genau wie früher. Mit
+         Schlüssel klappt er zusammen und wartet unten. */
+      klappe.classList.toggle('nurweg', !an);
+      if(!an){ klappe.open = true; delete klappe.dataset.geoeffnet; }
+      else if(!klappe.dataset.geoeffnet) klappe.open = false;
     }
-    if(titel) titel.textContent = (alt && alt.dataset.geoeffnet) ? 'Antwort und Abgleich' : x[5];
-    if(knopf && !knopf.disabled) knopf.textContent = an ? 'Fragen' : 'Öffnen';
+    if(titel) titel.textContent = (klappe && klappe.dataset.geoeffnet)
+      ? 'Antwort und Abgleich' : x[5];
+    if(knopf && !knopf.disabled) knopf.textContent = an ? 'Fragen' : 'API-Schlüssel einfügen';
   });
   if(an){
     kiBilderZeichnen('anlegen');
@@ -14394,6 +14894,15 @@ function kiModusZeigen(){
   const s2 = document.getElementById('dok-dienst');
   if(s1 && S.kiDienst && s1.value !== S.kiDienst) s1.value = S.kiDienst;
   if(s2 && S.kiDienst && s2.value !== S.kiDienst) s2.value = S.kiDienst;
+  if(typeof kiHinweis === 'function') kiHinweis();
+  if(typeof dokKiHinweis === 'function' && !an) dokKiHinweis('');
+}
+
+/* Ohne Schlüssel führt der Hauptknopf dorthin, wo man einen einträgt.
+   Ein Knopf, der nur meckert, ist eine Sackgasse. */
+function kiZurEinrichtung(){
+  if(typeof sektionOeffnen === 'function') sektionOeffnen('kidienst');
+  else if(typeof ansichtZeigen === 'function') ansichtZeigen('mehr');
 }
 
 /* ── Der Lauf ────────────────────────────────────────────────── */
@@ -14527,10 +15036,9 @@ async function kiDirektLos(wo){
   if(goog) goog.onclick = ()=>{ window.open('https://aistudio.google.com/apikey', '_blank', 'noopener'); };
 }
 
-/* Ohne Schlüssel darf „Gemini direkt“ nicht als gemerkte Wahl aus
-   einer alten Sitzung zurückkommen — sonst steht der Nutzer vor einem
-   Knopf, der nur meckert. */
-if(S.kiDienst === 'direkt' && !kiBereit()) S.kiDienst = 'gemini';
+/* „direkt“ war in 3.0.0 kurzzeitig ein Dienst im Auswahlfeld. Wer den
+   Wert noch gespeichert hat, bekäme sonst ein leeres Auswahlfeld. */
+if(S.kiDienst === 'direkt'){ S.kiDienst = 'gemini'; sichern(); }
 kiSchluesselZeichnen();
 </script>
 <script>
@@ -14820,7 +15328,8 @@ $('#ki-text').value = anlegenPromptBauen();
 $('#ki-dienst').value = S.kiDienst || 'gemini';
 $('#ki-dienst').onchange = ()=>{
   S.kiDienst = $('#ki-dienst').value; sichern();
-  if(typeof kiModusZeigen === 'function') kiModusZeigen();
+  const s2 = document.getElementById('dok-dienst');
+  if(s2) s2.value = S.kiDienst;
   kiHinweis();
 };
 function kiHinweis(txt, ton){
@@ -14830,9 +15339,11 @@ function kiHinweis(txt, ton){
   /* Im Direktweg gibt es nichts zu kopieren und nichts zu öffnen —
      dort erklärt der Satz, was der Knopf tut. */
   if(typeof kiDirektAn === 'function' && kiDirektAn()){
-    el.textContent = kiBereit()
-      ? 'Bild wählen, „Fragen“ antippen. Die Antwort kommt direkt in die Felder unten.'
-      : 'Dafür fehlt noch der Schlüssel: Mehr › Einstellungen › KI-Dienst. Bis dahin geht der Weg über die Zwischenablage.';
+    el.textContent = 'Bild wählen, „Fragen“ antippen. Die Antwort kommt von selbst in die Felder.';
+    return;
+  }
+  if(typeof kiBereit === 'function' && !kiBereit()){
+    el.textContent = 'Mit eigenem Schlüssel fragt die App selbst — ohne Kopieren und Wechseln. Sonst nimm den Weg darunter.';
     return;
   }
   const d = KI_DIENSTE[$('#ki-dienst').value];
@@ -14842,8 +15353,14 @@ function kiHinweis(txt, ton){
 }
 kiHinweis();
 
+/* Der Hauptknopf: fragen, wenn ein Schlüssel da ist — sonst hin zur
+   Einrichtung. Das Öffnen eines fremden Dienstes sitzt unten im
+   Kopierweg an seinem eigenen Knopf. */
 $('#btn-gemini').onclick = ()=>{
-  if(typeof kiDirektAn === 'function' && kiDirektAn()){ kiDirektLos('anlegen'); return; }
+  if(kiDirektAn()){ kiDirektLos('anlegen'); return; }
+  kiZurEinrichtung();
+};
+$('#btn-ki-oeffnen').onclick = ()=>{
   const {dienst, kopiert, perUrl} = kiOeffnen($('#ki-dienst').value);
   $('#paste-box').hidden = false;
   if(perUrl){
@@ -15182,7 +15699,8 @@ $('#btn-neu-save').onclick = async ()=>{
   const zc = $('#f-zustand').value;
   if(zc && zc !== 'gesund') zustandSetzen(id, zc);
   if(!a) neueArtMerken({art: art, bot: $('#f-bot').value.trim(), notiz: lageVon(p)});
-  const files = $('#f-fotos').files;
+  const files = (typeof AL_FOTOS !== 'undefined' && AL_FOTOS.length)
+    ? AL_FOTOS.map(f=>f.datei) : $('#f-fotos').files;
   sichern();
   /* Hat die KI Maßnahmen mitgeliefert, werden sie jetzt zu Aufgaben —
      dieselbe Funktion, die auch der Pflanzendoktor benutzt. Damit kennt
@@ -15203,8 +15721,7 @@ $('#btn-neu-save').onclick = async ()=>{
   const nmz = document.getElementById('neu-massnahmen'); if(nmz) nmz.innerHTML = '';
   if(files && files.length) await fotosHinzu(id, Array.from(files));
   formularLeeren();
-  $('#form-neu').classList.remove('on');
-  fabZeichnen();
+  modalZu('anleg-modal');
   render();
   if(kiAufgaben){
     const meld = $('#paste-meld');
@@ -18273,10 +18790,7 @@ document.addEventListener('click', e=>{
   }
   if(b.dataset.do === 'start-anlegen'){
     ansichtZeigen('sammlung');
-    const f = document.getElementById('form-neu');
-    if(f) f.classList.add('on');
-    if(typeof fabZeichnen === 'function') fabZeichnen();
-    setTimeout(()=>{ const q = document.getElementById('f-art'); if(q){ q.scrollIntoView({block:'center'}); q.focus(); } }, 200);
+    if(typeof alStart === 'function') alStart();
   }
   if(b.dataset.do === 'start-tour'){
     if(typeof tourStart === 'function') tourStart('einricht');
@@ -18405,9 +18919,79 @@ function dokGruppenLeiste(){
 
 const DOKTOR_PROMPT_KOPF = 'Du bist ein erfahrener Gärtner. Ich hänge ein Foto meiner Pflanze an.';
 
+/* Die Galerie der Sammlung. Ein Treffer pro Zeile: Bild, Name,
+   Nebenzeile mit Art und Standort. Dieselben Bausteine wie im
+   Stammbaum, damit die App nicht zwei Muster für dieselbe Aufgabe
+   hat. */
+function dokListeZeichnen(q){
+  const box = document.getElementById('dok-liste');
+  if(!box) return;
+  const suche = String(q || '').trim().toLowerCase();
+  const passt = p => {
+    if(!suche) return true;
+    return [nice(p), p.art, p.botanisch, p.typ, p.raum, p.stellplatz]
+      .filter(Boolean).join(' ').toLowerCase().indexOf(suche) > -1;
+  };
+  const liste = allePflanzen().filter(passt);
+  const bild = p => {
+    const f = (S.fotos && S.fotos[p.id] && S.fotos[p.id][0]) ? S.fotos[p.id][0].src : null;
+    return f ? '<img alt="" src="' + f + '">' : '';
+  };
+  const zeile = p => '<button type="button" class="sb-linie" data-dokp="' + esc(p.id) + '"'
+    + ' aria-pressed="' + (p.id === dokPflanze ? 'true' : 'false') + '">'
+    + '<span class="sb-linie-bild">' + bild(p) + '</span>'
+    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
+    + esc([p.art, lageVon(p)].filter(Boolean).join(' · ') || 'Ohne Angabe') + '</i></span></button>';
+  const ohne = '<button type="button" class="sb-linie" data-dokp=""'
+    + ' aria-pressed="' + (dokPflanze ? 'false' : 'true') + '">'
+    + '<span class="sb-linie-bild"></span>'
+    + '<span class="sb-linie-txt"><b>Keine bestimmte Pflanze</b>'
+    + '<i>Nur Einschätzung, nichts wird übernommen</i></span></button>';
+  box.innerHTML = liste.length
+    ? liste.map(zeile).join('') + (suche ? '' : ohne)
+    : (suche
+        ? '<p class="dok-leer">Kein Treffer. Suchbegriff kürzen.</p>' + ohne
+        : '<p class="dok-leer">Deine Sammlung ist noch leer.</p>' + ohne);
+}
+
+/* Ist eine Pflanze gewählt, verschwindet die Liste und macht einer
+   Zeile Platz — sonst scrollt man auf jedem weiteren Schritt an
+   zwanzig Zeilen vorbei. */
+function dokWahlZeichnen(){
+  const kasten = document.getElementById('dok-gewaehlt');
+  const wahl = document.getElementById('dok-wahl');
+  if(!kasten || !wahl) return;
+  const p = dokPflanze ? allePflanzen().find(x => x.id === dokPflanze) : null;
+  kasten.hidden = !p;
+  wahl.hidden = !!p;
+  if(!p) return;
+  const f = (S.fotos && S.fotos[p.id] && S.fotos[p.id][0]) ? S.fotos[p.id][0].src : null;
+  kasten.innerHTML = '<span class="sb-linie-bild">'
+    + (f ? '<img alt="" src="' + f + '">' : '') + '</span>'
+    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
+    + esc([p.art, lageVon(p)].filter(Boolean).join(' · ') || 'Ohne Angabe') + '</i></span>'
+    + '<button type="button" id="dok-andere">Andere</button>';
+}
+
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'dok-such') dokListeZeichnen(e.target.value);
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('#dok-andere')){
+    dokPflanze = null;
+    dokWahlZeichnen();
+    dokListeZeichnen((document.getElementById('dok-such') || {}).value || '');
+    dokZeigen(); dokErgebnis();
+    return;
+  }
+  const z = e.target.closest('[data-dokp]');
+  if(!z) return;
+  dokPflanzeSetzen(z.dataset.dokp || null);
+});
+
 function dokAufbau(){
-  const sel = $('#dok-pflanze');
-  sel.innerHTML = pflanzenAuswahlHTML(dokPflanze, 'Keine bestimmte Pflanze');
+  dokListeZeichnen((document.getElementById('dok-such') || {}).value || '');
+  dokWahlZeichnen();
   dokGruppenLeiste();
   const gruppe = SYMPTOM_GRUPPEN[dokGruppe] || SYMPTOM_GRUPPEN[0];
   const gewaehlt = [...dokSymptome];
@@ -18820,8 +19404,8 @@ document.addEventListener('click', e=>{
   }
 });
 
-$('#dok-pflanze').onchange = ()=>{
-  dokPflanze = $('#dok-pflanze').value || null;
+function dokPflanzeSetzen(id){
+  dokPflanze = id || null;
   if(dokPflanze && dokSchritt < 2) dokSchritt = 2;
   /* Andere Pflanze, andere Galerie. Der Bildstapel wird geleert —
      Fotos der vorigen Pflanze mitzuschicken wäre ein Fehler, den
@@ -18831,8 +19415,10 @@ $('#dok-pflanze').onchange = ()=>{
     kiBilderZeichnen('doktor');
     kiGalerieZeichnen();
   }
+  dokWahlZeichnen();
+  dokListeZeichnen((document.getElementById('dok-such') || {}).value || '');
   dokZeigen(); dokErgebnis();
-};
+}
 
 document.addEventListener('click', e=>{
   const w = e.target.closest('[data-dokweg]');
@@ -18859,7 +19445,10 @@ document.addEventListener('click', e=>{
 });
 $('#dok-ki-text') && ($('#dok-ki-text').value = '');
 $('#btn-dok-ki').onclick = ()=>{
-  if(typeof kiDirektAn === 'function' && kiDirektAn()){ kiDirektLos('doktor'); return; }
+  if(kiDirektAn()){ kiDirektLos('doktor'); return; }
+  kiZurEinrichtung();
+};
+$('#btn-dok-oeffnen').onclick = ()=>{
   const t = dokPromptBauen();
   $('#dok-ki-text').value = t;
   const d = KI_DIENSTE[$('#dok-dienst').value] || KI_DIENSTE.gemini;
@@ -18888,7 +19477,8 @@ if(dokDetails) dokDetails.addEventListener('toggle', ()=>{
 $('#dok-dienst').value = S.kiDienst || 'gemini';
 $('#dok-dienst').onchange = ()=>{
   S.kiDienst = $('#dok-dienst').value; sichern();
-  if(typeof kiModusZeigen === 'function') kiModusZeigen();
+  const s1 = document.getElementById('ki-dienst');
+  if(s1) s1.value = S.kiDienst;
 };
 /* Erst hier stehen beide Seiten im Dokument — vorher gäbe es die
    Hälfte der Elemente noch nicht. */
@@ -19223,7 +19813,7 @@ dokZeigen();
 dokErgebnis();
 
 const _renderVorherDok = render;
-render = function(){ _renderVorherDok(); if(document.getElementById('dok-pflanze')) dokAufbau(); };
+render = function(){ _renderVorherDok(); if(document.getElementById('dok-liste')) dokAufbau(); };
 
 
 /* ══════════════════ Symptome im Suchfeld erkennen ══════════════════
@@ -20831,15 +21421,12 @@ const TOUR_KAPITEL = {
       { ziel: ()=>document.querySelector('#erststart [data-do="start-anlegen"]'),
         titel: 'Die erste Pflanze',
         text: 'Fast alles in der App hängt daran, dass mindestens eine Pflanze angelegt ist. Tipp auf den Knopf — der Rest der Seite ist so lange abgedunkelt.',
-        fertig: ()=>{ const f = document.getElementById('form-neu');
-                      return !!(f && f.classList.contains('on')); } },
+        fertig: ()=>(typeof modalOffen === 'function' && modalOffen('anleg-modal')) },
 
       { ziel: ()=>document.querySelector('#form-neu .neu-wahl'),
-        titel: 'Zwei Wege',
-        text: 'Weißt du, was es ist, such die Art in der Bibliothek — dann sind Gießklasse, Licht, Dünger und Giftigkeit sofort ausgefüllt. Weißt du es nicht, lass eine KI ans Foto. Beide Wege enden im selben Formular.',
-        fertig: ()=>{ const b = document.getElementById('neu-bibbox');
-                      const k = document.getElementById('neu-kibox');
-                      return !!((b && !b.hidden) || (k && !k.hidden)); } },
+        titel: 'Drei Wege',
+        text: 'Weißt du, was es ist, such die Art in der Bibliothek — dann sind Gießklasse, Licht, Dünger und Giftigkeit sofort ausgefüllt. Weißt du es nicht, lass eine KI ans Bild. Oder trag alles selbst ein. Alle drei enden an derselben Stelle.',
+        fertig: ()=>(typeof alStufe !== 'undefined' && alStufe >= 2) },
 
       { ziel: ()=>{ const b = document.getElementById('neu-bibbox');
                     if(b && !b.hidden) return document.getElementById('f-art');
@@ -20855,17 +21442,22 @@ const TOUR_KAPITEL = {
         fertig: ()=>{ const g = document.getElementById('bib-gewaehlt');
                       return !!(g && !g.hidden); } },
 
+      { ziel: ()=>document.getElementById('al-weiter'),
+        titel: 'Eine Stufe nach der anderen',
+        text: 'Unten geht es weiter und zurück. Der Balken oben zeigt, wo du stehst — fünf Stufen, keine davon lang.',
+        weiter: true },
+
       { ziel: ()=>document.getElementById('f-name'),
         titel: 'Ein Name',
         text: 'Der Name steht auf der Karte, im Gießmodus und auf dem Urlaubszettel. Er darf ruhig albern sein — er soll dir helfen, die Pflanze im Raum wiederzuerkennen.',
         weiter: true },
 
-      { ziel: ()=>document.querySelector('#form-neu .fgrid'),
+      { ziel: ()=>document.getElementById('al-pflege'),
         titel: 'Der Rest steht schon da',
-        text: 'Gießklasse, Licht und Giftigkeit kommen aus der Bibliothek und lassen sich hier überschreiben. Raum und Stellplatz kannst du jetzt setzen oder später auf der Karte — daraus rechnet die App das Licht am Platz und warnt, wenn ein Tier drankommt.',
+        text: 'Gießklasse, Licht und Giftigkeit kommen aus der Bibliothek. Kam die Art von dort, siehst du hier nur eine Zusammenfassung und einen Knopf zum Ändern — was schon beantwortet ist, musst du nicht noch einmal beantworten.',
         weiter: true },
 
-      { ziel: ()=>document.getElementById('f-fotos'),
+      { ziel: ()=>document.getElementById('al-fotos'),
         titel: 'Fotos sind freiwillig',
         text: 'Das erste Bild wird das Profilbild. Fotos liegen im großen Speicher des Browsers, nicht im kleinen — es passen also viele hinein.',
         weiter: true },

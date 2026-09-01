@@ -4,6 +4,26 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.0.1 — 1. September 2026
+**Anlegen Schritt für Schritt**
+
+### Neu
+- Pflanzen anlegen läuft in einem eigenen Fenster mit fünf Stufen: woher die Angaben kommen, welche Art, wer sie ist, wo sie steht, was noch dazu soll. Das lange Formblatt am Fuß der Sammlung ist weg.
+- Dritter Weg zum Anfangen: „Von Hand“, wenn weder Bibliothek noch KI passen.
+- Zustand, Gießklasse, Licht und Giftigkeit über Knöpfe statt über Auswahlfelder.
+- Kommt die Art aus der Bibliothek, zeigt die Pflegestufe nur eine Zusammenfassung mit Ändern-Knopf.
+- Fotos als Miniaturenreihe mit Vorschau; einzelne Bilder lassen sich wieder wegnehmen.
+- Zusammenfassung vor dem Anlegen: Name, Art, Zustand, Standort, Pflege, Bilderzahl.
+- Pflanzendoktor: durchsuchbare Liste mit Bildern statt Auswahlfeld, dieselbe Ansicht wie im Stammbaum.
+
+### Besser
+- Der Direktweg zur KI hängt nicht mehr an der Dienstwahl, sondern allein am hinterlegten Schlüssel. Der Kopierweg rutscht darunter in eine Klappe.
+- Ohne Schlüssel führt der Hauptknopf zur Einrichtung statt einen fremden Dienst zu öffnen.
+- Die Wahl von ChatGPT, Claude oder Perplexity sitzt jetzt im Kopierweg.
+- Bei Bibliotheksarten nennt die Zusammenfassung die Giftigkeit im Klartext.
+
+---
+
 ## 3.0.0 — 1. September 2026
 **Die App fragt selbst**
 

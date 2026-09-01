@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.0.0', w.__T('FASSUNG') === '3.0.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.0.1', w.__T('FASSUNG') === '3.0.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1566,8 +1566,10 @@ setTimeout(async () => {
     try{ await w.__T("kiFragen('x', [])"); }catch(e){ leer = String(e.message || e); }
     pruef('Abgeschnittene Antwort rät zu weniger Bildern', /Bilder/.test(leer), leer);
 
-    /* --- Anzeige: beide Wege stehen untereinander --- */
-    w.__T("S.kiDienst = 'direkt'; kiModusZeigen()");
+    /* --- Anzeige: beide Wege stehen untereinander ---
+       Der Direktweg haengt seit 3.0.1 nicht mehr an der Dienstwahl,
+       sondern allein daran, ob ein Schluessel hinterlegt ist. */
+    w.__T('kiModusZeigen()');
     pruef('Direktkasten im Anlegen sichtbar',
       d.getElementById('ki-direkt-anlegen').hidden === false);
     pruef('Direktkasten im Doktor sichtbar',
@@ -1577,14 +1579,19 @@ setTimeout(async () => {
       && !d.getElementById('neu-alt').classList.contains('nurweg'));
     pruef('Der Knopf heißt jetzt Fragen',
       d.getElementById('btn-gemini').textContent === 'Fragen');
-    w.__T("S.kiDienst = 'gemini'; kiModusZeigen()");
-    pruef('Ohne Direktweg steht der Kopierweg offen wie bisher',
+    w.__T("kiSchluesselSetzen(''); kiModusZeigen()");
+    pruef('Ohne Schlüssel steht der Kopierweg offen wie bisher',
       d.getElementById('neu-alt').open === true
       && d.getElementById('neu-alt').classList.contains('nurweg'));
-    pruef('Ohne Direktweg ist der Direktkasten weg',
+    pruef('Ohne Schlüssel ist der Direktkasten weg',
       d.getElementById('ki-direkt-anlegen').hidden === true);
-    pruef('Der Knopf heißt wieder Öffnen',
-      d.getElementById('btn-gemini').textContent === 'Öffnen');
+    pruef('Ohne Schlüssel führt der Knopf zur Einrichtung',
+      d.getElementById('btn-gemini').textContent === 'API-Schlüssel einfügen');
+    pruef('Die Dienstwahl steckt im Kopierweg',
+      !!d.querySelector('#neu-alt #ki-dienst') && !!d.querySelector('#dok-alt #dok-dienst'));
+    pruef('„Gemini direkt“ steht in keinem Auswahlfeld mehr',
+      !d.querySelector('#ki-dienst option[value="direkt"]'));
+    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST'); kiModusZeigen()");
 
     /* --- Modellwahl steht an allen drei Stellen --- */
     pruef('Drei Modellauswahlen: Einstellungen, Anlegen, Doktor',
@@ -1620,6 +1627,156 @@ setTimeout(async () => {
     w.__T("window.fetch = () => Promise.reject(new Error('offline'))");
     w.__T('kiModusZeigen()');
     pruef('Löschen entfernt den Schlüssel', w.__T('kiBereit()') === false);
+  }
+
+  /* ══ Anlegen-Assistent ═════════════════════════════════════════
+     Das lange Formblatt ist weg. Geprueft wird, dass dabei keine der
+     Kennungen verlorengegangen ist, an denen Bibliothekssuche,
+     KI-Uebernahme und Speichern haengen — und dass die Stufen
+     tatsaechlich nacheinander laufen. */
+  {
+    pruef('Das alte Formblatt hat keinen Platz mehr in der Seite',
+      !d.getElementById('anlegen-sec'));
+    pruef('Der Assistent ist ein eigenes Fenster',
+      !!d.getElementById('anleg-modal')
+      && d.getElementById('anleg-modal').classList.contains('sekm'));
+    pruef('Das Fenster haengt direkt an body',
+      d.getElementById('anleg-modal').parentElement === d.body);
+    pruef('Fuenf Stufen',
+      d.querySelectorAll('#form-neu .al-stufe').length === 5,
+      String(d.querySelectorAll('#form-neu .al-stufe').length));
+
+    /* Kein Feld darf beim Umbau verschwunden sein. */
+    ['f-name','f-bot','f-art','f-typ','f-notiz','f-wichtig','f-paste','f-fotos',
+     'f-zustand','f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
+     'bib-liste','bib-gewaehlt','paste-box','paste-meld','neu-unsicher','neu-massnahmen',
+     'btn-neu-save','btn-neu-leeren','btn-neu-cancel','btn-bib','btn-paste-los',
+     'btn-paste-auf','btn-ki-kopie','ki-text','neu-bibbox','neu-kibox','f-quar'
+    ].forEach(id => pruef('Feld ' + id + ' hat den Umbau ueberlebt', !!d.getElementById(id)));
+
+    w.__T('alStart()');
+    pruef('Der Assistent oeffnet auf Stufe 1', w.__T('alStufe') === 1);
+    pruef('Fenster ist offen', w.__T("modalOffen('anleg-modal')") === true);
+    pruef('Der schwebende Knopf verschwindet',
+      d.getElementById('fab-neu').hidden === true);
+    pruef('Zurueck ist auf Stufe 1 weg', d.getElementById('al-zurueck').hidden === true);
+    pruef('Anlegen ist auf Stufe 1 weg', d.getElementById('btn-neu-save').hidden === true);
+
+    /* Ohne gewaehlten Weg fuehrt Weiter nirgendwohin — Stufe 2 waere
+       eine leere Seite. */
+    w.__T("document.getElementById('al-weiter').click()");
+    pruef('Ohne Weg bleibt der Assistent auf Stufe 1', w.__T('alStufe') === 1);
+
+    w.__T("document.querySelector('[data-neuweg=\"bib\"]').click()");
+    pruef('Ein gewaehlter Weg fuehrt gleich weiter', w.__T('alStufe') === 2);
+    pruef('Die Bibliothekssuche ist offen',
+      d.getElementById('neu-bibbox').hidden === false);
+    pruef('Der KI-Kasten bleibt zu', d.getElementById('neu-kibox').hidden === true);
+
+    w.__T("document.querySelector('[data-neuweg=\"hand\"]').click()");
+    pruef('Der Weg von Hand oeffnet keinen der beiden Kaesten',
+      d.getElementById('neu-bibbox').hidden === true
+      && d.getElementById('neu-kibox').hidden === true);
+    pruef('Von Hand steht ein Hinweis statt einer leeren Seite',
+      d.getElementById('al-hand-hinweis').hidden === false);
+
+    /* Auswahlknoepfe statt Auswahlfeld */
+    w.__T('alStufeZeigen(3)');
+    pruef('Zustand hat Knoepfe',
+      d.querySelectorAll('#f-zustand-knoepfe .al-knopf').length > 1,
+      String(d.querySelectorAll('#f-zustand-knoepfe .al-knopf').length));
+    w.__T('alStufeZeigen(4)');
+    pruef('Giessklasse hat vier Knoepfe',
+      d.querySelectorAll('#f-klasse-knoepfe .al-knopf').length === 4);
+    pruef('Licht hat vier Knoepfe',
+      d.querySelectorAll('#f-sonne-knoepfe .al-knopf').length === 4);
+    pruef('Katzen hat drei Knoepfe',
+      d.querySelectorAll('#f-giftig-knoepfe .al-knopf').length === 3);
+    pruef('Der lange Text wird am Gedankenstrich getrennt',
+      d.querySelector('#f-klasse-knoepfe .al-knopf b').textContent === 'B'
+      && /Normal/.test(d.querySelector('#f-klasse-knoepfe .al-knopf i').textContent));
+    /* Der Knopf schreibt ins Auswahlfeld, nicht daneben: alles
+       Bestehende liest weiterhin das <select>. */
+    w.__T("document.querySelector('#f-klasse-knoepfe [data-alwert=\"C\"]').click()");
+    pruef('Der Knopf schreibt ins Auswahlfeld',
+      d.getElementById('f-klasse').value === 'C');
+    pruef('Der gewaehlte Knopf ist gedrueckt',
+      d.querySelector('#f-klasse-knoepfe [data-alwert="C"]').getAttribute('aria-pressed') === 'true');
+    /* Umgekehrt: aendert die Bibliothek das Feld, ziehen die Knoepfe
+       nach. Sonst zeigt der Knopf B, waehrend im Feld laengst S steht. */
+    w.__T("document.getElementById('f-klasse').value = 'S'; alKnopfGruppe('f-klasse')");
+    pruef('Die Knoepfe ziehen nach, wenn das Feld sich aendert',
+      d.querySelector('#f-klasse-knoepfe [data-alwert="S"]').getAttribute('aria-pressed') === 'true');
+
+    /* Stufe 4 fasst zusammen, wenn die Art aus der Bibliothek kam */
+    w.__T("gewaehlteArt = {de:'Efeutute', bot:'Epipremnum aureum', fam:'Araceae', typ:'Kletterpflanze'}; alStufeZeigen(4)");
+    pruef('Aus der Bibliothek: nur die Zusammenfassung',
+      d.getElementById('al-bibzsf').hidden === false
+      && d.getElementById('al-pflege').hidden === true);
+    pruef('Die Zusammenfassung nennt die Familie',
+      /Araceae/.test(d.getElementById('al-bibzsf-liste').textContent));
+    w.__T("document.getElementById('btn-al-pflege-auf').click()");
+    pruef('Aendern klappt die Felder auf',
+      d.getElementById('al-pflege').hidden === false);
+    w.__T('gewaehlteArt = null; formularLeeren(); alStufeZeigen(4)');
+    pruef('Ohne Bibliothek stehen die Felder offen da',
+      d.getElementById('al-bibzsf').hidden === true
+      && d.getElementById('al-pflege').hidden === false);
+
+    /* Stufe 5: Fuss wechselt auf Anlegen */
+    w.__T('alStufeZeigen(5)');
+    pruef('Auf der letzten Stufe steht Anlegen statt Weiter',
+      d.getElementById('al-weiter').hidden === true
+      && d.getElementById('btn-neu-save').hidden === false);
+    pruef('Die Zusammenfassung ist gefuellt',
+      d.getElementById('al-zsf').textContent.length > 10);
+    pruef('Die Fotoauswahl hat einen Knopf zum Nachlegen',
+      !!d.querySelector('#al-fotos .kibild-neu'));
+    pruef('Das rohe Dateifeld ist versteckt',
+      d.getElementById('f-fotos').hidden === true);
+
+    w.__T('alStufeZeigen(2)');
+    pruef('Zurueck geht auch', w.__T('alStufe') === 2);
+    w.__T("modalZu('anleg-modal')");
+    await tick();
+    pruef('Abbrechen schliesst das Fenster',
+      w.__T("modalOffen('anleg-modal')") === false);
+  }
+
+  /* ══ Doktor: Pflanzenauswahl als Galerie ═══════════════════════ */
+  {
+    pruef('Das Auswahlfeld ist weg', !d.getElementById('dok-pflanze'));
+    pruef('Es gibt ein Suchfeld', !!d.getElementById('dok-such'));
+    pruef('Es gibt eine Liste', !!d.getElementById('dok-liste'));
+    w.__T('dokAufbau()');
+    const zeilen = () => d.querySelectorAll('#dok-liste [data-dokp]').length;
+    pruef('Die Sammlung steht als Zeilen da', zeilen() > 1, String(zeilen()));
+    pruef('„Keine bestimmte Pflanze“ steht mit drin',
+      !!d.querySelector('#dok-liste [data-dokp=""]'));
+    pruef('Jede Zeile hat Bildfeld und Text',
+      !!d.querySelector('#dok-liste .sb-linie-bild')
+      && !!d.querySelector('#dok-liste .sb-linie-txt b'));
+
+    const ersteId = d.querySelector('#dok-liste [data-dokp]:not([data-dokp=""])').dataset.dokp;
+    w.__T("dokPflanzeSetzen('" + ersteId + "')");
+    pruef('Antippen waehlt die Pflanze', w.__T('dokPflanze') === ersteId);
+    pruef('Die Wahl schiebt den Doktor auf Schritt 2', w.__T('dokSchritt') >= 2);
+    pruef('Die Liste macht der Wahl Platz',
+      d.getElementById('dok-wahl').hidden === true
+      && d.getElementById('dok-gewaehlt').hidden === false);
+    pruef('Die gewaehlte Zeile nennt den Namen',
+      d.getElementById('dok-gewaehlt').textContent.length > 3);
+    w.__T("document.getElementById('dok-andere').click()");
+    pruef('„Andere“ holt die Liste zurueck',
+      d.getElementById('dok-wahl').hidden === false && w.__T('dokPflanze') === null);
+
+    /* Suchen grenzt ein */
+    const alle = zeilen();
+    w.__T("dokListeZeichnen('zzzqqq')");
+    pruef('Ein Suchbegriff ohne Treffer laesst nur den Ausweg stehen',
+      zeilen() === 1 && /Kein Treffer/.test(d.getElementById('dok-liste').textContent));
+    w.__T("dokListeZeichnen('')");
+    pruef('Leere Suche zeigt wieder alles', zeilen() === alle);
   }
 
   /* ══ Mehr-Seite: Gruppen, Nebenzeilen, Einstellungen ═══════════ */
