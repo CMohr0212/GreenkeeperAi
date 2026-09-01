@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.0.0 — 1. September 2026
+**Die App fragt selbst**
+
+### Neu
+- Pflanzendoktor und Anlegen können Gemini direkt fragen. Bild wählen, „Fragen“ antippen — die Antwort kommt von selbst in die Felder. Kein Kopieren, kein Wechseln in eine andere App, kein Zurückkopieren.
+- Dafür trägst du unter Mehr › Einstellungen › KI-Dienst deinen eigenen Google-Schlüssel ein. Er ist in einer Minute geholt und für das kostenlose Kontingent ohne Kreditkarte zu haben. Was Google damit darf und was nicht, steht auf derselben Seite.
+- Bis zu fünf Bilder gehen mit. Im Doktor lassen sie sich neu aufnehmen oder aus der Galerie der Pflanze nehmen.
+- Das Modell wählt die App selbst: sie holt die Liste bei Google und nimmt das neueste stabile. Ein anderes lässt sich jederzeit wählen — im Doktor, beim Anlegen und in den Einstellungen. Das Empfohlene trägt ein Häkchen.
+- Fehler sprechen Klartext: Kontingent erschöpft, Schlüssel abgelehnt, Google überlastet, keine Verbindung.
+
+### Besser
+- Ist der Direktweg aktiv, klappt der Kopierweg zusammen. Er bleibt vollständig erhalten — der Schlüssel ist eine Abkürzung, keine Voraussetzung.
+- Der Schlüssel liegt in einem eigenen Fach auf dem Gerät, geht nicht in die Sicherungsdatei und wird nur maskiert angezeigt.
+- Ein Schlüssel von Anthropic oder OpenAI wird erkannt und benannt. Beide folgen später; diese Fassung kann nur Gemini.
+
+---
+
 ## 2.10.3 — 30. August 2026
 **Grundriss repariert**
 

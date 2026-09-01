@@ -1921,6 +1921,46 @@ html[data-design="terrarium"] .nt{box-shadow:var(--glanz)}
 .kiprompt{margin-top:10px}
 .kiprompt summary{font-size:var(--t-m);color:var(--water);cursor:pointer}
 .kiprompt textarea{width:100%;min-height:150px;margin-top:8px;font:inherit;font-size:var(--t-s);line-height:1.5;padding:9px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);resize:vertical}
+/* ── KI direkt: Schluessel, Modell, Bilder ── */
+/* Der Copy-Paste-Weg frisst viel Platz — Einfuegefeld, Prompt,
+   Abgleich. Ist der Direktweg aktiv, wandert er unter eine Klappe.
+   Ohne Schluessel traegt derselbe Kasten die Klasse nurweg: die
+   Zusammenfassung verschwindet, der Inhalt steht offen wie bisher. */
+.kialt{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.kialt>summary{font-size:var(--t-s);color:var(--water);cursor:pointer;padding:2px 0}
+.kialt.nurweg{border-top:0;padding-top:0;margin-top:0}
+.kialt.nurweg>summary{display:none}
+.kidirekt{margin-top:9px}
+.kimodell{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.kimodell select{flex:1 1 130px;min-width:0}
+.ki-empf{display:inline-flex;align-items:center;gap:3px;font-size:var(--t-xs);letter-spacing:.04em;
+  text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--moss);white-space:nowrap}
+.ki-modell-lab{font-size:var(--t-xs);color:var(--ink-2);flex:0 0 100%}
+.kibilder{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.kibild{position:relative;width:58px;height:58px;border-radius:var(--r-klein);overflow:hidden;border:1px solid var(--line)}
+.kibild img{width:100%;height:100%;object-fit:cover;display:block}
+.kibild button{position:absolute;top:0;right:0;width:21px;height:21px;line-height:19px;padding:0;border:0;
+  border-radius:0 0 0 7px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;cursor:pointer}
+.kibild-neu{display:flex;align-items:center;justify-content:center;width:58px;height:58px;
+  border:1px dashed var(--line);border-radius:var(--r-klein);font-size:21px;color:var(--water);cursor:pointer;background:none}
+.kibild-neu.voll{opacity:.35;pointer-events:none}
+.kibild-zahl{font-size:var(--t-xs);color:var(--ink-2)}
+.kigalerie{display:flex;gap:6px;overflow-x:auto;padding:6px 0 2px;-webkit-overflow-scrolling:touch}
+.kigalerie button{flex:0 0 auto;width:52px;height:52px;padding:0;border:1px solid var(--line);
+  border-radius:var(--r-klein);overflow:hidden;background:none;cursor:pointer}
+.kigalerie button[aria-pressed="true"]{border-color:var(--moss);box-shadow:0 0 0 2px var(--moss) inset}
+.kigalerie img{width:100%;height:100%;object-fit:cover;display:block}
+.kilauf{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:var(--t-s);color:var(--ink-2)}
+.kispin{width:15px;height:15px;flex:0 0 auto;border:2px solid var(--line);border-top-color:var(--water);
+  border-radius:50%;animation:kidreh .8s linear infinite}
+@keyframes kidreh{to{transform:rotate(360deg)}}
+.ki-key-feld{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.ki-key-feld input{flex:1 1 160px;min-width:0}
+.ki-maske{font-family:var(--f-data,ui-monospace),ui-monospace,Menlo,monospace;font-size:var(--t-s);
+  color:var(--ink-2);padding:4px 8px;border:1px solid var(--line);border-radius:var(--r-klein)}
+.ki-schritte,.ki-hinweise{margin:6px 0 0;padding-left:19px;font-size:var(--t-s);line-height:1.55;color:var(--ink-2)}
+.ki-schritte li,.ki-hinweise li{margin-bottom:6px}
+.ki-hinweise b{color:var(--ink)}
 .kurzweg{display:block;width:100%;margin-top:14px;font:inherit;font-size:var(--t-l);padding:13px;border:1.5px dashed var(--line);border-radius:var(--r-mittel);background:none;color:var(--ink-2);cursor:pointer}
 .kurzweg:hover{border-color:var(--moss);color:var(--moss)}
 /* ── Gießmodus ───────────────────────────────────────────── */
@@ -5040,7 +5080,12 @@ const KI_DIENSTE = {
   claude:     {name:'Claude', leer:'https://claude.ai/new',
                url:t=>'https://claude.ai/new?q='+encodeURIComponent(t), vorbefuellen:true},
   perplexity: {name:'Perplexity', leer:'https://www.perplexity.ai/',
-               url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true}
+               url:t=>'https://www.perplexity.ai/search?q='+encodeURIComponent(t), vorbefuellen:true},
+  /* Kein Dienst zum Oeffnen, sondern der eigene Schluessel: die App
+     fragt selbst. Adresse und leer bleiben trotzdem gesetzt, damit
+     jeder alte Aufruf von kiZiel weiterhin irgendwo landet. */
+  direkt:     {name:'Gemini direkt', leer:'https://gemini.google.com/app',
+               url:()=>'https://gemini.google.com/app', vorbefuellen:false, api:true}
 };
 
 /* Lange Fragen passen nicht in eine Adresse: die Dienste schneiden ab
@@ -7683,12 +7728,21 @@ function papierkorbRender(){
         <div class="kibox" id="neu-kibox" hidden>
           <div class="kizeile">
             <select id="ki-dienst" aria-label="Welcher Dienst">
+              <option value="direkt">Gemini direkt · eigener Schlüssel</option>
               <option value="gemini">Gemini</option>
               <option value="chatgpt">ChatGPT</option>
               <option value="claude">Claude</option>
               <option value="perplexity">Perplexity</option>
             </select>
             <button id="btn-gemini" type="button">Öffnen</button>
+          </div>
+          <div class="kidirekt" id="ki-direkt-anlegen" hidden>
+            <div class="kimodell">
+              <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
+              <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
+            </div>
+            <div class="kibilder" id="ki-bilder-anlegen"></div>
+            <p class="kihinweis" id="ki-lauf-anlegen" hidden></p>
           </div>
           <div class="fotokrit">
             <b>Diese drei Aufnahmen braucht die KI</b>
@@ -7700,6 +7754,8 @@ function papierkorbRender(){
             <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
           </div>
           <p class="kihinweis" id="ki-hinweis"></p>
+          <details class="kialt nurweg" id="neu-alt" open>
+            <summary id="neu-alt-titel">Ohne Schlüssel: Prompt kopieren, Antwort einfügen</summary>
           <details class="kiprompt">
             <summary>Prompt anzeigen und selbst kopieren</summary>
             <textarea id="ki-text" aria-label="Prompt für die KI" readonly></textarea>
@@ -7709,13 +7765,14 @@ function papierkorbRender(){
           <div class="tools" style="margin-top:10px">
             <button id="btn-paste-auf" type="button">Antwort einfügen</button>
           </div>
-        </div>
         <div class="pastebox" id="paste-box" hidden>
           <textarea id="f-paste" aria-label="Antwort der KI einfügen" placeholder="ART: …&#10;BOTANISCH: …&#10;ZUSTAND: …"></textarea>
           <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
           <p class="pastemeld" id="paste-meld" hidden></p>
           <div id="neu-unsicher"></div>
           <div id="neu-massnahmen"></div>
+        </div>
+          </details>
         </div>
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="f-name" placeholder="z. B. Rudi"></label>
@@ -7840,12 +7897,25 @@ function papierkorbRender(){
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
       <div class="kizeile">
         <select id="dok-dienst" aria-label="Welcher Dienst">
+          <option value="direkt">Gemini direkt · eigener Schlüssel</option>
           <option value="gemini">Gemini</option>
           <option value="chatgpt">ChatGPT</option>
           <option value="claude">Claude</option>
           <option value="perplexity">Perplexity</option>
         </select>
         <button id="btn-dok-ki" type="button">Öffnen</button>
+      </div>
+      <div class="kidirekt" id="ki-direkt-doktor" hidden>
+        <div class="kimodell">
+          <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
+          <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
+        </div>
+        <div class="kibilder" id="ki-bilder-doktor"></div>
+        <details class="kiprompt" id="ki-galerie-auf">
+          <summary>Bild aus der Galerie dieser Pflanze nehmen</summary>
+          <div class="kigalerie" id="ki-galerie-doktor"></div>
+        </details>
+        <p class="kihinweis" id="ki-lauf-doktor" hidden></p>
       </div>
       <div class="fotokrit">
         <b>Diese drei Aufnahmen braucht die KI</b>
@@ -7856,21 +7926,24 @@ function papierkorbRender(){
         </ol>
         <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
       </div>
+      <label class="dok-foto" id="dok-foto-feld">
+        <input type="file" accept="image/*" id="dok-datei" hidden>
+        <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
+      </label>
       <p class="kihinweis" id="dok-ki-hinweis"></p>
+      <details class="kialt nurweg" id="dok-alt" open>
+        <summary id="dok-alt-titel">Ohne Schlüssel: Frage kopieren, Antwort einfügen</summary>
       <details class="kiprompt" id="dok-frage-details">
         <summary>Frage anzeigen und selbst kopieren</summary>
         <textarea id="dok-ki-text" aria-label="Frage an die KI" readonly></textarea>
         <div class="tools"><button id="btn-dok-kopie" class="haupt" type="button">Frage kopieren</button></div>
       </details>
-      <label class="dok-foto" id="dok-foto-feld">
-        <input type="file" accept="image/*" id="dok-datei" hidden>
-        <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
-      </label>
       <div class="pastebox" id="dok-paste-box" hidden>
         <textarea id="dok-paste" aria-label="Antwort der KI einfügen" placeholder="ZUSTAND: …&#10;BEFUND: …&#10;MASSNAHMEN: …"></textarea>
         <div class="tools"><button id="btn-dok-paste" class="haupt" type="button">Übernehmen</button>
           <button id="btn-dok-leeren" type="button">Feld leeren</button></div>
       </div>
+      </details>
     </div>
     <div class="dok-stufe" id="dok-s4" hidden>
       <h3><span class="dok-nr">4</span> Einschätzung</h3>
@@ -8689,7 +8762,61 @@ function papierkorbRender(){
         <button class="ein-zeile" data-mh-go="rundgang">
           <span class="ein-txt"><b>Rundgang</b><i id="ein-u-rundgang">Welche Knöpfe erscheinen</i></span>
           <span class="ein-p" aria-hidden="true">›</span></button>
+        <button class="ein-zeile" data-mh-go="kidienst">
+          <span class="ein-txt"><b>KI-Dienst</b><i id="ein-u-kidienst">Noch kein Schlüssel</i></span>
+          <span class="ein-p" aria-hidden="true">›</span></button>
       </div>
+    </div>
+  </section>
+
+  <section data-ans="mehr" class="plan mh" id="kidienst-sec" data-mh="kidienst">
+    <h2 class="wz-h2">KI-Dienst</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="kidienst" aria-expanded="false" aria-controls="mh-in-kidienst">
+        <span class="wz-t">KI-Dienst</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="kidienst" aria-expanded="false" aria-label="Wozu ist der KI-Dienst da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-kidienst" hidden>
+      <p class="wz-hilfe" hidden>Ohne Schlüssel läuft jede KI-Frage über die Zwischenablage: Frage kopieren, Dienst öffnen, Antwort zurückkopieren. Mit einem eigenen Schlüssel fragt die App selbst — Pflanzendoktor und Anlegen bekommen die Antwort direkt ins Feld. Der Weg über die Zwischenablage bleibt daneben bestehen und funktioniert weiter, auch mit ChatGPT, Claude oder Perplexity.</p>
+
+      <p class="ein-abschnitt">Dein Schlüssel</p>
+      <div class="ki-key-feld" id="ki-key-eingabe">
+        <input id="ki-key" type="password" autocomplete="off" spellcheck="false" placeholder="Schlüssel einfügen" aria-label="API-Schlüssel">
+        <button id="btn-ki-key-pruef" class="haupt" type="button">Prüfen und speichern</button>
+      </div>
+      <div class="ki-key-feld" id="ki-key-da" hidden>
+        <span class="ki-maske" id="ki-key-maske"></span>
+        <button id="btn-ki-key-neu" type="button">Ersetzen</button>
+        <button id="btn-ki-key-weg" type="button">Löschen</button>
+      </div>
+      <p class="kihinweis" id="ki-key-meld"></p>
+
+      <p class="ein-abschnitt">Modell</p>
+      <div class="kimodell">
+        <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
+        <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
+        <button id="btn-ki-modelle" type="button">Neu holen</button>
+      </div>
+      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. Vorausgewählt ist das neueste stabile Modell; daran erkennst du das Häkchen.</p>
+
+      <p class="ein-abschnitt">Wo der Schlüssel herkommt</p>
+      <ol class="ki-schritte">
+        <li>Auf <b>aistudio.google.com/apikey</b> mit einem Google-Konto anmelden.</li>
+        <li>„Create API key“ antippen. Für das kostenlose Kontingent verlangt Google keine Kreditkarte.</li>
+        <li>Schlüssel kopieren und oben einfügen.</li>
+      </ol>
+      <div class="tools" style="margin-top:8px"><button id="btn-ki-google" type="button">Google AI Studio öffnen</button></div>
+
+      <p class="ein-abschnitt">Drei Dinge, die du wissen solltest</p>
+      <ul class="ki-hinweise">
+        <li><b>Google darf mitlesen.</b> Eingaben aus dem kostenlosen Kontingent dürfen zur Verbesserung der Dienste ausgewertet werden — Fotos eingeschlossen. Diese App gibt sonst nichts nach außen; hier ist das anders.</li>
+        <li><b>Du bist Googles Kunde, nicht diese App.</b> Der Schlüssel gehört dir, die Nutzung läuft über dein Konto. Googles Zusatzbedingungen sehen für Endnutzer in der EU, der Schweiz und dem Vereinigten Königreich die kostenpflichtige Nutzung vor, sobald jemand API-Zugänge bereitstellt.</li>
+        <li><b>Der Schlüssel bleibt auf diesem Gerät.</b> Er liegt in einem eigenen Fach des lokalen Speichers, geht nie in eine Sicherungsdatei und steht in keiner Datei dieser App. Neues Gerät heißt: neu eintragen.</li>
+      </ul>
+      <p class="fhint">Willst du ihn wieder loswerden, lösch ihn oben — und zusätzlich in Google AI Studio. Dort liegt das Original, und nur dort lässt es sich endgültig entwerten.</p>
+
+      <p class="ein-abschnitt">Andere Anbieter</p>
+      <p class="fhint">In dieser Fassung geht nur Gemini. Trägst du einen Schlüssel von Anthropic oder OpenAI ein, erkennt die App das und sagt es dir, statt mit einem Netzwerkfehler abzubrechen. Beide folgen in einer späteren Fassung.</p>
     </div>
   </section>
 
@@ -8943,8 +9070,23 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '2.10.3';
+const FASSUNG = '3.0.0';
 const PATCHNOTES = [
+  {
+    nr: '3.0.0', datum: '2026-09-01', titel: 'Die App fragt selbst',
+    neu: [
+      'Pflanzendoktor und Anlegen können Gemini direkt fragen. Bild wählen, „Fragen“ antippen — die Antwort kommt von selbst in die Felder. Kein Kopieren, kein Wechseln in eine andere App, kein Zurückkopieren.',
+      'Dafür trägst du unter Mehr › Einstellungen › KI-Dienst deinen eigenen Google-Schlüssel ein. Er ist in einer Minute geholt und für das kostenlose Kontingent ohne Kreditkarte zu haben. Was Google damit darf und was nicht, steht auf derselben Seite.',
+      'Bis zu fünf Bilder gehen mit. Im Doktor kannst du sie neu aufnehmen oder aus der Galerie der Pflanze nehmen — dort liegt die Aufnahme der Stelle, um die es geht, meist schon.',
+      'Das Modell wählt die App selbst: sie holt die Liste bei Google und nimmt das neueste stabile. Du kannst jederzeit ein anderes wählen — im Doktor, beim Anlegen und in den Einstellungen. Das Empfohlene trägt ein Häkchen.',
+      'Geht etwas schief, steht warum es schiefging: Kontingent erschöpft, Schlüssel abgelehnt, Google überlastet, keine Verbindung. Der Weg über die Zwischenablage bleibt daneben stehen und funktioniert weiter.'
+    ],
+    besser: [
+      'Ist der Direktweg aktiv, klappt der Kopierweg zusammen. Er ist ein Einfügefeld samt Prompt und Abgleich und hätte sonst die halbe Seite belegt, ohne gebraucht zu werden.',
+      'Der Schlüssel liegt in einem eigenen Fach auf dem Gerät. Er geht nicht in die Sicherungsdatei, steht in keiner Datei dieser App und wird in den Einstellungen nur maskiert angezeigt.',
+      'Trägst du einen Schlüssel von Anthropic oder OpenAI ein, sagt die App das und nennt den Anbieter. Beide folgen in einer späteren Fassung — diese kann nur Gemini.'
+    ]
+  },
   {
     nr: '2.10.3', datum: '2026-08-30', titel: 'Grundriss repariert',
     behoben: [
@@ -9743,6 +9885,11 @@ const LEERSTAND = () => ({
   /* Zusatzzeilen über den Aufgaben auf Heute. Das Wetter war bisher
      immer an, die Kennzahlen gab es gar nicht. */
   heuteWetter:true, heuteKennzahlen:false,
+  /* Das gewaehlte Gemini-Modell und die zuletzt geholte Liste. Der
+     Schluessel selbst steht bewusst nicht hier: sicherungInhalt()
+     schreibt S als Ganzes heraus, und ein Feld dort zu uebersehen
+     waere nur eine Frage der Zeit. Er bekommt ein eigenes Fach. */
+  kiModell:null, kiModelle:null,
   /* Einmaliges Angebot der Runde an Bestandsnutzer. */
   rundeAngeboten:null,
   /* Wann zuletzt gedüngt wurde, je Pflanze — wie S.water aufgebaut.
@@ -13859,6 +14006,534 @@ $('#q').addEventListener('input', ()=>{
 
 </script>
 <script>
+/* ══════════════════ KI direkt: Gemini ══════════════════
+   Bis 2.10.3 lief jede KI-Frage über die Zwischenablage: Prompt
+   kopieren, Dienst öffnen, Antwort zurückkopieren. Wer einen eigenen
+   Schlüssel hinterlegt, spart diesen Weg — die App fragt selbst. Der
+   alte Weg bleibt vollständig erhalten; der Schlüssel ist eine
+   Abkürzung, keine Voraussetzung.
+
+   Bewusst NICHT in S: der Schlüssel. sicherungInhalt() schreibt S als
+   Ganzes in die Sicherungsdatei, und dort ein einzelnes Feld
+   auszunehmen wäre eine Regel, die beim nächsten Umbau vergessen
+   wird. Ein eigenes Fach im lokalen Speicher kann gar nicht erst
+   hineinrutschen. */
+const KI_SCHLUESSEL_FACH = KEY + ':kischluessel';
+const KI_BASIS = 'https://generativelanguage.googleapis.com/v1beta';
+const KI_BILD_MAX = 5;
+/* Fürs Versenden kleiner als in der Galerie: fünf Bilder mit 1400 px
+   liegen als base64 bei mehreren Megabyte, und das im Mobilfunknetz.
+   1024 px reichen für Blattunterseiten aus. */
+const KI_BILD_KANTE = 1024;
+const KI_BILD_GUETE = 0.8;
+const KI_NETZ = 'Keine Verbindung zu Google. Bist du offline, oder blockiert etwas die Anfrage? '
+  + 'Der Weg über die Zwischenablage geht weiterhin.';
+
+function kiSchluessel(){
+  try{ return localStorage.getItem(KI_SCHLUESSEL_FACH) || ''; }catch(e){ return ''; }
+}
+function kiSchluesselSetzen(v){
+  try{
+    if(v) localStorage.setItem(KI_SCHLUESSEL_FACH, v);
+    else localStorage.removeItem(KI_SCHLUESSEL_FACH);
+    return true;
+  }catch(e){ return false; }
+}
+function kiBereit(){ return kiSchluessel().length > 8; }
+
+/* Nie im Klartext anzeigen. Ein Bildschirmfoto der Einstellungen
+   wandert schneller in einen Chat, als man es zurückholen kann. */
+function kiMaske(v){
+  const t = String(v || '');
+  if(!t) return '';
+  return t.length < 14 ? '••••••' : t.slice(0, 6) + '…' + t.slice(-4);
+}
+
+/* Am Präfix lässt sich der Anbieter erkennen. Unterstützt wird in
+   dieser Fassung nur Google. Die Erkennung sorgt dafür, dass ein
+   fremder Schlüssel eine klare Auskunft bekommt statt eines
+   Netzwerkfehlers, den niemand deuten kann. Anthropic und OpenAI
+   folgen später — jeder braucht eine eigene Adresse, ein eigenes JSON
+   und ein eigenes Bildformat. */
+const KI_ANBIETER = [
+  {code:'google', name:'Google Gemini', kann:true,
+   pruef:v=>/^AIza[\w-]{10,}$/.test(v) || /^AQ\.[\w.-]{10,}$/.test(v)},
+  {code:'anthropic', name:'Anthropic Claude', kann:false, pruef:v=>/^sk-ant-/.test(v)},
+  {code:'openai', name:'OpenAI', kann:false, pruef:v=>/^sk-[A-Za-z0-9_-]{16,}$/.test(v)}
+];
+function kiAnbieter(v){
+  const t = String(v || '').trim();
+  if(!t) return null;
+  for(let i = 0; i < KI_ANBIETER.length; i++) if(KI_ANBIETER[i].pruef(t)) return KI_ANBIETER[i];
+  return null;
+}
+
+/* ── Modelle ──────────────────────────────────────────────────
+   Die Modellnamen bei Google wechseln im Quartal — in einer
+   Recherche standen 2.5-flash, 3-flash und 3.5-flash nebeneinander.
+   Ein fest eingebauter Name wäre in drei Monaten tot. Deshalb wird
+   die Liste abgerufen und nach einer Regel bewertet, statt einen
+   Namen zu raten: höchste Versionsnummer zuerst, flash vor pro,
+   Vorschauen und Experimente nur, wenn nichts Stabiles da ist. */
+const KI_MODELL_AUS = /embedding|aqa|imagen|veo|image-generation|-tts|native-audio|-live|gemma/i;
+
+function kiModellPunkte(id){
+  const n = String(id).replace(/^models\//, '');
+  const v = parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || '0');
+  let p = v * 100;
+  if(/flash/.test(n)) p += 40;
+  else if(/pro/.test(n)) p += 25;
+  if(/lite/.test(n)) p -= 15;
+  if(/-8b/.test(n)) p -= 20;
+  if(/thinking/.test(n)) p -= 20;
+  if(/preview|exp|latest/.test(n)) p -= 60;
+  /* Bei gleichem Rang gewinnt der kürzere Name: gemini-3-flash ist
+     der Hauptzweig, gemini-3-flash-preview-11-2025 ein Ableger. */
+  p -= n.length / 100;
+  return p;
+}
+function kiModellAnzeige(m){
+  if(m.displayName) return String(m.displayName).replace(/^Gemini\s*/i, '').trim() || String(m.displayName);
+  return String(m.name || '').replace(/^models\/gemini-/, '').replace(/-/g, ' ');
+}
+function kiModelle(){ return Array.isArray(S.kiModelle) ? S.kiModelle : []; }
+function kiModellAktiv(){
+  const l = kiModelle();
+  if(!l.length) return null;
+  for(let i = 0; i < l.length; i++) if(l[i].id === S.kiModell) return l[i];
+  return l[0];
+}
+
+async function kiFehlerText(r){
+  let m = '';
+  try{ const d = await r.json(); m = (d && d.error && d.error.message) || ''; }catch(e){}
+  const an = m ? ' Google meldet: ' + m : '';
+  if(r.status === 400) return 'Google hat die Anfrage abgelehnt (400). Meist ist der Schlüssel falsch kopiert.' + an;
+  if(r.status === 401 || r.status === 403)
+    return 'Der Schlüssel ist ungültig oder nicht freigeschaltet (' + r.status + ').' + an;
+  if(r.status === 404) return 'Dieses Modell gibt es nicht mehr (404). Hol die Modellliste in den Einstellungen neu.' + an;
+  if(r.status === 429) return 'Das kostenlose Kontingent ist für den Moment erschöpft (429). In ein paar Minuten noch einmal — oder heute über die Zwischenablage.' + an;
+  if(r.status === 500 || r.status === 503) return 'Google ist gerade überlastet (' + r.status + '). Gleich noch einmal versuchen.' + an;
+  return 'Die Anfrage ist fehlgeschlagen (' + r.status + ').' + an;
+}
+
+async function kiModelleHolen(schluessel){
+  const k = schluessel || kiSchluessel();
+  if(!k) throw new Error('Kein Schlüssel hinterlegt.');
+  let r;
+  /* Schlüssel als Parameter statt im Kopf: ein eigener Kopfeintrag
+     löst bei einer GET-Anfrage eine Vorabfrage aus, die nicht nötig
+     ist. */
+  try{ r = await fetch(KI_BASIS + '/models?pageSize=200&key=' + encodeURIComponent(k)); }
+  catch(e){ throw new Error(KI_NETZ); }
+  if(!r.ok) throw new Error(await kiFehlerText(r));
+  let d;
+  try{ d = await r.json(); }catch(e){ throw new Error('Die Antwort von Google war nicht lesbar.'); }
+  const roh = (d && d.models) || [];
+  const liste = roh
+    .filter(m => (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0)
+    .filter(m => !KI_MODELL_AUS.test(m.name || ''))
+    .map(m => ({id:m.name, anzeige:kiModellAnzeige(m), punkte:kiModellPunkte(m.name)}))
+    .sort((a, b) => b.punkte - a.punkte);
+  if(!liste.length)
+    throw new Error('Der Schlüssel funktioniert, aber es kam kein Modell zurück, das Bilder beantworten kann.');
+  S.kiModelle = liste.map((m, i) => ({id:m.id, anzeige:m.anzeige, empfohlen:i === 0}));
+  if(!S.kiModell || !S.kiModelle.some(m => m.id === S.kiModell)) S.kiModell = S.kiModelle[0].id;
+  sichern();
+  return S.kiModelle;
+}
+
+/* ── Die Anfrage ─────────────────────────────────────────────── */
+let KI_LAEUFT = null;
+
+async function kiFragen(prompt, bilder){
+  const k = kiSchluessel();
+  if(!k) throw new Error('Kein Schlüssel hinterlegt.');
+  const m = kiModellAktiv();
+  if(!m) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
+  const teile = [{text:String(prompt || '')}];
+  (bilder || []).slice(0, KI_BILD_MAX).forEach(b => {
+    teile.push({inline_data:{mime_type:b.mime || 'image/jpeg', data:b.daten}});
+  });
+  const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  KI_LAEUFT = c;
+  let r;
+  try{
+    r = await fetch(KI_BASIS + '/' + m.id + ':generateContent?key=' + encodeURIComponent(k), {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        contents:[{role:'user', parts:teile}],
+        /* Niedrige Temperatur: das Antwortformat ist streng, und jede
+           Ausschmückung bricht den Leser. */
+        generationConfig:{temperature:0.2, maxOutputTokens:4096}
+      }),
+      signal:c ? c.signal : undefined
+    });
+  }catch(e){
+    KI_LAEUFT = null;
+    if(e && e.name === 'AbortError') throw e;
+    throw new Error(KI_NETZ);
+  }
+  KI_LAEUFT = null;
+  if(!r.ok) throw new Error(await kiFehlerText(r));
+  let d;
+  try{ d = await r.json(); }catch(e){ throw new Error('Die Antwort von Google war nicht lesbar.'); }
+  const sperre = d && d.promptFeedback && d.promptFeedback.blockReason;
+  if(sperre) throw new Error('Google hat die Anfrage zurückgewiesen (' + sperre + ').');
+  const kand = ((d && d.candidates) || [])[0];
+  const txt = (kand && kand.content && Array.isArray(kand.content.parts))
+    ? kand.content.parts.map(p => p.text || '').join('') : '';
+  if(!String(txt).trim()){
+    const grund = kand && kand.finishReason;
+    throw new Error(grund === 'MAX_TOKENS'
+      ? 'Die Antwort brach ab, bevor etwas Lesbares kam. Schick weniger Bilder mit.'
+      : grund === 'SAFETY' ? 'Google hat die Antwort zurückgehalten (Sicherheitsfilter).'
+      : 'Es kam eine leere Antwort zurück.');
+  }
+  return txt;
+}
+function kiAbbrechen(){
+  if(KI_LAEUFT){ try{ KI_LAEUFT.abort(); }catch(e){} KI_LAEUFT = null; }
+}
+
+/* ── Bilder ──────────────────────────────────────────────────── */
+const KI_BILDER = {anlegen:[], doktor:[]};
+
+function kiBildAusDataUrl(u){
+  const m = String(u || '').match(/^data:([^;]+);base64,([\s\S]+)$/);
+  return m ? {mime:m[1], daten:m[2], vorschau:u} : null;
+}
+async function kiBilderDazu(wo, files){
+  const ziel = KI_BILDER[wo];
+  const alle = Array.prototype.slice.call(files || []);
+  for(const f of alle){
+    if(ziel.length >= KI_BILD_MAX) break;
+    try{
+      const u = await bildVerkleinern(f, KI_BILD_KANTE, KI_BILD_GUETE);
+      const b = kiBildAusDataUrl(u);
+      if(b) ziel.push(b);
+    }catch(e){ console.warn('Bild nicht lesbar', e); }
+  }
+  kiBilderZeichnen(wo);
+  if(wo === 'doktor') kiGalerieZeichnen();
+}
+function kiBildWeg(wo, i){
+  KI_BILDER[wo].splice(i, 1);
+  kiBilderZeichnen(wo);
+  if(wo === 'doktor') kiGalerieZeichnen();
+}
+function kiBilderZeichnen(wo){
+  const box = document.getElementById('ki-bilder-' + wo);
+  if(!box) return;
+  const b = KI_BILDER[wo];
+  const voll = b.length >= KI_BILD_MAX;
+  box.innerHTML = b.map((x, i) =>
+      '<span class="kibild"><img alt="" src="' + x.vorschau + '">'
+      + '<button type="button" data-kibild-weg="' + i + '" data-kiwo="' + wo
+      + '" aria-label="Bild entfernen">×</button></span>').join('')
+    + '<label class="kibild-neu' + (voll ? ' voll' : '') + '">'
+    + '<input type="file" accept="image/*" multiple hidden data-kibild-neu="' + wo + '">+</label>'
+    + '<span class="kibild-zahl">'
+    + (b.length ? b.length + ' von ' + KI_BILD_MAX : 'Noch kein Bild gewählt') + '</span>';
+}
+
+/* Im Doktor steht die Pflanze schon fest — dann sind ihre vorhandenen
+   Fotos oft die besseren: eines davon zeigt die Stelle, um die es
+   geht, und liegt bereits verkleinert im Speicher. */
+function kiGalerieZeichnen(){
+  const box = document.getElementById('ki-galerie-doktor');
+  if(!box) return;
+  const id = (typeof dokPflanze !== 'undefined') ? dokPflanze : null;
+  const fotos = (id && S.fotos && S.fotos[id]) ? S.fotos[id] : [];
+  if(!fotos.length){
+    box.innerHTML = '<p class="kihinweis" style="margin:0">'
+      + (id ? 'Zu dieser Pflanze liegt noch kein Foto in der Galerie.' : 'Wähle oben zuerst eine Pflanze aus.')
+      + '</p>';
+    return;
+  }
+  const drin = KI_BILDER.doktor.map(b => b.vorschau);
+  box.innerHTML = fotos.slice(-12).reverse().map(f =>
+    '<button type="button" data-kigal="' + esc(f.src) + '" aria-pressed="'
+    + (drin.indexOf(f.src) >= 0 ? 'true' : 'false') + '" aria-label="Bild mitschicken">'
+    + '<img alt="" src="' + f.src + '"></button>').join('');
+}
+
+document.addEventListener('click', e => {
+  const weg = e.target.closest('[data-kibild-weg]');
+  if(weg){ kiBildWeg(weg.dataset.kiwo, parseInt(weg.dataset.kibildWeg, 10) || 0); return; }
+  const stop = e.target.closest('[data-do="ki-stop"]');
+  if(stop){ kiAbbrechen(); return; }
+  const gal = e.target.closest('[data-kigal]');
+  if(gal){
+    const src = gal.dataset.kigal;
+    let i = -1;
+    KI_BILDER.doktor.forEach((b, k) => { if(b.vorschau === src) i = k; });
+    if(i >= 0) KI_BILDER.doktor.splice(i, 1);
+    else if(KI_BILDER.doktor.length < KI_BILD_MAX){
+      const b = kiBildAusDataUrl(src);
+      if(b) KI_BILDER.doktor.push(b);
+    }
+    kiBilderZeichnen('doktor');
+    kiGalerieZeichnen();
+  }
+});
+document.addEventListener('change', e => {
+  const neu = e.target.closest('[data-kibild-neu]');
+  if(neu && neu.files && neu.files.length){
+    const wo = neu.dataset.kibildNeu;
+    kiBilderDazu(wo, neu.files);
+    return;
+  }
+  const sel = e.target.closest('.ki-modell-wahl');
+  if(sel && sel.value){ S.kiModell = sel.value; sichern(); kiModellZeichnen(); }
+});
+
+/* ── Anzeige ─────────────────────────────────────────────────── */
+function kiDirektAn(){ return S.kiDienst === 'direkt'; }
+
+function kiModellZeichnen(){
+  const liste = kiModelle();
+  const aktiv = kiModellAktiv();
+  document.querySelectorAll('.ki-modell-wahl').forEach(sel => {
+    sel.innerHTML = liste.length
+      ? liste.map(m => '<option value="' + esc(m.id) + '"'
+          + (aktiv && m.id === aktiv.id ? ' selected' : '') + '>'
+          + esc(m.anzeige) + (m.empfohlen ? ' \u2713' : '') + '</option>').join('')
+      : '<option value="">'
+        + (kiBereit() ? 'Modellliste noch nicht geholt' : 'Erst Schlüssel eintragen') + '</option>';
+    sel.disabled = !liste.length;
+  });
+  document.querySelectorAll('.ki-modell-abz').forEach(el => {
+    el.hidden = !(aktiv && aktiv.empfohlen);
+  });
+}
+
+function kiSchluesselZeichnen(){
+  const da = kiBereit();
+  const ein = document.getElementById('ki-key-eingabe');
+  const box = document.getElementById('ki-key-da');
+  const mas = document.getElementById('ki-key-maske');
+  if(ein) ein.hidden = da;
+  if(box) box.hidden = !da;
+  if(mas) mas.textContent = kiMaske(kiSchluessel());
+  const zeile = document.getElementById('ein-u-kidienst');
+  if(zeile) zeile.textContent = da ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel';
+  kiModellZeichnen();
+}
+
+function kiKeyMeldung(txt, ton){
+  const el = document.getElementById('ki-key-meld');
+  if(!el) return;
+  el.className = 'kihinweis' + (ton ? ' ' + ton : '');
+  el.textContent = txt || '';
+}
+
+function kiDirektMeldung(wo, txt, ton){
+  if(wo === 'doktor' && typeof dokKiHinweis === 'function'){ dokKiHinweis(txt, ton); return; }
+  const el = document.getElementById(wo === 'anlegen' ? 'ki-hinweis' : 'dok-ki-hinweis');
+  if(!el) return;
+  el.className = 'kihinweis' + (ton ? ' ' + ton : '');
+  el.textContent = txt || '';
+}
+
+function kiLaufZeigen(wo, laeuft){
+  const p = document.getElementById('ki-lauf-' + wo);
+  const knopf = document.getElementById(wo === 'anlegen' ? 'btn-gemini' : 'btn-dok-ki');
+  if(p){
+    p.hidden = !laeuft;
+    p.innerHTML = laeuft
+      ? '<span class="kilauf"><span class="kispin"></span>'
+        + '<span>Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden.</span>'
+        + '<button type="button" data-do="ki-stop">Abbrechen</button></span>'
+      : '';
+  }
+  if(knopf){
+    knopf.disabled = !!laeuft;
+    knopf.textContent = laeuft ? 'Läuft …' : (kiDirektAn() ? 'Fragen' : 'Öffnen');
+  }
+  document.querySelectorAll('.ki-modell-wahl').forEach(sel => {
+    sel.disabled = laeuft ? true : !kiModelle().length;
+  });
+}
+
+/* Beide Wege stehen untereinander, nicht nebeneinander: ist der
+   Direktweg aktiv, klappt der Kopierweg zusammen — er ist ein
+   Einfügefeld samt Prompt und Abgleich und frisst sonst die halbe
+   Seite. Ohne Schlüssel trägt derselbe Kasten die Klasse nurweg,
+   dann sieht die Seite genau aus wie vorher. */
+function kiModusZeigen(){
+  const an = kiDirektAn();
+  const paare = [
+    ['anlegen', 'ki-direkt-anlegen', 'neu-alt', 'neu-alt-titel', 'btn-gemini',
+     'Ohne Schlüssel: Prompt kopieren, Antwort einfügen'],
+    ['doktor', 'ki-direkt-doktor', 'dok-alt', 'dok-alt-titel', 'btn-dok-ki',
+     'Ohne Schlüssel: Frage kopieren, Antwort einfügen']
+  ];
+  paare.forEach(x => {
+    const kasten = document.getElementById(x[1]);
+    const alt = document.getElementById(x[2]);
+    const titel = document.getElementById(x[3]);
+    const knopf = document.getElementById(x[4]);
+    if(kasten) kasten.hidden = !an;
+    if(alt){
+      alt.classList.toggle('nurweg', !an);
+      if(!an){ alt.open = true; delete alt.dataset.geoeffnet; }
+      else if(!alt.dataset.geoeffnet) alt.open = false;
+    }
+    if(titel) titel.textContent = (alt && alt.dataset.geoeffnet) ? 'Antwort und Abgleich' : x[5];
+    if(knopf && !knopf.disabled) knopf.textContent = an ? 'Fragen' : 'Öffnen';
+  });
+  if(an){
+    kiBilderZeichnen('anlegen');
+    kiBilderZeichnen('doktor');
+    kiGalerieZeichnen();
+    kiModellZeichnen();
+  }
+  const s1 = document.getElementById('ki-dienst');
+  const s2 = document.getElementById('dok-dienst');
+  if(s1 && S.kiDienst && s1.value !== S.kiDienst) s1.value = S.kiDienst;
+  if(s2 && S.kiDienst && s2.value !== S.kiDienst) s2.value = S.kiDienst;
+}
+
+/* ── Der Lauf ────────────────────────────────────────────────── */
+function kiAntwortEinsetzen(wo, txt){
+  const istA = wo === 'anlegen';
+  const box = document.getElementById(istA ? 'paste-box' : 'dok-paste-box');
+  const alt = document.getElementById(istA ? 'neu-alt' : 'dok-alt');
+  const feld = document.getElementById(istA ? 'f-paste' : 'dok-paste');
+  const knopf = document.getElementById(istA ? 'btn-paste-los' : 'btn-dok-paste');
+  const titel = document.getElementById(istA ? 'neu-alt-titel' : 'dok-alt-titel');
+  if(box) box.hidden = false;
+  if(alt){ alt.dataset.geoeffnet = '1'; alt.open = true; }
+  if(titel) titel.textContent = 'Antwort und Abgleich';
+  if(feld) feld.value = txt;
+  /* Bewusst derselbe Knopf wie beim Einfügen von Hand: die Antwort
+     läuft durch genau eine Übernahme, egal woher sie kommt. Zwei Wege
+     in die Karte wären zwei Wege, die auseinanderlaufen. */
+  if(knopf) knopf.click();
+}
+
+async function kiDirektLos(wo){
+  if(!kiBereit()){
+    kiDirektMeldung(wo, 'Dafür fehlt noch der Schlüssel. Er steht unter Mehr, Einstellungen, KI-Dienst — das dauert eine Minute.', 'warn');
+    return;
+  }
+  const anb = kiAnbieter(kiSchluessel());
+  if(anb && !anb.kann){
+    kiDirektMeldung(wo, 'Hinterlegt ist ein Schlüssel von ' + anb.name + '. Diese Fassung kann nur Gemini.', 'warn');
+    return;
+  }
+  if(wo === 'doktor' && typeof dokPflanze !== 'undefined' && !dokPflanze){
+    kiDirektMeldung(wo, 'Wähle oben zuerst eine Pflanze aus.', 'warn');
+    return;
+  }
+  if(!kiModelle().length){
+    kiDirektMeldung(wo, 'Modellliste wird geholt …', '');
+    try{ await kiModelleHolen(); kiModellZeichnen(); }
+    catch(e){ kiDirektMeldung(wo, e.message || String(e), 'warn'); return; }
+  }
+  if(!KI_BILDER[wo].length){
+    kiDirektMeldung(wo, 'Ohne Bild kann das Modell nichts beurteilen. Wähle mindestens eine Aufnahme.', 'warn');
+    return;
+  }
+  const prompt = wo === 'anlegen' ? anlegenPromptBauen() : dokPromptBauen();
+  kiDirektMeldung(wo, '', '');
+  kiLaufZeigen(wo, true);
+  try{
+    const txt = await kiFragen(prompt, KI_BILDER[wo]);
+    kiAntwortEinsetzen(wo, txt);
+    kiDirektMeldung(wo, 'Antwort ist da und übernommen. Was daraus in die Karte geht, steht unten zum Bestätigen.', 'ok');
+  }catch(e){
+    if(e && e.name === 'AbortError') kiDirektMeldung(wo, 'Abgebrochen.', '');
+    else kiDirektMeldung(wo, e.message || String(e), 'warn');
+  }finally{
+    kiLaufZeigen(wo, false);
+  }
+}
+
+/* ── Einrichtung unter Mehr ──────────────────────────────────── */
+{
+  const feld = document.getElementById('ki-key');
+  const pruef = document.getElementById('btn-ki-key-pruef');
+  if(pruef && feld) pruef.onclick = async ()=>{
+    const v = (feld.value || '').trim();
+    if(!v){ kiKeyMeldung('Da steht nichts. Schlüssel aus Google AI Studio kopieren und hier einfügen.', 'warn'); return; }
+    const anb = kiAnbieter(v);
+    if(anb && !anb.kann){
+      kiKeyMeldung('Das ist ein Schlüssel von ' + anb.name
+        + '. Diese Fassung kann nur Gemini — ' + anb.name + ' kommt später.', 'warn');
+      return;
+    }
+    if(!anb) kiKeyMeldung('Das sieht nach keinem bekannten Schlüssel aus. Gemini-Schlüssel beginnen '
+      + 'mit AIza oder AQ. — geprüft wird trotzdem, falls Google das Format geändert hat.', 'warn');
+    pruef.disabled = true;
+    const altText = pruef.textContent;
+    pruef.textContent = 'Prüfe …';
+    try{
+      await kiModelleHolen(v);
+      kiSchluesselSetzen(v);
+      feld.value = '';
+      const m = kiModellAktiv();
+      kiKeyMeldung('Der Schlüssel funktioniert. ' + kiModelle().length
+        + ' Modelle gefunden, vorausgewählt ist ' + (m ? m.anzeige : '—') + '.', 'ok');
+      kiSchluesselZeichnen();
+      kiModusZeigen();
+      if(typeof mehrNebenzeilen === 'function') mehrNebenzeilen();
+    }catch(err){
+      kiKeyMeldung(err.message || String(err), 'warn');
+    }finally{
+      pruef.disabled = false;
+      pruef.textContent = altText;
+    }
+  };
+  const neu = document.getElementById('btn-ki-key-neu');
+  if(neu) neu.onclick = ()=>{
+    const ein = document.getElementById('ki-key-eingabe');
+    const box = document.getElementById('ki-key-da');
+    if(ein) ein.hidden = false;
+    if(box) box.hidden = true;
+    kiKeyMeldung('Neuen Schlüssel einfügen und prüfen. Der alte gilt, bis der neue durchgeht.', '');
+    if(feld) feld.focus();
+  };
+  const weg = document.getElementById('btn-ki-key-weg');
+  if(weg) weg.onclick = ()=>{
+    if(!confirm('Schlüssel von diesem Gerät löschen?\n\nDer Weg über die Zwischenablage bleibt. '
+      + 'Bei Google bleibt der Schlüssel gültig — dort musst du ihn zusätzlich entwerten.')) return;
+    kiSchluesselSetzen('');
+    S.kiModelle = null;
+    S.kiModell = null;
+    if(S.kiDienst === 'direkt') S.kiDienst = 'gemini';
+    sichern();
+    kiSchluesselZeichnen();
+    kiModusZeigen();
+    kiKeyMeldung('Gelöscht. Denk daran, ihn auch in Google AI Studio zu entwerten.', 'ok');
+    if(typeof mehrNebenzeilen === 'function') mehrNebenzeilen();
+  };
+  const hol = document.getElementById('btn-ki-modelle');
+  if(hol) hol.onclick = async ()=>{
+    if(!kiBereit()){ kiKeyMeldung('Erst einen Schlüssel eintragen.', 'warn'); return; }
+    hol.disabled = true;
+    kiKeyMeldung('Modellliste wird geholt …', '');
+    try{
+      await kiModelleHolen();
+      const m = kiModellAktiv();
+      kiKeyMeldung(kiModelle().length + ' Modelle. Empfohlen und gesetzt: ' + (m ? m.anzeige : '—') + '.', 'ok');
+      kiModellZeichnen();
+    }catch(err){ kiKeyMeldung(err.message || String(err), 'warn'); }
+    finally{ hol.disabled = false; }
+  };
+  const goog = document.getElementById('btn-ki-google');
+  if(goog) goog.onclick = ()=>{ window.open('https://aistudio.google.com/apikey', '_blank', 'noopener'); };
+}
+
+/* Ohne Schlüssel darf „Gemini direkt“ nicht als gemerkte Wahl aus
+   einer alten Sitzung zurückkommen — sonst steht der Nutzer vor einem
+   Knopf, der nur meckert. */
+if(S.kiDienst === 'direkt' && !kiBereit()) S.kiDienst = 'gemini';
+kiSchluesselZeichnen();
+</script>
+<script>
 
 /* ══════════════════ Formular mit Bibliothek ══════════════════ */
 let gewaehlteArt = null;      // Eintrag aus der Bibliothek
@@ -14143,11 +14818,23 @@ $('#f-zustand').addEventListener('change', zustandHinweis);
 /* ── Gemini ──────────────────────────────────────────────── */
 $('#ki-text').value = anlegenPromptBauen();
 $('#ki-dienst').value = S.kiDienst || 'gemini';
-$('#ki-dienst').onchange = ()=>{ S.kiDienst = $('#ki-dienst').value; sichern(); kiHinweis(); };
+$('#ki-dienst').onchange = ()=>{
+  S.kiDienst = $('#ki-dienst').value; sichern();
+  if(typeof kiModusZeigen === 'function') kiModusZeigen();
+  kiHinweis();
+};
 function kiHinweis(txt, ton){
   const el = $('#ki-hinweis');
   el.className = 'kihinweis' + (ton ? ' ' + ton : '');
   if(txt){ el.textContent = txt; return; }
+  /* Im Direktweg gibt es nichts zu kopieren und nichts zu öffnen —
+     dort erklärt der Satz, was der Knopf tut. */
+  if(typeof kiDirektAn === 'function' && kiDirektAn()){
+    el.textContent = kiBereit()
+      ? 'Bild wählen, „Fragen“ antippen. Die Antwort kommt direkt in die Felder unten.'
+      : 'Dafür fehlt noch der Schlüssel: Mehr › Einstellungen › KI-Dienst. Bis dahin geht der Weg über die Zwischenablage.';
+    return;
+  }
   const d = KI_DIENSTE[$('#ki-dienst').value];
   el.textContent = kiPerUrl(d, anlegenPromptBauen())
     ? 'Der Prompt steht dort schon im Feld. Nur noch dein Foto anhängen und abschicken.'
@@ -14156,6 +14843,7 @@ function kiHinweis(txt, ton){
 kiHinweis();
 
 $('#btn-gemini').onclick = ()=>{
+  if(typeof kiDirektAn === 'function' && kiDirektAn()){ kiDirektLos('anlegen'); return; }
   const {dienst, kopiert, perUrl} = kiOeffnen($('#ki-dienst').value);
   $('#paste-box').hidden = false;
   if(perUrl){
@@ -16477,6 +17165,8 @@ const MH_IKON = {
   wasser:    '<path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/>',
   duenger:   '<path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M12 13c0-3-2.4-4.6-6.4-4.6 0 4 2.4 5.6 6.4 4.6z"/>',
   rhythmus:  '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V7h-3.5"/><path d="M12 8v4.4l2.8 1.6"/>',
+  kidienst:  '<path d="M12 3.5 4.5 7v5.5c0 4.2 3.1 7.4 7.5 8.5 4.4-1.1 7.5-4.3 7.5-8.5V7z"/>'
+    + '<path d="M12 11.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM12 14.8V17"/>',
   einstell:  '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-.9a7.6 7.6 0 0 0 2.6 1.5l.5 2.5h4l.5-2.5a7.6 7.6 0 0 0 2.6-1.5l2.3.9 2-3.4z"/>'
 };
 
@@ -16523,12 +17213,14 @@ const MH_UNTER = {
   },
   melde:     ()=>'Fehlende Art nachtragen',
   rueck:     ()=>'Fehler und Wünsche',
-  patch:     ()=>'Fassung ' + FASSUNG
+  patch:     ()=>'Fassung ' + FASSUNG,
+  kidienst:  ()=>(typeof kiBereit === 'function' && kiBereit())
+    ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel'
 };
 
 /* Vier Gruppen statt einer Liste aus vierzehn. Die Reihenfolge im
    Dokument bleibt, wie sie ist — gruppiert wird beim Aufbau. */
-const MH_STILL = ['ansicht','tiere','rundgang','wasser','duenger','rhythmus','urlaub',
+const MH_STILL = ['ansicht','tiere','rundgang','kidienst','wasser','duenger','rhythmus','urlaub',
                   'bib-arten','bib-rezepte','bib-wissen'];
 
 const MH_GRUPPEN = [
@@ -18131,6 +18823,14 @@ document.addEventListener('click', e=>{
 $('#dok-pflanze').onchange = ()=>{
   dokPflanze = $('#dok-pflanze').value || null;
   if(dokPflanze && dokSchritt < 2) dokSchritt = 2;
+  /* Andere Pflanze, andere Galerie. Der Bildstapel wird geleert —
+     Fotos der vorigen Pflanze mitzuschicken wäre ein Fehler, den
+     niemand bemerkt. */
+  if(typeof KI_BILDER !== 'undefined'){
+    KI_BILDER.doktor.length = 0;
+    kiBilderZeichnen('doktor');
+    kiGalerieZeichnen();
+  }
   dokZeigen(); dokErgebnis();
 };
 
@@ -18140,7 +18840,11 @@ document.addEventListener('click', e=>{
     dokWeg = w.dataset.dokweg;
     dokSchritt = Math.max(dokSchritt, 3);
     dokZeigen();
-    if(dokWeg === 'ki'){ $('#dok-ki-text').value = dokPromptBauen(); dokKiHinweis(''); }
+    if(dokWeg === 'ki'){
+      $('#dok-ki-text').value = dokPromptBauen();
+      dokKiHinweis('');
+      if(typeof kiModusZeigen === 'function') kiModusZeigen();
+    }
     else dokAufbau();
     dokErgebnis();
     const z = document.getElementById(dokWeg === 'ki' ? 'dok-ki-zeile' : 'dok-s3');
@@ -18155,6 +18859,7 @@ document.addEventListener('click', e=>{
 });
 $('#dok-ki-text') && ($('#dok-ki-text').value = '');
 $('#btn-dok-ki').onclick = ()=>{
+  if(typeof kiDirektAn === 'function' && kiDirektAn()){ kiDirektLos('doktor'); return; }
   const t = dokPromptBauen();
   $('#dok-ki-text').value = t;
   const d = KI_DIENSTE[$('#dok-dienst').value] || KI_DIENSTE.gemini;
@@ -18181,7 +18886,13 @@ if(dokDetails) dokDetails.addEventListener('toggle', ()=>{
   if(dokDetails.open) $('#dok-ki-text').value = dokPromptBauen();
 });
 $('#dok-dienst').value = S.kiDienst || 'gemini';
-$('#dok-dienst').onchange = ()=>{ S.kiDienst = $('#dok-dienst').value; sichern(); };
+$('#dok-dienst').onchange = ()=>{
+  S.kiDienst = $('#dok-dienst').value; sichern();
+  if(typeof kiModusZeigen === 'function') kiModusZeigen();
+};
+/* Erst hier stehen beide Seiten im Dokument — vorher gäbe es die
+   Hälfte der Elemente noch nicht. */
+if(typeof kiModusZeigen === 'function') kiModusZeigen();
 
 /* ── Steckbrief gegen die KI-Antwort halten ────────────────
    Gezeigt wird ausschließlich, was in der Karte fehlt oder von der
@@ -18413,6 +19124,7 @@ if(dokDatei) dokDatei.onchange = async ()=>{
   const p = allePflanzen().find(x=>x.id===dokPflanze);
   dokKiHinweis((n===1?'Foto liegt':'Fotos liegen') + ' jetzt in der Galerie von „'
     + (p ? nice(p) : 'dieser Pflanze') + '“. Profilbild wird es nicht — Doktorfotos zeigen meist Schäden.', 'ok');
+  if(typeof kiGalerieZeichnen === 'function') kiGalerieZeichnen();
   render();
 };
 

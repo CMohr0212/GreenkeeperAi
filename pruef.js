@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 2.10.3', w.__T('FASSUNG') === '2.10.3', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.0.0', w.__T('FASSUNG') === '3.0.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1447,6 +1447,181 @@ setTimeout(async () => {
       !w.__T(`allePflanzen().some(x=>x.id==='${kid}')`));
   }
 
+  /* ══ KI direkt: Schluessel, Modelle, Aufruf ════════════════════
+     Ohne echten Schluessel laesst sich nur die Schicht pruefen, nicht
+     Googles Verhalten. Geprueft wird deshalb, was in dieser Datei
+     entschieden wird: dass der Schluessel nirgends hinausgerat, dass
+     die Modellregel das Richtige waehlt und dass jeder Fehlerweg
+     einen deutschen Satz liefert statt eines Statuscodes. */
+  {
+    /* --- Der Schluessel darf nicht in die Sicherung --- */
+    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST')");
+    const inhalt = w.__T('sicherungInhalt()');
+    pruef('Schlüssel steht nicht in der Sicherungsdatei',
+      inhalt.indexOf('AIzaTESTTESTTEST') === -1);
+    pruef('Schlüssel liegt nicht in S',
+      JSON.stringify(w.__T('S')).indexOf('AIzaTESTTESTTEST') === -1);
+    pruef('Schlüssel liegt in einem eigenen Fach',
+      w.__T("localStorage.getItem(KI_SCHLUESSEL_FACH)") === 'AIzaTESTTESTTESTTESTTESTTEST');
+    pruef('kiBereit meldet den Schlüssel', w.__T('kiBereit()') === true);
+    pruef('Maske zeigt den Schlüssel nie ganz',
+      w.__T("kiMaske('AIzaTESTTESTTESTTESTTESTTEST')").indexOf('TESTTESTTEST') === -1);
+
+    /* --- Anbieter am Praefix --- */
+    pruef('AIza wird als Google erkannt',
+      w.__T("(kiAnbieter('AIzaSyAAAAAAAAAAAAAAAAAAAA')||{}).code") === 'google');
+    pruef('AQ. wird als Google erkannt',
+      w.__T("(kiAnbieter('AQ.Ab8RN6ABCDEFGHIJKLMNOP')||{}).code") === 'google');
+    pruef('Anthropic wird erkannt und abgelehnt',
+      w.__T("(kiAnbieter('sk-ant-api03-XXXXXXXXXXXX')||{}).kann") === false);
+    pruef('OpenAI wird erkannt und abgelehnt',
+      w.__T("(kiAnbieter('sk-proj-XXXXXXXXXXXXXXXXXXXX')||{}).kann") === false);
+    pruef('Unsinn wird nicht zugeordnet', w.__T("kiAnbieter('hallo')") === null);
+
+    /* --- Die Modellregel --- */
+    /* Ein fest eingebauter Modellname waere in drei Monaten tot.
+       Geprueft wird die Regel, nicht ein Name. */
+    const besser = (a, b) => w.__T('kiModellPunkte(' + JSON.stringify(a) + ')')
+                           > w.__T('kiModellPunkte(' + JSON.stringify(b) + ')');
+    pruef('Neuere Version schlägt ältere',
+      besser('models/gemini-3-flash', 'models/gemini-2.5-flash'));
+    pruef('Flash schlägt Pro bei gleicher Version',
+      besser('models/gemini-3-flash', 'models/gemini-3-pro'));
+    pruef('Stabil schlägt Vorschau',
+      besser('models/gemini-3-flash', 'models/gemini-3-flash-preview-11-2025'));
+    pruef('Voll schlägt Lite',
+      besser('models/gemini-3-flash', 'models/gemini-3-flash-lite'));
+    pruef('Kurzer Name schlägt langen Ableger',
+      besser('models/gemini-3-flash', 'models/gemini-3-flash-002'));
+
+    /* --- Modellliste aus einer erfundenen Antwort --- */
+    w.__T(`window.fetch = (u, o) => {
+      window.__letzteUrl = String(u); window.__letzteOpt = o;
+      return Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({models:[
+        {name:'models/gemini-2.5-flash', displayName:'Gemini 2.5 Flash', supportedGenerationMethods:['generateContent']},
+        {name:'models/gemini-3-flash', displayName:'Gemini 3 Flash', supportedGenerationMethods:['generateContent']},
+        {name:'models/gemini-3-flash-preview-11-2025', displayName:'Gemini 3 Flash Vorschau', supportedGenerationMethods:['generateContent']},
+        {name:'models/text-embedding-004', displayName:'Embedding', supportedGenerationMethods:['embedContent']},
+        {name:'models/imagen-4', displayName:'Imagen', supportedGenerationMethods:['generateContent']}
+      ]})});
+    }`);
+    await w.__T('kiModelleHolen()');
+    const liste = w.__T('kiModelle()');
+    pruef('Embedding und Imagen fliegen aus der Liste',
+      liste.length === 3, JSON.stringify(liste.map(m=>m.id)));
+    pruef('Empfohlen ist das neueste stabile Modell',
+      liste[0].id === 'models/gemini-3-flash' && liste[0].empfohlen === true, liste[0].id);
+    pruef('Das Empfohlene ist gesetzt', w.__T('S.kiModell') === 'models/gemini-3-flash');
+    pruef('Der Schlüssel steht nicht in der Modellliste',
+      JSON.stringify(liste).indexOf('AIzaTEST') === -1);
+
+    /* --- Der Aufruf --- */
+    w.__T(`window.fetch = (u, o) => {
+      window.__letzteUrl = String(u); window.__letzteOpt = o;
+      return Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[
+        {content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}
+      ]})});
+    }`);
+    const txt = await w.__T("kiFragen('frag mich', [{mime:'image/jpeg', daten:'QUJD'}])");
+    pruef('Die Antwort kommt als reiner Text zurück', txt === 'ART: Efeutute', String(txt));
+    pruef('Der Aufruf geht an das gewählte Modell',
+      w.__T('window.__letzteUrl').indexOf('models/gemini-3-flash:generateContent') > -1,
+      w.__T('window.__letzteUrl'));
+    const leib = JSON.parse(w.__T('window.__letzteOpt.body'));
+    pruef('Das Bild geht als inline_data mit',
+      leib.contents[0].parts[1].inline_data.data === 'QUJD');
+    pruef('Der Prompt steht im ersten Teil',
+      leib.contents[0].parts[0].text === 'frag mich');
+    pruef('Höchstens fünf Bilder gehen mit', w.__T('KI_BILD_MAX') === 5);
+
+    /* --- Fehlerwege: jeder liefert einen deutschen Satz --- */
+    const fehler = async code => {
+      w.__T('window.fetch = () => Promise.resolve({ok:false, status:' + code
+        + ', json:()=>Promise.resolve({error:{message:"testfehler"}})})');
+      try{ await w.__T("kiFragen('x', [])"); return null; }
+      catch(e){ return String(e.message || e); }
+    };
+    const f400 = await fehler(400);
+    pruef('400 nennt den Schlüssel', /400/.test(f400) && /Schl/.test(f400), f400);
+    const f429 = await fehler(429);
+    pruef('429 nennt das Kontingent', /Kontingent/.test(f429), f429);
+    const f403 = await fehler(403);
+    pruef('403 nennt den ungültigen Schlüssel', /ung/.test(f403), f403);
+    const f503 = await fehler(503);
+    pruef('503 nennt die Überlastung', /berlastet/.test(f503), f503);
+    const f404 = await fehler(404);
+    pruef('404 schickt zur Modellliste', /Modellliste/.test(f404), f404);
+    pruef('Googles eigener Text wird durchgereicht', /testfehler/.test(f400), f400);
+
+    w.__T('window.fetch = () => Promise.reject(new TypeError("Failed to fetch"))');
+    let offline = '';
+    try{ await w.__T("kiFragen('x', [])"); }catch(e){ offline = String(e.message || e); }
+    pruef('Offline nennt die Zwischenablage als Ausweg',
+      /Zwischenablage/.test(offline), offline);
+
+    /* --- Leere Antwort und Sicherheitsfilter --- */
+    w.__T(`window.fetch = () => Promise.resolve({ok:true, status:200,
+      json:()=>Promise.resolve({candidates:[{content:{parts:[{text:''}]}, finishReason:'MAX_TOKENS'}]})})`);
+    let leer = '';
+    try{ await w.__T("kiFragen('x', [])"); }catch(e){ leer = String(e.message || e); }
+    pruef('Abgeschnittene Antwort rät zu weniger Bildern', /Bilder/.test(leer), leer);
+
+    /* --- Anzeige: beide Wege stehen untereinander --- */
+    w.__T("S.kiDienst = 'direkt'; kiModusZeigen()");
+    pruef('Direktkasten im Anlegen sichtbar',
+      d.getElementById('ki-direkt-anlegen').hidden === false);
+    pruef('Direktkasten im Doktor sichtbar',
+      d.getElementById('ki-direkt-doktor').hidden === false);
+    pruef('Der Kopierweg klappt zu',
+      d.getElementById('neu-alt').open === false
+      && !d.getElementById('neu-alt').classList.contains('nurweg'));
+    pruef('Der Knopf heißt jetzt Fragen',
+      d.getElementById('btn-gemini').textContent === 'Fragen');
+    w.__T("S.kiDienst = 'gemini'; kiModusZeigen()");
+    pruef('Ohne Direktweg steht der Kopierweg offen wie bisher',
+      d.getElementById('neu-alt').open === true
+      && d.getElementById('neu-alt').classList.contains('nurweg'));
+    pruef('Ohne Direktweg ist der Direktkasten weg',
+      d.getElementById('ki-direkt-anlegen').hidden === true);
+    pruef('Der Knopf heißt wieder Öffnen',
+      d.getElementById('btn-gemini').textContent === 'Öffnen');
+
+    /* --- Modellwahl steht an allen drei Stellen --- */
+    pruef('Drei Modellauswahlen: Einstellungen, Anlegen, Doktor',
+      d.querySelectorAll('.ki-modell-wahl').length === 3,
+      String(d.querySelectorAll('.ki-modell-wahl').length));
+    w.__T('kiModellZeichnen()');
+    const wahlen = [...d.querySelectorAll('.ki-modell-wahl')];
+    pruef('Alle Auswahlen zeigen dieselbe Liste',
+      wahlen.every(x => x.options.length === 3));
+    pruef('Das Empfohlene trägt ein Häkchen',
+      wahlen[0].options[0].textContent.indexOf('\u2713') > -1, wahlen[0].options[0].textContent);
+    pruef('Das Abzeichen steht am empfohlenen Modell',
+      d.querySelector('.ki-modell-abz').hidden === false);
+    w.__T("S.kiModell = 'models/gemini-2.5-flash'; kiModellZeichnen()");
+    pruef('Bei anderer Wahl verschwindet das Abzeichen',
+      d.querySelector('.ki-modell-abz').hidden === true);
+
+    /* --- Bilder --- */
+    w.__T("KI_BILDER.anlegen.length = 0; KI_BILDER.anlegen.push({mime:'image/jpeg', daten:'QUJD', vorschau:'data:image/jpeg;base64,QUJD'}); kiBilderZeichnen('anlegen')");
+    pruef('Gewählte Bilder stehen als Miniatur',
+      d.querySelectorAll('#ki-bilder-anlegen .kibild').length === 1);
+    pruef('Ein Knopf zum Nachlegen ist da',
+      !!d.querySelector('#ki-bilder-anlegen .kibild-neu'));
+    w.__T("kiBildWeg('anlegen', 0)");
+    pruef('Miniaturen lassen sich entfernen',
+      d.querySelectorAll('#ki-bilder-anlegen .kibild').length === 0);
+    pruef('Data-URL wird in base64 zerlegt',
+      w.__T("(kiBildAusDataUrl('data:image/png;base64,XYZ')||{}).daten") === 'XYZ');
+
+    /* --- Aufräumen: der Testschlüssel darf nicht liegen bleiben,
+       und die Attrappe darf keinem späteren Test im Weg stehen --- */
+    w.__T("kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null; S.kiDienst = 'gemini'");
+    w.__T("window.fetch = () => Promise.reject(new Error('offline'))");
+    w.__T('kiModusZeigen()');
+    pruef('Löschen entfernt den Schlüssel', w.__T('kiBereit()') === false);
+  }
+
   /* ══ Mehr-Seite: Gruppen, Nebenzeilen, Einstellungen ═══════════ */
   {
     /* Kein Punkt darf beim Gruppieren verlorengehen — das ist der
@@ -1458,8 +1633,15 @@ setTimeout(async () => {
       alle.filter(x=>gruppiert.indexOf(x) === -1).join(','));
     pruef('Dreizehn Punkte in der Liste', alle.length === 13, String(alle.length));
     pruef('Kein Punkt ist ersatzlos weg',
-      d.querySelectorAll('section[data-mh]').length === 23,
+      d.querySelectorAll('section[data-mh]').length === 24,
       String(d.querySelectorAll('section[data-mh]').length));
+    /* Stillgelegt heisst nicht unerreichbar: der KI-Dienst steht
+       nicht in der Liste, aber eine Zeile in den Einstellungen fuehrt
+       hin. Faellt die weg, ist der Abschnitt tot. */
+    pruef('KI-Dienst ist stillgelegt',
+      d.querySelector('section[data-mh="kidienst"]').classList.contains('mh-still'));
+    pruef('KI-Dienst ist aus den Einstellungen erreichbar',
+      !!d.querySelector('#mh-in-einstell [data-mh-go="kidienst"]'));
     ['aufgaben','wunsch','weg','giess','wetter','bibliothek','sicherung','einstell',
      'tour','install','patch','rueck','melde','ansicht','tiere','rundgang'].forEach(k=>{
       if(k === 'ansicht' || k === 'tiere' || k === 'rundgang') return;
