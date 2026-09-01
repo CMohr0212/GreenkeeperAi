@@ -5032,7 +5032,10 @@ BEFUND: Zwei bis vier Sätze. Gehe dabei alle drei Punkte durch, auch wenn nicht
 LICHT: Nur genau eines dieser Wörter: voll, hell, indirekt
 GIESSKLASSE: Nur genau eines dieser Wörter: normal, durstig, kakteenmodus, anstau
 GIESSEN: Ein Satz, wie oft und wie viel bei genau diesem Zustand.
-GIESSART: Nur genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau
+GIESSART: Nur genau eines dieser Wörter: durchdringend, schluck, tauchen, von unten, anstau, wasserkultur, hydrokultur
+  Steht die Pflanze erkennbar mit blanken Wurzeln in einem Glas oder einer Vase voll Wasser, ist die Antwort wasserkultur.
+  Steht sie in Blähton, Pon, Seramis oder einem Gefäß mit Wasserstandsanzeiger, ist die Antwort hydrokultur.
+  Beides schließt Gießen aus — sag es nur, wenn du es auf dem Bild wirklich siehst.
 FROST: Niedrigste verträgliche Temperatur als Zahl in Grad Celsius, ohne Einheit. Oder genau das Wort: winterhart
 WICHTIG: Eine kurze Anweisung, deren Missachtung genau diese Art umbringt und die man nicht von selbst weiß. Gibt es keine, schreib genau: keine
 KATZEN: Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.
@@ -9104,6 +9107,16 @@ function papierkorbRender(){
           <div class="al-zsf" id="al-bibzsf-liste"></div>
           <div class="tools"><button type="button" id="btn-al-pflege-auf">Ändern</button></div>
         </div>
+        <div class="al-feld">
+          <span class="lab">Wie steht sie?</span>
+          <select id="f-kultur" hidden>
+            <option value="erde">In Erde — normaler Topf mit Substrat</option>
+            <option value="wasser">Im Wasserglas — Wasserkultur, nur Wurzeln im Wasser</option>
+            <option value="hydro">In Blähton — Hydrokultur, Pon oder Seramis</option>
+          </select>
+          <div class="al-knoepfe" id="f-kultur-knoepfe"></div>
+          <p class="fhint" id="f-kultur-hint"></p>
+        </div>
         <div id="al-pflege">
           <div class="al-feld">
             <span class="lab">Gießklasse</span>
@@ -9148,6 +9161,11 @@ function papierkorbRender(){
                 <option value="tauchen">Tauchen — 10 Minuten ins Wasserbad</option>
                 <option value="unten">Von unten — nur in den Untersetzer</option>
                 <option value="anstau">Anstau — Untersetzer dauerhaft gefüllt</option>
+                <!-- Die beiden setzt die Kulturform oben. Ohne Eintrag hier
+                     hätte das Auswahlfeld keinen gültigen Wert dafür und
+                     fiele stillschweigend auf „automatisch“ zurück. -->
+                <option value="wasser">Wasserkultur — Wasser wechseln statt gießen</option>
+                <option value="hydro">Hydrokultur — Wasserstand halten</option>
               </select>
             </div>
           </details>
@@ -9260,8 +9278,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.0.1';
+const FASSUNG = '3.0.2';
 const PATCHNOTES = [
+  {
+    nr: '3.0.2', datum: '2026-09-01', titel: 'Wasserkultur und drei Reparaturen',
+    neu: [
+      'Beim Anlegen fragt die App jetzt zuerst, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Im Wasserglas wird nicht gegossen, sondern alle 7 bis 10 Tage das Wasser gewechselt — samt Gefäß ausspülen und faule Wurzeln entfernen. In Blähton geht es um den Wasserstand, alle 10 bis 16 Tage.',
+      'Die KI soll das am Bild erkennen: stehen blanke Wurzeln in einem Glas, kommt Wasserkultur zurück, und die Auswahl steht dann schon richtig.',
+      'Steht die Pflanze im Wasser, verschwinden Gießklasse und Gießart aus dem Formular. Nach etwas zu fragen, das danach ohnehin nicht gilt, ist nur Arbeit.'
+    ],
+    besser: [
+      'Die Bilder, die du der KI geschickt hast, liegen anschließend schon in der Fotoauswahl. Herausnehmen geht wie bei jedem anderen Bild.',
+      'Ein Bild, das der Browser nicht lesen konnte, hielt das Anlegen-Fenster für immer offen — und beim nächsten Öffnen stand die alte Auswahl noch da. Das Fenster schließt jetzt, sobald die Pflanze gespeichert ist; die Bilder folgen danach. Nach zwanzig Sekunden gilt ein Bild als unlesbar und wird übersprungen.'
+    ]
+  },
   {
     nr: '3.0.1', datum: '2026-09-01', titel: 'Anlegen Schritt für Schritt',
     neu: [
@@ -10907,8 +10937,22 @@ function istProfil(id, key){
   return !!t && t.key === key;
 }
 
+/* Bricht der Browser beim Lesen weder ab noch meldet er einen
+   Fehler — bei manchen Handy-Formaten kommt schlicht nichts zurück —,
+   blieb dieses Versprechen für immer offen. Wer darauf wartete, wartete
+   ewig: das Anlegen-Fenster schloss sich dann nie. Nach zwanzig
+   Sekunden gilt das Bild als unlesbar. */
+const BILD_GEDULD = 20000;
 function bildVerkleinern(file, maxPx, q){
   return new Promise((res, rej)=>{
+    let fertig = false;
+    const uhr = setTimeout(()=>{
+      if(fertig) return;
+      fertig = true;
+      rej(new Error('Das Bild ließ sich nicht lesen.'));
+    }, BILD_GEDULD);
+    const gut = v => { if(fertig) return; fertig = true; clearTimeout(uhr); res(v); };
+    const schlecht = e => { if(fertig) return; fertig = true; clearTimeout(uhr); rej(e); };
     const fr = new FileReader();
     fr.onload = () => {
       const im = new Image();
@@ -10919,12 +10963,12 @@ function bildVerkleinern(file, maxPx, q){
         const c = document.createElement('canvas');
         c.width = w; c.height = h;
         c.getContext('2d').drawImage(im, 0, 0, w, h);
-        res(c.toDataURL('image/jpeg', q));
+        gut(c.toDataURL('image/jpeg', q));
       };
-      im.onerror = rej;
+      im.onerror = schlecht;
       im.src = fr.result;
     };
-    fr.onerror = rej;
+    fr.onerror = schlecht;
     fr.readAsDataURL(file);
   });
 }
@@ -13081,6 +13125,9 @@ function formularLeeren(){
   }
   const bzsf = document.getElementById('al-bibzsf');
   if(bzsf) delete bzsf.dataset.offen;
+  const kul = document.getElementById('f-kultur');
+  if(kul) kul.value = 'erde';
+  if(typeof alKulturSetzen === 'function') alKulturSetzen();
   if(typeof formLageZeichnen === 'function') formLageZeichnen();
   gewaehlteArt = null; artManuell = false; letzteKiAntwort = null;
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
@@ -13802,7 +13849,37 @@ function alKnopfGruppe(selId){
   }).join('');
 }
 function alKnoepfeAlle(){
-  ['f-zustand', 'f-klasse', 'f-sonne', 'f-giftig'].forEach(alKnopfGruppe);
+  ['f-zustand', 'f-kultur', 'f-klasse', 'f-sonne', 'f-giftig'].forEach(alKnopfGruppe);
+}
+
+/* Die Kulturform ist keine Feinheit der Gießart, sondern die Frage
+   davor: eine Pflanze im Wasserglas wird nicht gegossen, ihr Wasser
+   wird gewechselt. Beides steckte in GIESSARTEN längst drin, war aber
+   beim Anlegen nicht erreichbar — man kam nur über die Karte hin,
+   und auch nur, wenn man wusste, dass es das gibt.
+   Gespeichert wird weiterhin nur giessart; ein eigenes Feld an der
+   Pflanze braucht es nicht. */
+function alKulturSetzen(){
+  const k = document.getElementById('f-kultur');
+  const g = document.getElementById('f-giessart');
+  const pflege = document.getElementById('al-pflege');
+  const hint = document.getElementById('f-kultur-hint');
+  if(!k) return;
+  const wert = k.value;
+  if(g){
+    if(wert === 'wasser') g.value = 'wasser';
+    else if(wert === 'hydro') g.value = 'hydro';
+    else if(g.value === 'wasser' || g.value === 'hydro') g.value = '';
+  }
+  /* Gießklasse, Gießart und Anstau ergeben im Wasserglas keinen Sinn.
+     Sie stehen zu lassen hieße, nach etwas zu fragen, das die App
+     danach ohnehin ignoriert. */
+  if(pflege) pflege.hidden = (wert !== 'erde');
+  if(hint) hint.textContent =
+      wert === 'wasser' ? 'Kein Gießen: alle 7 bis 10 Tage Wasser wechseln, Gefäß ausspülen, faule Wurzeln entfernen.'
+    : wert === 'hydro' ? 'Kein Gießen: Wasserstand am Anzeiger halten, alle 10 bis 16 Tage nachsehen.'
+    : '';
+  if(typeof alBibZsfZeichnen === 'function' && wert === 'erde') alBibZsfZeichnen();
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('.al-knopf');
@@ -13916,9 +13993,13 @@ function alZsfZeichnen(){
   const raum = text('f-raum');
   const platz = text('f-stellplatz');
   const ort = [raum, platz].filter(x => x && x.indexOf('—') === -1).join(' · ');
+  const kultur = document.getElementById('f-kultur');
+  const kulturText = (kultur && kultur.value !== 'erde')
+    ? (kultur.options[kultur.selectedIndex] || {}).textContent : '';
   box.innerHTML =
       alZeile('Name', wert('f-name') || 'Name offen')
     + alZeile('Art', art || 'Unbestimmt')
+    + alZeile('Kultur', kulturText)
     + alZeile('Botanisch', wert('f-bot') || (a ? a.bot : ''))
     + alZeile('Zustand', text('f-zustand'))
     + alZeile('Standort', ort)
@@ -13950,7 +14031,7 @@ function alStufeZeigen(nr){
 
   if(alStufe === 2) alStufe2Zeichnen();
   if(alStufe === 3){ alKnoepfeAlle(); }
-  if(alStufe === 4){ alKnoepfeAlle(); alBibZsfZeichnen(); }
+  if(alStufe === 4){ alKnoepfeAlle(); alKulturSetzen(); alBibZsfZeichnen(); }
   if(alStufe === 5){ alFotosZeichnen(); alZsfZeichnen(); }
   const rumpf = document.querySelector('#anleg-modal .sekm-rumpf');
   if(rumpf) rumpf.scrollTop = 0;
@@ -14031,7 +14112,8 @@ modalAnmelden('anleg-modal', {
 document.addEventListener('change', e => {
   const t = e.target;
   if(!t || !t.id) return;
-  if(/^f-(zustand|klasse|sonne|giftig)$/.test(t.id)) alKnopfGruppe(t.id);
+  if(/^f-(zustand|kultur|klasse|sonne|giftig)$/.test(t.id)) alKnopfGruppe(t.id);
+  if(t.id === 'f-kultur') alKulturSetzen();
   if(/^f-(klasse|sonne|giftig|typ)$/.test(t.id) && alStufe === 4) alBibZsfZeichnen();
 });
 
@@ -14906,6 +14988,37 @@ function kiZurEinrichtung(){
 }
 
 /* ── Der Lauf ────────────────────────────────────────────────── */
+/* Ein base64-Bild wieder zu einer Datei machen. Der Weg zurück ist
+   nötig, weil fotosHinzu Dateien erwartet — dieselbe Funktion, die
+   auch die Galerie füllt. */
+function kiBildAlsDatei(b, i){
+  try{
+    const roh = atob(b.daten);
+    const arr = new Uint8Array(roh.length);
+    for(let k = 0; k < roh.length; k++) arr[k] = roh.charCodeAt(k);
+    const endung = (b.mime || 'image/jpeg').indexOf('png') > -1 ? 'png' : 'jpg';
+    return new File([arr], 'ki-' + (i + 1) + '.' + endung, {type:b.mime || 'image/jpeg'});
+  }catch(e){ return null; }
+}
+
+/* Wer der KI ein Bild geschickt hat, will es fast immer auch in der
+   Galerie haben — es ist ja das Bild der Pflanze, die gerade angelegt
+   wird. Es landet deshalb gleich in der Auswahl und lässt sich dort
+   wie jedes andere wieder herausnehmen. */
+function kiBilderUebernehmen(){
+  if(typeof AL_FOTOS === 'undefined') return 0;
+  let n = 0;
+  KI_BILDER.anlegen.forEach((b, i) => {
+    if(AL_FOTOS.some(f => f.ausKi === b.daten)) return;
+    const datei = kiBildAlsDatei(b, i);
+    if(!datei) return;
+    AL_FOTOS.push({datei:datei, vorschau:b.vorschau, ausKi:b.daten});
+    n++;
+  });
+  if(n && typeof alFotosZeichnen === 'function') alFotosZeichnen();
+  return n;
+}
+
 function kiAntwortEinsetzen(wo, txt){
   const istA = wo === 'anlegen';
   const box = document.getElementById(istA ? 'paste-box' : 'dok-paste-box');
@@ -14952,7 +15065,11 @@ async function kiDirektLos(wo){
   try{
     const txt = await kiFragen(prompt, KI_BILDER[wo]);
     kiAntwortEinsetzen(wo, txt);
-    kiDirektMeldung(wo, 'Antwort ist da und übernommen. Was daraus in die Karte geht, steht unten zum Bestätigen.', 'ok');
+    const n = wo === 'anlegen' ? kiBilderUebernehmen() : 0;
+    kiDirektMeldung(wo, 'Antwort ist da und übernommen.'
+      + (n ? ' ' + (n === 1 ? 'Das Bild liegt' : 'Die ' + n + ' Bilder liegen')
+             + ' schon in der Fotoauswahl — dort kannst du sie wieder herausnehmen.' : '')
+      + ' Was in die Karte geht, steht unten zum Bestätigen.', 'ok');
   }catch(e){
     if(e && e.name === 'AbortError') kiDirektMeldung(wo, 'Abgebrochen.', '');
     else kiDirektMeldung(wo, e.message || String(e), 'warn');
@@ -15427,12 +15544,30 @@ $('#btn-paste-los').onclick = ()=>{
      sie später ohne Nacharbeit auf dem Urlaubszettel stehen. */
   if(d.giessart){
     const g = norm(d.giessart);
-    const treffer3 = /anstau|staun|dauerhaft nass/.test(g) ? 'anstau'
+    /* Wasser- und Hydrokultur zuerst: sie sind keine Art zu gießen,
+       sondern der Grund, gar nicht zu gießen. Stünden sie weiter
+       unten, schluckte eine der anderen Regeln sie weg. */
+    const treffer3 = /hydrokultur|blähton|blaehton|seramis|\bpon\b|lechuza/.test(g) ? 'hydro'
+      : /wasserkultur|wasserglas|nur wasser|in wasser/.test(g) ? 'wasser'
+      : /anstau|staun|dauerhaft nass/.test(g) ? 'anstau'
       : /tauch|wasserbad|eintauch/.test(g) ? 'tauchen'
       : /unten|untersetz/.test(g) ? 'unten'
       : /schluck|sparsam|wenig|klein/.test(g) ? 'schluck'
       : /durchdring|durchtrank|reichlich|kraftig/.test(g) ? 'durch' : null;
-    if(treffer3){ $('#f-giessart').value = treffer3; uebernommen.push('Gießart gesetzt'); }
+    if(treffer3){
+      $('#f-giessart').value = treffer3;
+      /* Erkennt die KI ein Wasserglas, muss die Kulturform mitziehen —
+         sonst überschreibt die nächste Stufe den Wert wieder. */
+      const kul = document.getElementById('f-kultur');
+      if(kul && (treffer3 === 'wasser' || treffer3 === 'hydro')){
+        kul.value = treffer3;
+        if(typeof alKnopfGruppe === 'function') alKnopfGruppe('f-kultur');
+        if(typeof alKulturSetzen === 'function') alKulturSetzen();
+        uebernommen.push(treffer3 === 'wasser' ? 'Wasserkultur erkannt' : 'Hydrokultur erkannt');
+      } else {
+        uebernommen.push('Gießart gesetzt');
+      }
+    }
   }
   if(d.typ && !$('#f-typ').value.trim()){
     $('#f-typ').value = d.typ; uebernommen.push('Wuchsform übernommen');
@@ -15719,10 +15854,19 @@ $('#btn-neu-save').onclick = async ()=>{
   letzteKiAntwort = null;
   massnahmeAuswahl['neu'] = [];
   const nmz = document.getElementById('neu-massnahmen'); if(nmz) nmz.innerHTML = '';
-  if(files && files.length) await fotosHinzu(id, Array.from(files));
+  /* Zuerst aufräumen und schließen, dann die Bilder. Vorher hing
+     beides am selben await: ein einziges unlesbares Bild ließ das
+     Fenster offen stehen und die Auswahl der vorigen Pflanze in der
+     nächsten wieder auftauchen. Die Pflanze ist zu diesem Zeitpunkt
+     längst gespeichert. */
+  const bilder = files && files.length ? Array.from(files) : [];
   formularLeeren();
   modalZu('anleg-modal');
   render();
+  if(bilder.length){
+    try{ await fotosHinzu(id, bilder); }
+    catch(e){ console.warn('Fotos konnten nicht übernommen werden', e); }
+  }
   if(kiAufgaben){
     const meld = $('#paste-meld');
     if(meld){

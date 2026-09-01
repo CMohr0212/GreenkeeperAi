@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.0.1', w.__T('FASSUNG') === '3.0.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.0.2', w.__T('FASSUNG') === '3.0.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1741,6 +1741,85 @@ setTimeout(async () => {
     await tick();
     pruef('Abbrechen schliesst das Fenster',
       w.__T("modalOffen('anleg-modal')") === false);
+  }
+
+  /* ══ Kulturform und die Bilder aus der KI-Anfrage ══════════════ */
+  {
+    /* Wasser- und Hydrokultur steckten in GIESSARTEN laengst drin,
+       waren beim Anlegen aber nicht erreichbar. */
+    pruef('Die Kulturform ist eine eigene Frage', !!d.getElementById('f-kultur'));
+    pruef('Drei Kulturformen zur Wahl',
+      d.getElementById('f-kultur').options.length === 3);
+    pruef('Das Giessartfeld kennt Wasser- und Hydrokultur',
+      !!d.querySelector('#f-giessart option[value="wasser"]')
+      && !!d.querySelector('#f-giessart option[value="hydro"]'));
+
+    w.__T('alStart(); alStufeZeigen(4)');
+    pruef('Beim Start steht sie in Erde', w.__T("document.getElementById('f-kultur').value") === 'erde');
+    pruef('In Erde stehen die Giessfelder offen',
+      d.getElementById('al-pflege').hidden === false);
+    w.__T("document.querySelector('#f-kultur-knoepfe [data-alwert=\"wasser\"]').click()");
+    pruef('Wasserglas setzt die Giessart',
+      d.getElementById('f-giessart').value === 'wasser');
+    pruef('Im Wasserglas verschwinden Giessklasse und Giessart',
+      d.getElementById('al-pflege').hidden === true);
+    pruef('Der Hinweis nennt den Wechsel',
+      /wechseln/.test(d.getElementById('f-kultur-hint').textContent));
+    w.__T("document.querySelector('#f-kultur-knoepfe [data-alwert=\"hydro\"]').click()");
+    pruef('Blaehton setzt Hydrokultur',
+      d.getElementById('f-giessart').value === 'hydro');
+    w.__T("document.querySelector('#f-kultur-knoepfe [data-alwert=\"erde\"]').click()");
+    pruef('Zurueck in Erde raeumt die Giessart wieder frei',
+      d.getElementById('f-giessart').value === '');
+
+    /* Die Wortwahl der Tat haengt daran: gegossen wird nicht. */
+    pruef('Wasserkultur wird gewechselt, nicht gegossen',
+      w.__T("giessTat({giessart:'wasser'})") === 'Wasser gewechselt');
+    pruef('Hydrokultur wird aufgefuellt',
+      w.__T("giessTat({giessart:'hydro'})") === 'Wasserstand aufgefüllt');
+    pruef('Wasserkultur hat einen eigenen Takt',
+      JSON.stringify(w.__T("GIESSARTEN['wasser'].wechsel")) === '[7,10]');
+
+    /* Die KI muss es sagen duerfen und die App es lesen koennen. */
+    const format = w.__T('ANTWORT_FORMAT');
+    pruef('Der Prompt erlaubt wasserkultur', /wasserkultur/.test(format));
+    pruef('Der Prompt erlaubt hydrokultur', /hydrokultur/.test(format));
+    pruef('Der Prompt verlangt es am Bild zu sehen',
+      /wirklich siehst/.test(format));
+
+    w.__T('alStart(); neuWegSetzen("ki")');
+    w.__T("document.getElementById('f-paste').value = 'ART: Fensterblatt\\nBOTANISCH: Monstera deliciosa\\nGIESSART: wasserkultur'; document.getElementById('btn-paste-los').click()");
+    pruef('„wasserkultur“ in der Antwort setzt die Kulturform',
+      w.__T("document.getElementById('f-kultur').value") === 'wasser'
+      && d.getElementById('f-giessart').value === 'wasser');
+    w.__T('alStart()');
+    w.__T("document.getElementById('f-paste').value = 'ART: Fensterblatt\\nBOTANISCH: Monstera deliciosa\\nGIESSART: hydrokultur'; document.getElementById('btn-paste-los').click()");
+    pruef('Hydrokultur in der Antwort wird gelesen',
+      d.getElementById('f-giessart').value === 'hydro');
+    w.__T('alStart()');
+    w.__T("document.getElementById('f-paste').value = 'ART: Fensterblatt\\nBOTANISCH: Monstera deliciosa\\nGIESSART: durchdringend'; document.getElementById('btn-paste-los').click()");
+    pruef('Eine normale Giessart bleibt eine Giessart',
+      d.getElementById('f-giessart').value === 'durch'
+      && w.__T("document.getElementById('f-kultur').value") === 'erde');
+
+    /* Bilder der Anfrage landen in der Fotoauswahl. */
+    w.__T('alStart()');
+    w.__T("KI_BILDER.anlegen = [{mime:'image/jpeg', daten:'QUJD', vorschau:'data:image/jpeg;base64,QUJD'}]");
+    const n1 = w.__T('kiBilderUebernehmen()');
+    pruef('Das Bild der Anfrage wandert in die Fotoauswahl',
+      n1 === 1 && w.__T('AL_FOTOS.length') === 1);
+    pruef('Es ist eine echte Datei', w.__T('AL_FOTOS[0].datei instanceof File') === true);
+    pruef('Zweimal uebernehmen legt es nicht doppelt an',
+      w.__T('kiBilderUebernehmen()') === 0 && w.__T('AL_FOTOS.length') === 1);
+    w.__T('alStufeZeigen(5)');
+    pruef('Es laesst sich wieder herausnehmen',
+      !!d.querySelector('#al-fotos [data-alfoto-weg]'));
+    w.__T("kiBildWeg('anlegen', 0); AL_FOTOS.length = 0; KI_BILDER.anlegen.length = 0");
+
+    /* Ein unlesbares Bild darf das Fenster nicht offen halten. */
+    pruef('Das Bildlesen hat eine Geduldsgrenze', w.__T('BILD_GEDULD') > 0);
+    w.__T("modalZu('anleg-modal')");
+    await tick();
   }
 
   /* ══ Doktor: Pflanzenauswahl als Galerie ═══════════════════════ */

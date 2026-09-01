@@ -4,6 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.0.2 — 1. September 2026
+**Wasserkultur und drei Reparaturen**
+
+### Neu
+- Beim Anlegen kommt zuerst die Frage, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Wasserkultur heißt Wasser wechseln alle 7 bis 10 Tage statt gießen; Hydrokultur heißt Wasserstand halten, alle 10 bis 16 Tage. Beides war intern längst vorgesehen, war beim Anlegen aber nicht erreichbar.
+- Die KI soll die Kulturform am Bild erkennen und meldet sie zurück.
+- Im Wasser verschwinden Gießklasse und Gießart aus dem Formular.
+
+### Behoben
+- Bilder aus der KI-Anfrage liegen anschließend in der Fotoauswahl und lassen sich dort herausnehmen.
+- Ein unlesbares Bild hielt das Anlegen-Fenster offen und ließ die alte Auswahl beim nächsten Öffnen stehen. Das Fenster schließt jetzt, sobald die Pflanze gespeichert ist; nach zwanzig Sekunden gilt ein Bild als unlesbar.
+
+---
+
 ## 3.0.1 — 1. September 2026
 **Anlegen Schritt für Schritt**
 
