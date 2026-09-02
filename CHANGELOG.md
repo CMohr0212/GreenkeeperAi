@@ -4,17 +4,46 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 3.0.2 — 1. September 2026
-**Wasserkultur und drei Reparaturen**
+## 3.2.0 — 1. September 2026
+**Alles Schritt für Schritt, Filter mit Verstand**
 
 ### Neu
-- Beim Anlegen kommt zuerst die Frage, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Wasserkultur heißt Wasser wechseln alle 7 bis 10 Tage statt gießen; Hydrokultur heißt Wasserstand halten, alle 10 bis 16 Tage. Beides war intern längst vorgesehen, war beim Anlegen aber nicht erreichbar.
+- Substratrechner in vier Stufen: Pflanze, Topf, Vorrat, Mischung. Topfform über Knöpfe mit Zeichnung statt Karussell.
+- Umtopfen hat eine eigene Substrat-Stufe; Pflanze, Topfgröße und Form kommen von oben.
+- Vermehren als Assistent mit Kachelgitter, kompakten Wegkacheln und bis zu zehn Ablegern, jeder mit Namen und Bild.
+- Filter in einem eigenen Fenster: sortieren nach Fälligkeit, Name, Zugang oder letztem Gießen; filtern nach neun Zuständen.
+- Gruppieren nach Gattung, Familie, Typ, Zustand, Fälligkeit und Abstammung.
+- Aktive Filter als Marken über der Sammlung, zum Wegtippen.
+- Notizen getrennt: eigene Notiz oben, Befunde als datierte Liste darunter.
+
+### Besser
+- Alle Assistenten benutzen dieselben Bausteine.
+- Auf der Karte steht der Verlauf vor den Eintrageknöpfen.
+- Der rote Warnkasten wiederholt sich nicht mehr, wenn der eigene Hinweis dieselbe Regel abdeckt.
+
+### Behoben
+- Fotos hinzufügen und Bilder vergrößern gingen in der Kartenansicht gar nicht.
+- Ein Befund konnte sich über den Rohtext-Weg in den Notizen verdoppeln.
+- Die Werkzeugkachel oben rechts saß zu hoch.
+
+---
+
+## 3.1.0 — 1. September 2026
+**Auswahl mit Bildern, Wasserkultur, weniger Fehlversuche**
+
+### Neu
+- Pflanzenwahl im Doktor und beim Umtopfen als Gitter mit Bildkacheln: zwei Spalten, Suchfeld darüber, Name und botanischer Name auf der Kachel. Das Auswahlfeld beim Umtopfen und die enge Liste im Doktor sind weg.
+- Beim Anlegen kommt zuerst die Frage, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Wasserkultur heißt Wasser wechseln alle 7 bis 10 Tage, Hydrokultur Wasserstand halten alle 10 bis 16 Tage. Beides war intern längst vorgesehen, war beim Anlegen aber nicht erreichbar.
 - Die KI soll die Kulturform am Bild erkennen und meldet sie zurück.
-- Im Wasser verschwinden Gießklasse und Gießart aus dem Formular.
+- Bei „überlastet“ fragt die App nach 2 und nach 6 Sekunden noch einmal nach und weicht danach auf das nächstältere Modell aus — nie auf eine Lite-Variante, nie mehr als eine Generation zurück, höchstens zwei Schritte.
+- Ein überlastetes Modell wird zehn Minuten lang übersprungen. Der Wartezustand sagt, was gerade passiert.
 
 ### Behoben
 - Bilder aus der KI-Anfrage liegen anschließend in der Fotoauswahl und lassen sich dort herausnehmen.
 - Ein unlesbares Bild hielt das Anlegen-Fenster offen und ließ die alte Auswahl beim nächsten Öffnen stehen. Das Fenster schließt jetzt, sobald die Pflanze gespeichert ist; nach zwanzig Sekunden gilt ein Bild als unlesbar.
+- Lange botanische Namen liefen in der Auswahlliste ineinander.
+- Ein abgelehnter Schlüssel (400) wird nicht mehr wiederholt.
+- Hinweis in den Einstellungen, dass das neueste Modell meist auch das vollste ist.
 
 ---
 

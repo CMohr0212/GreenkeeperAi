@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.0.2', w.__T('FASSUNG') === '3.0.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.0', w.__T('FASSUNG') === '3.2.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1594,13 +1594,15 @@ setTimeout(async () => {
     w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST'); kiModusZeigen()");
 
     /* --- Modellwahl steht an allen drei Stellen --- */
-    pruef('Drei Modellauswahlen: Einstellungen, Anlegen, Doktor',
-      d.querySelectorAll('.ki-modell-wahl').length === 3,
+    /* Vier: Einstellungen, Anlegen, Doktor, Vermehren. Ein Wert,
+       vier Anzeigen. */
+    pruef('Vier Modellauswahlen',
+      d.querySelectorAll('.ki-modell-wahl').length === 4,
       String(d.querySelectorAll('.ki-modell-wahl').length));
     w.__T('kiModellZeichnen()');
     const wahlen = [...d.querySelectorAll('.ki-modell-wahl')];
     pruef('Alle Auswahlen zeigen dieselbe Liste',
-      wahlen.every(x => x.options.length === 3));
+      wahlen.length === 4 && wahlen.every(x => x.options.length === 3));
     pruef('Das Empfohlene trägt ein Häkchen',
       wahlen[0].options[0].textContent.indexOf('\u2713') > -1, wahlen[0].options[0].textContent);
     pruef('Das Abzeichen steht am empfohlenen Modell',
@@ -1822,6 +1824,193 @@ setTimeout(async () => {
     await tick();
   }
 
+  /* ══ 503: nachfassen und ausweichen ════════════════════════════
+     Ein 503 heisst, dass Google die Rechenleistung ausgeht — nicht,
+     dass der Schluessel falsch waere oder die Bilder zu gross. Vorher
+     abfragen laesst sich das nicht, also wird es abgefangen. */
+  {
+    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST')");
+    w.__T(`S.kiModelle = [
+      {id:'models/gemini-3.6-flash', anzeige:'3.6 Flash', empfohlen:true},
+      {id:'models/gemini-3.5-flash', anzeige:'3.5 Flash'},
+      {id:'models/gemini-3-flash', anzeige:'3 Flash'},
+      {id:'models/gemini-3-flash-lite', anzeige:'3 Flash Lite'},
+      {id:'models/gemini-2.5-flash', anzeige:'2.5 Flash'}];
+      S.kiModell = 'models/gemini-3.6-flash'`);
+    w.__T('KI_NACHFASSEN[0] = 5; KI_NACHFASSEN[1] = 5');
+
+    const kette = () => w.__T("kiAusweichModelle('models/gemini-3.6-flash').map(m=>m.anzeige)");
+    pruef('Ausgewichen wird auf das naechstaeltere, nicht auf irgendein altes',
+      JSON.stringify(kette()) === '["3.5 Flash","3 Flash"]', JSON.stringify(kette()));
+    pruef('Auf eine Lite-Variante nie',
+      kette().every(x => !/Lite/.test(x)));
+    pruef('Nie mehr als eine Generation zurueck',
+      kette().every(x => !/2\.5/.test(x)));
+    pruef('Hoechstens zwei Schritte', kette().length <= 2);
+
+    /* Kurze Lastspitze: dasselbe Modell, dritter Versuch klappt. */
+    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
+      return window.__n < 3
+        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
+        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
+    }`);
+    const r1 = await w.__T("kiFragenHartnaeckig('x', [])");
+    pruef('Bei 503 wird zweimal nachgefasst', w.__T('window.__n') === 3);
+    pruef('Dafuer braucht es keinen Modellwechsel',
+      r1.gewechselt === false && r1.modell.id === 'models/gemini-3.6-flash');
+    pruef('Die Antwort kommt trotzdem an', r1.text === 'ART: Efeutute');
+
+    /* Bleibt es voll, uebernimmt das naechste Modell. */
+    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
+    w.__T(`window.__n = 0; window.fetch = (u) => { window.__n++;
+      return String(u).indexOf('3.6-flash') > -1
+        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
+        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
+    }`);
+    const r2 = await w.__T("kiFragenHartnaeckig('x', [])");
+    pruef('Bleibt es voll, antwortet das naechste Modell',
+      r2.gewechselt === true && r2.modell.anzeige === '3.5 Flash');
+    pruef('Ein volles Modell wird gemerkt',
+      w.__T("kiIstUeberlastet('models/gemini-3.6-flash')") === true);
+    pruef('Ein freies Modell wird nicht gemerkt',
+      w.__T("kiIstUeberlastet('models/gemini-3.5-flash')") === false);
+
+    /* Ein 400 wird durch Warten nicht besser. */
+    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
+    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
+      return Promise.resolve({ok:false, status:400, json:()=>Promise.resolve({error:{message:'bad key'}})}); }`);
+    let f400 = '';
+    try{ await w.__T("kiFragenHartnaeckig('x', [])"); }catch(e){ f400 = String(e.message || e); }
+    pruef('Ein 400 wird kein zweites Mal versucht', w.__T('window.__n') === 1);
+    pruef('Und meldet weiterhin den Schluessel', /Schl/.test(f400), f400);
+
+    /* Ist alles voll, sagt die Meldung auch das. */
+    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
+    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
+      return Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})}); }`);
+    let voll = '';
+    try{ await w.__T("kiFragenHartnaeckig('x', [])"); }catch(e){ voll = String(e.message || e); }
+    pruef('Drei Modelle mal drei Versuche', w.__T('window.__n') === 9, String(w.__T('window.__n')));
+    pruef('Die Meldung nennt die Ausweichversuche',
+      /Ausweichmodelle/.test(voll), voll.slice(-60));
+
+    w.__T("kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null");
+    w.__T("window.fetch = () => Promise.reject(new Error('offline'))");
+  }
+
+  /* ══ Filterblatt, Karte, Notizen ═══════════════════════════════ */
+  {
+    /* Die Leiste wuchs mit jedem Filter. Jetzt ein eigenes Fenster. */
+    pruef('Das Filterblatt ist ein eigenes Fenster',
+      !!d.getElementById('filter-modal')
+      && d.getElementById('filter-modal').classList.contains('sekm'));
+    pruef('Gruppieren und Filter sind aus der Leiste raus',
+      !d.querySelector('#ctrl-klapp #gruppen') && !d.querySelector('#ctrl-klapp .chip'));
+    pruef('Es gibt eine Markenzeile', !!d.getElementById('filter-marken'));
+
+    w.__T('window.__sicher = JSON.stringify(S.eigene)');
+    w.__T(`S.eigene = [
+      {id:'fa', name:'Rudi', art:'Efeutute', botanisch:'Epipremnum aureum', klasse:'B'},
+      {id:'fb', name:'Bego1', art:'Begonie', botanisch:'Begonia maculata', klasse:'B'},
+      {id:'fc', name:'Bego2', art:'Begonie', botanisch:'Begonia rex', klasse:'A'},
+      {id:'fd', name:'Kind', art:'Efeutute', botanisch:'Epipremnum aureum', klasse:'B', eltern:'fa'}
+    ]; sichern(); gruppierung = 'keine'; filterZustand.clear(); sortierung = 'faellig'; render()`);
+    const karten = () => d.querySelectorAll('#out .card').length;
+    pruef('Alle vier stehen da', karten() === 4, String(karten()));
+
+    /* Gruppieren nach Gattung: der erste Teil des botanischen Namens. */
+    w.__T("gruppierung = 'gattung'; render()");
+    const gr = () => [].map.call(d.querySelectorAll('.group-title'), x=>x.textContent);
+    pruef('Alle Begonien stehen zusammen',
+      gr().indexOf('Begonia') > -1 && gr().indexOf('Epipremnum') > -1, gr().join('|'));
+    w.__T("S.eigene.push({id:'fe', name:'Namenlos', art:'Unbekannt'}); render()");
+    pruef('Ohne botanischen Namen gibt es eine eigene Gruppe',
+      gr().indexOf('Ohne botanischen Namen') > -1, gr().join('|'));
+    w.__T("S.eigene = S.eigene.filter(p=>p.id !== 'fe')");
+
+    /* Abstammung: die Mutter steht bei ihren Ablegern. */
+    w.__T("gruppierung = 'abstammung'; render()");
+    pruef('Ableger stehen unter ihrer Mutter', gr().indexOf('Aus Rudi') > -1, gr().join('|'));
+
+    /* Zustandsfilter, mehrfach waehlbar. */
+    w.__T("gruppierung = 'keine'; filterZustand.add('steckling'); render()");
+    pruef('Der Ablegerfilter greift', karten() === 1, String(karten()));
+    pruef('Der aktive Filter steht als Marke da',
+      d.querySelectorAll('.filter-marke').length === 1);
+    pruef('Der Knopf zaehlt ihn mit',
+      !!d.querySelector('#btn-ctrl-auf .ctrl-zahl'));
+    w.__T("filterZustand.add('gesund'); render()");
+    pruef('Zwei Zustaende heissen „eines von beiden“', karten() === 4, String(karten()));
+    d.querySelectorAll('.filter-marke')[0].click();
+    await tick();
+    pruef('Eine Marke laesst sich wegtippen',
+      w.__T('filterZustand.size') === 1);
+
+    /* Sortieren. */
+    w.__T("filterZustand.clear(); sortierung = 'name'; render()");
+    const ersteId = w.__T("_karteListe[0]");
+    pruef('Alphabetisch steht Bego1 vorn', ersteId === 'fb', String(ersteId));
+    w.__T("sortierung = 'faellig'; render()");
+
+    /* Zuruecksetzen raeumt alles ab. */
+    w.__T("filterZustand.add('ueber'); filterKlasse = 'A'; filterZuruecksetzen()");
+    pruef('Zuruecksetzen leert alle Filter',
+      w.__T('filterZahl()') === 0 && w.__T("sortierung") === 'faellig');
+
+    /* Das Blatt fuellt sich beim Oeffnen. */
+    w.__T('filterKnoepfeZeichnen()');
+    pruef('Neun Zustaende zur Wahl',
+      d.querySelectorAll('#filter-zustand .as-knopf').length === 9,
+      String(d.querySelectorAll('#filter-zustand .as-knopf').length));
+    pruef('Elf Gruppierungen zur Wahl',
+      d.querySelectorAll('#filter-gruppen .as-knopf').length === 11,
+      String(d.querySelectorAll('#filter-gruppen .as-knopf').length));
+    pruef('Vier Sortierungen zur Wahl',
+      d.querySelectorAll('#filter-sort .as-knopf').length === 4);
+
+    /* ── Karte unten ── */
+    pruef('Eintragen sitzt unter dem Verlauf',
+      w.__T("statusHTML({id:'fa'})").indexOf('stat-liste')
+        < w.__T("statusHTML({id:'fa'})").indexOf('stat-auf'));
+
+    /* Der rote Kasten sagte bei Karnivoren zweimal dasselbe. */
+    const karni = {id:'k1', name:'Vivi', art:'Venusfliegenfalle',
+                   botanisch:'Dionaea muscipula', klasse:'S'};
+    const wOhne = w.__T('warnungenHTML(' + JSON.stringify(karni) + ')');
+    const wDeckt = w.__T('warnungenHTML(' + JSON.stringify(Object.assign({}, karni,
+      {wichtig:'Ausschließlich kalkfreies Wasser wie Regenwasser und niemals düngen.'})) + ')');
+    const wFremd = w.__T('warnungenHTML(' + JSON.stringify(Object.assign({}, karni,
+      {wichtig:'Steht auf dem Balkon.'})) + ')');
+    pruef('Ohne eigenen Text steht die Regel da', /Leitungswasser/.test(wOhne));
+    pruef('Ein eigener Text, der dasselbe sagt, ersetzt die Regel',
+      !/Leitungswasser/.test(wDeckt) && /Wichtig/.test(wDeckt));
+    /* Wichtig: „Balkon“ darf die Warnung nicht abraeumen — sie haelt
+       die Pflanze am Leben. */
+    pruef('Ein eigener Text ueber etwas anderes laesst die Regel stehen',
+      /Leitungswasser/.test(wFremd) && /Wichtig/.test(wFremd));
+
+    /* ── Notizen ── */
+    const nt = w.__T("notizTrennen('Steht am Ostfenster.\\n\\nBefund vom 22.8.2026: Nadeln trocken.\\n\\nBefund vom 23.8.2026: Wassermangel.')");
+    pruef('Die eigene Notiz bleibt fuer sich', nt.eigen === 'Steht am Ostfenster.', nt.eigen);
+    pruef('Zwei Befunde werden erkannt', nt.befunde.length === 2);
+    pruef('Der Befund traegt sein Datum', nt.befunde[0].datum === '22.8.2026', nt.befunde[0].datum);
+    const nur = w.__T("notizTrennen('Nur eine eigene Notiz.')");
+    pruef('Ohne Befund bleibt alles eigene Notiz',
+      nur.eigen === 'Nur eine eigene Notiz.' && nur.befunde.length === 0);
+    const html = w.__T("notizenHTML({id:'fa', notiz:'Meins.\\n\\nBefund vom 1.1.2026: A.\\n\\nBefund vom 2.1.2026: B.\\n\\nBefund vom 3.1.2026: C.\\n\\nBefund vom 4.1.2026: D.'})");
+    pruef('Drei Befunde stehen offen, der Rest hinter einem Aufklapper',
+      /bef-mehr/.test(html) && /1 ältere anzeigen/.test(html), html.slice(-90));
+    pruef('Der neueste Befund steht oben',
+      html.indexOf('4.1.2026') < html.indexOf('3.1.2026'));
+    pruef('Jeder Befund laesst sich einzeln loeschen',
+      (html.match(/data-do="befund-weg"/g) || []).length === 4);
+
+    /* Der Bestand von vorher kommt zurueck: die Pruefungen danach
+       rechnen mit ihren eigenen Pflanzen. */
+    w.__T("S.eigene = JSON.parse(window.__sicher); sichern();"
+      + " gruppierung = 'raum'; sortierung = 'faellig'; filterZustand.clear(); render()");
+  }
+
   /* ══ Doktor: Pflanzenauswahl als Galerie ═══════════════════════ */
   {
     pruef('Das Auswahlfeld ist weg', !d.getElementById('dok-pflanze'));
@@ -1832,9 +2021,14 @@ setTimeout(async () => {
     pruef('Die Sammlung steht als Zeilen da', zeilen() > 1, String(zeilen()));
     pruef('„Keine bestimmte Pflanze“ steht mit drin',
       !!d.querySelector('#dok-liste [data-dokp=""]'));
-    pruef('Jede Zeile hat Bildfeld und Text',
-      !!d.querySelector('#dok-liste .sb-linie-bild')
-      && !!d.querySelector('#dok-liste .sb-linie-txt b'));
+    pruef('Jede Kachel hat Bildfeld und Namen',
+      !!d.querySelector('#dok-liste .pwahl-bild')
+      && !!d.querySelector('#dok-liste .pwahl-txt b'));
+    pruef('Auf der Kachel steht der botanische Name als Zweitzeile',
+      !!d.querySelector('#dok-liste .pwahl-txt i'));
+    pruef('Zwei Spalten, kein Listenmuster mehr',
+      !d.querySelector('#dok-liste .sb-linie')
+      && d.getElementById('dok-liste').classList.contains('pwahl-gitter'));
 
     const ersteId = d.querySelector('#dok-liste [data-dokp]:not([data-dokp=""])').dataset.dokp;
     w.__T("dokPflanzeSetzen('" + ersteId + "')");
@@ -2128,11 +2322,19 @@ setTimeout(async () => {
     pruef('Umtopfen ist ein Werkzeug', !!w.__T("sekAbschnitt('umtopfen')"));
     pruef('Es hat eine Kachel',
       !!d.querySelector('.kachelgitter section[data-wz="umtopfen"] .wz-ikon svg'));
-    pruef('F\u00fcnf Stufen', d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length === 5);
-    pruef('Fortschritt hat f\u00fcnf Marken',
-      d.querySelectorAll('#ut-fortschritt li').length === 5);
-    pruef('Pflanzenliste ist gef\u00fcllt',
-      d.querySelectorAll('#ut-pflanze option').length > 0);
+    /* Seit 3.1.0 sechs: die Substratmischung steht zwischen Topf und
+       Stecklingen, statt in ein anderes Werkzeug zu verweisen. */
+    pruef('Sechs Stufen', d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length === 6,
+      String(d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length));
+    pruef('Fortschritt hat sechs Marken',
+      d.querySelectorAll('#ut-fortschritt li').length === 6);
+    pruef('Der Sprung in den Substratmischer ist ersetzt',
+      !d.getElementById('ut-zum-substrat') && !!d.getElementById('ut-sub-mischung'));
+    pruef('Die Pflanzenwahl ist ein Kachelgitter, kein Auswahlfeld',
+      !d.getElementById('ut-pflanze') && !!d.getElementById('ut-gitter'));
+    pruef('Das Gitter ist gef\u00fcllt',
+      d.querySelectorAll('#ut-gitter [data-utp]').length > 0,
+      String(d.querySelectorAll('#ut-gitter [data-utp]').length));
     pruef('Gr\u00fcnde stehen zur Wahl',
       d.querySelectorAll('[data-ut-grund]').length === 6,
       String(d.querySelectorAll('[data-ut-grund]').length));
@@ -2245,8 +2447,9 @@ setTimeout(async () => {
     pruef('Die Pflanze steht auf der Liste',
       w.__T(`umtopfVorgemerkt().some(x=>x.id==='${pid3}')`));
     w.__T('utAufbauen()');
-    pruef('Vorgemerkte stehen in eigener Gruppe',
-      !!d.querySelector('#ut-pflanze optgroup[label="Vorgemerkt"]'));
+    pruef('Vorgemerkte stehen vorn und tragen eine Marke',
+      d.querySelector('#ut-gitter [data-utp]').getAttribute('data-utp') === pid3
+      && !!d.querySelector('#ut-gitter [data-utp] .pwahl-marke'));
     pruef('Der Assistent startet bei einer vorgemerkten Pflanze',
       w.__T('UT.pflanze') === pid3, String(w.__T('UT.pflanze')));
     pruef('Der Grund steht in der Lagezeile',
@@ -2590,10 +2793,25 @@ setTimeout(async () => {
   d.documentElement.setAttribute('data-design', 'botanisch');
 
   /* — Werkzeugkacheln — */
+  /* Die Hoehe haengt nicht mehr an einer Kette aus height:100% ueber
+     drei Ebenen. Prozenthoehen brauchen eine aufgeloeste Elternhoehe;
+     bei einem gestreckten Gitterfeld ist die je nach Zeitpunkt noch
+     auto, und dann sackte eine einzelne Kachel auf Inhaltshoehe
+     zusammen und sass durch align-content:center zu hoch. */
   pruef('Kachelabschnitt streckt sich',
-    /\.kachelgitter section\[data-wz\]\{[^}]*height:100%/.test(stil3));
+    /\.kachelgitter section\[data-wz\]\{[^}]*align-self:stretch/.test(stil3));
   pruef('Kachelknopf streckt sich mit',
-    stil3.indexOf('.kachelgitter .wz-kopfzeile{height:100%}') !== -1);
+    /\.kachelgitter \.wz-kopfzeile\{[^}]*flex:1 1 auto/.test(stil3)
+    && /\.kachelgitter \.wz-kopf\{[^}]*flex:1 1 auto/.test(stil3));
+  pruef('Keine Prozenthoehen mehr in der Kachelkette',
+    !/\.kachelgitter [^{]*\{[^}]*height:100%/.test(stil3));
+  pruef('Das Gitter streckt seine Felder',
+    /\.kachelgitter\{[^}]*align-items:stretch/.test(stil3));
+  /* Vier Zeilen: Symbol, Name, Unterzeile, das Wort „Öffnen“. Mit
+     dreien landete die vierte in einer stillschweigend erzeugten
+     Zeile und der Abstand stimmte nur zufaellig. */
+  pruef('Die Kachel hat eine Zeile je Bestandteil',
+    /grid-template-rows:var\(--wz-ikon-h,46px\) auto auto auto/.test(stil3));
 
   /* — Mehr als Menü — */
   const mh = Array.prototype.slice.call(d.querySelectorAll('section[data-mh]'));

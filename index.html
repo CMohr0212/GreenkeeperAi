@@ -1006,13 +1006,21 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
    zerfallen. Sechs Werkzeuge, zwei Spalten, drei Reihen: das fuellt
    die Seite und jede Kachel ist gross genug fuer ein Symbol. */
 .kachelgitter{display:grid;grid-template-columns:repeat(2,1fr);
-  grid-auto-rows:1fr;gap:12px;margin:0 0 22px}
+  grid-auto-rows:1fr;align-items:stretch;gap:12px;margin:0 0 22px}
 .kachelgitter.ans-aus{display:none}
 /* Die Kachel ist der Abschnitt, der Knopf steckt zwei Ebenen tiefer.
    grid-auto-rows:1fr streckt nur den Abschnitt — ohne diese beiden
    Hoehen blieb der Knopf auf seiner Inhaltshoehe und „Raeume und
    Grundriss" mit zwei Zeilen Text ragte ueber die anderen hinaus. */
-.kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none;height:100%}
+/* Fruehe Fassungen haengten die Kachelhoehe an eine Kette aus
+   height:100% ueber drei Ebenen. Prozenthoehen brauchen eine
+   aufgeloeste Hoehe des Elternteils; bei einem gestreckten Gitterfeld
+   ist die je nach Zeitpunkt noch auto, und dann faellt der Knopf auf
+   seine Inhaltshoehe zurueck. Weil der Inhalt in der Kachel
+   mittig sitzt, sah eine einzelne Kachel dann kleiner und nach oben
+   verschoben aus. Mit flex braucht es keine Prozentangabe. */
+.kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none;
+  display:flex;align-self:stretch;min-width:0}
 /* Über das Gießcenter erreichbar, darum keine eigene Kachel. Der
    Abschnitt bleibt im Dokument — sektionOeffnen braucht ihn. */
 .wz-still{display:none!important}
@@ -1162,9 +1170,8 @@ html[data-design="klartext"] .sb-knoten-txt b{font-size:var(--t-s)}
   line-height:1.5}
 html[data-design="klartext"] .sb-schritt-text,
 html[data-design="klartext"] .sb-schritt-datum{font-size:var(--t-md);color:var(--schrift)}
-.kachelgitter .wz-kopfzeile{height:100%}
 .kachelgitter .wz-h2,.kachelgitter .wz-i{display:none}
-.kachelgitter .wz-kopfzeile{display:block;margin:0;border:0;padding:0}
+.kachelgitter .wz-kopfzeile{display:flex;flex:1 1 auto;margin:0;border:0;padding:0;min-width:0}
 /* Drei feste Zeilen statt Fluss: Symbol, Titel, Unterzeile. Vorher
    bestimmte die Textlaenge die Hoehe — „Räume und Grundriss" mit zwei
    Zeilen machte seine Kachel hoeher als „Substrat", und die Symbole
@@ -1173,9 +1180,9 @@ html[data-design="klartext"] .sb-schritt-datum{font-size:var(--t-md);color:var(-
    Die Hoehe waechst mit dem Schirm: clamp haelt sie zwischen 150 und
    200 px, dazwischen folgt sie der Fensterbreite. */
 .kachelgitter .wz-kopf{display:grid;
-  grid-template-rows:var(--wz-ikon-h,46px) auto auto;
+  grid-template-rows:var(--wz-ikon-h,46px) auto auto auto;
   justify-items:center;align-content:center;gap:4px;
-  width:100%;height:100%;min-height:clamp(150px,42vw,200px);
+  flex:1 1 auto;width:100%;min-width:0;min-height:clamp(150px,42vw,200px);
   padding:18px 10px;text-align:center;cursor:pointer;font:inherit;
   background:var(--fl-karte);color:var(--ink);
   border:1px solid var(--line);border-radius:var(--r-mittel);
@@ -1314,21 +1321,117 @@ html[data-design="klartext"] .ein-zeile{border-bottom-width:2px}
    Haken darueber steuert. */
 .ein-wahl.aus{opacity:.45;pointer-events:none}
 
+/* Eigene Notiz und Befunde getrennt: das eine ist deins, das andere
+   ist Maschinenausgabe mit Datum. */
+.notiz-eigen{margin:0 0 4px;line-height:1.55}
+.notiz-leer{margin:0 0 4px;font-size:var(--t-s);color:var(--schrift-2)}
+.notiz-uber{display:flex;align-items:center;gap:8px;margin:14px 0 6px;
+  font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.09em;
+  text-transform:uppercase;color:var(--schrift-2)}
+.notiz-n{padding:1px 7px;border-radius:999px;border:1px solid var(--linie);
+  letter-spacing:0;font-size:var(--t-xs)}
+.bef-liste{list-style:none;margin:0;padding:0}
+.bef-liste li{position:relative;padding:9px 26px 9px 0;
+  border-bottom:1px solid var(--linie);font-size:var(--t-s);line-height:1.5}
+.bef-liste li:last-child{border-bottom:0}
+.bef-d{display:block;font-family:var(--f-data);font-size:var(--t-xs);
+  color:var(--schrift-2);margin-bottom:2px}
+.bef-t{display:block}
+.bef-liste .linkbtn{position:absolute;top:8px;right:0;padding:0 4px}
+.bef-mehr>summary{font-size:var(--t-s);color:var(--water);cursor:pointer;padding:6px 0}
+
+/* Eintragen sitzt jetzt unter dem Verlauf, nicht darüber. */
+.stat-auf{margin-top:12px;border-top:1px solid var(--linie);padding-top:9px}
+.stat-auf>summary{font-size:var(--t-s);color:var(--water);cursor:pointer;padding:2px 0}
+.stat-auf .stat-chips{margin-top:9px}
+.ab-zeile.schmal{margin:0 0 6px;font-size:var(--t-s);line-height:1.5}
+
+/* ── Aktive Filter als Marken ──────────────────────────────
+   Die Leiste wuchs mit jedem neuen Filter. Jetzt steht alles in einem
+   eigenen Fenster, und in der Seite bleibt nur, was gerade greift —
+   zum Wegtippen, ohne das Fenster zu oeffnen. */
+.filter-marken{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.filter-marken:empty{display:none}
+.filter-marke{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;
+  border-radius:999px;border:1px solid var(--fl-akzent);background:transparent;
+  color:var(--schrift);font:inherit;font-size:var(--t-xs);cursor:pointer}
+.filter-marke::after{content:'×';font-size:14px;line-height:1;opacity:.7}
+html[data-design="klartext"] .filter-marke{font-size:var(--t-s);border-width:2px}
+
+/* ── Vermehren: Wege und Ableger ───────────────────────────
+   Die Wege standen als sieben aufgeklappte Karten untereinander, jede
+   mit Anleitung und Fehlerliste. Man waehlte eine Pflanze und bekam
+   eine Wand. Jetzt eine Kachel je Weg mit den drei Zahlen, die die
+   Wahl entscheiden; die Anleitung erscheint erst darunter. */
+.ver-k{display:block;width:100%;text-align:left;padding:12px 13px;margin-bottom:8px;
+  cursor:pointer;border:1px solid var(--linie);border-radius:var(--r-mittel);
+  background:var(--fl-karte);color:var(--schrift);font:inherit}
+.ver-k[aria-pressed="true"]{border-color:var(--fl-akzent);
+  box-shadow:inset 0 0 0 2px var(--fl-akzent)}
+.ver-k-kopf{display:flex;align-items:center;gap:9px;justify-content:space-between}
+.ver-k-kopf b{font-family:var(--f-display);font-size:var(--t-l);font-weight:600;min-width:0}
+.ver-k-fakten{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;
+  font-size:var(--t-xs);color:var(--schrift-2)}
+.ver-k-fakten b{color:var(--schrift);font-weight:600}
+.ver-k-fakten .warn{color:var(--warnung,var(--terra))}
+.ver-k-kurz{display:block;margin-top:5px;font-size:var(--t-s);
+  color:var(--schrift-2);line-height:1.45}
+.verki-kurz{padding:11px 12px;border:1px solid var(--linie);border-radius:var(--r-mittel);
+  background:var(--fl-karte);margin-bottom:14px}
+.verki-kurz h4{margin:0 0 6px;font-family:var(--f-display);font-size:var(--t-m);font-weight:600}
+.verki-kurz ul{margin:0;padding-left:18px;font-size:var(--t-s);line-height:1.5}
+.verki-kurz .verki-quelle{margin:8px 0 0;font-size:var(--t-xs);color:var(--schrift-2);line-height:1.45}
+.ver-zahl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.ver-z{width:42px;min-height:var(--tap);border:1px solid var(--linie);
+  border-radius:var(--r-klein);background:transparent;color:var(--schrift);
+  font:inherit;font-weight:600;cursor:pointer}
+.ver-z[aria-pressed="true"]{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:transparent}
+.ver-abl{position:relative;display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.ver-abl-bild{flex:0 0 auto;width:56px;height:56px;display:flex;align-items:center;
+  justify-content:center;overflow:hidden;cursor:pointer;font-size:21px;color:var(--water);
+  border:1px dashed var(--linie);border-radius:var(--r-klein)}
+.ver-abl-bild.voll{border-style:solid}
+.ver-abl-bild img{width:100%;height:100%;object-fit:cover;display:block}
+.ver-abl-name{flex:1;min-width:0;font:inherit;font-size:var(--t-m);padding:10px 11px;
+  border:1px solid var(--linie);border-radius:var(--r-klein);
+  background:var(--fl-karte);color:var(--schrift)}
+.ver-abl-weg{position:absolute;left:40px;top:-2px;width:20px;height:20px;padding:0;
+  border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;
+  font-size:12px;line-height:20px;cursor:pointer}
+html[data-design="klartext"] .ver-k{border-width:2px}
+
 /* ── Anlegen-Assistent ─────────────────────────────────────
    Vorher ein Formblatt mit fünfzehn Feldern am Stück, das unten an
    der Sammlung hing und die Seite endlos machte. Jetzt ein eigenes
    Fenster mit fünf Stufen — dasselbe Muster wie der Umtopf-Assistent,
    damit die App nicht zwei Arten hat, eine Sache Schritt für Schritt
    zu erledigen. */
-.al-fenster{display:flex;flex-direction:column}
-.al-fortschritt{display:flex;gap:5px;list-style:none;margin:0;padding:10px var(--rand) 0}
-.al-fortschritt li{flex:1;height:4px;border-radius:2px;background:var(--linie)}
-.al-fortschritt li.jetzt{background:var(--fl-akzent)}
-.al-fortschritt li.fertig{background:var(--sicher)}
-.al-stufe{display:none}
-.al-stufe.an{display:block}
-.al-frage{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-xl);font-weight:600}
-.al-unter{margin:0 0 16px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.5}
+/* ── Ein Satz Bausteine für alle Assistenten ──────────────────
+   Anlegen, Umtopfen, Vermehren und Substrat stellten dieselbe Frage
+   in drei Gestaltungssprachen: .al-*, .ut-* und beim Substratrechner
+   gar kein Assistentenmuster, sondern ein flaches Formular. Jetzt
+   trägt jeder Baustein einen Namen und eine Regel; die alten Namen
+   stehen als Zweitname daneben, damit bestehendes Markup und alle
+   Prüfungen weiterlaufen. Neue Assistenten schreiben nur .as-*. */
+.al-fenster,.as-fenster{display:flex;flex-direction:column}
+
+.as-fortschritt,.al-fortschritt,.ut-fortschritt{display:flex;gap:5px;list-style:none;
+  margin:0 0 18px;padding:0}
+.as-fortschritt li,.al-fortschritt li,.ut-fortschritt li{flex:1;height:4px;
+  border-radius:2px;background:var(--linie)}
+.as-fortschritt li.jetzt,.al-fortschritt li.jetzt,.ut-fortschritt li.jetzt{background:var(--fl-akzent)}
+.as-fortschritt li.fertig,.al-fortschritt li.fertig,.ut-fortschritt li.fertig{background:var(--sicher)}
+/* Im Vollbildfenster sitzt der Balken unter der Kopfzeile und braucht
+   den Seitenrand, den der Rumpf sonst mitbringt. */
+.al-fenster>.al-fortschritt,.as-fenster>.as-fortschritt{margin:0;padding:10px var(--rand) 0}
+
+.as-stufe,.al-stufe,.ut-stufe{display:none}
+.as-stufe.an,.al-stufe.an,.ut-stufe.an{display:block}
+.as-frage,.al-frage,.ut-frage{margin:0 0 4px;font-family:var(--f-display);
+  font-size:var(--t-xl);font-weight:600}
+.as-unter,.al-unter,.ut-unter{margin:0 0 15px;font-size:var(--t-s);
+  color:var(--schrift-2);line-height:1.5}
 .al-wege{display:flex;flex-direction:column;gap:9px;margin-bottom:6px}
 .al-weg{display:block;width:100%;text-align:left;padding:14px 15px;cursor:pointer;
   border:1px solid var(--linie);border-radius:var(--r-mittel);
@@ -1344,46 +1447,108 @@ html[data-design="klartext"] .ein-zeile{border-bottom-width:2px}
   font-size:var(--t-l);padding:11px 12px;border:1px solid var(--linie);
   border-radius:var(--r-klein);background:var(--fl-karte);color:var(--schrift)}
 .al-feld textarea{min-height:74px;font-size:var(--t-m);line-height:1.5;resize:vertical}
-.al-knoepfe{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.al-knopf{min-height:var(--tap);padding:10px 12px;cursor:pointer;text-align:left;
-  border:1px solid var(--linie);border-radius:var(--r-klein);
-  background:transparent;color:var(--schrift);font:inherit;font-size:var(--t-s)}
-.al-knopf b{display:block;font-weight:600}
-.al-knopf i{display:block;font-style:normal;font-size:var(--t-xs);
-  color:var(--schrift-2);margin-top:2px;line-height:1.35}
-.al-knopf[aria-pressed="true"]{border-color:var(--fl-akzent);
-  box-shadow:inset 0 0 0 1px var(--fl-akzent);font-weight:600}
-.al-knopf[aria-pressed="true"] i{color:var(--schrift)}
-.al-zsf{margin:0 0 16px}
-.al-zsf>div{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--linie);
-  font-size:var(--t-s)}
-.al-zsf dt{flex:0 0 38%;color:var(--schrift-2);margin:0}
-.al-zsf dd{flex:1;margin:0;font-weight:600;overflow-wrap:anywhere}
+.as-knoepfe,.al-knoepfe,.ut-gruende,.ut-formen{display:grid;
+  grid-template-columns:repeat(2,1fr);gap:8px}
+.ut-gruende{margin:0 0 12px}
+.ut-formen{margin:0 0 14px}
+.as-knopf,.al-knopf,.ut-grund,.ut-form{min-height:var(--tap);padding:10px 12px;
+  cursor:pointer;text-align:left;border:1px solid var(--linie);
+  border-radius:var(--r-klein);background:transparent;color:var(--schrift);
+  font:inherit;font-size:var(--t-s)}
+.as-knopf b,.al-knopf b,.ut-grund b,.ut-form b{display:block;font-weight:600}
+.as-knopf i,.al-knopf i,.ut-grund i,.ut-form i{display:block;font-style:normal;
+  font-size:var(--t-xs);color:var(--schrift-2);margin-top:2px;line-height:1.35}
+.as-knopf[aria-pressed="true"],.al-knopf[aria-pressed="true"],
+.ut-grund[aria-pressed="true"],.ut-form[aria-pressed="true"]{
+  border-color:var(--fl-akzent);box-shadow:inset 0 0 0 1px var(--fl-akzent);font-weight:600}
+.as-knopf[aria-pressed="true"] i,.al-knopf[aria-pressed="true"] i,
+.ut-grund[aria-pressed="true"] i,.ut-form[aria-pressed="true"] i{color:var(--schrift)}
+
+/* Ein Knopf mit Zeichnung: Topfformen zeigen ihre Form, statt sie zu
+   beschreiben. Loest das Karussell im Substratrechner ab, das als
+   einziges Bedienelement der App seitwaerts geschoben werden musste. */
+.as-knopf-bild{display:grid;grid-template-columns:34px 1fr;align-items:center;
+  gap:10px;padding:9px 11px}
+.as-knopf-bild svg{width:34px;height:34px;display:block;fill:none;
+  stroke:var(--fl-akzent);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.as-knopf-bild>span{min-width:0}
+
+.as-zsf,.al-zsf,.ut-zsf-liste{margin:0 0 16px}
+.as-zsf>div,.al-zsf>div,.ut-zsf-liste>div{display:flex;gap:12px;padding:9px 0;
+  border-bottom:1px solid var(--linie);font-size:var(--t-s)}
+.as-zsf dt,.al-zsf dt,.ut-zsf-liste dt{flex:0 0 38%;color:var(--schrift-2);margin:0}
+.as-zsf dd,.al-zsf dd,.ut-zsf-liste dd{flex:1;margin:0;font-weight:600;overflow-wrap:anywhere}
 .al-bibzsf{padding:12px 13px;border:1px solid var(--linie);border-radius:var(--r-mittel);
   background:var(--fl-karte);margin-bottom:15px}
 .al-bibzsf h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
 .al-bibzsf .al-zsf>div:last-child{border-bottom:0}
-.al-fuss{flex:0 0 auto;display:flex;gap:8px;padding:9px var(--rand)
-  calc(9px + env(safe-area-inset-bottom));background:var(--fl-karte);
-  border-top:1.5px solid var(--linie-stark)}
-.al-fuss button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
-  border:1px solid var(--linie);background:transparent;color:var(--schrift);
-  font:inherit;cursor:pointer}
-.al-fuss button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);
+.as-fuss,.al-fuss,.ut-fuss{display:flex;gap:8px;margin-top:18px}
+/* Im Vollbildfenster klebt die Fusszeile unten und traegt den Rand
+   des Geraets mit; im Aufklapper laeuft sie einfach mit. */
+.al-fenster>.al-fuss,.as-fenster>.as-fuss{flex:0 0 auto;margin-top:0;
+  padding:9px var(--rand) calc(9px + env(safe-area-inset-bottom));
+  background:var(--fl-karte);border-top:1.5px solid var(--linie-stark)}
+.as-fuss button,.al-fuss button,.ut-fuss button{flex:1;min-height:var(--tap);
+  border-radius:var(--r-klein);border:1px solid var(--linie);background:transparent;
+  color:var(--schrift);font:inherit;cursor:pointer}
+.as-fuss button.haupt,.al-fuss button.haupt,.ut-fuss button.haupt{
+  background:var(--fl-akzent);color:var(--schrift-invers);
   border-color:transparent;font-weight:600}
+.as-fuss button:disabled,.al-fuss button:disabled{opacity:.45;cursor:default}
+html[data-design="klartext"] .as-knoepfe,
 html[data-design="klartext"] .al-knoepfe{grid-template-columns:1fr}
+html[data-design="klartext"] .as-knopf,
 html[data-design="klartext"] .al-knopf,
 html[data-design="klartext"] .al-weg{border-width:2px;font-size:var(--t-md)}
 html[data-design="klartext"] .al-zsf>div{font-size:var(--t-md);border-bottom-width:2px}
+
+/* ── Pflanzenauswahl als Kachelgitter ──────────────────────
+   Erst ein Auswahlfeld, dann eine Liste — beides falsch. Das Feld
+   verlangte, den Namen zu kennen; die Liste war eng, und lange
+   botanische Namen brachen in die nächste Zeile und liefen ineinander.
+   Zwei Spalten mit Bild, Name und botanischem Namen: mehr braucht die
+   Wahl nicht, und man erkennt die Pflanze am Bild statt am Wort. */
+.pwahl{margin-top:4px}
+.pwahl-gitter{display:grid;grid-template-columns:1fr 1fr;gap:9px;
+  max-height:min(58vh,420px);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:2px 2px 4px}
+.pwahl-k{position:relative;display:flex;flex-direction:column;gap:0;padding:0;
+  overflow:hidden;text-align:left;cursor:pointer;
+  border:1px solid var(--linie);border-radius:var(--r-mittel);
+  background:var(--fl-karte);color:var(--schrift);font:inherit}
+.pwahl-k[aria-pressed="true"]{border-color:var(--fl-akzent);
+  box-shadow:inset 0 0 0 2px var(--fl-akzent)}
+.pwahl-bild{display:block;width:100%;aspect-ratio:4/3;overflow:hidden;
+  background:var(--fl-bildleer);flex:0 0 auto}
+.pwahl-bild img{width:100%;height:100%;object-fit:cover;display:block}
+.pwahl-leer{display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;font-size:24px;opacity:.4}
+.pwahl-txt{display:block;padding:8px 9px 10px;min-width:0}
+/* Zwei Zeilen, dann Auslassungspunkte. Ohne die Klammer schob ein
+   langer botanischer Name die Kachel auseinander. */
+.pwahl-txt b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;font-size:var(--t-m);font-weight:600;line-height:1.3;
+  overflow-wrap:anywhere;hyphens:auto}
+.pwahl-txt i{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;font-style:italic;font-size:var(--t-xs);color:var(--schrift-2);
+  line-height:1.35;margin-top:3px;overflow-wrap:anywhere;hyphens:auto}
+.pwahl-marke{position:absolute;top:6px;left:6px;padding:2px 7px;border-radius:999px;
+  font-size:var(--t-xs);font-weight:600;background:var(--fl-akzent);
+  color:var(--schrift-invers)}
+.pwahl-leertext{grid-column:1/-1;padding:18px 4px;text-align:center;
+  font-size:var(--t-s);color:var(--schrift-2);line-height:1.55}
+.pwahl-ohne{grid-column:1/-1}
+.pwahl-ohne .pwahl-txt{padding:12px}
+.pwahl-ohne .pwahl-bild{display:none}
+html[data-design="klartext"] .pwahl-gitter{grid-template-columns:1fr}
+html[data-design="klartext"] .pwahl-k{border-width:2px}
+html[data-design="klartext"] .pwahl-txt b{font-size:var(--t-l)}
 
 /* ── Pflanzenauswahl im Doktor ─────────────────────────────
    Vorher ein Auswahlfeld mit zwanzig Zeilen Text. Jetzt dasselbe
    Muster wie im Stammbaum: suchen, Bild sehen, antippen. Wer seine
    Pflanzen am Aussehen kennt und nicht am Namen, kommt sonst nicht
    weiter. */
-.dokwahl{margin-top:4px}
-.dokwahl .sb-liste{max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.dok-leer{margin:12px 2px;font-size:var(--t-s);color:var(--schrift-2)}
 .dokwahl-gewaehlt{display:flex;align-items:center;gap:12px;padding:10px 12px;
   border:1px solid var(--linie-stark);border-radius:var(--r-mittel);
   background:var(--fl-karte);margin-bottom:10px}
@@ -1394,43 +1559,13 @@ html[data-design="klartext"] .al-zsf>div{font-size:var(--t-md);border-bottom-wid
   background:transparent;color:var(--schrift);font:inherit;font-size:var(--t-s);cursor:pointer}
 html[data-design="klartext"] .dokwahl-gewaehlt{border-width:2px}
 
-/* ── Umtopf-Assistent ─────────────────────────────────────── */
-.ut-fortschritt{display:flex;gap:5px;list-style:none;margin:0 0 18px;padding:0}
-.ut-fortschritt li{flex:1;height:4px;border-radius:2px;background:var(--linie)}
-.ut-fortschritt li.jetzt{background:var(--fl-akzent)}
-.ut-fortschritt li.fertig{background:var(--sicher)}
-.ut-stufe{display:none}
-.ut-stufe.an{display:block}
-.ut-frage{margin:0 0 4px;font-family:var(--f-display);font-size:var(--t-xl);font-weight:600}
-.ut-unter{margin:0 0 14px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.5}
-.ut-gruende{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 12px}
-.ut-grund{padding:11px 12px;border-radius:var(--r-klein);border:1px solid var(--linie);
-  background:transparent;color:var(--schrift);font:inherit;text-align:left;cursor:pointer}
-.ut-grund b{display:block;font-size:var(--t-s);font-weight:600}
-.ut-grund i{display:block;font-style:normal;font-size:var(--t-xs);
-  color:var(--schrift-2);margin-top:2px;line-height:1.35}
-.ut-grund[aria-pressed="true"]{border-color:var(--fl-akzent);
-  box-shadow:inset 0 0 0 1px var(--fl-akzent)}
-.ut-formen{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 14px}
-.ut-form{min-height:var(--tap);padding:10px;border-radius:var(--r-klein);
-  border:1px solid var(--linie);background:transparent;color:var(--schrift);
-  font:inherit;font-size:var(--t-s);cursor:pointer}
-.ut-form[aria-pressed="true"]{background:var(--fl-akzent);
-  color:var(--schrift-invers);border-color:transparent;font-weight:600}
-.ut-zsf-liste{margin:0 0 16px}
-.ut-zsf-liste>div{display:flex;gap:12px;padding:9px 0;
-  border-bottom:1px solid var(--linie);font-size:var(--t-s)}
-.ut-zsf-liste dt{flex:0 0 34%;color:var(--schrift-2);margin:0}
-.ut-zsf-liste dd{flex:1;margin:0;font-weight:600;overflow-wrap:anywhere}
+/* ── Umtopf-Assistent ───────────────────────────────────────
+   Fortschritt, Stufen, Frage, Knoepfe, Zusammenfassung und Fusszeile
+   stehen oben bei den gemeinsamen Bausteinen. Hier bleibt nur, was
+   wirklich nur das Umtopfen betrifft. */
 .ut-fertig-melde{padding:11px 12px;border-radius:var(--r-klein);
   background:var(--ton-ok);color:var(--sicher);font-weight:600;
   font-size:var(--t-s);margin:0 0 14px}
-.ut-fuss{display:flex;gap:8px;margin-top:18px}
-.ut-fuss button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
-  border:1px solid var(--linie);background:transparent;color:var(--schrift);
-  font:inherit;cursor:pointer}
-.ut-fuss button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);
-  border-color:transparent;font-weight:600}
 html[data-design="klartext"] .ut-gruende,
 html[data-design="klartext"] .ut-formen{grid-template-columns:1fr}
 html[data-design="klartext"] .ut-grund,
@@ -2579,7 +2714,7 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
 .erinnerung p{margin:0 0 9px;font-size:var(--t-m);line-height:1.55}
 
 /* ── Substrat ────────────────────────────────────────────── */
-#sub-pflanze,#sub-ziel,#sub-topf{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
+#sub-ziel,#sub-topf{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
   border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .sub-erg{border:1px solid var(--line);border-left-width:4px;border-radius:var(--r-mittel);padding:14px 15px;background:var(--paper)}
 .sub-titel{margin:16px 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
@@ -2654,7 +2789,7 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
 @media(max-width:400px){.sb-name{flex-basis:74px;font-size:var(--t-xs)}.sb-wert{min-width:44px}}
 
 /* ── Vermehrung ──────────────────────────────────────────── */
-#ver-pflanze{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
+#ver-pflanze-weg{
   border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
 .ver{border:1px solid var(--line);border-radius:var(--r-mittel);margin-bottom:9px;background:var(--paper);overflow:hidden}
 .ver>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;align-items:flex-start;
@@ -7308,7 +7443,7 @@ function abstammungHTML(p){
     zeilen.push(`<p class="ab-zeile">Ableger von
       <button class="kid-link" data-go="${mutter.id}">${esc(nice(mutter))}</button>.</p>`);
   else if(p.linie)
-    zeilen.push(`<p class="ab-zeile">Aus der Linie „${esc(p.linie)}“ — Ursprung nicht in der Sammlung.</p>`);
+    zeilen.push(`<p class="ab-zeile schmal">Aus der Linie „${esc(p.linie)}“ — Ursprung nicht in der Sammlung.</p>`);
 
   if(kinder.length)
     zeilen.push(`<p class="ab-zeile">${kinder.length === 1 ? 'Ein Ableger' : kinder.length + ' Ableger'}:
@@ -7319,18 +7454,80 @@ function abstammungHTML(p){
   </div>`;
 }
 
+/* ── Notizen: eigenes und Befunde getrennt ────────────────────
+   Bis 3.1.0 kippte der Doktor jeden Befund in dasselbe Textfeld, in
+   das auch der Mensch schreibt. Nach ein paar Sitzungen stand dort
+   eine Textwand, in der die eigene Zeile nicht mehr zu finden war —
+   und Dubletten fielen niemandem auf, weil ohnehin niemand las.
+
+   Getrennt wird beim Anzeigen, nicht in den Daten: p.notiz bleibt ein
+   Feld. Das erspart einen Umzug der Bestände und hält die Sicherung
+   abwärtskompatibel. Erkennungsmarke ist die Zeile „Befund vom“, die
+   der Doktor seit jeher voranstellt. */
+const BEFUND_MARKE = /(?:^|\n)\s*Befund vom /;
+
+function notizTrennen(text){
+  const roh = String(text || '');
+  if(!BEFUND_MARKE.test(roh)) return {eigen:roh.trim(), befunde:[]};
+  const teile = roh.split(/\n(?=\s*Befund vom )/);
+  const eigen = [];
+  const befunde = [];
+  teile.forEach(t => {
+    const st = t.trim();
+    if(!st) return;
+    if(/^Befund vom /.test(st)){
+      const m = st.match(/^Befund vom ([^:]+):\s*([\s\S]*)$/);
+      befunde.push({datum:(m ? m[1] : '').trim(), text:(m ? m[2] : st).trim(), roh:st});
+    } else {
+      eigen.push(st);
+    }
+  });
+  return {eigen:eigen.join('\n\n').trim(), befunde:befunde};
+}
+
+/* Neuester zuerst, drei sichtbar. Wer mehr will, klappt auf. */
+function notizenHTML(p){
+  const t = notizTrennen(p.notiz);
+  const eigen = t.eigen
+    ? `<p class="notiz-eigen">${esc(t.eigen).replace(/\n/g,'<br>')}</p>`
+    : '<p class="notiz-leer">Noch keine eigene Notiz.</p>';
+  if(!t.befunde.length) return eigen;
+  const bef = t.befunde.slice().reverse();
+  const eintrag = b => `<li><span class="bef-d">${esc(b.datum)}</span>
+    <span class="bef-t">${esc(b.text).replace(/\n/g,'<br>')}</span>
+    <button class="linkbtn" data-do="befund-weg" data-p="${p.id}"
+      data-b="${esc(b.roh.slice(0, 60))}" aria-label="Befund löschen">×</button></li>`;
+  const oben = bef.slice(0, 3).map(eintrag).join('');
+  const rest = bef.slice(3);
+  return eigen
+    + `<p class="notiz-uber">Befunde <span class="notiz-n">${bef.length}</span></p>`
+    + `<ul class="bef-liste">${oben}</ul>`
+    + (rest.length
+        ? `<details class="bef-mehr"><summary>${rest.length} ältere anzeigen</summary>
+            <ul class="bef-liste">${rest.map(eintrag).join('')}</ul></details>`
+        : '');
+}
+
+/* Welche eigene Formulierung welche automatische Regel überflüssig
+   macht. Absichtlich knapp gehalten: lieber eine Regel zu viel als
+   eine zu wenig. */
+const REGEL_STICHWORTE = [
+  {erkennung:'leitungswasser', worte:['kalkfrei', 'regenwasser', 'destilliert', 'osmose']},
+  {erkennung:'niemals düngen', worte:['düngen', 'dünger']},
+  {erkennung:'giftig für',     worte:['giftig', 'außer reichweite', 'ausser reichweite']},
+  {erkennung:'quarantäne',     worte:['quarantäne', 'getrennt']}
+];
+
 function statusHTML(p){
   const knoepfe = (S.rundgang && S.rundgang.knoepfe) || STANDARD_KNOEPFE;
   const liste = ereignisse(p.id).slice(0, 12);
   const seit = tageSeitGesehen(p.id);
+  /* Acht Eintrageknöpfe nahmen den ganzen Bildschirm, der eigentliche
+     Verlauf stand als eine Zeile darunter. Umgedreht: erst was war,
+     dann was man eintragen kann. */
   return `<div class="stat">
     <p class="stat-seit">${seit == null ? 'Noch nie als angesehen vermerkt.'
       : (seit === 0 ? 'Heute angesehen.' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`)}</p>
-    <div class="stat-chips">
-      ${knoepfe.map(k=>EREIGNIS_ARTEN[k] ? `<button class="stat-chip ${EREIGNIS_ARTEN[k].ton}"
-        data-do="ereignis" data-p="${p.id}" data-typ="${k}">${esc(EREIGNIS_ARTEN[k].name)}</button>` : '').join('')}
-      <button class="stat-chip still" data-do="ereignis" data-p="${p.id}" data-typ="gesehen">Nur angesehen</button>
-    </div>
     ${liste.length ? `<ul class="stat-liste">${liste.map(e=>{
       const a = EREIGNIS_ARTEN[e.typ] || {name:e.typ, ton:'info'};
       const and = e.bezug ? allePflanzen().find(x=>x.id === e.bezug) : null;
@@ -7340,6 +7537,14 @@ function statusHTML(p){
           : ''}</span>
         <button class="linkbtn" data-do="ereignis-weg" data-p="${p.id}" data-e="${e.id}">×</button></li>`;
     }).join('')}</ul>` : '<p class="stat-leer">Noch keine Einträge.</p>'}
+    <details class="stat-auf">
+      <summary>Etwas eintragen</summary>
+      <div class="stat-chips">
+        ${knoepfe.map(k=>EREIGNIS_ARTEN[k] ? `<button class="stat-chip ${EREIGNIS_ARTEN[k].ton}"
+          data-do="ereignis" data-p="${p.id}" data-typ="${k}">${esc(EREIGNIS_ARTEN[k].name)}</button>` : '').join('')}
+        <button class="stat-chip still" data-do="ereignis" data-p="${p.id}" data-typ="gesehen">Nur angesehen</button>
+      </div>
+    </details>
   </div>`;
 }
 
@@ -7771,10 +7976,9 @@ function papierkorbRender(){
   <section data-ans="sammlung" class="controls">
     <div class="such-zeile"><input class="search" id="q" type="search" placeholder="Suchen: Name, Art, Symptom, Standort …" aria-label="Sammlung durchsuchen" autocomplete="off"><button class="ctrl-auf" id="btn-ctrl-auf" type="button" aria-label="Filter ein- und ausblenden">Filter</button></div>
     <div class="ctrl-klapp" id="ctrl-klapp" hidden>
-      <div class="ctrl-row"><span class="ctrl-lab">Gruppieren</span><select id="gruppen" aria-label="Wonach gruppieren"></select></div>
-      <div class="ctrl-row"><span class="ctrl-lab">Filter</span><span id="filters"></span></div>
       <div class="ctrl-row" id="ctrl-ansicht"><span class="ctrl-lab">Ansicht</span><span id="ansicht-platz"></span></div>
     </div>
+    <div class="filter-marken" id="filter-marken"></div>
   </section>
   <div data-ans="sammlung" id="ctrl-platz" aria-hidden="true"></div>
 
@@ -7828,12 +8032,12 @@ function papierkorbRender(){
     <div class="dok-stufe" id="dok-s1">
       <h3><span class="dok-nr">1</span> Um welche Pflanze geht es?</h3>
       <div class="dokwahl-gewaehlt" id="dok-gewaehlt" hidden></div>
-      <div class="dokwahl" id="dok-wahl">
+      <div class="dokwahl pwahl" id="dok-wahl">
         <div class="sb-suche">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
           <input type="search" id="dok-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Pflanze suchen">
         </div>
-        <div class="sb-liste" id="dok-liste"></div>
+        <div class="pwahl-gitter" id="dok-liste"></div>
       </div>
       <p class="fhint">Steht die Pflanze nicht in deiner Sammlung, wähl „Keine bestimmte Pflanze“ — dann bekommst du die Einschätzung ohne Übernahme.</p>
     </div>
@@ -7950,15 +8154,21 @@ function papierkorbRender(){
       <p class="wz-hilfe" hidden>Führt in fünf Schritten durch das Umtopfen und trägt am Ende alles ein, was danach gilt: neue Topfgröße, Verlaufseintrag, vier Wochen keine Düngung. Wenn dabei Stecklinge abgehen, werden sie als eigene Pflanzen angelegt und im Stammbaum mit der Mutter verbunden — du musst nichts doppelt eintragen.</p>
 
       <ol class="ut-fortschritt" id="ut-fortschritt" aria-label="Fortschritt">
-        <li class="jetzt"></li><li></li><li></li><li></li><li></li>
+        <li class="jetzt"></li><li></li><li></li><li></li><li></li><li></li>
       </ol>
 
       <!-- 1 Pflanze -->
       <div class="ut-stufe an" data-ut-stufe="1">
         <p class="ut-frage">Welche Pflanze wird umgetopft?</p>
         <p class="ut-unter">Die Auswahl bestimmt, wo Topfgröße, Zustand und Verlaufseintrag am Ende landen.</p>
-        <label><span class="lab">Pflanze</span>
-          <select id="ut-pflanze"></select></label>
+        <div class="dokwahl-gewaehlt" id="ut-gewaehlt" hidden></div>
+        <div class="pwahl" id="ut-wahl">
+          <div class="sb-suche">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+            <input type="search" id="ut-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Pflanze suchen">
+          </div>
+          <div class="pwahl-gitter" id="ut-gitter"></div>
+        </div>
         <p class="fhint" id="ut-pflanze-lage"></p>
       </div>
 
@@ -7982,11 +8192,24 @@ function papierkorbRender(){
         <p class="fhint">Dann ist ein halbes Jahr Ruhe — die App schlägt in dieser Zeit kein Düngen vor.</p>
         <p class="fhint" id="ut-volumen"></p>
         <p class="fhint" id="ut-sprung"></p>
-        <button class="linkbtn" id="ut-zum-substrat">Mischung im Substratmischer rechnen</button>
       </div>
 
-      <!-- 4 Stecklinge -->
+      <!-- 4 Substrat -->
       <div class="ut-stufe" data-ut-stufe="4">
+        <p class="ut-frage">Womit füllst du auf?</p>
+        <p class="ut-unter">Pflanze und Topf stehen oben schon fest — hier fehlt nur noch, was du zu Hause hast. Die Menge ist auf den neuen Topf gerechnet.</p>
+        <div class="al-bibzsf" id="ut-sub-gruppe">
+          <h4>Zielmischung</h4>
+          <p class="as-zsf" id="ut-sub-gruppe-name" style="margin:0"></p>
+        </div>
+        <div id="ut-sub-vorrat"></div>
+        <div class="tools"><button type="button" data-do="sub-leeren">Auswahl leeren</button></div>
+        <div id="ut-sub-mischung"></div>
+        <div id="ut-sub-warnungen"></div>
+      </div>
+
+      <!-- 5 Stecklinge -->
+      <div class="ut-stufe" data-ut-stufe="5">
         <p class="ut-frage">Sind dabei Stecklinge abgegangen?</p>
         <p class="ut-unter">Beim Teilen oder Auslichten fällt oft etwas ab, das sich bewurzeln lässt. Was du hier einträgst, wird als eigene Pflanze angelegt und im Stammbaum mit der Mutter verbunden.</p>
         <label class="fspan check">
@@ -8000,8 +8223,8 @@ function papierkorbRender(){
         </div>
       </div>
 
-      <!-- 5 Abschluss -->
-      <div class="ut-stufe" data-ut-stufe="5">
+      <!-- 6 Abschluss -->
+      <div class="ut-stufe" data-ut-stufe="6">
         <p class="ut-frage">Das wird eingetragen</p>
         <div class="ut-zsf" id="ut-zsf"></div>
         <div class="tools">
@@ -8043,30 +8266,66 @@ function papierkorbRender(){
     <div class="wz-in" id="wz-in-substrat" hidden>
       <p class="wz-hilfe" hidden>Hak an, was du zu Hause hast. Die App rechnet daraus die beste mögliche Mischung für die gewählte Pflanze — und sagt, wo sie am Ziel vorbeischrammt.</p>
 
-    <div class="fgrid">
-      <label><span class="lab">Für welche Pflanze?</span><select id="sub-pflanze"></select></label>
-      <label><span class="lab">Gruppe</span><select id="sub-ziel"></select></label>
-      <label class="topf-num"><span class="lab">Topfdurchmesser in cm</span><input id="sub-topf" type="number" min="5" max="80" step="1"></label>
+    <ol class="as-fortschritt" id="sub-fortschritt" aria-label="Fortschritt">
+      <li class="jetzt"></li><li></li><li></li><li></li>
+    </ol>
+
+    <!-- 1 Pflanze -->
+    <div class="as-stufe an" data-sub-stufe="1">
+      <p class="as-frage">Für welche Pflanze?</p>
+      <p class="as-unter">Aus der Art ergibt sich die Gruppe — die legt fest, wie luftig und wie sauer die Mischung werden soll.</p>
+      <div class="dokwahl-gewaehlt" id="sub-gewaehlt" hidden></div>
+      <div class="pwahl" id="sub-wahl">
+        <div class="sb-suche">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+          <input type="search" id="sub-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Pflanze suchen">
+        </div>
+        <div class="pwahl-gitter" id="sub-gitter"></div>
+      </div>
+      <div class="al-bibzsf" id="sub-gruppe-kasten" style="margin-top:20px">
+        <h4>Zielmischung</h4>
+        <p class="as-zsf" id="sub-gruppe-name" style="margin:0"></p>
+        <div class="tools"><button type="button" id="btn-sub-gruppe">Andere Gruppe</button></div>
+      </div>
+      <select id="sub-ziel" hidden></select>
+      <div class="as-knoepfe" id="sub-ziel-knoepfe" hidden></div>
+      <div id="sub-ziel-text"></div>
     </div>
-    <div class="topf-block">
-      <p class="topf-lab">Welche Form hat der Topf?</p>
-      <div class="topf-karussell" id="topf-karussell" role="radiogroup" aria-label="Topfform"></div>
-      <p class="topf-hinweis" id="topf-hinweis"></p>
+
+    <!-- 2 Topf -->
+    <div class="as-stufe" data-sub-stufe="2">
+      <p class="as-frage">Welcher Topf?</p>
+      <p class="as-unter">Form und Durchmesser ergeben das Volumen. Ein Kegelstumpf fasst deutlich weniger als ein Zylinder gleicher Höhe — deshalb wird gerechnet und nicht geschätzt.</p>
+      <input id="sub-topf" class="topf-num" type="number" min="5" max="80" step="1" aria-label="Topfdurchmesser in cm">
+      <div class="as-knoepfe" id="topf-formen" role="radiogroup" aria-label="Topfform"></div>
+      <p class="fhint" id="topf-hinweis"></p>
       <label class="topf-schieber">
         <span class="lab">Durchmesser oben: <b id="topf-wert">18 cm</b></span>
         <input id="topf-slider" type="range" min="6" max="45" step="1" value="18">
       </label>
       <p class="topf-ergebnis" id="topf-ergebnis"></p>
     </div>
-    <div id="sub-ziel-text"></div>
 
-    <h3>Was hast du da?</h3>
-    <div id="sub-vorrat"></div>
-    <div class="tools"><button data-do="sub-leeren">Auswahl leeren</button></div>
+    <!-- 3 Vorrat -->
+    <div class="as-stufe" data-sub-stufe="3">
+      <p class="as-frage">Was hast du da?</p>
+      <p class="as-unter">Hak an, was zu Hause steht. Gerechnet wird nur mit dem, was du wirklich hast.</p>
+      <div id="sub-vorrat"></div>
+      <div class="tools"><button data-do="sub-leeren">Auswahl leeren</button></div>
+    </div>
 
-    <h3>Mischung</h3>
-    <div id="sub-mischung"></div>
-    <div id="sub-warnungen"></div>
+    <!-- 4 Mischung -->
+    <div class="as-stufe" data-sub-stufe="4">
+      <p class="as-frage">Die Mischung</p>
+      <p class="as-unter">Das Beste, was sich aus deinem Vorrat bauen lässt — und wo es am Ziel vorbeischrammt.</p>
+      <div id="sub-mischung"></div>
+      <div id="sub-warnungen"></div>
+    </div>
+
+    <div class="as-fuss">
+      <button id="sub-zurueck" type="button" hidden>Zurück</button>
+      <button id="sub-weiter" type="button" class="haupt">Weiter</button>
+    </div>
     </div>
   </section>
 
@@ -8079,37 +8338,88 @@ function papierkorbRender(){
     </div>
     <div class="wz-in" id="wz-in-vermehren" hidden>
       <p class="wz-hilfe" hidden>Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
-    <label class="fspan" style="display:block;margin-bottom:14px"><span class="lab">Welche Pflanze?</span>
-      <select id="ver-pflanze"></select></label>
-    <div class="alert info" id="ver-meldung" hidden></div>
-    <div class="kibox" id="ver-kibox" hidden>
-      <h3>Bei einer KI nachfragen</h3>
-      <div class="kizeile">
-        <select id="ver-dienst" aria-label="Welcher Dienst">
-          <option value="gemini">Gemini</option>
-          <option value="chatgpt">ChatGPT</option>
-          <option value="claude">Claude</option>
-          <option value="perplexity">Perplexity</option>
-        </select>
-        <button id="btn-ver-ki" type="button">Öffnen</button>
-      </div>
-      <p class="kihinweis" id="ver-kihinweis"></p>
-      <details class="kiprompt" id="ver-frage-details">
-        <summary>Frage anzeigen und selbst kopieren</summary>
-        <textarea id="ver-kifrage-text" aria-label="Frage zur Vermehrung" readonly></textarea>
-        <div class="tools"><button id="btn-ver-kopie" class="haupt" type="button">Frage kopieren</button></div>
-      </details>
-      <div class="pastebox">
-        <textarea id="ver-kipaste" aria-label="Antwort zur Vermehrung einfügen" placeholder="VERMEHRUNG: …"></textarea>
-        <div class="tools">
-          <button id="btn-ver-kipaste" class="haupt" type="button">Übernehmen</button>
-          <button id="btn-ver-leeren" type="button">Feld leeren</button>
-          <button id="btn-ver-kizu" type="button">Schließen</button>
+      <ol class="as-fortschritt" id="ver-fortschritt" aria-label="Fortschritt">
+        <li class="jetzt"></li><li></li><li></li>
+      </ol>
+
+      <!-- 1 Pflanze -->
+      <div class="as-stufe an" data-ver-stufe="1">
+        <p class="as-frage">Welche Pflanze wird vermehrt?</p>
+        <p class="as-unter">Die Ableger erben Art, Gießklasse, Licht und Giftigkeit von ihr — und hängen im Stammbaum unter ihr.</p>
+        <div class="dokwahl-gewaehlt" id="ver-gewaehlt" hidden></div>
+        <div class="pwahl" id="ver-wahl">
+          <div class="sb-suche">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.3-4.3"/></svg>
+            <input type="search" id="ver-such" placeholder="Pflanze suchen" autocomplete="off" aria-label="Pflanze suchen">
+          </div>
+          <div class="pwahl-gitter" id="ver-gitter"></div>
         </div>
       </div>
-    </div>
-    <div id="ver-inhalt"></div>
-    </div>
+
+      <!-- 2 Weg -->
+      <div class="as-stufe" data-ver-stufe="2">
+        <p class="as-frage">Welcher Weg?</p>
+        <p class="as-unter">Die Aussicht gilt für die Art, nicht für dein Exemplar. Tipp einen Weg an, die Anleitung steht darunter.</p>
+        <div id="ver-kikurz"></div>
+        <div class="kibox" id="ver-kibox" hidden>
+          <h3>Bei einer KI nachfragen</h3>
+          <div class="kidirekt" id="ki-direkt-vermehren" hidden>
+            <div class="kimodell">
+              <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
+              <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
+            </div>
+          </div>
+          <div class="kizeile kizeile-haupt">
+            <button id="btn-ver-ki" class="haupt" type="button">Fragen</button>
+          </div>
+          <p class="kihinweis" id="ver-kihinweis"></p>
+          <p class="kihinweis" id="ki-lauf-vermehren" hidden></p>
+          <details class="kialt" id="ver-alt">
+            <summary id="ver-alt-titel">Anderer Weg: Frage kopieren</summary>
+            <div class="kizeile">
+              <select id="ver-dienst" aria-label="Welcher Dienst">
+                <option value="gemini">Gemini</option>
+                <option value="chatgpt">ChatGPT</option>
+                <option value="claude">Claude</option>
+                <option value="perplexity">Perplexity</option>
+              </select>
+              <button id="btn-ver-oeffnen" type="button">Öffnen</button>
+            </div>
+            <details class="kiprompt" id="ver-frage-details">
+              <summary>Frage anzeigen und selbst kopieren</summary>
+              <textarea id="ver-kifrage-text" aria-label="Frage zur Vermehrung" readonly></textarea>
+              <div class="tools"><button id="btn-ver-kopie" class="haupt" type="button">Frage kopieren</button></div>
+            </details>
+            <div class="pastebox">
+              <textarea id="ver-kipaste" aria-label="Antwort zur Vermehrung einfügen" placeholder="VERMEHRUNG: …"></textarea>
+              <div class="tools">
+                <button id="btn-ver-kipaste" class="haupt" type="button">Übernehmen</button>
+                <button id="btn-ver-leeren" type="button">Feld leeren</button>
+                <button id="btn-ver-kizu" type="button">Schließen</button>
+              </div>
+            </div>
+          </details>
+        </div>
+        <div id="ver-inhalt"></div>
+        <div id="ver-anleitung"></div>
+      </div>
+
+      <!-- 3 Ableger -->
+      <div class="as-stufe" data-ver-stufe="3">
+        <p class="as-frage">Wie viele Ableger?</p>
+        <p class="as-unter">Jeder wird eine eigene Pflanze mit eigenem Namen, eigenem Bild und eigenem Gießrhythmus. Alle hängen im Stammbaum unter der Mutter.</p>
+        <div class="ver-zahl" id="ver-zahl"></div>
+        <div id="ver-ableger"></div>
+        <div class="alert info" id="ver-meldung" hidden></div>
+      </div>
+
+      <div class="as-fuss">
+        <button id="ver-zurueck" type="button" hidden>Zurück</button>
+        <button id="ver-weiter" type="button" class="haupt">Weiter</button>
+        <button id="ver-los" type="button" class="haupt" hidden>Ableger anlegen</button>
+      </div>
+
+        </div>
   </section>
 
   <section data-ans="werkzeuge" class="plan wz" data-wz="stammbaum">
@@ -8770,7 +9080,7 @@ function papierkorbRender(){
         <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
         <button id="btn-ki-modelle" type="button">Neu holen</button>
       </div>
-      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. Vorausgewählt ist das neueste stabile Modell; daran erkennst du das Häkchen.</p>
+      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. Vorausgewählt ist das neueste stabile Modell; daran erkennst du das Häkchen. Das neueste ist allerdings oft auch das vollste: Google gibt neuen Modellen anfangs wenig Rechenleistung, und dann kommt „überlastet“ zurück. Passiert das ständig, wähl hier eine Stufe tiefer — die App weicht sonst von selbst dorthin aus.</p>
 
       <p class="ein-abschnitt">Wo der Schlüssel herkommt</p>
       <ol class="ki-schritte">
@@ -8967,6 +9277,38 @@ function papierkorbRender(){
     <button class="sekm-zu" id="sekm-zu" aria-label="Fenster schließen">Fertig</button>
   </div>
   <div class="sekm-rumpf" id="sekm-rumpf"></div>
+</div>
+
+<div id="filter-modal" class="sekm as-fenster" hidden>
+  <div class="sekm-kopf">
+    <h2 class="sekm-titel" id="filter-titel" tabindex="-1">Filter und Ansicht</h2>
+    <button class="sekm-zu" id="btn-filter-zu" aria-label="Filter schließen">Fertig</button>
+  </div>
+  <div class="sekm-rumpf">
+    <p class="ein-abschnitt">Sortieren</p>
+    <div class="as-knoepfe" id="filter-sort"></div>
+
+    <p class="ein-abschnitt">Zustand</p>
+    <div class="as-knoepfe" id="filter-zustand"></div>
+
+    <p class="ein-abschnitt">Gießklasse</p>
+    <div class="as-knoepfe" id="filter-klasse"></div>
+
+    <p class="ein-abschnitt">Sicherheit</p>
+    <div class="as-knoepfe" id="filter-gift"></div>
+
+    <p class="ein-abschnitt">Ort</p>
+    <div id="lage-filter"></div>
+
+    <p class="ein-abschnitt">Gruppieren</p>
+    <div class="as-knoepfe" id="filter-gruppen"></div>
+    <select id="gruppen" hidden aria-label="Wonach gruppieren"></select>
+    <span id="filters" hidden></span>
+  </div>
+  <div class="as-fuss">
+    <button id="btn-filter-weg" type="button">Zurücksetzen</button>
+    <button id="btn-filter-fertig" type="button" class="haupt">Zeigen</button>
+  </div>
 </div>
 
 <div id="anleg-modal" class="sekm al-fenster" hidden>
@@ -9278,18 +9620,44 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.0.2';
+const FASSUNG = '3.2.0';
 const PATCHNOTES = [
   {
-    nr: '3.0.2', datum: '2026-09-01', titel: 'Wasserkultur und drei Reparaturen',
+    nr: '3.2.0', datum: '2026-09-01', titel: 'Alles Schritt für Schritt, Filter mit Verstand',
     neu: [
-      'Beim Anlegen fragt die App jetzt zuerst, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Im Wasserglas wird nicht gegossen, sondern alle 7 bis 10 Tage das Wasser gewechselt — samt Gefäß ausspülen und faule Wurzeln entfernen. In Blähton geht es um den Wasserstand, alle 10 bis 16 Tage.',
-      'Die KI soll das am Bild erkennen: stehen blanke Wurzeln in einem Glas, kommt Wasserkultur zurück, und die Auswahl steht dann schon richtig.',
-      'Steht die Pflanze im Wasser, verschwinden Gießklasse und Gießart aus dem Formular. Nach etwas zu fragen, das danach ohnehin nicht gilt, ist nur Arbeit.'
+      'Der Substratrechner läuft jetzt in vier Stufen wie die anderen Werkzeuge: Pflanze, Topf, Vorrat, Mischung. Die Topfform wählst du über Knöpfe mit Zeichnung — das seitwärts zu schiebende Karussell ist weg, zwei der fünf Formen hat man darin nie gesehen.',
+      'Beim Umtopfen gibt es eine eigene Substrat-Stufe. Pflanze, Topfgröße und Form kommen von den Stufen davor; der Sprung in ein anderes Werkzeug entfällt.',
+      'Vermehren ist ein Assistent geworden: Pflanze über das Kachelgitter, die Wege als kompakte Kacheln mit Aussicht, Dauer und Jahreszeit — die Anleitung erst darunter. In der letzten Stufe legst du bis zu zehn Ableger auf einmal an, jeder mit eigenem Namen und eigenem Bild.',
+      'Die Filter stecken in einem eigenen Fenster. Neu dabei: sortieren nach Fälligkeit, Name, Zugang oder letztem Gießen; filtern nach heute fällig, überfällig, ausgetrocknet, Quarantäne, Ableger, offenem Befund, Wasser- und Hydrokultur.',
+      'Gruppieren geht jetzt auch nach Gattung, Familie, Typ, Zustand, Fälligkeit und Abstammung — alle Begonien zusammen, oder eine Mutterpflanze mit allen ihren Ablegern.',
+      'Was gerade gefiltert ist, steht als Marke über der Sammlung und lässt sich dort wegtippen.',
+      'Die Notizen sind getrennt: deine eigene Notiz oben, darunter die Befunde als datierte Liste. Drei stehen offen, ältere hinter einem Aufklapper, jeder einzeln löschbar.'
     ],
     besser: [
-      'Die Bilder, die du der KI geschickt hast, liegen anschließend schon in der Fotoauswahl. Herausnehmen geht wie bei jedem anderen Bild.',
-      'Ein Bild, das der Browser nicht lesen konnte, hielt das Anlegen-Fenster für immer offen — und beim nächsten Öffnen stand die alte Auswahl noch da. Das Fenster schließt jetzt, sobald die Pflanze gespeichert ist; die Bilder folgen danach. Nach zwanzig Sekunden gilt ein Bild als unlesbar und wird übersprungen.'
+      'Alle Assistenten benutzen dieselben Bausteine. Fortschrittsbalken, Frage, Auswahlknöpfe und Fußzeile sahen vorher in jedem Werkzeug anders aus.',
+      'Auf der Karte steht der Verlauf vor den Eintrageknöpfen. Acht Knöpfe nahmen den ganzen Bildschirm, während der eigentliche Verlauf eine Zeile darunter stand.',
+      'Der rote Warnkasten sagt nicht mehr zweimal dasselbe. Deckt dein eigener Hinweis eine automatische Regel ab, tritt die Regel zurück — steht dort etwas anderes, bleiben beide.',
+      'Fotos ließen sich in der Kartenansicht gar nicht hinzufügen und Bilder nicht vergrößern: der Handler hing an der Sammlungsliste, die Karte steht aber seit dem Umbau im eigenen Fenster. Das betraf jede Pflanze.',
+      'Ein Befund konnte sich in den Notizen verdoppeln, wenn er über den Rohtext-Weg kam.',
+      'Die Kachel oben rechts in den Werkzeugen saß zu hoch. Die Höhe hing an einer Kette aus Prozentangaben über drei Ebenen.'
+    ]
+  },
+  {
+    nr: '3.1.0', datum: '2026-09-01', titel: 'Auswahl mit Bildern, Wasserkultur, weniger Fehlversuche',
+    neu: [
+      'Pflanzen wählst du im Doktor und beim Umtopfen jetzt aus einem Gitter mit Bildkacheln — zwei Spalten, Suchfeld darüber, Name und botanischer Name auf der Kachel. Das Auswahlfeld beim Umtopfen und die enge Liste im Doktor sind weg: man erkennt seine Pflanze am Bild, nicht am Namen.',
+      'Beim Anlegen fragt die App zuerst, wie die Pflanze steht: in Erde, im Wasserglas oder in Blähton. Wasserkultur heißt Wasser wechseln alle 7 bis 10 Tage statt gießen, Hydrokultur heißt Wasserstand halten alle 10 bis 16 Tage. Gießklasse und Gießart verschwinden dann aus dem Formular — sie gelten ohnehin nicht.',
+      'Die KI soll die Kulturform am Bild erkennen: stehen blanke Wurzeln in einem Glas, kommt Wasserkultur zurück und die Auswahl steht schon richtig.',
+      'Meldet Google „überlastet“, gibt die App nicht mehr sofort auf: sie fragt nach 2 und nach 6 Sekunden noch einmal, und weicht danach auf das nächstältere Modell aus. Nie auf eine Lite-Variante und nie mehr als eine Generation zurück, damit die Antwort verlässlich bleibt. Die Meldung nennt dir, welches Modell geantwortet hat.',
+      'Ein überlastetes Modell wird zehn Minuten lang übersprungen, damit nicht jede Anfrage neu in dieselbe Wand läuft. Während des Wartens steht im Fenster, was gerade passiert.'
+    ],
+    besser: [
+      'Die Bilder, die du der KI geschickt hast, liegen anschließend schon in der Fotoauswahl und lassen sich dort wie jedes andere Bild herausnehmen.',
+      'Ein Bild, das der Browser nicht lesen konnte, hielt das Anlegen-Fenster für immer offen — und beim nächsten Öffnen stand die alte Auswahl noch da. Das Fenster schließt jetzt, sobald die Pflanze gespeichert ist; nach zwanzig Sekunden gilt ein Bild als unlesbar und wird übersprungen.',
+      'Lange botanische Namen liefen in der Auswahlliste ineinander. Auf der Kachel stehen sie in höchstens zwei Zeilen und werden sonst abgeschnitten.',
+      'Ein „überlastet“ hat nichts mit deinem Schlüssel oder deinen Bildern zu tun — Google fehlt in dem Moment die Rechenleistung, und das trifft zahlende Kunden genauso. Neue Modelle bekommen anfangs am wenigsten davon, und ausgerechnet das neueste schlägt die App vor. Der Hinweis in den Einstellungen sagt das jetzt.',
+      'Ein abgelehnter Schlüssel wird nicht mehr wiederholt. Warten macht einen Tippfehler nicht besser.',
+      'Bei Arten aus der Bibliothek nennt die Zusammenfassung im Anlegen die Giftigkeit im Klartext, statt „Noch nicht geprüft“ zu behaupten, obwohl sie bekannt ist.'
     ]
   },
   {
@@ -11218,10 +11586,115 @@ function taskBlockHTML(tasks, scope, mitPflanze, addPlant){
 
 /* ══════════════════ Steuerung ══════════════════ */
 let gruppierung = 'raum', filterKlasse = null, filterKatze = null;
+/* Mehrfachwahl: „ueberfaellig“ und „in Quarantaene“ schliessen
+   einander nicht aus, also darf man beides setzen. Zwei gesetzte
+   Zustaende heissen „eines von beiden“ — sonst waere die Auswahl bei
+   jedem zweiten Klick leer. */
+const filterZustand = new Set();
+let sortierung = 'faellig';
 /* Zeigt nur, was zum Düngen ansteht. Wird von der Zeile auf Heute
    gesetzt und beim Zurücksetzen der Filter wieder geleert. */
 let filterDueng = false;
 let filterRaum = null, filterPlatz = null;
+
+/* Die Zustaende, nach denen sich filtern laesst. Jeder ist eine
+   Frage an die Pflanze, keine Eigenschaft im Datensatz — deshalb
+   stehen sie hier als Funktionen und nicht als Feld. */
+const ZUSTAND_FILTER = {
+  faellig:    {name:'Heute fällig',    pruef:p=>{ const st = giessStatus(p);
+                 return st.stand === 'soon' && st.rest <= 0; }},
+  ueber:      {name:'Überfällig',      pruef:p=>giessStatus(p).stand === 'over'},
+  trocken:    {name:'Ausgetrocknet',   pruef:p=>{ const z = zustandVon(p);
+                 return !!z && /trocken|durst/i.test((z.def && z.def.name) || z.code || ''); }},
+  quarantaene:{name:'In Quarantäne',   pruef:p=>{ const z = zustandVon(p);
+                 return !!z && z.code === 'quarantaene'; }},
+  steckling:  {name:'Ableger',         pruef:p=>{ const z = zustandVon(p);
+                 return !!p.eltern || (!!z && z.code === 'steckling'); }},
+  befund:     {name:'Befund offen',    pruef:p=>{ const z = zustandVon(p);
+                 return !!z && z.code !== 'gesund'; }},
+  gesund:     {name:'Alles in Ordnung',pruef:p=>{ const z = zustandVon(p);
+                 return !z || z.code === 'gesund'; }},
+  wasser:     {name:'Wasserkultur',    pruef:p=>giessartVon(p) === 'wasser'},
+  hydro:      {name:'Hydrokultur',     pruef:p=>giessartVon(p) === 'hydro'}
+};
+function zustandFilterPasst(p){
+  for(const k of filterZustand){
+    const f = ZUSTAND_FILTER[k];
+    try{ if(f && f.pruef(p)) return true; }catch(e){}
+  }
+  return false;
+}
+
+/* Sortieren. „Faellig zuerst“ ist die Voreinstellung, weil die
+   Sammlung meist eine Arbeitsliste ist. */
+const SORTIERUNGEN = {
+  faellig: {name:'Fällig zuerst', fn:(a,b)=>{
+    const r = x=>{ const st = giessStatus(x);
+      return st.stand === 'over' ? -1000 + (st.rest || 0)
+           : st.stand === 'soon' ? (st.rest || 0) : 9000; };
+    return r(a) - r(b) || nice(a).localeCompare(nice(b), 'de'); }},
+  name:    {name:'Name A–Z', fn:(a,b)=>nice(a).localeCompare(nice(b), 'de')},
+  neu:     {name:'Zuletzt hinzugefügt', fn:(a,b)=>
+             String(b.id).localeCompare(String(a.id), 'de', {numeric:true})},
+  gegossen:{name:'Zuletzt gegossen', fn:(a,b)=>{
+    const t = x=>{ const d = (S.giess && S.giess[x.id]) ? S.giess[x.id] : '';
+      return d ? String(d) : '0'; };
+    return t(a).localeCompare(t(b)); }}
+};
+
+/* Gruppieren. Gattung und Familie kamen dazu, damit alle Begonien
+   und alle Aroideen zusammenstehen — beides steckt im botanischen
+   Namen beziehungsweise in der Bibliothek. */
+const GRUPPIERUNGEN = {
+  keine:      'Keine',
+  raum:       'Raum',
+  stellplatz: 'Stellplatz',
+  gattung:    'Gattung',
+  familie:    'Familie',
+  typ:        'Typ',
+  klasse:     'Gießklasse',
+  zustand:    'Zustand',
+  faelligkeit:'Fälligkeit',
+  abstammung: 'Abstammung',
+  licht:      'Lichtbedarf'
+};
+function gattungVonName(p){
+  const bot = String(p.botanisch || '').trim();
+  const g = bot.split(/\s+/)[0];
+  return g && /^[A-ZÄÖÜ]/.test(g) ? g : 'Ohne botanischen Namen';
+}
+function gruppenSchluessel(p){
+  switch(gruppierung){
+    case 'klasse':     return p.klasse + ' · ' + KLASSEN[p.klasse].name;
+    case 'raum':       return raumNameVon(p.raum) || 'Ohne Raum';
+    case 'stellplatz': return p.stellplatz || 'Ohne Stellplatz';
+    case 'licht':      return SONNE[p.sonne] ? SONNE[p.sonne].text : 'Licht offen';
+    case 'gattung':    return gattungVonName(p);
+    case 'familie':    return String(p.familie || '').trim() || 'Ohne Familie';
+    case 'zustand': {
+      const z = zustandVon(p);
+      return (z && z.def && z.def.name) || 'Gesund';
+    }
+    case 'faelligkeit': {
+      const st = giessStatus(p);
+      if(st.stand === 'over') return 'Überfällig';
+      if(st.stand === 'soon' && st.rest <= 0) return 'Heute';
+      if(st.stand === 'soon' && st.rest <= 7) return 'Diese Woche';
+      if(st.stand === 'stopp') return 'Gießpause';
+      return 'Später';
+    }
+    case 'abstammung': {
+      /* Die Mutter steht bei ihren Ablegern. Wer keine hat, bildet
+         seine eigene Gruppe — sonst faenden sich alle Einzelgaenger
+         in einem Sammeltopf wieder. */
+      const wurzel = p.eltern
+        ? (allePflanzen().find(x=>x.id === p.eltern) || null) : null;
+      return wurzel ? 'Aus ' + nice(wurzel) : nice(p);
+    }
+    default: return p[gruppierung] || 'Ohne Angabe';
+  }
+}
+
 const offen = new Set(), zu = new Set();
 
 /* Aus dem Blick gescrollte Karten klappen sich zu. Damit dabei nichts
@@ -11259,53 +11732,163 @@ function zaehler(){
 }
 
 (function(){
-  const G = {raum:'Raum', stellplatz:'Stellplatz', licht:'Lichtbedarf',
-             klasse:'Gießklasse', typ:'Typ', keine:'Keine'};
+  /* Gruppieren und Filter sind ins Filterblatt gezogen. Das
+     Auswahlfeld bleibt verborgen im Dokument stehen, weil der
+     Rundgang und die Sicherung es kennen. */
   const gsel = $('#gruppen');
-  gsel.innerHTML = Object.entries(G).map(([k,v])=>
-    `<option value="${k}"${k===gruppierung?' selected':''}>${v}</option>`).join('');
+  gsel.innerHTML = Object.keys(GRUPPIERUNGEN).map(k=>
+    `<option value="${k}"${k===gruppierung?' selected':''}>${GRUPPIERUNGEN[k]}</option>`).join('');
   gsel.onchange = ()=>{ gruppierung = gsel.value; zu.clear(); render(); };
-  const f = $('#filters');
-  f.innerHTML = `<span id="lage-filter"></span>`
-    + Object.keys(KLASSEN).map(k=>`<button class="chip" data-k="${k}" aria-pressed="false">${k} · ${esc(KLASSEN[k].name)}</button>`).join(' ')
-    + ` <button class="chip" data-cat="safe" aria-pressed="false">Katzensicher</button>`
-    + ` <button class="chip" data-cat="tox" aria-pressed="false">Giftig</button>`;
-  f.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{
-    if(c.dataset.k) filterKlasse = filterKlasse===c.dataset.k ? null : c.dataset.k;
-    if(c.dataset.cat) filterKatze = filterKatze===c.dataset.cat ? null : c.dataset.cat;
-    f.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',
-      String((x.dataset.k&&x.dataset.k===filterKlasse)||(x.dataset.cat&&x.dataset.cat===filterKatze))));
-    if(typeof ctrlKnopfZeichnen === 'function') ctrlKnopfZeichnen();
-    render();
-  });
 })();
+
+/* ── Das Filterblatt ──────────────────────────────────────────
+   Die Leiste wuchs mit jedem neuen Filter: Gruppieren, zwei
+   Ortsfelder, vier Gießklassen, zwei Sicherheitsmarken, dazu die
+   Ansicht — und das dauerhaft über der Sammlung. Jetzt steht alles in
+   einem eigenen Fenster. In der Seite bleibt die Suche, ein Knopf mit
+   der Zahl der gesetzten Filter, und darunter die aktiven Filter als
+   Marken zum Wegtippen. */
+function filterKnoepfeZeichnen(){
+  const knopf = (attr, wert, name, an) =>
+    '<button type="button" class="as-knopf" ' + attr + '="' + esc(wert) + '"'
+    + ' aria-pressed="' + (an ? 'true' : 'false') + '"><b>' + esc(name) + '</b></button>';
+
+  const so = document.getElementById('filter-sort');
+  if(so) so.innerHTML = Object.keys(SORTIERUNGEN).map(k =>
+    knopf('data-fsort', k, SORTIERUNGEN[k].name, sortierung === k)).join('');
+
+  const zu2 = document.getElementById('filter-zustand');
+  if(zu2) zu2.innerHTML = Object.keys(ZUSTAND_FILTER).map(k =>
+    knopf('data-fzustand', k, ZUSTAND_FILTER[k].name, filterZustand.has(k))).join('');
+
+  const kl = document.getElementById('filter-klasse');
+  if(kl) kl.innerHTML = Object.keys(KLASSEN).map(k =>
+    knopf('data-fklasse', k, k + ' · ' + KLASSEN[k].name, filterKlasse === k)).join('');
+
+  const gi = document.getElementById('filter-gift');
+  if(gi) gi.innerHTML = knopf('data-fkatze', 'safe', 'Katzensicher', filterKatze === 'safe')
+    + knopf('data-fkatze', 'tox', 'Giftig', filterKatze === 'tox');
+
+  const gr = document.getElementById('filter-gruppen');
+  if(gr) gr.innerHTML = Object.keys(GRUPPIERUNGEN).map(k =>
+    knopf('data-fgruppe', k, GRUPPIERUNGEN[k], gruppierung === k)).join('');
+}
+
+/* Was gerade greift, in einer Zeile über der Sammlung. Ohne das
+   müsste man das Fenster öffnen, nur um nachzusehen, warum die Hälfte
+   der Pflanzen fehlt. */
+function filterMarkenZeichnen(){
+  const box = document.getElementById('filter-marken');
+  if(!box) return;
+  const marken = [];
+  filterZustand.forEach(k => {
+    if(ZUSTAND_FILTER[k]) marken.push(['zustand:' + k, ZUSTAND_FILTER[k].name]);
+  });
+  if(filterKlasse) marken.push(['klasse', filterKlasse + ' · ' + KLASSEN[filterKlasse].name]);
+  if(filterKatze) marken.push(['katze', filterKatze === 'safe' ? 'Katzensicher' : 'Giftig']);
+  if(filterRaum) marken.push(['raum', filterRaum === '__ohne' ? 'Ohne Raum'
+    : (raumNameVon(filterRaum) || 'Raum')]);
+  if(filterPlatz) marken.push(['platz', filterPlatz === '__ohne' ? 'Ohne Stellplatz' : filterPlatz]);
+  if(typeof filterDueng !== 'undefined' && filterDueng) marken.push(['dueng', 'Düngen fällig']);
+  box.innerHTML = marken.map(m =>
+    '<button type="button" class="filter-marke" data-fweg="' + esc(m[0]) + '">'
+    + esc(m[1]) + '</button>').join('');
+}
+
+function filterWeg(was){
+  if(was === 'klasse') filterKlasse = null;
+  else if(was === 'katze') filterKatze = null;
+  else if(was === 'raum') filterRaum = null;
+  else if(was === 'platz') filterPlatz = null;
+  else if(was === 'dueng'){ if(typeof filterDueng !== 'undefined') filterDueng = false; }
+  else if(was.indexOf('zustand:') === 0) filterZustand.delete(was.slice(8));
+}
+function filterZuruecksetzen(){
+  filterKlasse = null; filterKatze = null; filterRaum = null; filterPlatz = null;
+  filterZustand.clear();
+  if(typeof filterDueng !== 'undefined') filterDueng = false;
+  sortierung = 'faellig';
+}
+
+document.addEventListener('click', e => {
+  const weg = e.target.closest('[data-fweg]');
+  if(weg){
+    filterWeg(weg.dataset.fweg);
+    filterKnoepfeZeichnen(); filterMarkenZeichnen(); ctrlKnopfZeichnen(); render();
+    return;
+  }
+  const so = e.target.closest('[data-fsort]');
+  if(so){ sortierung = so.dataset.fsort; filterKnoepfeZeichnen(); render(); return; }
+  const zs = e.target.closest('[data-fzustand]');
+  if(zs){
+    const k = zs.dataset.fzustand;
+    if(filterZustand.has(k)) filterZustand.delete(k); else filterZustand.add(k);
+    filterKnoepfeZeichnen(); filterMarkenZeichnen(); ctrlKnopfZeichnen(); render();
+    return;
+  }
+  const kl = e.target.closest('[data-fklasse]');
+  if(kl){
+    filterKlasse = filterKlasse === kl.dataset.fklasse ? null : kl.dataset.fklasse;
+    filterKnoepfeZeichnen(); filterMarkenZeichnen(); ctrlKnopfZeichnen(); render();
+    return;
+  }
+  const ka = e.target.closest('[data-fkatze]');
+  if(ka){
+    filterKatze = filterKatze === ka.dataset.fkatze ? null : ka.dataset.fkatze;
+    filterKnoepfeZeichnen(); filterMarkenZeichnen(); ctrlKnopfZeichnen(); render();
+    return;
+  }
+  const gr = e.target.closest('[data-fgruppe]');
+  if(gr){
+    gruppierung = gr.dataset.fgruppe;
+    if(typeof zu !== 'undefined' && zu.clear) zu.clear();
+    filterKnoepfeZeichnen(); render();
+    return;
+  }
+});
+
+{
+  const zu2 = document.getElementById('btn-filter-zu');
+  const fe = document.getElementById('btn-filter-fertig');
+  const we = document.getElementById('btn-filter-weg');
+  const schliessen = ()=>modalZu('filter-modal');
+  if(zu2) zu2.onclick = schliessen;
+  if(fe) fe.onclick = schliessen;
+  if(we) we.onclick = ()=>{
+    filterZuruecksetzen();
+    filterKnoepfeZeichnen(); filterMarkenZeichnen(); ctrlKnopfZeichnen(); render();
+  };
+}
 
 /* ── Klappfeld für Gruppieren und Filter ─────────────────────
    Beide standen dauerhaft unter der Suche und haben zwei Zeilen belegt,
    auch wenn nichts gefiltert war. Jetzt öffnet sie ein Knopf, der die
    Zahl der gesetzten Filter mitführt — sichtbar bleibt nur die Suche. */
 function filterZahl(){
-  return [filterKlasse, filterKatze, filterRaum, filterPlatz].filter(Boolean).length;
+  return [filterKlasse, filterKatze, filterRaum, filterPlatz].filter(Boolean).length
+    + filterZustand.size
+    + ((typeof filterDueng !== 'undefined' && filterDueng) ? 1 : 0);
 }
 function ctrlKnopfZeichnen(){
   const b = document.getElementById('btn-ctrl-auf'); if(!b) return;
   const n = filterZahl();
   b.innerHTML = 'Filter' + (n ? `<span class="ctrl-zahl">${n}</span>` : '');
-  b.setAttribute('aria-expanded', String(!document.getElementById('ctrl-klapp').hidden));
+  let auf = false;
+  try{ auf = modalOffen('filter-modal'); }catch(e){}
+  b.setAttribute('aria-expanded', String(auf));
 }
 (function(){
   const b = document.getElementById('btn-ctrl-auf');
   const k = document.getElementById('ctrl-klapp');
   if(!b || !k) return;
-  b.setAttribute('aria-controls', 'ctrl-klapp');
+  b.setAttribute('aria-controls', 'filter-modal');
   b.onclick = ()=>{
-    k.hidden = !k.hidden;
-    /* „offen“ hält die Leiste im klebenden Zustand aufgeklappt */
-    const leiste = document.querySelector('.controls');
-    if(leiste) leiste.classList.toggle('offen', !k.hidden);
-    ctrlKnopfZeichnen();
+    filterKnoepfeZeichnen();
+    lageFilterZeichnen();
+    modalAuf('filter-modal', b);
   };
   ctrlKnopfZeichnen();
+  filterMarkenZeichnen();
 })();
 
 /* Die beiden Lage-Filter werden nur dann neu aufgebaut, wenn sich die
@@ -11507,7 +12090,25 @@ function warnungenHTML(p){
   if(z.code === 'schaedlinge')
     w.push('<b>Quarantäne aktiv.</b> Getrennt von den anderen Pflanzen halten, bis zwei Kontrollen im Wochenabstand sauber bleiben.');
 
-  if(p.wichtig) w.push('<b>Wichtig.</b> ' + esc(p.wichtig));
+  /* Bei einer Karnivore standen hier zwei Zeilen untereinander: die
+     automatische Regel „kein Leitungswasser, niemals düngen“ und das
+     eigene Feld, das dasselbe noch einmal sagte. Deckt der eigene Text
+     eine Regel ab, tritt die Regel zurück — er ist genauer, weil er
+     von dieser Pflanze handelt. Deckt er etwas anderes ab, bleiben
+     beide, die eigene Zeile zuerst.
+     Bewusst NICHT: die Regel wegzulassen, sobald irgendetwas im Feld
+     steht. Wer dort „steht auf dem Balkon“ einträgt, verlöre die
+     Warnung, die die Pflanze am Leben hält. */
+  if(p.wichtig){
+    const eigen = String(p.wichtig).toLowerCase();
+    const deckt = stichworte => stichworte.some(x => eigen.indexOf(x) > -1);
+    for(let i = w.length - 1; i >= 0; i--){
+      const regel = String(w[i]).toLowerCase();
+      const marken = REGEL_STICHWORTE.find(r => regel.indexOf(r.erkennung) > -1);
+      if(marken && deckt(marken.worte)) w.splice(i, 1);
+    }
+    w.unshift('<b>Wichtig.</b> ' + esc(p.wichtig));
+  }
 
   /* Fehlende Daten sind kein Freibrief. Was für eine Tierart nicht belegt
      ist, wird ausdrücklich als „potenziell giftig“ ausgewiesen — mit
@@ -11699,7 +12300,7 @@ function kartenDetailHTML(p){
         {key:'verlauf', titel:'Verlauf', inhalt:
           abstammungHTML(p)
           + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
-          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')}
+          + acc('notiz', 'Notizen', p.notiz ? notizenHTML(p) : '')}
       ])}
     </div>`;
   } else {
@@ -11742,7 +12343,7 @@ function kartenDetailHTML(p){
           abstammungHTML(p)
           + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
           + acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
-          + acc('notiz', 'Notizen', p.notiz?`<p>${esc(p.notiz).replace(/\n/g,'<br>')}</p>`:'')
+          + acc('notiz', 'Notizen', p.notiz ? notizenHTML(p) : '')
           + acc('herkunft', 'Herkunft', herkunft)}
       ])}
     </div>`;
@@ -12860,6 +13461,7 @@ function render(){
     if(filterKatze==='tox' && istGiftig(p, 'katze') !== true) return false;
     if(filterRaum === '__ohne' ? !!p.raum : (filterRaum && p.raum !== filterRaum)) return false;
     if(filterPlatz === '__ohne' ? !!p.stellplatz : (filterPlatz && p.stellplatz !== filterPlatz)) return false;
+    if(filterZustand.size && !zustandFilterPasst(p)) return false;
     if(!q) return true;
     const felder = ['id','name','art','botanisch','familie','typ','merkmale','herkunft','folge','katzentext','notiz'];
     let hay = felder.map(f=>p[f]||'').join(' ') + ' ' + lageVon(p);
@@ -12867,20 +13469,24 @@ function render(){
     return hay.toLowerCase().includes(q);
   });
 
+  const sortF = (SORTIERUNGEN[sortierung] || SORTIERUNGEN.faellig).fn;
+  try{ list.sort(sortF); }catch(e){ console.warn('Sortierung', e); }
+
   let html;
   if(gruppierung==='keine' || q){
     html = `<div class="grid">${list.map(cardHTML).join('')}</div>`;
   } else {
-    const key = p => gruppierung==='klasse' ? p.klasse+' · '+KLASSEN[p.klasse].name
-      : gruppierung==='raum' ? (raumNameVon(p.raum) || 'Ohne Raum')
-      : gruppierung==='stellplatz' ? (p.stellplatz || 'Ohne Stellplatz')
-      : gruppierung==='licht' ? (SONNE[p.sonne] ? SONNE[p.sonne].text : 'Licht offen')
-      : (p[gruppierung]||'Ohne Angabe');
-    const order = gruppierung==='klasse' ? ['S','A','B','C'] : null;
+    const key = gruppenSchluessel;
+    const order = gruppierung==='klasse' ? ['S','A','B','C']
+      : gruppierung==='faelligkeit' ? ['Überfällig','Heute','Diese Woche','Später','Gießpause'] : null;
     const gruppen = {};
     list.forEach(p=>{ (gruppen[key(p)] = gruppen[key(p)]||[]).push(p); });
     const namen = Object.keys(gruppen);
-    namen.sort(order ? (a,b)=>order.indexOf(a[0])-order.indexOf(b[0]) : (a,b)=>a.localeCompare(b,'de'));
+    namen.sort(order
+      ? (a,b)=>(gruppierung === 'klasse'
+          ? order.indexOf(a[0]) - order.indexOf(b[0])
+          : order.indexOf(a) - order.indexOf(b))
+      : (a,b)=>a.localeCompare(b,'de'));
     html = namen.map(n=>{
       const closed = zu.has(n);
       return `<section class="group${closed?' closed':''}">
@@ -12894,6 +13500,8 @@ function render(){
   if(typeof giessplanZeichnen === 'function') giessplanZeichnen();
   if(typeof wunschSichtbarkeit === 'function') wunschSichtbarkeit();
   $('#empty').hidden = list.length>0;
+  if(typeof filterMarkenZeichnen === 'function') filterMarkenZeichnen();
+  if(typeof ctrlKnopfZeichnen === 'function') ctrlKnopfZeichnen();
 
   /* Die gezeichnete Reihenfolge merken — die Pfeile im Fenster
      folgen ihr, nicht dem Datenbestand. */
@@ -12907,12 +13515,16 @@ function render(){
     closed ? zu.add(n) : zu.delete(n);
     b.setAttribute('aria-expanded', String(!closed));
   });
-  $('#out').querySelectorAll('.gal img').forEach(im=>im.onclick=e=>{
+  /* Die Galerie steht seit dem Umbau nicht mehr nur in der Liste,
+     sondern auch im Kartenfenster. An #out gebunden bekam das Feld
+     dort gar keinen Handler: man waehlte ein Bild, und nichts geschah.
+     Es betraf jede Pflanze, fiel aber nur bei denen ohne Bilder auf. */
+  document.querySelectorAll('.gal img').forEach(im=>im.onclick=e=>{
     e.stopPropagation();
     $('#lightbox').querySelector('img').src = im.src;
     modalAuf('lightbox', im);
   });
-  $('#out').querySelectorAll('input[data-foto]').forEach(inp=>inp.onchange=e=>{
+  document.querySelectorAll('input[data-foto]').forEach(inp=>inp.onchange=e=>{
     e.stopPropagation();
     if(inp.files && inp.files.length) fotosHinzu(inp.dataset.foto, Array.from(inp.files));
   });
@@ -13182,7 +13794,11 @@ document.addEventListener('click', e=>{
 function fabZeichnen(){
   const fab = document.getElementById('fab-neu'); if(!fab) return;
   const sammlung = document.body.dataset.ansicht === 'sammlung';
-  const offen = typeof modalOffen === 'function' && modalOffen('anleg-modal');
+  /* Beim ersten Zeichnen steht das Fenstersystem noch nicht. Ein
+     typeof-Waechter reicht hier nicht: bei einer const in der
+     zeitlichen Totzone wirft schon typeof. */
+  let offen = false;
+  try{ offen = modalOffen('anleg-modal'); }catch(e){}
   fab.hidden = !sammlung || offen;
 }
 const fabKnopf = document.getElementById('fab-neu');
@@ -13799,6 +14415,7 @@ document.addEventListener('keydown', e=>{
 
 modalAnmelden('gift-modal', {groesse:'blatt'});
 modalAnmelden('neu-modal',  {groesse:'blatt'});
+modalAnmelden('filter-modal', {groesse:'voll', schleier:false});
 
 modalAnmelden('lightbox', {
   groesse:'voll',
@@ -14665,6 +15282,13 @@ function kiModellPunkte(id){
   p -= n.length / 100;
   return p;
 }
+/* Die Generation als Zahl. Sie entscheidet, wie weit das Ausweichen
+   zurückgehen darf. */
+function kiModellVersion(id){
+  return parseFloat((String(id).match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || '0');
+}
+function kiIstLite(id){ return /lite|-8b/i.test(String(id)); }
+
 function kiModellAnzeige(m){
   if(m.displayName) return String(m.displayName).replace(/^Gemini\s*/i, '').trim() || String(m.displayName);
   return String(m.name || '').replace(/^models\/gemini-/, '').replace(/-/g, ' ');
@@ -14716,13 +15340,51 @@ async function kiModelleHolen(schluessel){
   return S.kiModelle;
 }
 
-/* ── Die Anfrage ─────────────────────────────────────────────── */
-let KI_LAEUFT = null;
+/* ── Die Anfrage ───────────────────────────────────────────────
+   Ein 503 heißt nicht „falscher Schlüssel“ und nicht „Bild zu groß“,
+   sondern: Google fehlt gerade die Rechenleistung. Das trifft Gratis-
+   wie Firmenkunden gleichermaßen und lässt sich vorher nicht
+   abfragen — die API kennt keinen Endpunkt für Auslastung. Man merkt
+   es erst beim Versuchen.
 
-async function kiFragen(prompt, bilder){
+   Neue Modelle bekommen anfangs wenig Kapazität, und ausgerechnet das
+   neueste schlägt die Empfehlungsregel vor. Deshalb zwei Notausgänge:
+   kurz nachfassen, und wenn das nicht hilft, eine Stufe zurück. */
+let KI_LAEUFT = null;
+const KI_NACHFASSEN = [2000, 6000];   /* Wartezeiten vor Versuch 2 und 3 */
+const KI_MERK_DAUER = 10 * 60 * 1000; /* so lange gilt ein Modell als voll */
+const KI_UEBERLASTET = {};            /* Modellkennung → Zeitpunkt */
+
+function kiUeberlastetMerken(id){ KI_UEBERLASTET[id] = Date.now(); }
+function kiIstUeberlastet(id){
+  const t = KI_UEBERLASTET[id];
+  return !!t && (Date.now() - t) < KI_MERK_DAUER;
+}
+
+/* Wohin ausgewichen wird. Die Liste ist bereits nach der
+   Empfehlungsregel sortiert, das nächste Modell ist also das
+   nächstältere — nicht irgendein altes. Zwei Bremsen: nie auf eine
+   Lite-Variante, weil die bei feinen Bildunterschieden abbaut, und
+   nie mehr als eine Generation zurück. Lieber eine ehrliche
+   Fehlermeldung als eine Antwort, der man nicht trauen kann. */
+function kiAusweichModelle(startId){
+  const liste = kiModelle();
+  const i = liste.findIndex(m => m.id === startId);
+  if(i < 0) return [];
+  const v0 = kiModellVersion(startId);
+  return liste.slice(i + 1)
+    .filter(m => !kiIstLite(m.id))
+    .filter(m => kiModellVersion(m.id) >= v0 - 1)
+    .filter(m => !kiIstUeberlastet(m.id))
+    .slice(0, 2);
+}
+
+function warte(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function kiFragen(prompt, bilder, modellId){
   const k = kiSchluessel();
   if(!k) throw new Error('Kein Schlüssel hinterlegt.');
-  const m = kiModellAktiv();
+  const m = modellId ? (kiModelle().find(x => x.id === modellId) || {id:modellId}) : kiModellAktiv();
   if(!m) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
   const teile = [{text:String(prompt || '')}];
   (bilder || []).slice(0, KI_BILD_MAX).forEach(b => {
@@ -14749,7 +15411,15 @@ async function kiFragen(prompt, bilder){
     throw new Error(KI_NETZ);
   }
   KI_LAEUFT = null;
-  if(!r.ok) throw new Error(await kiFehlerText(r));
+  if(!r.ok){
+    const fehler = new Error(await kiFehlerText(r));
+    /* Der Aufrufer muss 503 von 400 unterscheiden können: das eine
+       lohnt einen zweiten Versuch, das andere nie. */
+    fehler.status = r.status;
+    fehler.voll = (r.status === 503 || r.status === 500 || r.status === 429);
+    fehler.modell = m.id;
+    throw fehler;
+  }
   let d;
   try{ d = await r.json(); }catch(e){ throw new Error('Die Antwort von Google war nicht lesbar.'); }
   const sperre = d && d.promptFeedback && d.promptFeedback.blockReason;
@@ -14768,6 +15438,56 @@ async function kiFragen(prompt, bilder){
 }
 function kiAbbrechen(){
   if(KI_LAEUFT){ try{ KI_LAEUFT.abort(); }catch(e){} KI_LAEUFT = null; }
+  KI_ABGEBROCHEN = true;
+}
+let KI_ABGEBROCHEN = false;
+
+/* Zuerst dreimal dasselbe Modell mit wachsender Pause — kurze
+   Lastspitzen sind damit erledigt. Erst danach eine Stufe zurück.
+   Meldet der Aufrufer zurück, was unterwegs passiert, damit der
+   Nutzer nicht zwanzig Sekunden vor einem stummen Knopf sitzt. */
+async function kiFragenHartnaeckig(prompt, bilder, sagen){
+  KI_ABGEBROCHEN = false;
+  const start = kiModellAktiv();
+  if(!start) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
+  const kette = [start].concat(kiAusweichModelle(start.id));
+  let letzter = null;
+
+  for(let mi = 0; mi < kette.length; mi++){
+    const m = kette[mi];
+    if(mi > 0){
+      if(sagen) sagen('Das Modell ist überlastet. Ich versuche es mit ' + m.anzeige + ' …');
+      await warte(600);
+      if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
+    }
+    for(let v = 0; v <= KI_NACHFASSEN.length; v++){
+      if(v > 0){
+        if(sagen) sagen('Google ist gerade voll. '
+          + (v === 1 ? 'Zweiter' : 'Dritter') + ' Versuch in '
+          + Math.round(KI_NACHFASSEN[v - 1] / 1000) + ' Sekunden …');
+        await warte(KI_NACHFASSEN[v - 1]);
+        if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
+      }
+      try{
+        const txt = await kiFragen(prompt, bilder, m.id);
+        return {text:txt, modell:m, gewechselt:mi > 0};
+      }catch(e){
+        if(e && e.name === 'AbortError') throw e;
+        letzter = e;
+        if(!e.voll) throw e;          /* 400 wird durch Warten nicht besser */
+        kiUeberlastetMerken(m.id);
+        if(e.status === 429) break;   /* Kontingent: anderes Modell hilft nicht durch Warten */
+      }
+    }
+  }
+  if(letzter){
+    letzter.message = (letzter.message || '')
+      + (kette.length > 1
+          ? ' Auch ' + (kette.length - 1) + ' Ausweichmodell'
+            + (kette.length > 2 ? 'e waren' : ' war') + ' nicht frei.'
+          : '');
+  }
+  throw letzter || new Error('Die Anfrage ist fehlgeschlagen.');
 }
 
 /* ── Bilder ──────────────────────────────────────────────────── */
@@ -14915,6 +15635,13 @@ function kiDirektMeldung(wo, txt, ton){
   el.textContent = txt || '';
 }
 
+/* Der Wartezustand ist gesprächig, weil das Warten sonst wie ein
+   Hänger aussieht: bei zwei Wiederholungen und einem Modellwechsel
+   vergeht eine gute Minute. */
+function kiLaufText(wo, txt){
+  const el = document.querySelector('#ki-lauf-' + wo + ' .kilauf-txt');
+  if(el) el.textContent = txt;
+}
 function kiLaufZeigen(wo, laeuft){
   const p = document.getElementById('ki-lauf-' + wo);
   const knopf = document.getElementById(wo === 'anlegen' ? 'btn-gemini' : 'btn-dok-ki');
@@ -14922,7 +15649,7 @@ function kiLaufZeigen(wo, laeuft){
     p.hidden = !laeuft;
     p.innerHTML = laeuft
       ? '<span class="kilauf"><span class="kispin"></span>'
-        + '<span>Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden.</span>'
+        + '<span class="kilauf-txt">Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden.</span>'
         + '<button type="button" data-do="ki-stop">Abbrechen</button></span>'
       : '';
   }
@@ -15063,10 +15790,13 @@ async function kiDirektLos(wo){
   kiDirektMeldung(wo, '', '');
   kiLaufZeigen(wo, true);
   try{
-    const txt = await kiFragen(prompt, KI_BILDER[wo]);
-    kiAntwortEinsetzen(wo, txt);
+    const erg = await kiFragenHartnaeckig(prompt, KI_BILDER[wo],
+      txt => kiLaufText(wo, txt));
+    kiAntwortEinsetzen(wo, erg.text);
     const n = wo === 'anlegen' ? kiBilderUebernehmen() : 0;
     kiDirektMeldung(wo, 'Antwort ist da und übernommen.'
+      + (erg.gewechselt ? ' Geantwortet hat ' + erg.modell.anzeige
+          + ', weil das gewählte Modell überlastet war.' : '')
       + (n ? ' ' + (n === 1 ? 'Das Bild liegt' : 'Die ' + n + ' Bilder liegen')
              + ' schon in der Fotoauswahl — dort kannst du sie wieder herausnehmen.' : '')
       + ' Was in die Karte geht, steht unten zum Bestätigen.', 'ok');
@@ -19063,39 +19793,62 @@ function dokGruppenLeiste(){
 
 const DOKTOR_PROMPT_KOPF = 'Du bist ein erfahrener Gärtner. Ich hänge ein Foto meiner Pflanze an.';
 
-/* Die Galerie der Sammlung. Ein Treffer pro Zeile: Bild, Name,
-   Nebenzeile mit Art und Standort. Dieselben Bausteine wie im
-   Stammbaum, damit die App nicht zwei Muster für dieselbe Aufgabe
-   hat. */
-function dokListeZeichnen(q){
-  const box = document.getElementById('dok-liste');
+/* ── Die Pflanzenwahl, einmal für alle ────────────────────────
+   Doktor und Umtopfen fragen dasselbe: welche Pflanze? Also fragen
+   sie es auch gleich. Auf der Kachel steht nur, was zum Wiedererkennen
+   nötig ist — Bild, Name, botanischer Name. Standort, Zustand und
+   Verlauf gehören auf die Karte, nicht in die Auswahl. */
+function pwahlPasst(p, suche){
+  if(!suche) return true;
+  return [nice(p), p.art, p.botanisch, p.typ, p.raum, p.stellplatz]
+    .filter(Boolean).join(' ').toLowerCase().indexOf(suche) > -1;
+}
+function pwahlKachel(p, attr, gewaehlt, marke){
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  const bot = String(p.botanisch || '').trim();
+  const zweit = bot && bot.toLowerCase() !== String(nice(p)).toLowerCase()
+    ? bot : String(p.art || '').trim();
+  return '<button type="button" class="pwahl-k" ' + attr + '="' + esc(p.id) + '"'
+    + ' aria-pressed="' + (p.id === gewaehlt ? 'true' : 'false') + '">'
+    + '<span class="pwahl-bild">'
+    + (f && f.src ? '<img alt="" src="' + f.src + '">'
+                  : '<span class="pwahl-leer" aria-hidden="true">\u2740</span>')
+    + '</span>'
+    + (marke ? '<span class="pwahl-marke">' + esc(marke) + '</span>' : '')
+    + '<span class="pwahl-txt"><b>' + esc(nice(p)) + '</b>'
+    + (zweit ? '<i>' + esc(zweit) + '</i>' : '') + '</span></button>';
+}
+/* opt: {attr, gewaehlt, suche, liste, marke:(p)=>string, ohne:{text,unter}} */
+function pwahlZeichnen(box, opt){
+  if(typeof box === 'string') box = document.getElementById(box);
   if(!box) return;
-  const suche = String(q || '').trim().toLowerCase();
-  const passt = p => {
-    if(!suche) return true;
-    return [nice(p), p.art, p.botanisch, p.typ, p.raum, p.stellplatz]
-      .filter(Boolean).join(' ').toLowerCase().indexOf(suche) > -1;
-  };
-  const liste = allePflanzen().filter(passt);
-  const bild = p => {
-    const f = (S.fotos && S.fotos[p.id] && S.fotos[p.id][0]) ? S.fotos[p.id][0].src : null;
-    return f ? '<img alt="" src="' + f + '">' : '';
-  };
-  const zeile = p => '<button type="button" class="sb-linie" data-dokp="' + esc(p.id) + '"'
-    + ' aria-pressed="' + (p.id === dokPflanze ? 'true' : 'false') + '">'
-    + '<span class="sb-linie-bild">' + bild(p) + '</span>'
-    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
-    + esc([p.art, lageVon(p)].filter(Boolean).join(' · ') || 'Ohne Angabe') + '</i></span></button>';
-  const ohne = '<button type="button" class="sb-linie" data-dokp=""'
-    + ' aria-pressed="' + (dokPflanze ? 'false' : 'true') + '">'
-    + '<span class="sb-linie-bild"></span>'
-    + '<span class="sb-linie-txt"><b>Keine bestimmte Pflanze</b>'
-    + '<i>Nur Einschätzung, nichts wird übernommen</i></span></button>';
-  box.innerHTML = liste.length
-    ? liste.map(zeile).join('') + (suche ? '' : ohne)
-    : (suche
-        ? '<p class="dok-leer">Kein Treffer. Suchbegriff kürzen.</p>' + ohne
-        : '<p class="dok-leer">Deine Sammlung ist noch leer.</p>' + ohne);
+  const o = opt || {};
+  const suche = String(o.suche || '').trim().toLowerCase();
+  const attr = o.attr || 'data-pwahl';
+  const alle = (o.liste || allePflanzen()).filter(p => pwahlPasst(p, suche));
+  const marke = o.marke || (()=>null);
+  const kacheln = alle.map(p => pwahlKachel(p, attr, o.gewaehlt, marke(p))).join('');
+  const ohne = o.ohne
+    ? '<button type="button" class="pwahl-k pwahl-ohne" ' + attr + '=""'
+      + ' aria-pressed="' + (o.gewaehlt ? 'false' : 'true') + '">'
+      + '<span class="pwahl-bild"></span>'
+      + '<span class="pwahl-txt"><b>' + esc(o.ohne.text) + '</b>'
+      + (o.ohne.unter ? '<i>' + esc(o.ohne.unter) + '</i>' : '') + '</span></button>'
+    : '';
+  box.innerHTML = alle.length
+    ? kacheln + (suche ? '' : ohne)
+    : '<p class="pwahl-leertext">'
+      + (suche ? 'Kein Treffer. Suchbegriff kürzen.' : 'Deine Sammlung ist noch leer.')
+      + '</p>' + ohne;
+}
+
+function dokListeZeichnen(q){
+  pwahlZeichnen('dok-liste', {
+    attr:'data-dokp',
+    gewaehlt:dokPflanze,
+    suche:q,
+    ohne:{text:'Keine bestimmte Pflanze', unter:'Nur Einschätzung, nichts wird übernommen'}
+  });
 }
 
 /* Ist eine Pflanze gewählt, verschwindet die Liste und macht einer
@@ -19109,11 +19862,12 @@ function dokWahlZeichnen(){
   kasten.hidden = !p;
   wahl.hidden = !!p;
   if(!p) return;
-  const f = (S.fotos && S.fotos[p.id] && S.fotos[p.id][0]) ? S.fotos[p.id][0].src : null;
+  const pf = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  const f = pf && pf.src ? pf.src : null;
   kasten.innerHTML = '<span class="sb-linie-bild">'
     + (f ? '<img alt="" src="' + f + '">' : '') + '</span>'
     + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
-    + esc([p.art, lageVon(p)].filter(Boolean).join(' · ') || 'Ohne Angabe') + '</i></span>'
+    + esc(String(p.botanisch || p.art || '').trim() || 'Ohne Angabe') + '</i></span>'
     + '<button type="button" id="dok-andere">Andere</button>';
 }
 
@@ -19404,11 +20158,17 @@ document.addEventListener('click', e=>{
     const p = allePflanzen().find(x=>x.id===dokPflanze);
     if(!p) return;
     const alt = (p.notiz || '').trim();
-    aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '')
-      + 'Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + roh});
+    /* Derselbe Dublettenschutz wie beim Uebernehmen. Er fehlte hier,
+       und wer eine Antwort zweimal einfuegte — weil die erste
+       abgeschnitten war —, hatte den Befund zweimal in den Notizen. */
+    const neu = 'Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + roh;
+    const schon = alt.indexOf(roh) >= 0;
+    if(!schon) aenderungSetzen(dokPflanze, {notiz: (alt ? alt + '\n\n' : '') + neu});
     const box = document.getElementById('dok-abgleich-hinweis');
     if(box) box.innerHTML = '';
-    dokKiHinweis('Der Text steht jetzt als Befund in den Notizen.', 'ok');
+    dokKiHinweis(schon
+      ? 'Der Text stand schon in den Notizen — nichts doppelt eingetragen.'
+      : 'Der Text steht jetzt als Befund in den Notizen.', 'ok');
     render(); dokWeiterZurEinschaetzung(); return;
   }
   if(btn.dataset.do === 'ab-weg'){
@@ -20224,29 +20984,69 @@ function umtopfVorgemerkt(){
 
 const UT = {stufe:1, pflanze:null, gruende:[], form:'kultur', topf:18,
             stecklinge:false, zahl:1, art:null, langzeit:false};
-const UT_STUFEN = 5;
+/* Seit 3.1.0 sechs: zwischen Topf und Stecklingen steht die
+   Substratmischung. Vorher fuehrte an dieser Stelle ein Link in den
+   Substratmischer — man verlor den halbfertigen Umtopfvorgang aus dem
+   Blick und musste Topfgroesse und Form dort noch einmal ansehen. */
+const UT_STUFEN = 6;
 
 function utPflanzen(){
   return allePflanzen().slice().sort((a, b)=>nice(a).localeCompare(nice(b), 'de'));
 }
 
+/* Vorgemerkte zuerst — sonst muesste man sie unter vierzig Kacheln
+   wiederfinden. Auf ihnen sitzt eine Marke. */
+function utGitterZeichnen(q){
+  const plan = S.umtopfPlan || {};
+  const liste = utPflanzen();
+  const sortiert = liste.filter(p=>plan[p.id]).concat(liste.filter(p=>!plan[p.id]));
+  pwahlZeichnen('ut-gitter', {
+    attr:'data-utp', gewaehlt:UT.pflanze, suche:q, liste:sortiert,
+    marke:p => plan[p.id] ? 'Vorgemerkt' : null
+  });
+}
+/* Ist gewaehlt, macht das Gitter einer Zeile Platz — sonst scrollt man
+   auf jedem weiteren Schritt an der ganzen Sammlung vorbei. */
+function utWahlZeichnen(){
+  const kasten = document.getElementById('ut-gewaehlt');
+  const wahl = document.getElementById('ut-wahl');
+  if(!kasten || !wahl) return;
+  const p = UT.pflanze ? allePflanzen().find(x => x.id === UT.pflanze) : null;
+  kasten.hidden = !p;
+  wahl.hidden = !!p;
+  if(!p) return;
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  kasten.innerHTML = '<span class="sb-linie-bild">'
+    + (f && f.src ? '<img alt="" src="' + f.src + '">' : '') + '</span>'
+    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
+    + esc(String(p.botanisch || p.art || '').trim() || 'Ohne Angabe') + '</i></span>'
+    + '<button type="button" id="ut-andere">Andere</button>';
+}
+function utPflanzeSetzen(id){
+  UT.pflanze = id || null;
+  utWahlZeichnen();
+  utGitterZeichnen((document.getElementById('ut-such') || {}).value || '');
+  utZeichnen();
+}
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'ut-such') utGitterZeichnen(e.target.value);
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('#ut-andere')){ utPflanzeSetzen(null); return; }
+  const k = e.target.closest('[data-utp]');
+  if(k) utPflanzeSetzen(k.dataset.utp || null);
+});
+
 function utAufbauen(){
-  const sel = document.getElementById('ut-pflanze');
-  if(!sel) return;
+  const gitter = document.getElementById('ut-gitter');
+  if(!gitter) return;
   const liste = utPflanzen();
   const plan = S.umtopfPlan || {};
   const vor = liste.filter(p=>plan[p.id]);
-  const rest = liste.filter(p=>!plan[p.id]);
-  /* Vorgemerkte zuerst, in einer eigenen Gruppe — sonst muesste man
-     sie in einer Liste von vierzig Namen wiederfinden. */
-  sel.innerHTML =
-    (vor.length ? '<optgroup label="Vorgemerkt">' + vor.map(p=>
-      `<option value="${p.id}">${esc(nice(p))}</option>`).join('') + '</optgroup>' : '')
-    + (rest.length ? '<optgroup label="Übrige Sammlung">' + rest.map(p=>
-      `<option value="${p.id}">${esc(nice(p))}</option>`).join('') + '</optgroup>' : '');
   if(!UT.pflanze || !liste.some(p=>p.id === UT.pflanze))
     UT.pflanze = (vor[0] || liste[0] || {}).id || null;
-  if(UT.pflanze) sel.value = UT.pflanze;
+  utGitterZeichnen((document.getElementById('ut-such') || {}).value || '');
+  utWahlZeichnen();
 
   const gr = document.getElementById('ut-gruende');
   if(gr && !gr.children.length){
@@ -20287,6 +21087,27 @@ function utZeichnen(){
   if(wei) wei.hidden = UT.stufe === UT_STUFEN;
 
   const p = UT.pflanze ? allePflanzen().find(x=>x.id === UT.pflanze) : null;
+  if(typeof utWahlZeichnen === 'function' && UT.stufe === 1) utWahlZeichnen();
+
+  /* Stufe 4 ist derselbe Rechner wie im Werkzeug „Substrat mischen“,
+     nur mit den Kaesten dieser Seite und mit Topf und Pflanze von
+     oben. Zwei Elemente duerfen nicht dieselbe Kennung tragen —
+     deshalb sagt subKastenSetzen dem Rechner, wohin er schreibt. */
+  if(UT.stufe === 4 && typeof subKastenSetzen === 'function'){
+    subKastenSetzen('ut-sub-gruppe-name-text', 'ut-sub-mischung', 'ut-sub-warnungen');
+    subTopf = Math.max(5, Math.min(80, UT.topf || subTopf));
+    subForm = UT.form || subForm;
+    if(p){
+      subPflanze = p.id;
+      if(typeof zielFuer === 'function'){ const z = zielFuer(p); if(z) subZiel = z; }
+    }
+    const name = document.getElementById('ut-sub-gruppe-name');
+    if(name) name.innerHTML = '<div><dt>Gruppe</dt><dd>'
+        + esc((ZIELE[subZiel] || {}).name || '—') + '</dd></div>'
+      + '<div><dt>Menge</dt><dd>' + esc(topfMengeText(subTopf, subForm)) + '</dd></div>';
+    utVorratZeichnen();
+    subErgebnis();
+  }
 
   /* Stufe 1: was an dieser Pflanze gerade dran ist */
   const lage = document.getElementById('ut-pflanze-lage');
@@ -20444,23 +21265,10 @@ document.addEventListener('click', e=>{
     }
     return;
   }
-  /* Der Substratmischer rechnet dieselbe Menge — mit Topfgroesse und
-     Form vorbelegt, damit niemand sie zweimal eintippt. */
-  if(e.target.closest('#ut-zum-substrat')){
-    subTopf = UT.topf; subForm = UT.form;
-    if(UT.pflanze){
-      const sp = document.getElementById('sub-pflanze');
-      if(sp) sp.value = UT.pflanze;
-    }
-    sektionOeffnen('substrat', e.target.closest('#ut-zum-substrat'));
-    if(typeof subAufbau === 'function') subAufbau();
-    if(typeof subErgebnis === 'function') subErgebnis();
-    return;
-  }
 });
 
 document.addEventListener('change', e=>{
-  if(e.target.id === 'ut-pflanze'){ UT.pflanze = e.target.value; utZeichnen(); }
+
   if(e.target.id === 'ut-topf'){
     UT.topf = Math.max(5, Math.min(80, Number(e.target.value) || 18));
     utZeichnen();
@@ -20478,11 +21286,51 @@ let subForm = 'kultur';
 
 function vorrat(){ if(!S.vorrat) S.vorrat = []; return S.vorrat; }
 
+function subGitterZeichnen(q){
+  pwahlZeichnen('sub-gitter', {
+    attr:'data-subp', gewaehlt:subPflanze, suche:q,
+    ohne:{text:'Keine bestimmte Pflanze', unter:'Gruppe von Hand wählen'}
+  });
+}
+function subWahlZeichnen(){
+  const kasten = document.getElementById('sub-gewaehlt');
+  const wahl = document.getElementById('sub-wahl');
+  if(!kasten || !wahl) return;
+  const p = subPflanze ? pflanzeAusWahl(subPflanze) : null;
+  kasten.hidden = !p;
+  wahl.hidden = !!p;
+  if(!p) return;
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  kasten.innerHTML = '<span class="sb-linie-bild">'
+    + (f && f.src ? '<img alt="" src="' + f.src + '">' : '') + '</span>'
+    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
+    + esc(String(p.botanisch || p.art || '').trim() || 'Ohne Angabe') + '</i></span>'
+    + '<button type="button" id="sub-andere">Andere</button>';
+}
+/* Siebzehn Gruppen als Knopfgitter waeren neun Reihen, durch die man
+   scrollt, um eine Zeile zu lesen. Die Gruppe kommt ohnehin aus der
+   Art; sie steht als Zeile da, und die Auswahl erscheint erst, wenn
+   man sie wirklich ueberschreiben will — dasselbe Muster wie bei den
+   Pflegeangaben im Anlegen. */
+function subZielKnoepfe(){
+  const box = document.getElementById('sub-ziel-knoepfe');
+  const name = document.getElementById('sub-gruppe-name');
+  if(name) name.innerHTML = '<div><dt>Gruppe</dt><dd>'
+    + esc((ZIELE[subZiel] || {}).name || '—') + '</dd></div>';
+  if(!box) return;
+  box.innerHTML = Object.keys(ZIELE).map(k =>
+    '<button type="button" class="as-knopf" data-subziel="' + esc(k) + '"'
+    + ' aria-pressed="' + (k === subZiel ? 'true' : 'false') + '">'
+    + '<b>' + esc(ZIELE[k].name) + '</b></button>').join('');
+}
+
 function subAufbau(){
-  const sel = $('#sub-pflanze'); if(!sel) return;
-  sel.innerHTML = pflanzenAuswahlHTML(subPflanze, 'Keine bestimmte Pflanze');
+  const gitter = document.getElementById('sub-gitter'); if(!gitter) return;
+  subGitterZeichnen((document.getElementById('sub-such') || {}).value || '');
+  subWahlZeichnen();
   $('#sub-ziel').innerHTML = Object.keys(ZIELE).map(k=>
     `<option value="${k}"${k===subZiel?' selected':''}>${esc(ZIELE[k].name)}</option>`).join('');
+  subZielKnoepfe();
   const gruppen = {};
   ZUTATEN.forEach(z=>{ (gruppen[z.gruppe] = gruppen[z.gruppe]||[]).push(z); });
   $('#sub-vorrat').innerHTML = Object.keys(gruppen).map(g=>
@@ -20503,16 +21351,29 @@ function balken(name, ist, soll){
     <span class="sb-wert">${ist.toFixed(1).replace('.',',')}<i>/${soll}</i></span></div>`;
 }
 
+/* Wohin das Ergebnis geschrieben wird. Der Umtopf-Assistent haengt
+   dieselbe Rechnung in seine eigene Stufe ein; zwei Elemente duerfen
+   nicht dieselbe Kennung tragen, also merkt sich der Rechner, welcher
+   Satz Kaesten gerade gilt. */
+let SUB_KASTEN = {ziel:'sub-ziel-text', mischung:'sub-mischung', warn:'sub-warnungen'};
+function subKasten(welche){
+  const el = document.getElementById(SUB_KASTEN[welche]);
+  return el || {innerHTML:'', set innerHTML(v){}};
+}
+function subKastenSetzen(ziel, mischung, warn){
+  SUB_KASTEN = {ziel:ziel, mischung:mischung, warn:warn};
+}
+
 function subErgebnis(){
   const ziel = ZIELE[subZiel] || ZIELE.standard;
   const v = vorrat();
-  $('#sub-ziel-text').innerHTML = `<p class="sub">${esc(ziel.text)}</p>`;
+  subKasten('ziel').innerHTML = `<p class="sub">${esc(ziel.text)}</p>`;
 
   /* Wasserkultur hat kein Substrat. Statt einer Mischung braucht es
      hier Gefäß, Wasserstand und Wechselrhythmus. */
   if(ziel.ohneMischung){
     const liter = topfLiter(subTopf);
-    $('#sub-mischung').innerHTML = `<div class="aqua">
+    subKasten('mischung').innerHTML = `<div class="aqua">
       <h3>Wasserkultur einrichten</h3>
       <ul class="aqua-liste">${ziel.anleitung.map(z=>`<li>${esc(z)}</li>`).join('')}</ul>
       <p class="aqua-takt"><b>Wechsel:</b> ${esc(ziel.wechsel)}</p>
@@ -20521,14 +21382,14 @@ function subErgebnis(){
         der obere Teil der Wurzeln braucht Luft.</p>
       <p class="sub">Eine Pflanze mit der Gießart „Wasserkultur“ meldet sich von selbst zum Wechsel,
         genau wie andere zum Gießen.</p></div>`;
-    $('#sub-warnungen').innerHTML = '';
+    subKasten('warn').innerHTML = '';
     return;
   }
 
   if(!v.length){
-    $('#sub-mischung').innerHTML = optimumHTML([])
+    subKasten('mischung').innerHTML = optimumHTML([])
       + '<p class="allgut">Hak oben an, was du zu Hause hast — dann rechne ich zusätzlich die beste Mischung aus deinem Vorrat.</p>';
-    $('#sub-warnungen').innerHTML = '';
+    subKasten('warn').innerHTML = '';
     return;
   }
   const sperre = ziel.sperre ? VERBOTEN[ziel.sperre] || [] : [];
@@ -20536,10 +21397,10 @@ function subErgebnis(){
   const beste = mischungSuchen(v, subZiel);
 
   if(!beste){
-    $('#sub-mischung').innerHTML = optimumHTML(v) + `<div class="alert">Von deinen Zutaten taugt für ${esc(ziel.name)} keine einzige.
+    subKasten('mischung').innerHTML = optimumHTML(v) + `<div class="alert">Von deinen Zutaten taugt für ${esc(ziel.name)} keine einzige.
       ${gesperrt.length?`Ausgeschlossen sind hier: ${esc(gesperrt.join(', '))}.`:''}</div>`
       + zukaufHTML(v);
-    $('#sub-warnungen').innerHTML = '';
+    subKasten('warn').innerHTML = '';
     return;
   }
 
@@ -20554,7 +21415,7 @@ function subErgebnis(){
         <td class="sub-liter">${l < 0.35 ? Math.round(l*1000)+' ml' : l.toFixed(1).replace('.',',')+' l'}</td></tr>`;
     }).join('');
 
-  $('#sub-mischung').innerHTML = optimumHTML(v) + `
+  subKasten('mischung').innerHTML = optimumHTML(v) + `
     <h4 class="sub-titel">Aus deinem Vorrat</h4>
     <div class="sub-erg ${b.stufe}">
       <div class="sub-kopf"><span class="sub-note">${esc(b.text)}</span>
@@ -20577,7 +21438,7 @@ function subErgebnis(){
     ${zukaufHTML(v)}`;
 
   const warn = SUBSTRAT_WARNUNGEN.filter(([id])=>Object.keys(beste.teile).includes(id) || v.includes(id));
-  $('#sub-warnungen').innerHTML = warn.length
+  subKasten('warn').innerHTML = warn.length
     ? `<h3>Worauf du achten solltest</h3>` + warn.map(([,t])=>`<div class="alert info">${esc(t)}</div>`).join('')
     : '';
 }
@@ -20666,7 +21527,9 @@ document.addEventListener('click', e=>{
     const v = vorrat();
     const i = v.indexOf(id);
     if(i >= 0) v.splice(i,1); else v.push(id);
-    sichern(); subAufbau(); subErgebnis(); return;
+    sichern(); subAufbau();
+    if(typeof utVorratZeichnen === 'function') utVorratZeichnen();
+    subErgebnis(); return;
   }
   const b = e.target.closest('[data-do]'); if(!b) return;
   if(b.dataset.do === 'substrat-fuer'){
@@ -20675,9 +21538,27 @@ document.addEventListener('click', e=>{
     subZiel = zielFuer(pflanzeAusWahl(subPflanze));
     ansichtZeigen('substrat');
     subAufbau(); subErgebnis();
+    /* Pflanze steht schon fest — dann faengt der Assistent beim Topf an. */
+    if(typeof subStufeZeigen === 'function') subStufeZeigen(2);
     fensterHoch();
   }
-  if(b.dataset.do === 'sub-leeren'){ S.vorrat = []; sichern(); subAufbau(); subErgebnis(); }
+  if(b.dataset.do === 'befund-weg'){
+    e.stopPropagation();
+    const p = allePflanzen().find(x=>x.id === b.dataset.p);
+    if(p){
+      const t = notizTrennen(p.notiz);
+      const bleibt = t.befunde.filter(x => x.roh.slice(0, 60) !== b.dataset.b);
+      const neuText = [t.eigen].concat(bleibt.map(x=>x.roh)).filter(Boolean).join('\n\n');
+      aenderungSetzen(p.id, {notiz:neuText});
+      if(typeof render === 'function') render();
+    }
+    return;
+  }
+  if(b.dataset.do === 'sub-leeren'){
+    S.vorrat = []; sichern(); subAufbau();
+    if(typeof utVorratZeichnen === 'function') utVorratZeichnen();
+    subErgebnis();
+  }
   /* Fehlende Bestandteile in die vorhandene Wunschliste schieben —
      dieselbe Liste, die auch Pflanzenwünsche aufnimmt. Doppelte
      Einträge werden übersprungen, sonst steht Bims dreimal drin. */
@@ -20701,15 +21582,7 @@ document.addEventListener('click', e=>{
   }
 });
 
-$('#sub-pflanze').onchange = ()=>{
-  subPflanze = $('#sub-pflanze').value || null;
-  if(subPflanze){
-    subZiel = zielFuer(pflanzeAusWahl(subPflanze));
-    $('#sub-ziel').value = subZiel;
-  }
-  subErgebnis();
-};
-$('#sub-ziel').onchange = ()=>{ subZiel = $('#sub-ziel').value; subErgebnis(); };
+$('#sub-ziel').onchange = ()=>{ subZiel = $('#sub-ziel').value; subZielKnoepfe(); subErgebnis(); };
 $('#sub-topf').addEventListener('input', ()=>{
   subTopf = Math.max(5, Math.min(80, parseInt($('#sub-topf').value,10) || 18));
   topfZeichnen();
@@ -20717,12 +21590,16 @@ $('#sub-topf').addEventListener('input', ()=>{
 });
 
 /* ══════════════════ Topfform wählen ══════════════════ */
+/* Das Karussell war das einzige Bedienelement der App, das seitwaerts
+   geschoben werden musste — zwei der fuenf Formen sah man nie. Jetzt
+   ein Gitter aus Knoepfen, jeder mit seiner Zeichnung. */
 function topfKarussellZeichnen(){
-  const box = document.getElementById('topf-karussell'); if(!box) return;
+  const box = document.getElementById('topf-formen'); if(!box) return;
   box.innerHTML = Object.keys(TOPFFORMEN).map(k=>{
     const f = TOPFFORMEN[k];
-    return `<button class="topf-form" role="radio" data-topfform="${k}"
-      aria-checked="${k === subForm}">${topfIcon(k)}<b>${esc(f.name)}</b><i>${esc(f.kurz)}</i></button>`;
+    return `<button type="button" class="as-knopf as-knopf-bild" role="radio" data-topfform="${k}"
+      aria-checked="${k === subForm}" aria-pressed="${k === subForm}">${topfIcon(k)}
+      <span><b>${esc(f.name)}</b><i>${esc(f.kurz)}</i></span></button>`;
   }).join('');
 }
 
@@ -20730,8 +21607,10 @@ function topfZeichnen(){
   const f = TOPFFORMEN[subForm] || TOPFFORMEN.kultur;
   const liter = topfVolumen(subTopf, subForm);
   const hoehe = Math.round(subTopf * f.hFaktor);
-  document.querySelectorAll('[data-topfform]').forEach(b=>
-    b.setAttribute('aria-checked', String(b.dataset.topfform === subForm)));
+  document.querySelectorAll('[data-topfform]').forEach(b=>{
+    b.setAttribute('aria-checked', String(b.dataset.topfform === subForm));
+    b.setAttribute('aria-pressed', String(b.dataset.topfform === subForm));
+  });
   const hin = document.getElementById('topf-hinweis');
   if(hin) hin.textContent = f.text;
   const wert = document.getElementById('topf-wert');
@@ -20757,6 +21636,102 @@ document.addEventListener('click', e=>{
   topfZeichnen(); subErgebnis();
 });
 
+/* Dieselbe Vorratsliste, anderer Kasten. Beide schreiben in S.vorrat,
+   also ist die Auswahl an beiden Stellen dieselbe. */
+function vorratHTML(){
+  const gruppen = {};
+  ZUTATEN.forEach(z=>{ (gruppen[z.gruppe] = gruppen[z.gruppe]||[]).push(z); });
+  return Object.keys(gruppen).map(g=>
+    `<div class="sym-gruppe"><h4>${esc(g)}</h4><div class="sym-liste">${
+      gruppen[g].map(z=>`<button class="sym${vorrat().includes(z.id)?' on':''}" data-zutat="${z.id}"
+        title="${esc(z.text)}">${esc(z.name)}</button>`).join('')
+    }</div></div>`).join('');
+}
+function utVorratZeichnen(){
+  const box = document.getElementById('ut-sub-vorrat');
+  if(box) box.innerHTML = vorratHTML();
+}
+function topfMengeText(d, form){
+  const liter = topfVolumen(d, form);
+  return liter < 1 ? Math.round(liter * 1000) + ' ml'
+                   : liter.toFixed(liter < 10 ? 1 : 0).replace('.', ',') + ' Liter';
+}
+
+/* ── Der Substratrechner als Assistent ────────────────────────
+   Vorher ein Formular, in dem Pflanze, Gruppe, Topfform, Durchmesser,
+   Vorrat und Mischung untereinander standen — als einziges Werkzeug
+   ohne Stufen. Vier Fragen, vier Stufen, dieselben Bausteine wie
+   ueberall. */
+const SUB_STUFEN = 4;
+let subStufe = 1;
+
+function subStufeZeigen(nr){
+  subKastenSetzen('sub-ziel-text', 'sub-mischung', 'sub-warnungen');
+  subStufe = Math.max(1, Math.min(SUB_STUFEN, nr));
+  const wz = document.getElementById('wz-in-substrat');
+  if(!wz) return;
+  wz.querySelectorAll('[data-sub-stufe]').forEach(el =>
+    el.classList.toggle('an', Number(el.dataset.subStufe) === subStufe));
+  const f = document.getElementById('sub-fortschritt');
+  if(f) Array.prototype.forEach.call(f.children, (li, i)=>{
+    li.classList.toggle('jetzt', i + 1 === subStufe);
+    li.classList.toggle('fertig', i + 1 < subStufe);
+  });
+  const zur = document.getElementById('sub-zurueck');
+  const wei = document.getElementById('sub-weiter');
+  if(zur) zur.hidden = subStufe === 1;
+  if(wei) wei.hidden = subStufe === SUB_STUFEN;
+  if(subStufe === 2) topfZeichnen();
+  if(subStufe >= 3) subErgebnis();
+}
+
+function subPflanzeSetzen(id){
+  subPflanze = id || null;
+  /* Die Gruppe folgt der Pflanze, solange man sie nicht selbst
+     angefasst hat — sonst ueberschreibt jede Wahl die Handeingabe. */
+  const p = subPflanze ? pflanzeAusWahl(subPflanze) : null;
+  if(p && typeof zielFuer === 'function'){
+    const z = zielFuer(p);
+    if(z) subZiel = z;
+  }
+  if(p && p.topf) subTopf = Math.max(6, Math.min(45, parseInt(p.topf, 10) || subTopf));
+  subWahlZeichnen();
+  subGitterZeichnen((document.getElementById('sub-such') || {}).value || '');
+  subZielKnoepfe();
+  topfZeichnen();
+  subErgebnis();
+}
+
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'sub-such') subGitterZeichnen(e.target.value);
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('#sub-andere')){ subPflanzeSetzen(null); return; }
+  const k = e.target.closest('[data-subp]');
+  if(k){ subPflanzeSetzen(k.dataset.subp || null); return; }
+  const z = e.target.closest('[data-subziel]');
+  if(z){
+    subZiel = z.dataset.subziel;
+    const feld = document.getElementById('sub-ziel');
+    if(feld) feld.value = subZiel;
+    subZielKnoepfe(); subErgebnis();
+    return;
+  }
+});
+
+{
+  const g = document.getElementById('btn-sub-gruppe');
+  if(g) g.onclick = ()=>{
+    const box = document.getElementById('sub-ziel-knoepfe');
+    if(box) box.hidden = !box.hidden;
+    g.textContent = (box && box.hidden) ? 'Andere Gruppe' : 'Übernehmen';
+  };
+  const z = document.getElementById('sub-zurueck');
+  if(z) z.onclick = ()=>subStufeZeigen(subStufe - 1);
+  const w = document.getElementById('sub-weiter');
+  if(w) w.onclick = ()=>subStufeZeigen(subStufe + 1);
+}
+
 const _slider = document.getElementById('topf-slider');
 if(_slider) _slider.addEventListener('input', ()=>{
   subTopf = parseInt(_slider.value, 10) || 18;
@@ -20773,9 +21748,215 @@ subErgebnis();
 let verPflanze = null;
 let verMethode = null;
 
+
+/* ══════════════════ Vermehren als Assistent ══════════════════
+   Vorher ein Auswahlfeld und darunter sofort sieben aufgeklappte
+   Riesenkarten mit Schritt-für-Schritt und Fehlerliste. Man wählte
+   eine Pflanze und bekam eine Wand. Jetzt drei Stufen wie beim
+   Umtopfen: Pflanze, Weg, Ableger. */
+const VER_STUFEN = 3;
+let verStufe = 1;
+let VER_ABLEGER = [];    /* [{name, bearbeitet, datei, vorschau}] */
+const VER_MAX = 10;
+
+function verGitterZeichnen(q){
+  pwahlZeichnen('ver-gitter', {
+    attr:'data-verp', gewaehlt:verPflanze, suche:q,
+    liste:allePflanzen().filter(p=>!p.nurBib)
+  });
+}
+function verWahlZeichnen(){
+  const kasten = document.getElementById('ver-gewaehlt');
+  const wahl = document.getElementById('ver-wahl');
+  if(!kasten || !wahl) return;
+  const p = verPflanze ? pflanzeAusWahl(verPflanze) : null;
+  kasten.hidden = !p;
+  wahl.hidden = !!p;
+  if(!p) return;
+  const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  kasten.innerHTML = '<span class="sb-linie-bild">'
+    + (f && f.src ? '<img alt="" src="' + f.src + '">' : '') + '</span>'
+    + '<span class="sb-linie-txt"><b>' + esc(nice(p)) + '</b><i>'
+    + esc(String(p.botanisch || p.art || '').trim() || 'Ohne Angabe') + '</i></span>'
+    + '<button type="button" id="ver-andere">Andere</button>';
+}
+function verPflanzeSetzen(id){
+  if(verPflanze !== id){ verMethode = null; VER_ABLEGER = []; }
+  verPflanze = id || null;
+  verWahlZeichnen();
+  verGitterZeichnen((document.getElementById('ver-such') || {}).value || '');
+  verRender();
+  verStufeZeigen(verStufe);
+}
+
+/* ── Stufe 3: die Ableger ─────────────────────────────────────
+   Namen laufen durch: „Rudi 1“, „Rudi 2“. Wer einen davon ändert,
+   behält seine Fassung — sonst wäre jede Änderung der Anzahl eine
+   Strafe für den, der schon getippt hat. */
+function verNameVorschlag(i){
+  const p = verPflanze ? pflanzeAusWahl(verPflanze) : null;
+  return (p ? nice(p) : 'Ableger') + ' ' + (i + 1);
+}
+function verAnzahlSetzen(n){
+  n = Math.max(1, Math.min(VER_MAX, n | 0));
+  while(VER_ABLEGER.length > n){
+    const weg = VER_ABLEGER.pop();
+    if(weg && weg.vorschau){ try{ URL.revokeObjectURL(weg.vorschau); }catch(e){} }
+  }
+  while(VER_ABLEGER.length < n)
+    VER_ABLEGER.push({name:verNameVorschlag(VER_ABLEGER.length), bearbeitet:false,
+                      datei:null, vorschau:null});
+  VER_ABLEGER.forEach((a, i)=>{ if(!a.bearbeitet) a.name = verNameVorschlag(i); });
+  verAblegerZeichnen();
+}
+function verAblegerZeichnen(){
+  const zahl = document.getElementById('ver-zahl');
+  if(zahl){
+    let h = '';
+    for(let i = 1; i <= VER_MAX; i++)
+      h += '<button type="button" class="ver-z" data-verzahl="' + i + '"'
+        + ' aria-pressed="' + (VER_ABLEGER.length === i ? 'true' : 'false') + '">' + i + '</button>';
+    zahl.innerHTML = h;
+  }
+  const box = document.getElementById('ver-ableger');
+  if(!box) return;
+  box.innerHTML = VER_ABLEGER.map((a, i) =>
+    '<div class="ver-abl">'
+    + '<label class="ver-abl-bild' + (a.vorschau ? ' voll' : '') + '">'
+    + (a.vorschau ? '<img alt="" src="' + a.vorschau + '">' : '<span aria-hidden="true">+</span>')
+    + '<input type="file" accept="image/*" hidden data-verbild="' + i + '"></label>'
+    + '<input class="ver-abl-name" data-vername="' + i + '" value="' + esc(a.name) + '"'
+    + ' aria-label="Name des ' + (i + 1) + '. Ablegers">'
+    + (a.vorschau ? '<button type="button" class="ver-abl-weg" data-verbildweg="' + i
+        + '" aria-label="Bild entfernen">×</button>' : '')
+    + '</div>').join('');
+}
+document.addEventListener('click', e => {
+  const z = e.target.closest('[data-verzahl]');
+  if(z){ verAnzahlSetzen(parseInt(z.dataset.verzahl, 10)); return; }
+  const w = e.target.closest('[data-verbildweg]');
+  if(w){
+    const a = VER_ABLEGER[parseInt(w.dataset.verbildweg, 10)];
+    if(a){ if(a.vorschau){ try{ URL.revokeObjectURL(a.vorschau); }catch(err){} }
+           a.datei = null; a.vorschau = null; }
+    verAblegerZeichnen();
+    return;
+  }
+  if(e.target.closest('#ver-andere')){ verPflanzeSetzen(null); return; }
+  const k = e.target.closest('[data-verp]');
+  if(k){ verPflanzeSetzen(k.dataset.verp || null); return; }
+  const m = e.target.closest('[data-verm]');
+  if(m){
+    verMethode = m.dataset.verm;
+    verRender();
+    verStufeZeigen(verStufe);
+    return;
+  }
+});
+document.addEventListener('change', e => {
+  const b = e.target.closest('[data-verbild]');
+  if(b && b.files && b.files[0]){
+    const a = VER_ABLEGER[parseInt(b.dataset.verbild, 10)];
+    if(a){
+      if(a.vorschau){ try{ URL.revokeObjectURL(a.vorschau); }catch(err){} }
+      a.datei = b.files[0];
+      a.vorschau = URL.createObjectURL(b.files[0]);
+    }
+    b.value = '';
+    verAblegerZeichnen();
+  }
+});
+document.addEventListener('input', e => {
+  if(e.target && e.target.id === 'ver-such'){ verGitterZeichnen(e.target.value); return; }
+  const n = e.target.closest && e.target.closest('[data-vername]');
+  if(n){
+    const a = VER_ABLEGER[parseInt(n.dataset.vername, 10)];
+    if(a){ a.name = n.value; a.bearbeitet = true; }
+  }
+});
+
+/* ── Blättern ─────────────────────────────────────────────── */
+function verStufeZeigen(nr){
+  verStufe = Math.max(1, Math.min(VER_STUFEN, nr));
+  const wz = document.getElementById('wz-in-vermehren');
+  if(!wz) return;
+  wz.querySelectorAll('[data-ver-stufe]').forEach(el =>
+    el.classList.toggle('an', Number(el.dataset.verStufe) === verStufe));
+  const f = document.getElementById('ver-fortschritt');
+  if(f) Array.prototype.forEach.call(f.children, (li, i)=>{
+    li.classList.toggle('jetzt', i + 1 === verStufe);
+    li.classList.toggle('fertig', i + 1 < verStufe);
+  });
+  const zur = document.getElementById('ver-zurueck');
+  const wei = document.getElementById('ver-weiter');
+  const los = document.getElementById('ver-los');
+  if(zur) zur.hidden = verStufe === 1;
+  if(wei){
+    wei.hidden = verStufe === VER_STUFEN;
+    /* Ohne Pflanze und ohne Weg führt Weiter ins Leere. */
+    wei.disabled = (verStufe === 1 && !verPflanze) || (verStufe === 2 && !verMethode);
+  }
+  if(los) los.hidden = verStufe !== VER_STUFEN;
+  if(verStufe === 3){
+    if(!VER_ABLEGER.length) verAnzahlSetzen(1);
+    else verAblegerZeichnen();
+  }
+}
+
+/* ── Anlegen ──────────────────────────────────────────────── */
+async function verAblegerAnlegen(){
+  const los = document.getElementById('ver-los');
+  const meld = document.getElementById('ver-meldung');
+  if(!verPflanze || !verMethode || !VER_ABLEGER.length) return;
+  if(los){ los.disabled = true; los.textContent = 'Wird angelegt …'; }
+  const neue = [];
+  for(let i = 0; i < VER_ABLEGER.length; i++){
+    const a = VER_ABLEGER[i];
+    const p = ablegerAnlegen(verPflanze, verMethode);
+    if(!p) continue;
+    const name = String(a.name || '').trim();
+    if(name) p.name = name;
+    neue.push({p:p, datei:a.datei});
+  }
+  sichern();
+  if(meld){
+    meld.hidden = false;
+    meld.innerHTML = '<b>' + (neue.length === 1 ? 'Ein Ableger ist angelegt.'
+        : neue.length + ' Ableger sind angelegt.') + '</b> '
+      + (neue.length === 1 ? 'Der Eintrag steht' : 'Die Einträge stehen')
+      + ' im Zustand „Steckling“, bekommen ein kürzeres Gießintervall und melden sich, '
+      + 'wenn die Bewurzelung geprüft werden sollte. Im Stammbaum hängen sie unter der Mutter.<br>'
+      + neue.map(x => '<button class="linkbtn" data-go="' + esc(x.p.id) + '">'
+          + esc(nice(x.p)) + '</button>').join(' ');
+  }
+  render();
+  /* Die Bilder zuletzt: eines, das der Browser nicht lesen kann, darf
+     die schon angelegten Pflanzen nicht mehr gefährden. */
+  for(const x of neue){
+    if(!x.datei) continue;
+    try{ await fotosHinzu(x.p.id, [x.datei]); }
+    catch(e){ console.warn('Ablegerbild nicht lesbar', e); }
+  }
+  VER_ABLEGER.forEach(a => { if(a.vorschau){ try{ URL.revokeObjectURL(a.vorschau); }catch(e){} } });
+  VER_ABLEGER = [];
+  verMethode = null;
+  if(los){ los.disabled = false; los.textContent = 'Ableger anlegen'; }
+  render();
+}
+
+{
+  const z = document.getElementById('ver-zurueck');
+  if(z) z.onclick = ()=>verStufeZeigen(verStufe - 1);
+  const w = document.getElementById('ver-weiter');
+  if(w) w.onclick = ()=>verStufeZeigen(verStufe + 1);
+  const l = document.getElementById('ver-los');
+  if(l) l.onclick = verAblegerAnlegen;
+}
+
 function verAufbau(){
-  const sel = $('#ver-pflanze'); if(!sel) return;
-  sel.innerHTML = pflanzenAuswahlHTML(verPflanze, 'Pflanze wählen …');
+  const gitter = document.getElementById('ver-gitter'); if(!gitter) return;
+  verGitterZeichnen((document.getElementById('ver-such') || {}).value || '');
+  verWahlZeichnen();
 }
 
 function datumKurz(iso){
@@ -20785,68 +21966,78 @@ function datumKurz(iso){
 }
 
 function verRender(){
-  const ziel = $('#ver-inhalt'); if(!ziel) return;
+  const ziel = $('#ver-inhalt');
+  const anl = $('#ver-anleitung');
+  const kik = $('#ver-kikurz');
+  if(!ziel) return;
   verAufbau();
   if(!verPflanze){
-    ziel.innerHTML = '<p class="allgut">Wähle oben eine Pflanze. Ich zeige dir dann, welche Wege bei genau dieser Art funktionieren — und welche nicht.</p>';
+    ziel.innerHTML = '';
+    if(anl) anl.innerHTML = '';
+    if(kik) kik.innerHTML = '';
     return;
   }
   const p = pflanzeAusWahl(verPflanze);
   if(!p){ verPflanze = null; verRender(); return; }
   const wege = vermehrungFuer(p);
-  const monat = new Date().getMonth()+1;
+  const monat = new Date().getMonth() + 1;
   const ki = vermehrungKiVon(p);
 
-  /* Was die KI zu genau dieser Art gesagt hat, steht oben — es ist
-     spezifischer als jede Gattungsregel. Darunter bleiben die
-     allgemeinen Anleitungen mit den Schritt-für-Schritt-Angaben. */
-  const kiHtml = ki ? `<div class="verki">
-      <h4>Für genau diese Art</h4>
-      <ul class="verki-liste">${ki.wege.map(w=>`<li>
-        <b>${esc(w.methode)}</b>${w.quote != null ? ` <span class="verki-quote">${w.quote} %</span>` : ''}
-        <span class="verki-mehr">${[w.zeit && 'Zeit: ' + w.zeit, w.medium && 'Medium: ' + w.medium,
-          w.dauer && 'Dauer: ' + w.dauer].filter(Boolean).map(esc).join(' · ')}</span></li>`).join('')}</ul>
-      <p class="verki-quelle">Auskunft von ${esc(ki.quelle)}, ${esc(datumKurz(ki.datum))}.
-        Die Prozentzahlen sind Schätzungen, auf Fünferschritte gerundet — keine Messwerte.</p>
-      <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Neu nachfragen</button></div>
-    </div>`
-    : `<div class="verki leer">
-      <p>Für diese Art liegt keine eigene Auskunft vor. Unten stehen die allgemeinen Wege ihrer Gattung.</p>
-      <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Bei der KI nachfragen</button></div>
-    </div>`;
+  /* Was die KI zu genau dieser Art gesagt hat, ist spezifischer als
+     jede Gattungsregel — steht deshalb oben. Aber knapp: drei Zeilen,
+     Einzelheiten hinter dem Aufklapper. */
+  if(kik) kik.innerHTML = ki
+    ? `<div class="verki-kurz">
+        <h4>Für genau diese Art</h4>
+        <ul>${ki.wege.map(w=>`<li><b>${esc(w.methode)}</b>${
+          w.quote != null ? ' · ' + w.quote + ' %' : ''}</li>`).join('')}</ul>
+        <details class="kiprompt"><summary>Einzelheiten und Quelle</summary>
+          <ul style="margin:8px 0 0;padding-left:18px;font-size:var(--t-s);line-height:1.5">
+          ${ki.wege.map(w=>`<li><b>${esc(w.methode)}</b><br>${
+            [w.zeit && 'Zeit: ' + w.zeit, w.medium && 'Medium: ' + w.medium,
+             w.dauer && 'Dauer: ' + w.dauer].filter(Boolean).map(esc).join(' · ')}</li>`).join('')}</ul>
+          <p class="verki-quelle">Auskunft von ${esc(ki.quelle)}, ${esc(datumKurz(ki.datum))}.
+            Die Prozentzahlen sind Schätzungen, auf Fünferschritte gerundet — keine Messwerte.</p>
+        </details>
+        <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Neu nachfragen</button></div>
+      </div>`
+    : `<div class="verki-kurz">
+        <p style="margin:0;font-size:var(--t-s);line-height:1.5">Für diese Art liegt keine eigene
+          Auskunft vor. Unten stehen die allgemeinen Wege ihrer Gattung.</p>
+        <div class="tools"><button data-do="ver-kifrage" data-p="${p.id}">Bei der KI nachfragen</button></div>
+      </div>`;
 
-  ziel.innerHTML = kiHtml + wege.map((w, i)=>{
+  /* Eine Kachel je Weg mit den drei Zahlen, die die Wahl entscheiden:
+     Aussicht, Dauer, Jahreszeit. Alles andere kommt danach. */
+  if(!verMethode && wege.length) verMethode = wege[0].id;
+  ziel.innerHTML = wege.map(w=>{
     const m = w.m;
-    const s = vSaison(m, monat);
-    const auf = verMethode ? verMethode === w.id : i === 0;
-    return `<details class="ver" data-ver="${w.id}"${auf?' open':''}>
-      <summary>
-        <span class="ver-kopf">
-          <b>${esc(m.name)}</b>
-          <i>${esc(m.kurz)}</i>
-        </span>
-        <span class="ver-eig ${w.eignung.replace(/\\s/g,'-')}">${esc(w.eignung)}</span>
-      </summary>
-      <div class="ver-in">
-        <p class="ver-hinweis">${esc(w.hinweis)}</p>
-        <div class="ver-fakten">
-          <span><b>${m.dauer < 35 ? Math.round(m.dauer/7)+' Wochen' : Math.round(m.dauer/7)+' Wochen'}</b> bis zu Wurzeln</span>
-          <span><b>${m.quote} %</b> Aussicht</span>
-          <span class="${s.gut?'ok':'warn'}">${esc(s.text)}</span>
-        </div>
-        <p class="ver-text">${esc(m.text)}</p>
-        <h4>Schritt für Schritt</h4>
-        <ol class="ver-schritte">${m.schritte.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
-        <h4>Woran es meistens scheitert</h4>
-        <ul class="ver-fehler">${m.fehler.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
-        <div class="tools">
-          ${p.nurBib ? '' : `<button data-do="ver-anlegen" data-p="${p.id}" data-m="${w.id}">Ableger anlegen</button>`}
-          <button data-do="ver-substrat" data-m="${w.id}">Passendes Substrat</button>
-        </div>
-        ${p.nurBib ? '<p class="ver-nurbib">Diese Art steht nur in der Bibliothek. Einen Ableger kannst du erst anlegen, wenn die Mutterpflanze in deiner Sammlung ist.</p>' : ''}
-      </div>
-    </details>`;
+    const sa = vSaison(m, monat);
+    return `<button type="button" class="ver-k" data-verm="${w.id}"
+      aria-pressed="${verMethode === w.id ? 'true' : 'false'}">
+      <span class="ver-k-kopf"><b>${esc(m.name)}</b>
+        <span class="ver-eig ${w.eignung.replace(/\s/g,'-')}">${esc(w.eignung)}</span></span>
+      <span class="ver-k-fakten">
+        <span><b>${m.quote} %</b> Aussicht</span>
+        <span><b>${Math.round(m.dauer/7)} Wochen</b> bis zu Wurzeln</span>
+        <span class="${sa.gut ? '' : 'warn'}">${esc(sa.text)}</span></span>
+      <span class="ver-k-kurz">${esc(m.kurz)}</span>
+    </button>`;
   }).join('');
+
+  const w = wege.find(x=>x.id === verMethode);
+  if(anl) anl.innerHTML = w ? `<div class="ver-in">
+      <p class="ver-hinweis">${esc(w.hinweis)}</p>
+      <p class="ver-text">${esc(w.m.text)}</p>
+      <details class="kiprompt" open><summary>Schritt für Schritt</summary>
+        <ol class="ver-schritte">${w.m.schritte.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+      </details>
+      <details class="kiprompt"><summary>Woran es meistens scheitert</summary>
+        <ul class="ver-fehler">${w.m.fehler.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      </details>
+      <div class="tools"><button data-do="ver-substrat" data-m="${w.id}">Passendes Substrat</button></div>
+      ${p.nurBib ? '<p class="ver-nurbib">Diese Art steht nur in der Bibliothek. Einen Ableger kannst du erst anlegen, wenn die Mutterpflanze in deiner Sammlung ist.</p>' : ''}
+    </div>` : '';
 }
 
 /* Eine Frage nur zur Vermehrung — kurz, weil hier nichts anderes
@@ -21010,16 +22201,10 @@ document.addEventListener('toggle', e=>{
   if(d && d.open) verMethode = d.dataset.ver;
 }, true);
 
-$('#ver-pflanze').onchange = ()=>{
-  verPflanze = $('#ver-pflanze').value || null;
-  verMethode = null;
-  $('#ver-meldung').hidden = true;
-  verRender();
-};
-
 verRender();
+verStufeZeigen(1);
 const _renderVorherVer = render;
-render = function(){ _renderVorherVer(); if(document.getElementById('ver-pflanze')) verAufbau(); };
+render = function(){ _renderVorherVer(); if(document.getElementById('ver-gitter')) verAufbau(); };
 
 /* ══════════════════════════════════════════════════════════════
    RUNDGANG
@@ -21765,17 +22950,22 @@ const TOUR_KAPITEL = {
     name: 'Substrat mischen',
     schritte: ()=>[
       { fenster: 'sek-modal',
-        ziel: ()=>{ const e = document.getElementById('sub-pflanze'); return e ? e.closest('label') : null; },
+        vor: ()=>{ if(typeof subStufeZeigen === 'function') subStufeZeigen(1); },
+        ziel: ()=>document.getElementById('sub-gitter'),
         titel: 'Für welche Pflanze',
         text: 'Aus der Art ergibt sich die Zielmischung: wie luftig, wie sauer, wie viel Wasser sie halten soll. Ohne Pflanze lässt sich auch eine Gruppe von Hand wählen.',
         warte: 320 },
       { fenster: 'sek-modal',
-        ziel: ()=>document.querySelector('#sekm-rumpf .topf-block'),
+        vor: ()=>{ if(typeof subStufeZeigen === 'function') subStufeZeigen(2); },
+        ziel: ()=>document.getElementById('topf-formen'),
         titel: 'Topfform und Größe',
+        warte: 260,
         text: 'Aus Form und Durchmesser rechnet die App das Volumen und daraus die Menge je Zutat. Ein konischer Topf fasst deutlich weniger als ein zylindrischer derselben Weite — deshalb die Auswahl.' },
       { fenster: 'sek-modal',
+        vor: ()=>{ if(typeof subStufeZeigen === 'function') subStufeZeigen(3); },
         ziel: ()=>document.getElementById('sub-vorrat'),
         titel: 'Was du zu Hause hast',
+        warte: 260,
         text: 'Hak an, was vorrätig ist. Die App rechnet die beste mögliche Mischung daraus — und sagt darunter ausdrücklich, wo sie am Ziel vorbeischrammt, statt so zu tun, als ginge alles.' }
     ]
   },
@@ -21885,7 +23075,7 @@ const TOUR_KAPITEL = {
     name: 'Vermehren',
     schritte: ()=>[
       { fenster: 'sek-modal',
-        ziel: ()=>document.getElementById('ver-pflanze'),
+        ziel: ()=>document.getElementById('ver-gitter'),
         titel: 'Passend zur Art',
         text: 'Nicht jede Pflanze lässt sich auf jede Weise vermehren. Aus der gewählten Art ergeben sich die Wege, die bei ihr wirklich funktionieren — Kopfsteckling, Teilung, Blattsteckling, Kindel.',
         warte: 320 },
