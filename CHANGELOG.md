@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.6 — 2. September 2026
+**Die Raumansicht ist zurück**
+
+### Neu
+- Raumkarten haben zwei Knöpfe: Ansehen und Bearbeiten. Die Ansicht zeigt den gezeichneten Raum, ohne dass sich etwas verschieben lässt — ein Tipp auf eine Pflanze öffnet ihre Karte.
+- Lichtschieber in der Ansicht: Monat, Uhrzeit, und die Wahl zwischen Sonnenstunden, Moment und Grundhelligkeit. Darunter die Konflikte des Raums.
+
+### Besser
+- Pflanzen auf demselben Möbel stehen in der Ansicht ausgerichtet nebeneinander statt übereinander. Im Editor bleibt jeder an seinem gezogenen Ort.
+
+---
+
 ## 3.2.5 — 2. September 2026
 **Aufgeräumte Diagnose, neue Kopf- und Fußleiste**
 

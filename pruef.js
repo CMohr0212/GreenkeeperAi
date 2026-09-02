@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.5', w.__T('FASSUNG') === '3.2.5', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.6', w.__T('FASSUNG') === '3.2.6', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1356,21 +1356,89 @@ setTimeout(async () => {
     pruef('Die Raumliste ist sichtbar',
       d.getElementById('gr-liste').hidden === false);
 
-    /* Zoom: das Minimum haengt an der Flaeche, nicht mehr hart auf 1. */
-    pruef('Es gibt ein gerechnetes Zoom-Minimum',
-      typeof w.__T('zoomMinimum()') === 'number');
-    pruef('Es liegt zwischen 0,4 und 1',
-      w.__T('zoomMinimum()') >= 0.4 && w.__T('zoomMinimum()') <= 1,
-      String(w.__T('zoomMinimum()')));
-    w.__T('zoomSetzen(3)');
-    pruef('Hineinzoomen geht', w.__T('pZoom') === 3, String(w.__T('pZoom')));
-    w.__T('zoomSetzen(0.1)');
-    pruef('Herauszoomen endet beim Minimum',
-      Math.abs(w.__T('pZoom') - w.__T('zoomMinimum()')) < 0.001,
-      String(w.__T('pZoom')));
-    pruef('Ganz heraus setzt die Verschiebung zur\u00fcck',
-      w.__T('pPanX') === 0 && w.__T('pPanY') === 0);
-    w.__T('zoomSetzen(1)');
+    /* ── Die Raumansicht ──────────────────────────────────────
+       Vorher fuehrte die Raumkarte nur in den Editor: wer nachsehen
+       wollte, wo etwas steht, landete zwischen Zeichenwerkzeugen und
+       verschob aus Versehen Moebel. */
+    pruef('Jede Raumkarte bietet Ansehen an',
+      d.querySelectorAll('#gr-karten [data-raum-sehen]').length
+        === w.__T('raeume().length'),
+      String(d.querySelectorAll('#gr-karten [data-raum-sehen]').length));
+    pruef('und Bearbeiten daneben',
+      d.querySelectorAll('#gr-karten [data-raum-auf]').length
+        === w.__T('raeume().length'));
+    const rid = w.__T('raeume()[0].id');
+    w.__T(`grAnsehen('${rid}')`);
+    await tick();
+    pruef('Ansehen \u00f6ffnet die Ansicht', w.__T('grStufe') === 'ansicht',
+      String(w.__T('grStufe')));
+    pruef('Die Ansicht ist sichtbar', d.getElementById('gr-ansicht').hidden === false);
+    pruef('Der Editor bleibt zu', d.getElementById('gr-editor').hidden === true);
+    pruef('Die Ansicht zeichnet den Raum',
+      !!d.querySelector('#gra-flaeche svg.plan-svg'));
+    pruef('Der Lichtschieber steht in der Ansicht',
+      !!d.getElementById('gra-monat') && !!d.getElementById('gra-zeit'));
+    pruef('Von der Ansicht geht es ins Bearbeiten',
+      !!d.getElementById('btn-gra-bearbeiten'));
+    d.getElementById('btn-gra-bearbeiten').click();
+    pruef('und der Editor geht auf', w.__T('grStufe') === 'editor',
+      String(w.__T('grStufe')));
+    w.__T("grStufe = 'liste'; planRender()");
+
+    /* Pflanzen auf demselben Moebel stehen ausgerichtet, nicht kreuz
+       und quer uebereinander. Der Pruefstand hat weder Moebel noch
+       Pflanzen im Raum — beides wird hier gestellt. */
+    {
+      const r0 = w.__T('raeume()[0]');
+      const rid0 = w.__T('raeume()[0].id');
+      w.__T(`(function(){
+        const r = raeume()[0];
+        r.moebel = [{id:'mtest', typ:'regal', name:'Pr\u00fcfregal',
+                     b:120, t:40, h:80, katze:true, x:20, y:20}];
+        delete r.roh;
+      })()`);
+      /* Der Pruefstand hat an dieser Stelle erst eine Pflanze —
+         zwei weitere kommen dazu, damit sich ueberhaupt etwas
+         ueberdecken kann. */
+      w.__T(`(function(){
+        S.eigene = S.eigene || [];
+        ['prA','prB'].forEach(function(id){
+          if(!S.eigene.some(function(p){ return p.id === id; }))
+            S.eigene.push({id:id, name:'Pr\u00fcfling ' + id, art:'Monstera',
+              klasse:'mittel', angelegt:new Date().toISOString()});
+        });
+        sichern();
+      })()`);
+      const ids = w.__T('allePflanzen().slice(0,3).map(p=>p.id)');
+      /* Alle drei auf denselben Punkt: genau der Fall, der vorher drei
+         Marken uebereinanderlegte. */
+      ids.forEach(id => w.__T(`pflanzeSetzen('${id}', '${rid0}', 40, 30)`));
+      pruef('Drei Pflanzen stehen auf dem M\u00f6bel',
+        w.__T(`pflanzenIm('${rid0}').length`) >= 3,
+        String(w.__T(`pflanzenIm('${rid0}').length`)));
+      const pos = JSON.parse(w.__T('JSON.stringify(markenPositionen(raeume()[0]))'));
+      const genutzt = ids.map(id => pos[id]).filter(Boolean);
+      pruef('Jede Pflanze auf dem M\u00f6bel bekommt einen Platz',
+        genutzt.length === ids.length, genutzt.length + '/' + ids.length);
+      pruef('Keine zwei Marken liegen aufeinander',
+        new Set(genutzt.map(o => o.x + ':' + o.y)).size === genutzt.length,
+        JSON.stringify(genutzt));
+      pruef('Alle stehen innerhalb des M\u00f6bels',
+        genutzt.every(o => o.x >= 20 && o.x <= 140 && o.y >= 20 && o.y <= 60),
+        JSON.stringify(genutzt));
+      /* Ein langes schmales Regal ergibt eine Reihe, keine Traube. */
+      pruef('Auf einem langen Regal stehen sie in einer Reihe',
+        new Set(genutzt.map(o => o.y)).size === 1, JSON.stringify(genutzt.map(o=>o.y)));
+
+      /* Wer auf dem Boden steht, bleibt, wo er steht. */
+      const frei = ids[0];
+      w.__T(`pflanzeSetzen('${frei}', '${rid0}', 200, 200)`);
+      const pos2 = JSON.parse(w.__T('JSON.stringify(markenPositionen(raeume()[0]))'));
+      const echt = JSON.parse(w.__T(`JSON.stringify(pflanzenOrt('${frei}'))`));
+      pruef('Bodenpflanzen bleiben an ihrem Ort',
+        !!pos2[frei] && pos2[frei].x === echt.x && pos2[frei].y === echt.y,
+        JSON.stringify(pos2[frei]) + ' statt ' + JSON.stringify(echt));
+    }
 
     /* ── Kantenbreiten ── */
     const kid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
