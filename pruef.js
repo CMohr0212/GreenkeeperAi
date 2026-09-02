@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.1', w.__T('FASSUNG') === '3.2.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.2', w.__T('FASSUNG') === '3.2.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1898,6 +1898,31 @@ setTimeout(async () => {
     w.__T("window.fetch = () => Promise.reject(new Error('offline'))");
   }
 
+  /* ══ Fotos ankommen lassen ═════════════════════════════════════
+     Die Bindung lief in render(); das Kartenfenster entsteht aber
+     erst beim Oeffnen einer Karte, also danach. Die Felder dort
+     bekamen nie einen Handler — bei jeder Pflanze. Zustellung am
+     Dokument greift unabhaengig davon, wann das Feld entsteht. */
+  {
+    w.__T('window.__vorFoto = JSON.stringify(S.eigene);'
+      + " S.eigene = [{id:'ft', name:'Rudi', art:'Efeutute', klasse:'B'}]; sichern(); render()");
+    const kasten = d.createElement('div');
+    kasten.innerHTML = '<label class="foto-add"><input type="file" data-foto="ft"></label>';
+    d.body.appendChild(kasten);
+    w.__T('window.__altHinzu = fotosHinzu;'
+      + ' fotosHinzu = (id, f) => { window.__ruf = id + ":" + f.length; return Promise.resolve(); }');
+    const inp = kasten.querySelector('input');
+    Object.defineProperty(inp, 'files',
+      {value:[new w.File([new Uint8Array([1])], 'a.jpg', {type:'image/jpeg'})]});
+    inp.dispatchEvent(new w.Event('change', {bubbles:true}));
+    await tick();
+    pruef('Ein spaeter eingefuegtes Fotofeld kommt an',
+      w.__T('window.__ruf') === 'ft:1', String(w.__T('window.__ruf')));
+    w.__T('fotosHinzu = window.__altHinzu');
+    kasten.remove();
+    w.__T('S.eigene = JSON.parse(window.__vorFoto); sichern(); render()');
+  }
+
   /* ══ Filterblatt, Karte, Notizen ═══════════════════════════════ */
   {
     /* Die Leiste wuchs mit jedem Filter. Jetzt ein eigenes Fenster. */
@@ -2825,6 +2850,18 @@ setTimeout(async () => {
     && /\.kachelgitter \.wz-kopf\{[^}]*flex:1 1 auto/.test(stil3));
   pruef('Keine Prozenthoehen mehr in der Kachelkette',
     !/\.kachelgitter [^{]*\{[^}]*height:100%/.test(stil3));
+  /* Zweimal habe ich versucht, den Knopf auf Feldhoehe zu zwingen —
+     erst height:100%, dann flex. Beide Male sass eine Kachel schief.
+     Jetzt traegt der Abschnitt das Aussehen: er IST das Gitterfeld
+     und wird von grid-auto-rows:1fr gestreckt. Was der Knopf tut,
+     kann das sichtbare Rechteck nicht mehr veraendern. */
+  pruef('Die Kachel ist der Abschnitt, nicht der Knopf',
+    /\.kachelgitter section\[data-wz\]\{[^}]*border:1px solid/.test(stil3)
+    && /\.kachelgitter section\[data-wz\]\{[^}]*background:var\(--fl-karte\)/.test(stil3));
+  pruef('Der Knopf traegt kein eigenes Aussehen mehr',
+    /\.kachelgitter \.wz-kopf\{[^}]*border:0/.test(stil3)
+    && /\.kachelgitter \.wz-kopf\{[^}]*box-shadow:none/.test(stil3));
+
   pruef('Das Gitter streckt seine Felder',
     /\.kachelgitter\{[^}]*align-items:stretch/.test(stil3));
   /* Vier Zeilen: Symbol, Name, Unterzeile, das Wort „Öffnen“. Mit

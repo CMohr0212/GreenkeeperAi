@@ -1019,8 +1019,20 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
    seine Inhaltshoehe zurueck. Weil der Inhalt in der Kachel
    mittig sitzt, sah eine einzelne Kachel dann kleiner und nach oben
    verschoben aus. Mit flex braucht es keine Prozentangabe. */
-.kachelgitter section[data-wz]{margin:0;padding:0;border:0;background:none;
-  display:flex;align-self:stretch;min-width:0}
+/* Zweimal habe ich versucht, den Knopf auf die Hoehe seines
+   Gitterfeldes zu zwingen — erst mit height:100%, dann mit flex.
+   Beide Male sass eine Kachel weiter schief. Statt die Ursache
+   weiterzusuchen, traegt jetzt der Abschnitt selbst das Aussehen der
+   Kachel: Rahmen, Flaeche, Radius, Schatten. Der Abschnitt ist das
+   Gitterfeld und wird von grid-auto-rows:1fr zwangsweise gestreckt —
+   was der Knopf darin tut, kann das sichtbare Rechteck nicht mehr
+   veraendern. */
+.kachelgitter section[data-wz]{margin:0;padding:0;min-width:0;
+  display:flex;align-self:stretch;overflow:hidden;
+  background:var(--fl-karte);color:var(--ink);
+  border:1px solid var(--line);border-radius:var(--r-mittel);
+  box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
+.kachelgitter section[data-wz]:focus-within{border-color:var(--water)}
 /* Über das Gießcenter erreichbar, darum keine eigene Kachel. Der
    Abschnitt bleibt im Dokument — sektionOeffnen braucht ihn. */
 .wz-still{display:none!important}
@@ -1184,9 +1196,7 @@ html[data-design="klartext"] .sb-schritt-datum{font-size:var(--t-md);color:var(-
   justify-items:center;align-content:center;gap:4px;
   flex:1 1 auto;width:100%;min-width:0;min-height:clamp(150px,42vw,200px);
   padding:18px 10px;text-align:center;cursor:pointer;font:inherit;
-  background:var(--fl-karte);color:var(--ink);
-  border:1px solid var(--line);border-radius:var(--r-mittel);
-  box-shadow:var(--schatten-1);transition:border-color var(--dauer)}
+  background:none;color:inherit;border:0;border-radius:0;box-shadow:none}
 .kachelgitter .wz-kopf:focus-visible{outline:2px solid var(--water);outline-offset:2px}
 .kachelgitter .wz-t{font-family:var(--f-display);font-weight:var(--gewicht-titel);
   font-size:clamp(.96rem,3.6vw,1.06rem);line-height:1.22;
@@ -7454,6 +7464,31 @@ function abstammungHTML(p){
   </div>`;
 }
 
+/* Ein Bild waehlen und ein Bild vergroessern funktionieren jetzt
+   ueber Zustellung am Dokument: der Handler haengt nicht am einzelnen
+   Feld, sondern faengt das Ereignis auf dem Weg nach oben ab. Damit
+   ist gleichgueltig, wann und wo die Galerie gebaut wurde. */
+document.addEventListener('change', e => {
+  const inp = e.target.closest && e.target.closest('input[data-foto]');
+  if(!inp || !inp.files || !inp.files.length) return;
+  e.stopPropagation();
+  const id = inp.dataset.foto;
+  const dateien = Array.from(inp.files);
+  inp.value = '';
+  fotosHinzu(id, dateien);
+});
+document.addEventListener('click', e => {
+  const add = e.target.closest && e.target.closest('.foto-add');
+  if(add){ e.stopPropagation(); return; }
+  const im = e.target.closest && e.target.closest('.gal img');
+  if(!im) return;
+  e.stopPropagation();
+  const lb = document.getElementById('lightbox');
+  if(!lb) return;
+  lb.querySelector('img').src = im.src;
+  modalAuf('lightbox', im);
+});
+
 /* ── Notizen: eigenes und Befunde getrennt ────────────────────
    Bis 3.1.0 kippte der Doktor jeden Befund in dasselbe Textfeld, in
    das auch der Mensch schreibt. Nach ein paar Sitzungen stand dort
@@ -9620,8 +9655,15 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.1';
+const FASSUNG = '3.2.2';
 const PATCHNOTES = [
+  {
+    nr: '3.2.2', datum: '2026-09-02', titel: 'Zwei hartnäckige Fehler',
+    besser: [
+      'Fotos lassen sich endlich auch aus der Pflanzenkarte heraus hinzufügen, und Bilder öffnen sich wieder in groß. Der Handler wurde beim Zeichnen der Sammlung gesetzt — das Kartenfenster entsteht aber erst später, also bekam das Feld dort nie einen. Jetzt fängt die App das Ereignis am Dokument ab, unabhängig davon, wann und wo die Galerie gebaut wurde.',
+      'Die Werkzeugkachel oben rechts sitzt gerade. Rahmen, Fläche und Schatten gehören jetzt zum Abschnitt selbst statt zum Knopf darin — der Abschnitt ist das Gitterfeld und wird zwangsweise gestreckt, was der Knopf tut, kann das sichtbare Rechteck nicht mehr verändern.'
+    ]
+  },
   {
     nr: '3.2.1', datum: '2026-09-02', titel: 'Feucht gemeldet ist nicht versäumt',
     besser: [
@@ -13534,20 +13576,14 @@ function render(){
     closed ? zu.add(n) : zu.delete(n);
     b.setAttribute('aria-expanded', String(!closed));
   });
-  /* Die Galerie steht seit dem Umbau nicht mehr nur in der Liste,
-     sondern auch im Kartenfenster. An #out gebunden bekam das Feld
-     dort gar keinen Handler: man waehlte ein Bild, und nichts geschah.
-     Es betraf jede Pflanze, fiel aber nur bei denen ohne Bilder auf. */
-  document.querySelectorAll('.gal img').forEach(im=>im.onclick=e=>{
-    e.stopPropagation();
-    $('#lightbox').querySelector('img').src = im.src;
-    modalAuf('lightbox', im);
-  });
-  document.querySelectorAll('input[data-foto]').forEach(inp=>inp.onchange=e=>{
-    e.stopPropagation();
-    if(inp.files && inp.files.length) fotosHinzu(inp.dataset.foto, Array.from(inp.files));
-  });
-  document.querySelectorAll('.foto-add').forEach(l=>l.onclick=e=>e.stopPropagation());
+  /* Die Galerie wird an zwei Stellen gebaut: in der Sammlungsliste
+     und im Kartenfenster. Diese Bindung lief in render() — das
+     Kartenfenster entsteht aber erst beim Oeffnen einer Karte, also
+     danach. Die Felder dort bekamen nie einen Handler. Erst hing die
+     Suche an #out, dann am ganzen Dokument; beides half nicht, weil
+     das Element zum Zeitpunkt der Bindung noch nicht existierte.
+     Zustellung am Dokument greift unabhaengig davon, wann das Feld
+     entsteht — siehe weiter unten. */
 
   /* Auf „Heute" steht nur noch die Wetterzeile. Die Lagemeldung
      („eine faellig, eine ueberfaellig") sagte dasselbe wie die Zahl

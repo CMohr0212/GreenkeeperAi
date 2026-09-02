@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.2 — 2. September 2026
+**Zwei hartnäckige Fehler**
+
+### Behoben
+- Fotos aus der Pflanzenkarte hinzufügen und Bilder vergrößern gehen wieder. Der Handler wurde beim Zeichnen der Sammlung gesetzt, das Kartenfenster entsteht aber später — jetzt fängt die App das Ereignis am Dokument ab.
+- Die Werkzeugkachel oben rechts sitzt gerade. Das Aussehen der Kachel gehört jetzt zum Abschnitt statt zum Knopf darin.
+
+---
+
 ## 3.2.1 — 2. September 2026
 **Feucht gemeldet ist nicht versäumt**
 
