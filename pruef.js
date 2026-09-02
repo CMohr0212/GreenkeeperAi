@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.4', w.__T('FASSUNG') === '3.2.4', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.5', w.__T('FASSUNG') === '3.2.5', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -655,8 +655,11 @@ setTimeout(async () => {
   w.__T("dokStufeZeigen(4)");
   pruef('Die Einschätzung steht allein',
     dokSicht().join(',') === 'dok-s4', dokSicht().join(','));
-  pruef('Auf der letzten Stufe gibt es kein Weiter',
-    d.getElementById('dok-weiter-f').hidden === true);
+  /* Seit 3.2.5 wird aus Weiter auf der letzten Stufe der Abschluss —
+     das Beenden liegt damit an derselben Stelle wie das Blaettern. */
+  pruef('Auf der letzten Stufe schließt der Knopf ab',
+    /abschlie/i.test(d.getElementById('dok-weiter-f').textContent),
+    d.getElementById('dok-weiter-f').textContent);
   pruef('Zurück ist auf Stufe 1 verborgen',
     (w.__T("dokStufeZeigen(1)"), d.getElementById('dok-zurueck-f').hidden === true));
 
@@ -681,13 +684,51 @@ setTimeout(async () => {
     "JSON.stringify(geminiLesen('ANTWORT: Sonnenbrand.\\nSTELLE: Blattmitte, trocken.\\nZUSTAND: gesund'))"));
   pruef('Der Leser kennt ANTWORT', gel.antwort === 'Sonnenbrand.', JSON.stringify(gel));
   pruef('Der Leser kennt STELLE', gel.stelle === 'Blattmitte, trocken.');
+  /* Der Unsicherheitshinweis war acht Zeilen Fliesstext ueber der
+     Diagnose. Uebrig bleibt eine Zeile mit Kreuz. */
+  pruef('Lange Begründungen werden auf Stichworte gekürzt',
+    w.__T("kurzFehlt('Blattunterseite, Blattachseln; das ist der zweite Satz.')")
+      === 'Blattunterseite, Blattachseln');
+  pruef('Sehr lange Angaben werden abgeschnitten',
+    w.__T("kurzFehlt('a'.repeat(200))").length <= 96);
+  pruef('Topf und Platz wiederholt die Empfehlung nicht',
+    !/Empfehlung/.test(w.__T(
+      "topfHTML({groesse:'zu klein', material:'Glas', ablauf:'kein ablauf sichtbar', empfehlung:'In 15 cm umtopfen'})")));
+  pruef('Der Prompt kennt die Wasserkultur-Regel',
+    /Wasserkultur/.test(w.__T('dokPromptBauen()')));
   pruef('Die Antwort auf die Frage steht in der Einschätzung',
     /dok-antwort/.test(w.__T(
       "dokKiErgebnisHTML({antwort:'Sonnenbrand.', stelle:'Blattmitte.', zustand:'gesund'})")));
   pruef('Ohne gestellte Frage bleibt der Kasten weg',
     !/dok-antwort/.test(w.__T(
       "dokKiErgebnisHTML({antwort:'keine Frage gestellt', zustand:'gesund'})")));
-  w.__T("dokFrage = ''");
+  /* Der Durchgang endete nie: „Fertig“ schloss nur das Fenster, und
+     die alte Diagnose stand beim naechsten Aufruf noch da. */
+  w.__T("dokPflanze = allePflanzen()[0].id; dokWeg = 'ki'; dokKiFertig = true;");
+  w.__T("dokKiDaten = {zustand:'gesund'}; dokFrage = 'Testfrage'; dokStufeZeigen(4)");
+  pruef('Vor dem Abschluss steht der Durchgang noch',
+    w.__T('dokSchritt') === 4 && w.__T('dokWeg') === 'ki');
+  w.__T('dokAbschliessen()');
+  pruef('Abschließen setzt auf Stufe 1', w.__T('dokSchritt') === 1, String(w.__T('dokSchritt')));
+  pruef('Abschließen leert den Weg', w.__T('dokWeg') === null);
+  pruef('Abschließen leert die Antwort', w.__T('dokKiDaten') === null);
+  pruef('Abschließen leert die eigene Frage', w.__T('dokFrage') === '');
+  pruef('Abschließen leert die Pflanzenwahl', w.__T('dokPflanze') === null);
+  pruef('Abschließen leert die Einschätzung',
+    (d.getElementById('dok-ergebnis').innerHTML || '') === '');
+
+  /* Die Kopfleiste: Pfeil links, Titel mittig, i rechts. */
+  pruef('Die Kopfleiste hat einen Zurück-Pfeil',
+    !!d.querySelector('#sek-modal .sekm-raus#sekm-zu svg'));
+  pruef('Der Pfeil trägt kein Wort',
+    !/[A-Za-zÄÖÜäöü]/.test(d.getElementById('sekm-zu').textContent || ''),
+    d.getElementById('sekm-zu').textContent.trim());
+  pruef('Das i steht rechts vom Titel',
+    d.getElementById('sekm-titel').compareDocumentPosition(d.getElementById('sekm-info'))
+      === 4);
+  pruef('Auch die Pflanzenkarte hat den Pfeil',
+    !!d.querySelector('#karte-modal .sekm-raus#karte-zu svg'));
+
   await zu('sek-modal');
 
   w.__T("sektionOeffnen('substrat')");
@@ -2403,8 +2444,11 @@ setTimeout(async () => {
     const knopf = d.getElementById('sekm-zu');
     w.__T("sektionOeffnen('einstell')");
     await tick();
-    pruef('Oberste Ebene sagt „Fertig\u201c', knopf.textContent.trim() === 'Fertig',
-      knopf.textContent.trim());
+    /* Seit 3.2.5 ist der Knopf ein Pfeil ohne Wort. Was er tut, sagt
+       die Vorlesebeschriftung. */
+    pruef('Oberste Ebene verl\u00e4sst das Werkzeug',
+      /verlassen/.test(knopf.getAttribute('aria-label') || ''),
+      knopf.getAttribute('aria-label'));
     pruef('Kein Rueckweg auf der obersten Ebene', w.__T('_sekWeg.length') === 0);
 
     /* Aus dem Fenster heraus eine Ebene tiefer */
@@ -2417,8 +2461,9 @@ setTimeout(async () => {
         String(w.__T('_sekOffen && _sekOffen.key')));
       pruef('Rueckweg ist gemerkt', w.__T('_sekWeg.join(",")') === 'einstell',
         w.__T('_sekWeg.join(",")'));
-      pruef('Knopf hei\u00dft jetzt „Zur\u00fcck\u201c', /Zur\u00fcck/.test(knopf.textContent),
-        knopf.textContent.trim());
+      pruef('Knopf f\u00fchrt jetzt eine Ebene zur\u00fcck',
+        /Ebene/.test(knopf.getAttribute('aria-label') || ''),
+        knopf.getAttribute('aria-label'));
       pruef('Fenster ist noch offen', w.__T("modalOffen('sek-modal')"));
 
       knopf.click();
@@ -2428,7 +2473,9 @@ setTimeout(async () => {
         String(w.__T('_sekOffen && _sekOffen.key')));
       pruef('und nicht aus dem Fenster heraus', w.__T("modalOffen('sek-modal')"));
       pruef('Rueckweg ist wieder leer', w.__T('_sekWeg.length') === 0);
-      pruef('Knopf hei\u00dft wieder „Fertig\u201c', knopf.textContent.trim() === 'Fertig');
+      pruef('Der Knopf verl\u00e4sst wieder das Werkzeug',
+        /verlassen/.test(knopf.getAttribute('aria-label') || ''),
+        knopf.getAttribute('aria-label'));
 
       knopf.click();
       await tick();

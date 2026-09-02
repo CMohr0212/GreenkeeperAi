@@ -4,6 +4,22 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.5 — 2. September 2026
+**Aufgeräumte Diagnose, neue Kopf- und Fußleiste**
+
+### Neu
+- „Diagnose abschließen“ unten auf der letzten Stufe beendet den Durchgang und setzt ihn zurück. Nur dieser Knopf tut das — wer das Fenster verlässt, findet seine Eingaben wieder.
+- Kopfleiste in allen Fenstern: Pfeil links, Titel mittig (kleiner gesetzt, darf umbrechen), rundes i rechts.
+
+### Besser
+- Die Einschätzung steht oben, der Kartenabgleich darunter im Aufklapper mit Zähler.
+- Der Unsicherheitshinweis ist eine Zeile mit Kreuz statt acht Zeilen Fließtext.
+- „Topf und Platz“ wiederholt die Empfehlung nicht mehr, die schon als Maßnahme dasteht.
+- Wasserkultur: ein fehlender Wasserablauf gilt dort nicht als Mangel.
+- Die Fußleiste mit Zurück und Weiter klebt am unteren Rand des Fensters.
+
+---
+
 ## 3.2.4 — 2. September 2026
 **Der Doktor blättert, die Mischungen liegen nebeneinander**
 

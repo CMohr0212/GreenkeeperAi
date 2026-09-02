@@ -963,13 +963,29 @@ html[data-design="klartext"] .wt-frost{outline-width:2px}
 .sekm-kopf{flex:0 0 auto;display:flex;align-items:center;gap:8px;
   padding:8px var(--rand);background:var(--fl-karte);
   border-bottom:1.5px solid var(--linie-stark)}
-.sekm-titel{flex:1 1 auto;min-width:0;margin:0;font-family:var(--f-display);
-  font-weight:var(--gewicht-titel);font-size:var(--t-xl);line-height:1.2}
+/* Der Titel steht mittig und darf umbrechen: „Räume und Grundriss"
+   passt neben Pfeil und i nicht in eine Zeile. Kleiner gesetzt, zwei
+   Zeilen erlaubt, und die Leiste waechst mit. */
+.sekm-titel{flex:1 1 auto;min-width:0;margin:0;text-align:center;
+  font-family:var(--f-display);font-weight:var(--gewicht-titel);
+  font-size:var(--t-l);line-height:1.18;overflow-wrap:anywhere;hyphens:auto}
 .sekm-titel:focus-visible{outline:2px solid var(--water);outline-offset:3px}
 .sekm-i,.sekm-zu{flex:0 0 auto;min-height:var(--tap);padding:0 13px;cursor:pointer;
   font:inherit;font-size:var(--t-s);border:1px solid var(--line);
   border-radius:var(--r-klein);background:var(--fl-erhoben);color:var(--ink)}
 .sekm-zu{font-weight:600;border-color:var(--linie-stark)}
+/* Der Pfeil verlaesst, der Knopf in der Fussleiste blaettert. Damit
+   man nicht danebengreift, traegt nur der untere ein Wort. */
+.sekm-raus{flex:0 0 auto;width:var(--tap);height:var(--tap);padding:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border:0;background:none;color:var(--ink);border-radius:var(--r-klein)}
+.sekm-raus svg{width:23px;height:23px;fill:none;stroke:currentColor;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sekm-raus:active{background:var(--fl-erhoben)}
+.sekm-kopf .sekm-i{width:var(--tap);min-width:var(--tap);padding:0;
+  border-radius:50%;font-family:var(--f-display);font-size:var(--t-md);
+  font-style:italic;font-weight:600}
+#karte-vor,#karte-zurueck{border-radius:var(--r-klein);font-style:normal}
 .sekm-i[aria-expanded="true"]{background:var(--ton-tipp);border-color:var(--linie-stark)}
 .sekm-rumpf{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:16px var(--rand) calc(28px + env(safe-area-inset-bottom))}
@@ -1493,7 +1509,14 @@ html[data-design="klartext"] .ver-k{border-width:2px}
   background:var(--fl-karte);margin-bottom:15px}
 .al-bibzsf h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
 .al-bibzsf .al-zsf>div:last-child{border-bottom:0}
-.as-fuss,.al-fuss,.ut-fuss{display:flex;gap:8px;margin-top:18px}
+/* Die Fussleiste klebt am unteren Rand des Fensters. Vorher stand sie
+   am Ende des Textes: bei einer langen Stufe hiess „weiter" erst
+   einmal scrollen. */
+.as-fuss,.al-fuss,.ut-fuss{display:flex;gap:8px;margin-top:18px;
+  position:sticky;bottom:calc(-1 * (16px + env(safe-area-inset-bottom)));
+  z-index:3;padding:9px 0 calc(9px + env(safe-area-inset-bottom));
+  background:var(--fl-grund);
+  box-shadow:0 -10px 14px -12px rgba(0,0,0,.35)}
 /* Im Vollbildfenster klebt die Fusszeile unten und traegt den Rand
    des Geraets mit; im Aufklapper laeuft sie einfach mit. */
 .al-fenster>.al-fuss,.as-fenster>.as-fuss{flex:0 0 auto;margin-top:0;
@@ -3046,6 +3069,13 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .dok-schritte li.fertig{border-top-color:var(--moss);color:var(--moss)}
 .dok-schritte li.jetzt{border-top-color:var(--ink);color:var(--ink);font-weight:700}
 .dok-stufe{margin-bottom:var(--a-5)}
+.dok-mehr{margin:0 0 var(--a-4);border:1px solid var(--line);
+  border-radius:var(--r-klein);background:var(--fl-karte)}
+.dok-mehr[hidden]{display:none}
+.dok-mehr>summary{cursor:pointer;padding:11px 12px;font-family:var(--f-data);
+  font-size:var(--t-mono);letter-spacing:.06em;color:var(--peat)}
+.dok-mehr>div{padding:0 12px 10px}
+.dok-mehr .abgleich{margin:0}
 .dok-eigen{display:block;margin:0 0 var(--a-4)}
 .dok-eigen textarea{width:100%;min-height:76px;padding:10px 11px;border-radius:var(--r-klein);
   border:1px solid var(--line);background:var(--fl-karte);color:var(--ink);
@@ -3056,6 +3086,16 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .dok-antwort b{display:block;font-family:var(--f-data);font-size:var(--t-mono);
   letter-spacing:.09em;text-transform:uppercase;color:var(--peat);margin:0 0 5px}
 .dok-antwort p{margin:0;font-size:var(--t-s);line-height:1.55}
+.dok-unsicher.knapp{display:flex;align-items:flex-start;gap:9px;flex-wrap:wrap;
+  padding:9px 10px;margin:0 0 var(--a-3);border-radius:var(--r-klein);
+  background:var(--ton-tipp);border-left:3px solid var(--linie-stark)}
+.dok-unsicher.knapp .du-t{flex:1 1 60%;min-width:0;margin:0;
+  font-size:var(--t-s);line-height:1.45}
+.dok-unsicher.knapp .du-t b{font-weight:600}
+.dok-unsicher.knapp .du-mehr{flex:0 0 auto;font-size:var(--t-s)}
+.dok-unsicher.knapp .du-weg{flex:0 0 auto;width:30px;height:30px;padding:0;
+  border:0;background:none;color:var(--ink-2);font-size:1.15rem;
+  line-height:1;cursor:pointer;border-radius:var(--r-klein)}
 .dok-stufe[hidden]{display:none!important}
 .dok-stufe>h3{display:flex;align-items:center;gap:var(--a-2);margin:0 0 var(--a-3);font-size:var(--t-xl)}
 .dok-nr{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);
@@ -5204,7 +5244,7 @@ ART: gebräuchlicher deutscher Name. Gibt es keinen, der botanische Name.
 BOTANISCH: Gattung und Art. Erkennst du sicher eine Sorte, hänge sie in einfachen Anführungszeichen an, etwa: Monstera deliciosa 'Thai Constellation'. Erkennst du die Sorte nicht sicher, lass sie weg. Erfinde keinen Sortennamen — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
 TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rankpflanze, Rosettenpflanze, Kaktus, Sukkulente, Kraut, Strauch, Palme, Farn, Orchidee, Bromelie, Karnivore. Ist die Pflanze panaschiert, hänge das Wort panaschiert mit Komma an.
 SICHERHEIT: Nur genau eines dieser Wörter: hoch, mittel, niedrig
-FEHLT: Was du auf diesem Foto nicht beurteilen kannst. Beantworte hier ausdrücklich zwei Fragen: Waren Blattunterseiten und Blattachseln erkennbar? Waren Topf, Topfrand und Untersetzer ganz im Bild? Was nicht erkennbar war, schreibst du hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei, und nichts über den Topf behaupten, was du nicht siehst. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
+FEHLT: Was du auf diesem Foto nicht beurteilen kannst — als kurze Aufzählung, mit Komma getrennt, keine ganzen Sätze. Beantworte dabei zwei Fragen: Waren Blattunterseiten und Blattachseln erkennbar? Waren Topf, Topfrand und Untersetzer ganz im Bild? Was nicht erkennbar war, schreibst du hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei, und nichts über den Topf behaupten, was du nicht siehst. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
 VERWECHSLUNG: Ähnliche Arten, mit Komma getrennt. Keine, dann: keine
 ZUSTAND: Nur genau eines dieser Wörter: gesund, frisch umgetopft, Wurzelfäule, ausgetrocknet, ausgehungert, Schädlingsbefall, Sonnenbrand, Kälteschaden, Erholung
 BEFUND: Zwei bis vier Sätze. Gehe dabei alle drei Punkte durch, auch wenn nichts zu sehen ist. Erstens Schädlinge: Was siehst du, und an welcher Stelle — Blattachsel, Blattunterseite, Stängel, Erdoberfläche? Zweitens Mangelerscheinungen: Verfärbungen, Blattform, Wuchsbild, und was daraus folgt. Drittens Krankheitszeichen: Flecken, Beläge, Fäulnis, Vergeilung. Ist zu einem Punkt nichts zu erkennen, schreib genau, ob dort wirklich nichts ist oder ob du die nötige Stelle auf dem Foto nicht sehen kannst — im zweiten Fall nenne den Verdacht ausdrücklich unbestätigt. Beschreibe, was du siehst; nenne einen Erreger oder ein Schädlingstier nur, wenn es am Foto eindeutig ist.
@@ -5229,7 +5269,7 @@ ART: Efeutute
 BOTANISCH: Epipremnum aureum
 TYP: Kletterpflanze
 SICHERHEIT: mittel
-FEHLT: Blattunterseiten und Blattachseln waren nicht erkennbar, ein Schädlingsbefall lässt sich daher nicht ausschließen. Topf und Untersetzer sind ganz im Bild. Ein Foto der Blattunterseite und des Stängelansatzes würde die Bestimmung sicher machen.
+FEHLT: Blattunterseite, Blattachseln; Nahaufnahme des Stängelansatzes würde die Bestimmung sichern
 VERWECHSLUNG: Philodendron hederaceum, Scindapsus pictus
 ZUSTAND: gesund
 BEFUND: Schädlinge sind mangels Sicht auf Blattunterseite und Blattachseln nicht beurteilbar, ein Verdacht besteht nicht, er ist aber auch nicht ausgeräumt. Als Mangelerscheinung zeigen sich gleichmäßig gelbe untere Blätter ohne Flecken, das entspricht normaler Alterung und nicht einem Nährstoffmangel. Krankheitszeichen wie Flecken, Beläge oder weiche Stellen sind auf den sichtbaren Blättern nicht zu erkennen.
@@ -8231,17 +8271,25 @@ function papierkorbRender(){
       </div>
       </details>
     </div>
+    <!-- Die Reihenfolge war verkehrt herum: erst die Warnung, dann der
+         Kartenabgleich, dann Topf und Platz, dann die Massnahmen — und
+         ganz unten, nach einer halben Handylaenge Scrollen, die
+         Diagnose, wegen der man hier ist. Jetzt steht sie oben, und
+         alles Abgleichende liegt darunter im Aufklapper. -->
     <div class="dok-stufe" id="dok-s4" hidden>
       <h3><span class="dok-nr">4</span> Einschätzung</h3>
+      <div id="dok-abgleich-hinweis"></div>
+      <div id="dok-ergebnis"></div>
+      <div id="dok-massnahmen"></div>
+      <div id="dok-gift"></div>
+      <details class="dok-mehr" id="dok-abgleich-auf" hidden>
+        <summary><span id="dok-abgleich-zahl">Abgleich mit der Karte</span></summary>
+        <div id="dok-abgleich"></div>
+      </details>
       <details class="dok-rueck" id="dok-rueck">
         <summary>Vier Rückfragen — sie trennen ähnliche Ursachen</summary>
         <div id="dok-fragen"></div>
       </details>
-      <div id="dok-abgleich-hinweis"></div>
-      <div id="dok-gift"></div>
-      <div id="dok-abgleich"></div>
-      <div id="dok-massnahmen"></div>
-      <div id="dok-ergebnis"></div>
     </div>
 
     <div class="as-fuss" id="dok-fuss">
@@ -9381,20 +9429,29 @@ function papierkorbRender(){
      fuehren zur naechsten, ohne dass man zurueck in die Liste muss. -->
 <div id="karte-modal" class="sekm" hidden>
   <div class="sekm-kopf">
-    <button class="sekm-i" id="karte-vor" aria-label="Vorige Pflanze">‹</button>
+    <button class="sekm-raus" id="karte-zu" aria-label="Zurück zur Sammlung">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7"/></svg>
+    </button>
     <h2 class="sekm-titel" id="karte-titel" tabindex="-1">&nbsp;</h2>
+    <button class="sekm-i" id="karte-vor" aria-label="Vorige Pflanze">‹</button>
     <button class="sekm-i" id="karte-zurueck" aria-label="Nächste Pflanze">›</button>
-    <button class="sekm-zu" id="karte-zu" aria-label="Fenster schließen">Fertig</button>
   </div>
   <div class="sekm-fest" id="karte-fest"></div>
   <div class="sekm-rumpf" id="karte-rumpf"></div>
 </div>
 
+<!-- Die Kopfleiste folgt jetzt dem Muster, das jede App benutzt:
+     links der Pfeil zurueck, in der Mitte der Titel, rechts das i.
+     „Fertig" rechts aussen sah aus wie ein Abschluss und war doch nur
+     ein Schliessen — abgeschlossen wird unten in der Fussleiste. -->
 <div id="sek-modal" class="sekm" hidden>
   <div class="sekm-kopf">
+    <button class="sekm-raus" id="sekm-zu" aria-label="Zurück">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7"/></svg>
+    </button>
     <h2 class="sekm-titel" id="sekm-titel" tabindex="-1">&nbsp;</h2>
-    <button class="sekm-i" id="sekm-info" aria-expanded="false" hidden>Wozu?</button>
-    <button class="sekm-zu" id="sekm-zu" aria-label="Fenster schließen">Fertig</button>
+    <button class="sekm-i" id="sekm-info" aria-expanded="false" hidden
+      aria-label="Wozu ist das da?"><span aria-hidden="true">i</span></button>
   </div>
   <div class="sekm-rumpf" id="sekm-rumpf"></div>
 </div>
@@ -9740,8 +9797,22 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.4';
+const FASSUNG = '3.2.5';
 const PATCHNOTES = [
+  {
+    nr: '3.2.5', datum: '2026-09-02', titel: 'Aufgeräumte Diagnose, neue Kopf- und Fußleiste',
+    neu: [
+      'Der Doktor lässt sich abschließen. Unten steht auf der letzten Stufe „Diagnose abschließen“ — der setzt den Durchgang zurück. Wer nur das Fenster verlässt, findet seine Eingaben wieder.',
+      'Neue Kopfleiste in allen Fenstern: links der Pfeil zurück, in der Mitte der Titel, rechts ein rundes i für die Erklärung. „Fertig“ rechts außen sah aus wie ein Abschluss und war doch nur ein Schließen.'
+    ],
+    besser: [
+      'Die Einschätzung steht jetzt oben. Vorher kamen erst die Warnung, dann der Kartenabgleich, dann Topf und Platz — und ganz unten die Diagnose, wegen der man hier ist. Der Abgleich liegt darunter im Aufklapper, mit Zähler.',
+      'Der Unsicherheitshinweis ist eine Zeile mit Kreuz statt acht Zeilen Fließtext. Die KI liefert dafür Stichworte statt Begründungen.',
+      '„Topf und Platz“ wiederholt die Empfehlung nicht mehr — sie stand dort in voller Länge und gleich darunter noch einmal als Maßnahme.',
+      'Steht eine Pflanze in Wasserkultur, gilt ein fehlender Wasserablauf nicht mehr als Mangel. Die KI muss sich für „so lassen“ oder „in Erde umstellen“ entscheiden, statt beides nebeneinander zu empfehlen.',
+      'Die Fußleiste mit Zurück und Weiter klebt am unteren Rand. Bei einer langen Stufe hieß „weiter“ vorher erst einmal scrollen.'
+    ]
+  },
   {
     nr: '3.2.4', datum: '2026-09-02', titel: 'Der Doktor blättert, die Mischungen liegen nebeneinander',
     neu: [
@@ -16577,20 +16648,30 @@ function klasseSBestaetigt(id, neueKlasse){
 /* ── Wenn sich die KI nicht sicher ist ─────────────────────
    Statt die Bestimmung stillschweigend zu übernehmen, wird gesagt,
    woran es hakt und welches zweite Foto weiterhelfen würde. */
+/* Die KI schreibt unter FEHLT gern drei Saetze Begruendung. Fuer den
+   Streifen zaehlen nur die Stichworte davor. */
+function kurzFehlt(t){
+  let x = String(t || '').replace(/\s+/g, ' ').trim();
+  const satz = x.split(/(?<=[.;])\s/)[0] || x;
+  x = satz.replace(/[.;]\s*$/, '');
+  if(x.length > 96) x = x.slice(0, 93).replace(/[ ,]+$/, '') + '…';
+  return x;
+}
 function unsicherZeigen(wohin, d, quelle){
   const el = document.querySelector(wohin); if(!el) return;
   const stufe = norm(d.sicher || '');
   const knapp = stufe && !/hoch|high|sicher/.test(stufe);
   const fehlt = d.fehlt && !/^keine?$|^nichts$|^-$/.test(norm(d.fehlt)) ? d.fehlt : '';
   if(!knapp && !fehlt){ el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="dok-unsicher">
-    <b>Die Bestimmung ist noch nicht eindeutig.</b>
-    ${fehlt ? ' ' + esc(fehlt) : ' Ein zweites Foto aus einem anderen Winkel würde helfen.'}
-    <br>Mach die Aufnahme, häng sie an dieselbe Unterhaltung an und kopiere die neue Antwort hier herein.
-    <div class="tools">
-      <button class="haupt" data-do="uns-weiter" data-q="${esc(quelle||'')}">Trotzdem übernehmen</button>
-      <button data-do="uns-weg">Hinweis ausblenden</button>
-    </div></div>`;
+  /* Acht Zeilen Fliesstext ueber der Diagnose, die im Kern zwei Worte
+     sagen: etwas war nicht zu sehen. Was zu tun ist, steht ohnehin in
+     den Massnahmen. Bleibt eine Zeile mit Kreuz. */
+  el.innerHTML = `<div class="dok-unsicher knapp">
+    <p class="du-t"><b>Nicht abgesichert:</b>
+      ${fehlt ? esc(kurzFehlt(fehlt)) : 'ein zweites Foto aus anderem Winkel würde helfen'}</p>
+    <button class="linkbtn du-mehr" data-do="uns-weiter" data-q="${esc(quelle||'')}">Trotzdem übernehmen</button>
+    <button class="du-weg" data-do="uns-weg" aria-label="Hinweis ausblenden">×</button>
+  </div>`;
 }
 
 /* Der Hinweis war bisher eine Sackgasse: er stand da, sagte „mach ein
@@ -18620,8 +18701,10 @@ function sekZurueckKnopf(){
   const b = document.getElementById('sekm-zu');
   if(!b) return;
   const tief = _sekWeg.length > 0;
-  b.textContent = tief ? '‹ Zurück' : 'Fertig';
-  b.setAttribute('aria-label', tief ? 'Eine Ebene zurück' : 'Fenster schließen');
+  /* Der Knopf ist seit 3.2.5 ein Pfeil ohne Wort — beschriftet wird nur
+     noch fuer die Vorlesehilfe. Das Wort stand vorher hier und hat den
+     Pfeil beim Blaettern wieder ueberschrieben. */
+  b.setAttribute('aria-label', tief ? 'Eine Ebene zurück' : 'Werkzeug verlassen');
 }
 
 document.getElementById('sekm-zu').onclick = ()=>{
@@ -19979,7 +20062,11 @@ function dokZeigen(){
   const wei = document.getElementById('dok-weiter-f');
   if(zur) zur.hidden = dokSchritt === 1;
   if(wei){
-    wei.hidden = dokSchritt === DOK_SCHRITTE.length;
+    /* Auf der letzten Stufe wird aus Weiter der Abschluss. So liegt
+       das Beenden an derselben Stelle wie das Blaettern. */
+    const letzte = dokSchritt === DOK_SCHRITTE.length;
+    wei.hidden = false;
+    wei.textContent = letzte ? 'Diagnose abschließen' : 'Weiter';
     /* Ohne gewaehlten Weg fuehrt Weiter ins Leere — dasselbe Muster
        wie beim Vermehren. */
     wei.disabled = dokSchritt === 2 && !dokWeg;
@@ -19989,6 +20076,32 @@ function dokZeigen(){
 /* Vor und zurueck. Der Sprung setzt nichts zurueck: wer auf Stufe 2
    noch einmal den Weg wechselt, findet auf Stufe 1 seine Pflanze
    unveraendert wieder. */
+/* Der Durchgang endete nie: „Fertig" schloss nur das Fenster, und wer
+   die Pflanze am naechsten Tag noch einmal aufrief, fand die alte
+   Diagnose vor. Zuruecksetzen tut aber nur dieser Knopf — wer aus
+   Versehen zumacht, soll seine Eingaben wiederfinden. */
+function dokAbschliessen(){
+  dokSchritt = 1;
+  dokWeg = null;
+  dokKiFertig = false;
+  dokKiDaten = null;
+  dokFrage = '';
+  dokPflanze = null;
+  dokSymptome.clear();
+  dokAntworten = {};
+  dokVorschlaege = [];
+  ['dok-paste','dok-frage-eigen','dok-such'].forEach(id=>{
+    const f = document.getElementById(id); if(f) f.value = '';
+  });
+  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-massnahmen','dok-ergebnis']
+    .forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ''; });
+  const auf = document.getElementById('dok-abgleich-auf');
+  if(auf){ auf.hidden = true; auf.open = false; }
+  if(typeof dokKiHinweis === 'function') dokKiHinweis('');
+  if(typeof dokAufbau === 'function') dokAufbau();
+  if(typeof dokZeigen === 'function') dokZeigen();
+  if(typeof modalZu === 'function') modalZu();
+}
 function dokStufeZeigen(nr){
   dokSchritt = Math.max(1, Math.min(DOK_SCHRITTE.length, nr));
   if(typeof dokZeigen === 'function') dokZeigen();
@@ -19998,7 +20111,9 @@ function dokStufeZeigen(nr){
 }
 document.addEventListener('click', e => {
   if(e.target.closest && e.target.closest('#dok-weiter-f')){
-    dokStufeZeigen(dokSchritt + 1); return;
+    if(dokSchritt === DOK_SCHRITTE.length) dokAbschliessen();
+    else dokStufeZeigen(dokSchritt + 1);
+    return;
   }
   if(e.target.closest && e.target.closest('#dok-zurueck-f')){
     dokStufeZeigen(dokSchritt - 1); return;
@@ -20024,7 +20139,13 @@ const DOKTOR_PROMPT_KOPF =
   + 'ich will wissen, was ich auf dem Bild sehe und was zu tun ist.\n'
   + 'Beschreibe, was tatsächlich auf dem Foto zu sehen ist — die auffällige Stelle selbst, '
   + 'ihre Farbe, ihren Umriss, ihre Lage am Blatt. Allgemeine Pflegehinweise, '
-  + 'die für jede Zimmerpflanze gelten, helfen mir hier nicht.';
+  + 'die für jede Zimmerpflanze gelten, helfen mir hier nicht.\n'
+  + 'Steht die Pflanze in Wasserkultur — Glas, Vase, sichtbare Wurzeln im Wasser —, '
+  + 'ist ein fehlender Wasserablauf dort kein Mangel und keine Maßnahme wert. '
+  + 'Entscheide dich in dem Fall für genau eines: so lassen oder in Erde umstellen. '
+  + 'Nicht beides nebeneinander.\n'
+  + 'Halte jede Maßnahme auf einen kurzen Befehlssatz. Die Begründung steht im Auslöser, '
+  + 'sie gehört nicht noch einmal in die Handlung.';
 
 /* Zwei Zeilen, die es nur beim Doktor gibt: die Antwort auf die eigene
    Frage und die genaue Stelle. Sie stehen vorn, weil sie der Grund
@@ -20377,8 +20498,11 @@ function topfHTML(t){
       <dt>Größe</dt><dd>${esc(t.groesse)}</dd>
       ${t.material ? `<dt>Aufbau</dt><dd>${esc(t.material)}</dd>` : ''}
       <dt>Wasserablauf</dt><dd>${esc(t.ablauf)}</dd>
-      ${t.empfehlung ? `<dt>Empfehlung</dt><dd>${esc(t.empfehlung)}</dd>` : ''}
     </dl></div>`;
+  /* Die Empfehlung stand hier in voller Laenge — und gleich darunter
+     noch einmal als Massnahme. Zweimal derselbe Absatz macht die Karte
+     doppelt so lang und sagt nichts Neues. Sie steht jetzt nur dort,
+     wo man sie abhaken kann. */
 }
 /* Aus einer Topfauskunft wird eine Maßnahme wie jede andere — dann
    läuft sie durch dieselbe Auswahl. */
@@ -20867,6 +20991,12 @@ function dokAbgleichZeigen(d){
 }
 function dokAbgleichZeichnen(){
   const ziel = $('#dok-abgleich'); if(!ziel) return;
+  const auf = document.getElementById('dok-abgleich-auf');
+  const zahl = document.getElementById('dok-abgleich-zahl');
+  if(auf) auf.hidden = !dokVorschlaege.length;
+  if(zahl) zahl.textContent = dokVorschlaege.length === 1
+    ? 'Eine Angabe steht noch anders in der Karte'
+    : dokVorschlaege.length + ' Angaben stehen noch anders in der Karte';
   if(!dokVorschlaege.length){ ziel.innerHTML = ''; return; }
   ziel.innerHTML = `<div class="abgleich">
     <h4>Das steht noch nicht so in der Karte</h4>
