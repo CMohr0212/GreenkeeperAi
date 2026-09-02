@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.4 — 2. September 2026
+**Der Doktor blättert, die Mischungen liegen nebeneinander**
+
+### Neu
+- Feld für die eigene Frage im Pflanzendoktor. Sie steht im Prompt ganz oben und wird als Erstes beantwortet.
+- Die Einschätzung nennt die Antwort auf deine Frage und die genaue Stelle am Blatt.
+
+### Besser
+- Der Pflanzendoktor blättert Stufe für Stufe wie die anderen vier Assistenten, statt sie zu stapeln.
+- Der Doktor-Prompt ist ein Diagnoseauftrag, kein Bestimmungsauftrag mehr.
+- Umtopfen: Zutatenauswahl und Rechnung sind getrennte Stufen, damit sieben statt sechs.
+- Die machbare und die optimale Mischung liegen nebeneinander zum Wischen, statt untereinander zum Scrollen.
+
+---
+
 ## 3.2.3 — 2. September 2026
 **Fünf Fehler, die beim Testen auffielen**
 

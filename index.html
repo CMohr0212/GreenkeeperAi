@@ -2733,6 +2733,26 @@ html[data-design="terrarium"] .sam-raster .card .bar{box-shadow:var(--glanz)}
 .sub-erg{border:1px solid var(--line);border-left-width:4px;border-radius:var(--r-mittel);padding:14px 15px;background:var(--paper)}
 .sub-titel{margin:16px 0 8px;font-family:var(--f-display);font-size:var(--t-l)}
 .sub-titel:first-child{margin-top:0}
+/* Zwei Mischungen nebeneinander statt untereinander. Die Karte ist
+   knapp schmaler als die Spur — der Rand der naechsten bleibt sichtbar
+   und sagt ohne Worte, dass es weitergeht. */
+.vgl{margin:0 0 14px}
+.vgl-spur{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  padding-bottom:4px;scrollbar-width:none}
+.vgl-spur::-webkit-scrollbar{display:none}
+.vgl-spur:focus-visible{outline:2px solid var(--water);outline-offset:2px}
+.vgl-karte{flex:0 0 91%;scroll-snap-align:start;min-width:0}
+.vgl-karte>.sub-titel{margin-top:0}
+.vgl-fuss{display:flex;justify-content:center;gap:9px;margin:9px 0 0}
+.vgl-punkt{width:9px;height:9px;padding:0;border:0;border-radius:50%;
+  background:var(--line);cursor:pointer;transition:background var(--dauer)}
+.vgl-punkt.an{background:var(--fl-akzent)}
+.vgl-hinweis{text-align:center;margin:6px 0 0;font-family:var(--f-data);
+  font-size:var(--t-mono);letter-spacing:.04em;color:var(--peat)}
+@media(min-width:720px){.vgl-karte{flex:0 0 calc(50% - 6px)}
+  .vgl-hinweis{display:none}}
+html[data-design="klartext"] .vgl-punkt{width:12px;height:12px}
 .sub-erg.optimal{border-left-color:var(--water)}
 .sub-erg.optimal .sub-note{color:var(--water)}
 .sub-rezept{margin:0 0 10px;font-size:var(--t-m);line-height:1.6}
@@ -3026,6 +3046,16 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .dok-schritte li.fertig{border-top-color:var(--moss);color:var(--moss)}
 .dok-schritte li.jetzt{border-top-color:var(--ink);color:var(--ink);font-weight:700}
 .dok-stufe{margin-bottom:var(--a-5)}
+.dok-eigen{display:block;margin:0 0 var(--a-4)}
+.dok-eigen textarea{width:100%;min-height:76px;padding:10px 11px;border-radius:var(--r-klein);
+  border:1px solid var(--line);background:var(--fl-karte);color:var(--ink);
+  font:inherit;font-size:var(--t-s);resize:vertical}
+.dok-eigen textarea:focus{outline:2px solid var(--water);outline-offset:1px}
+.dok-antwort{margin:0 0 var(--a-3);padding:11px 12px;border-radius:var(--r-klein);
+  background:var(--ton-blatt);border-left:3px solid var(--water)}
+.dok-antwort b{display:block;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.09em;text-transform:uppercase;color:var(--peat);margin:0 0 5px}
+.dok-antwort p{margin:0;font-size:var(--t-s);line-height:1.55}
 .dok-stufe[hidden]{display:none!important}
 .dok-stufe>h3{display:flex;align-items:center;gap:var(--a-2);margin:0 0 var(--a-3);font-size:var(--t-xl)}
 .dok-nr{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--paper);
@@ -5345,6 +5375,8 @@ const ANTWORT_SCHLUESSEL = [
   ['frost',   ['frost','frosthaerte','frosthärte','winterhart','kaelte','kälte','minimaltemperatur','hardiness']],
   ['verw',    ['verwechslung','verwechslungsgefahr','ähnliche arten','aehnliche arten','similar']],
   ['zustand', ['zustand','status','befinden','condition','gesundheit','gesundheitszustand']],
+  ['antwort', ['antwort','antwort auf die frage','deine frage','meine frage']],
+  ['stelle',  ['stelle','fundstelle','ort am blatt','wo genau','lage der stelle']],
   ['befund',  ['befund','begründung','begruendung','beobachtung','diagnose','analyse']],
   ['licht',   ['licht','lichtbedarf','standort','light']],
   ['giessen', ['giessen','gießen','wasser','wasserbedarf','bewässerung','bewaesserung','watering']],
@@ -8139,6 +8171,12 @@ function papierkorbRender(){
 
     <div class="kibox dok-stufe" id="dok-ki-zeile" hidden>
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
+      <label class="dok-eigen">
+        <span class="lab">Was möchtest du wissen?</span>
+        <textarea id="dok-frage-eigen" rows="3"
+          placeholder="Zum Beispiel: Was ist die braune Stelle am mittleren Blatt?"></textarea>
+        <span class="fhint">Deine Frage wird zuerst beantwortet. Ohne Eingabe schaut die KI die Pflanze allgemein an.</span>
+      </label>
       <div class="kizeile">
       </div>
       <div class="kidirekt" id="ki-direkt-doktor" hidden>
@@ -8206,6 +8244,11 @@ function papierkorbRender(){
       <div id="dok-ergebnis"></div>
     </div>
 
+    <div class="as-fuss" id="dok-fuss">
+      <button id="dok-zurueck-f" type="button" hidden>Zurück</button>
+      <button id="dok-weiter-f" type="button" class="haupt">Weiter</button>
+    </div>
+
     </div>
   </section>
 
@@ -8225,7 +8268,7 @@ function papierkorbRender(){
       <p class="wz-hilfe" hidden>Führt in fünf Schritten durch das Umtopfen und trägt am Ende alles ein, was danach gilt: neue Topfgröße, Verlaufseintrag, vier Wochen keine Düngung. Wenn dabei Stecklinge abgehen, werden sie als eigene Pflanzen angelegt und im Stammbaum mit der Mutter verbunden — du musst nichts doppelt eintragen.</p>
 
       <ol class="ut-fortschritt" id="ut-fortschritt" aria-label="Fortschritt">
-        <li class="jetzt"></li><li></li><li></li><li></li><li></li><li></li>
+        <li class="jetzt"></li><li></li><li></li><li></li><li></li><li></li><li></li>
       </ol>
 
       <!-- 1 Pflanze -->
@@ -8265,7 +8308,7 @@ function papierkorbRender(){
         <p class="fhint" id="ut-sprung"></p>
       </div>
 
-      <!-- 4 Substrat -->
+      <!-- 4 Vorrat: nur ankreuzen, was da ist -->
       <div class="ut-stufe" data-ut-stufe="4">
         <p class="ut-frage">Womit füllst du auf?</p>
         <p class="ut-unter">Pflanze und Topf stehen oben schon fest — hier fehlt nur noch, was du zu Hause hast. Die Menge ist auf den neuen Topf gerechnet.</p>
@@ -8275,12 +8318,18 @@ function papierkorbRender(){
         </div>
         <div id="ut-sub-vorrat"></div>
         <div class="tools"><button type="button" data-do="sub-leeren">Auswahl leeren</button></div>
+      </div>
+
+      <!-- 5 Mischung: die Rechnung, in einer eigenen Stufe -->
+      <div class="ut-stufe" data-ut-stufe="5">
+        <p class="ut-frage">Die Mischung</p>
+        <p class="ut-unter">Links, was du heute anrühren kannst. Rechts, wie es optimal wäre — mit dem, was dafür noch fehlt.</p>
         <div id="ut-sub-mischung"></div>
         <div id="ut-sub-warnungen"></div>
       </div>
 
-      <!-- 5 Stecklinge -->
-      <div class="ut-stufe" data-ut-stufe="5">
+      <!-- 6 Stecklinge -->
+      <div class="ut-stufe" data-ut-stufe="6">
         <p class="ut-frage">Sind dabei Stecklinge abgegangen?</p>
         <p class="ut-unter">Beim Teilen oder Auslichten fällt oft etwas ab, das sich bewurzeln lässt. Was du hier einträgst, wird als eigene Pflanze angelegt und im Stammbaum mit der Mutter verbunden.</p>
         <label class="fspan check">
@@ -8294,8 +8343,8 @@ function papierkorbRender(){
         </div>
       </div>
 
-      <!-- 6 Abschluss -->
-      <div class="ut-stufe" data-ut-stufe="6">
+      <!-- 7 Abschluss -->
+      <div class="ut-stufe" data-ut-stufe="7">
         <p class="ut-frage">Das wird eingetragen</p>
         <div class="ut-zsf" id="ut-zsf"></div>
         <div class="tools">
@@ -9691,8 +9740,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.3';
+const FASSUNG = '3.2.4';
 const PATCHNOTES = [
+  {
+    nr: '3.2.4', datum: '2026-09-02', titel: 'Der Doktor blättert, die Mischungen liegen nebeneinander',
+    neu: [
+      'Der Pflanzendoktor hat ein Feld für deine eigene Frage. Sie steht im Prompt ganz oben und wird als Erstes beantwortet — bisher konnte man nur Bilder schicken und hoffen, dass die KI von selbst auf das Richtige schaut.',
+      'Die Antwort auf deine Frage steht in der Einschätzung ganz oben, dazu eine Zeile, wo genau die auffällige Stelle sitzt: Blattmitte, Blattrand, Blattachsel, Farbe, Umriss, trocken oder weich.'
+    ],
+    besser: [
+      'Der Pflanzendoktor blättert wie die anderen vier Assistenten. Bisher blieb jede erledigte Stufe stehen und man scrollte am Ende durch alle vier untereinander. Jetzt ist eine Stufe sichtbar, mit Zurück und Weiter unten.',
+      'Der Doktor-Prompt war wörtlich der vom Anlegen — ein Bestimmungsauftrag. Entsprechend kam eine Artbeschreibung zurück und über die Stelle, um die es ging, kein Wort. Jetzt steht dort, dass es eine Diagnose ist und die Pflanze bereits bekannt.',
+      'Beim Umtopfen sind Zutatenauswahl und Rechnung getrennte Stufen. Wer ankreuzte, sah das Ergebnis vorher erst eine Bildschirmlänge tiefer.',
+      'Die beiden Mischungen stehen nebeneinander statt untereinander — vorn, was du heute anrühren kannst, daneben das Optimum mit dem, was dafür fehlt. Seitwärts wischen statt scrollen und sich die obere merken.'
+    ]
+  },
   {
     nr: '3.2.3', datum: '2026-09-02', titel: 'Fünf Fehler, die beim Testen auffielen',
     besser: [
@@ -19882,18 +19944,23 @@ let dokWeg = null;          // 'ki' oder 'selbst'
 let dokGruppe = 0;          // welche Symptomgruppe offen ist
 let dokKiFertig = false;    // ist auf dem KI-Weg eine Antwort eingelesen?
 let dokKiDaten = null;      // die gelesene Antwort, für die Einschätzung
+let dokFrage = '';          // was der Mensch selbst wissen will
 
 const DOK_SCHRITTE = ['Pflanze', 'Weg', 'Merkmale', 'Einschätzung'];
 
 function dokZeigen(){
   const ki = dokWeg === 'ki';
+  /* Bis 3.2.3 stand hier ueberall `>=`: jede erledigte Stufe blieb
+     stehen, und am Ende scrollte man durch vier Stufen untereinander.
+     Der Doktor war damit der einzige Assistent, der nicht wie die
+     anderen vier arbeitet. Jetzt ist genau eine Stufe sichtbar, und
+     die Fusszeile fuehrt vor und zurueck. */
   const sichtbar = {
-    'dok-s1': dokSchritt >= 1,
-    'dok-s2': dokSchritt >= 2,
-    'dok-s3': dokSchritt >= 3 && !ki,
-    'dok-ki-zeile': dokSchritt >= 3 && ki,
-    'dok-s4': dokSchritt >= 4 || (dokSchritt >= 3 && !ki && dokSymptome.size > 0)
-              || (ki && dokKiFertig),
+    'dok-s1': dokSchritt === 1,
+    'dok-s2': dokSchritt === 2,
+    'dok-s3': dokSchritt === 3 && !ki,
+    'dok-ki-zeile': dokSchritt === 3 && ki,
+    'dok-s4': dokSchritt === 4,
     /* Liegt eine KI-Antwort vor, sind die Merkmalsfragen gegenstandslos —
        eingegrenzt wurde schon. */
     'dok-rueck': !ki
@@ -19908,7 +19975,35 @@ function dokZeigen(){
     return `<li class="${nr===dokSchritt?'jetzt':''}${fertig?' fertig':''}">${esc(n)}</li>`;
   }).join('');
   document.querySelectorAll('[data-dokweg]').forEach(b=>b.classList.toggle('on', b.dataset.dokweg===dokWeg));
+  const zur = document.getElementById('dok-zurueck-f');
+  const wei = document.getElementById('dok-weiter-f');
+  if(zur) zur.hidden = dokSchritt === 1;
+  if(wei){
+    wei.hidden = dokSchritt === DOK_SCHRITTE.length;
+    /* Ohne gewaehlten Weg fuehrt Weiter ins Leere — dasselbe Muster
+       wie beim Vermehren. */
+    wei.disabled = dokSchritt === 2 && !dokWeg;
+  }
 }
+
+/* Vor und zurueck. Der Sprung setzt nichts zurueck: wer auf Stufe 2
+   noch einmal den Weg wechselt, findet auf Stufe 1 seine Pflanze
+   unveraendert wieder. */
+function dokStufeZeigen(nr){
+  dokSchritt = Math.max(1, Math.min(DOK_SCHRITTE.length, nr));
+  if(typeof dokZeigen === 'function') dokZeigen();
+  if(dokSchritt === 4 && typeof dokErgebnis === 'function') dokErgebnis();
+  const rumpf = document.getElementById('sekm-rumpf');
+  if(rumpf) rumpf.scrollTop = 0;
+}
+document.addEventListener('click', e => {
+  if(e.target.closest && e.target.closest('#dok-weiter-f')){
+    dokStufeZeigen(dokSchritt + 1); return;
+  }
+  if(e.target.closest && e.target.closest('#dok-zurueck-f')){
+    dokStufeZeigen(dokSchritt - 1); return;
+  }
+});
 
 /* Symptomgruppen: erst die Gegend wählen, dann das Merkmal */
 function dokGruppenLeiste(){
@@ -19919,7 +20014,43 @@ function dokGruppenLeiste(){
   }).join('');
 }
 
-const DOKTOR_PROMPT_KOPF = 'Du bist ein erfahrener Gärtner. Ich hänge ein Foto meiner Pflanze an.';
+/* Der Doktor benutzte woertlich denselben Kopf wie das Anlegen — einen
+   Satz, der nach einer Bestimmung klingt. Entsprechend kam sie zurueck:
+   Art, Pflege, Topfgroesse, und ueber die auffaellige Stelle, um die es
+   ging, kein Wort. Hier steht jetzt, worum es wirklich geht. */
+const DOKTOR_PROMPT_KOPF =
+  'Du bist ein erfahrener Gärtner und siehst dir eine Pflanze an, mit der etwas nicht stimmt.\n'
+  + 'Ich hänge Fotos an. Das ist keine Bestimmungsaufgabe: die Pflanze kenne ich, '
+  + 'ich will wissen, was ich auf dem Bild sehe und was zu tun ist.\n'
+  + 'Beschreibe, was tatsächlich auf dem Foto zu sehen ist — die auffällige Stelle selbst, '
+  + 'ihre Farbe, ihren Umriss, ihre Lage am Blatt. Allgemeine Pflegehinweise, '
+  + 'die für jede Zimmerpflanze gelten, helfen mir hier nicht.';
+
+/* Zwei Zeilen, die es nur beim Doktor gibt: die Antwort auf die eigene
+   Frage und die genaue Stelle. Sie stehen vorn, weil sie der Grund
+   sind, aus dem gefragt wird. Die Zahl im Prompt zaehlt sich selbst
+   nach — promptZahlSetzen liest die Feldzeilen. */
+function mitDoktorZeilen(txt){
+  const zeilen =
+    'ANTWORT: Beantworte zuerst und ausdrücklich die Frage, die oben unter MEINE FRAGE steht, '
+    + 'in zwei bis vier Sätzen. Beziehe dich auf das, was auf dem Foto zu sehen ist, '
+    + 'nicht auf allgemeines Wissen über die Art. Kannst du sie am Bild nicht beantworten, '
+    + 'schreib was fehlt. Steht dort keine Frage, schreib genau: keine Frage gestellt\n'
+    + 'STELLE: Wo genau sitzt das Auffällige — Blattspitze, Blattrand, Blattmitte, '
+    + 'Blattunterseite, Blattachsel, Stängel, Erdoberfläche? Nenne Farbe, Umriss und ob die '
+    + 'Stelle trocken, weich, eingesunken oder belegt wirkt, und ob sie scharf begrenzt ist '
+    + 'oder ausläuft. Ist nichts Auffälliges zu sehen, schreib genau: nichts Auffälliges\n';
+  let t = String(txt).replace('DIE ZEILEN\n\n', 'DIE ZEILEN\n\n' + zeilen);
+  t = t.replace('\nART: Efeutute\n',
+    '\nANTWORT: Die braune Stelle am mittleren Blatt ist ein scharf begrenzter, '
+    + 'trockener Fleck mit hellem Rand, wie er nach einer Verbrennung durch direkte Sonne '
+    + 'entsteht; ein Erregerbefall sieht anders aus, er läuft weich aus. '
+    + 'Sie wird nicht größer, wenn die Pflanze aus der Mittagssonne kommt.\n'
+    + 'STELLE: Blattmitte, rechts der Mittelrippe, etwa daumengroß, hellbraun mit '
+    + 'dunklem Rand, trocken und papierartig, scharf begrenzt.\n'
+    + 'ART: Efeutute\n');
+  return promptZahlSetzen(t);
+}
 
 /* ── Die Pflanzenwahl, einmal für alle ────────────────────────
    Doktor und Umtopfen fragen dasselbe: welche Pflanze? Also fragen
@@ -20001,6 +20132,15 @@ function dokWahlZeichnen(){
 
 document.addEventListener('input', e => {
   if(e.target && e.target.id === 'dok-such') dokListeZeichnen(e.target.value);
+  /* Die eigene Frage geht in den Prompt. Steht das Fragefeld offen,
+     wandert sie beim Tippen gleich mit hinein — sonst kopiert jemand
+     eine Frage, die seine eigene nicht enthaelt. */
+  if(e.target && e.target.id === 'dok-frage-eigen'){
+    dokFrage = e.target.value;
+    const feld = document.getElementById('dok-ki-text');
+    const auf = document.getElementById('dok-frage-details');
+    if(feld && auf && auf.open) feld.value = dokPromptBauen();
+  }
 });
 document.addEventListener('click', e => {
   if(e.target.closest('#dok-andere')){
@@ -20044,6 +20184,10 @@ function dokKiErgebnisHTML(d){
       <span class="dg-wert">${esc(d.sicher ? 'Sicherheit ' + d.sicher : 'ohne Angabe')}</span>
     </div>
     <h4>${esc((zd && zd.name) || d.zustand || 'Kein Zustand genannt')}</h4>
+    ${d.antwort && !/^keine frage gestellt$/i.test(String(d.antwort).trim())
+      ? `<div class="dok-antwort"><b>Auf deine Frage</b><p>${esc(d.antwort)}</p></div>` : ''}
+    ${d.stelle && !/^nichts auff/i.test(String(d.stelle).trim())
+      ? `<p class="dg-passt">Die Stelle: ${esc(d.stelle)}</p>` : ''}
     ${d.befund ? `<p class="dg-text">${esc(d.befund)}</p>` : ''}
     ${d.giessen ? `<p class="dg-passt">Gießen: ${esc(d.giessen)}</p>` : ''}
     ${d.verw ? `<p class="dg-passt">Verwechselbar mit: ${esc(d.verw)}</p>` : ''}
@@ -20126,13 +20270,16 @@ function dokPromptBauen(){
     if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + st.iv + ' Tage.');
     zeilen.push('');
   }
+  /* Die eigene Frage steht vor allem anderen — sie ist der Anlass. */
+  const eigen = String(dokFrage || '').trim();
+  if(eigen){ zeilen.push('MEINE FRAGE: ' + eigen); zeilen.push(''); }
   if(sym.length){ zeilen.push('Das fällt mir auf:'); sym.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
   if(ant.length){ zeilen.push('Zusätzlich:'); ant.forEach(s=>zeilen.push('- ' + s)); zeilen.push(''); }
   /* Der Doktor fragt nach der Vermehrung nur, wenn noch nichts
      hinterlegt ist. Bei einem kranken Blatt geht es um etwas anderes,
      und jede zusätzliche Anforderung ist eine Stelle mehr, an der eine
      Antwort ausschert. */
-  let format = ANTWORT_FORMAT;
+  let format = mitDoktorZeilen(ANTWORT_FORMAT);
   if(p && vermehrungKiVon(p)) format = ohneVermehrung(format);
   /* Wer gerade umgetopft hat, braucht keine Umtopfempfehlung. */
   const zst = (typeof zustandVon === 'function' && p) ? zustandVon(p) : null;
@@ -20788,7 +20935,13 @@ $('#btn-dok-paste').onclick = ()=>{
     const code = zustandRaten(d.zustand);
     if(code){ zustandSetzen(dokPflanze, code); teile.push('Zustand „' + (zustandDef(code)||{}).name + '“ gesetzt'); }
     const notiz = [];
-    if(d.befund) notiz.push('Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + d.befund);
+    /* Die Antwort auf die eigene Frage ist der eigentliche Befund —
+       sie steht vor der allgemeinen Beschreibung, nicht dahinter. */
+    const frageAntwort = (d.antwort && !/^keine frage gestellt$/i.test(String(d.antwort).trim()))
+      ? String(d.antwort).trim() : '';
+    const befundText = [frageAntwort, d.stelle && !/^nichts auff/i.test(String(d.stelle).trim())
+      ? 'Stelle: ' + String(d.stelle).trim() : '', d.befund || ''].filter(Boolean).join(' ');
+    if(befundText) notiz.push('Befund vom ' + new Date().toLocaleDateString('de-DE') + ': ' + befundText);
     if(d.giessen) notiz.push('Gießen: ' + d.giessen);
     const topf = topfLesen(d.topf);
     /* „Passend, kein Umtopfen nötig“ ist eine gültige Auskunft, aber
@@ -21116,7 +21269,10 @@ const UT = {stufe:1, pflanze:null, gruende:[], form:'kultur', topf:18,
    Substratmischung. Vorher fuehrte an dieser Stelle ein Link in den
    Substratmischer — man verlor den halbfertigen Umtopfvorgang aus dem
    Blick und musste Topfgroesse und Form dort noch einmal ansehen. */
-const UT_STUFEN = 6;
+/* Sieben statt sechs: Zutatenauswahl und Rechnung standen in derselben
+   Stufe untereinander, und wer ankreuzte, sah das Ergebnis erst nach
+   einer Bildschirmlaenge Scrollen. */
+const UT_STUFEN = 7;
 
 function utPflanzen(){
   return allePflanzen().slice().sort((a, b)=>nice(a).localeCompare(nice(b), 'de'));
@@ -21221,7 +21377,7 @@ function utZeichnen(){
      nur mit den Kaesten dieser Seite und mit Topf und Pflanze von
      oben. Zwei Elemente duerfen nicht dieselbe Kennung tragen —
      deshalb sagt subKastenSetzen dem Rechner, wohin er schreibt. */
-  if(UT.stufe === 4 && typeof subKastenSetzen === 'function'){
+  if((UT.stufe === 4 || UT.stufe === 5) && typeof subKastenSetzen === 'function'){
     subKastenSetzen('ut-sub-gruppe-name-text', 'ut-sub-mischung', 'ut-sub-warnungen');
     subTopf = Math.max(5, Math.min(80, UT.topf || subTopf));
     subForm = UT.form || subForm;
@@ -21282,7 +21438,7 @@ function utZeichnen(){
     else sp.textContent = (UT.topf - alt) + ' cm mehr als bisher — ein guter Sprung.';
   }
 
-  /* Stufe 4 */
+  /* Stufe 6 */
   const feld = document.getElementById('ut-steckling-feld');
   if(feld) feld.hidden = !UT.stecklinge;
   const ck = document.getElementById('ut-hat-stecklinge');
@@ -21293,7 +21449,7 @@ function utZeichnen(){
   if(stx && UT.art && typeof V_METHODEN === 'object' && V_METHODEN[UT.art])
     stx.textContent = V_METHODEN[UT.art].kurz || '';
 
-  /* Stufe 5 */
+  /* Stufe 7 */
   const z = document.getElementById('ut-zsf');
   if(z && p) z.innerHTML = utZusammenfassung(p);
 }
@@ -21492,6 +21648,58 @@ function subKastenSetzen(ziel, mischung, warn){
   SUB_KASTEN = {ziel:ziel, mischung:mischung, warn:warn};
 }
 
+/* ── Zwei Mischungen nebeneinander ────────────────────────────
+   Vorher standen sie untereinander: erst die Referenzmischung mit
+   ihrer Zukaufliste, dann eine Bildschirmlaenge tiefer die, die man
+   heute wirklich anruehren kann. Vergleichen hiess scrollen und sich
+   die obere merken. Jetzt liegen sie nebeneinander und lassen sich
+   seitwaerts durchwischen — vorn das Machbare, dahinter das Optimum
+   samt dem, was dafuer fehlt. */
+function vergleichHTML(machbar, optimal){
+  if(!machbar) return optimal;
+  if(!optimal) return machbar;
+  return '<div class="vgl">'
+    + '<div class="vgl-spur" data-vgl-spur tabindex="0" aria-label="Zwei Mischungen zum Vergleichen">'
+    + '<section class="vgl-karte">' + machbar + '</section>'
+    + '<section class="vgl-karte">' + optimal + '</section>'
+    + '</div>'
+    + '<div class="vgl-fuss">'
+    + '<button type="button" class="vgl-punkt an" data-vgl-zu="0" aria-label="Aus deinem Vorrat"></button>'
+    + '<button type="button" class="vgl-punkt" data-vgl-zu="1" aria-label="So wäre es optimal"></button>'
+    + '</div>'
+    + '<p class="vgl-hinweis">Seitwärts wischen für die optimale Mischung und den Zukauf.</p>'
+    + '</div>';
+}
+/* Die Punkte folgen dem Finger, und ein Tipp auf einen Punkt springt
+   zur Karte. Scroll steigt nicht auf, deshalb in der Abfangphase. */
+function vglPunkteSetzen(spur){
+  if(!spur) return;
+  const karten = spur.querySelectorAll('.vgl-karte');
+  if(!karten.length) return;
+  const breite = karten[0].offsetWidth || 1;
+  const i = Math.round(spur.scrollLeft / breite);
+  const fuss = spur.parentNode && spur.parentNode.querySelector('.vgl-fuss');
+  if(fuss) [].forEach.call(fuss.children, (b, n)=>b.classList.toggle('an', n === i));
+}
+document.addEventListener('scroll', e => {
+  const spur = e.target && e.target.classList && e.target.classList.contains('vgl-spur')
+    ? e.target : null;
+  if(spur) vglPunkteSetzen(spur);
+}, true);
+document.addEventListener('click', e => {
+  const p = e.target.closest && e.target.closest('[data-vgl-zu]');
+  if(!p) return;
+  const box = p.closest('.vgl');
+  const spur = box && box.querySelector('.vgl-spur');
+  const karten = spur ? spur.querySelectorAll('.vgl-karte') : [];
+  const n = parseInt(p.dataset.vglZu, 10) || 0;
+  if(!karten.length) return;
+  const ziel = (karten[0].offsetWidth || 0) * n;
+  if(spur.scrollTo) spur.scrollTo({left:ziel, behavior:'smooth'});
+  else spur.scrollLeft = ziel;
+  [].forEach.call(box.querySelectorAll('.vgl-punkt'), (b, i)=>b.classList.toggle('an', i === n));
+});
+
 function subErgebnis(){
   const ziel = ZIELE[subZiel] || ZIELE.standard;
   const v = vorrat();
@@ -21515,6 +21723,8 @@ function subErgebnis(){
   }
 
   if(!v.length){
+    /* Ohne Vorrat gibt es nichts zu vergleichen — dann steht die
+       Referenzmischung allein da, ohne Wischspur. */
     subKasten('mischung').innerHTML = optimumHTML([])
       + '<p class="allgut">Hak oben an, was du zu Hause hast — dann rechne ich zusätzlich die beste Mischung aus deinem Vorrat.</p>';
     subKasten('warn').innerHTML = '';
@@ -21525,9 +21735,11 @@ function subErgebnis(){
   const beste = mischungSuchen(v, subZiel);
 
   if(!beste){
-    subKasten('mischung').innerHTML = optimumHTML(v) + `<div class="alert">Von deinen Zutaten taugt für ${esc(ziel.name)} keine einzige.
-      ${gesperrt.length?`Ausgeschlossen sind hier: ${esc(gesperrt.join(', '))}.`:''}</div>`
-      + zukaufHTML(v);
+    subKasten('mischung').innerHTML = vergleichHTML(
+      `<h4 class="sub-titel">Aus deinem Vorrat</h4>
+       <div class="alert">Von deinen Zutaten taugt für ${esc(ziel.name)} keine einzige.
+       ${gesperrt.length?`Ausgeschlossen sind hier: ${esc(gesperrt.join(', '))}.`:''}</div>`,
+      optimumHTML(v) + zukaufHTML(v));
     subKasten('warn').innerHTML = '';
     return;
   }
@@ -21543,7 +21755,7 @@ function subErgebnis(){
         <td class="sub-liter">${l < 0.35 ? Math.round(l*1000)+' ml' : l.toFixed(1).replace('.',',')+' l'}</td></tr>`;
     }).join('');
 
-  subKasten('mischung').innerHTML = optimumHTML(v) + `
+  subKasten('mischung').innerHTML = vergleichHTML(`
     <h4 class="sub-titel">Aus deinem Vorrat</h4>
     <div class="sub-erg ${b.stufe}">
       <div class="sub-kopf"><span class="sub-note">${esc(b.text)}</span>
@@ -21562,8 +21774,8 @@ function subErgebnis(){
       ${beste.notloesung ? '<p class="sub-lese"><b>Notlösung.</b> Mit so wenigen Zutaten muss eine davon den Großteil ausmachen. Das geht, ist aber nicht das, was ich empfehlen würde — siehe den Zukauf unten.</p>' : ''}
       ${luecke(beste.werte, ziel)}
     </div>
-    ${gesperrt.length?`<div class="alert info">Für ${esc(ziel.name)} habe ich ausgelassen: ${esc(gesperrt.join(', '))}. Das würde hier mehr schaden als nützen.</div>`:''}
-    ${zukaufHTML(v)}`;
+    ${gesperrt.length?`<div class="alert info">Für ${esc(ziel.name)} habe ich ausgelassen: ${esc(gesperrt.join(', '))}. Das würde hier mehr schaden als nützen.</div>`:''}`,
+    optimumHTML(v) + zukaufHTML(v));
 
   const warn = SUBSTRAT_WARNUNGEN.filter(([id])=>Object.keys(beste.teile).includes(id) || v.includes(id));
   subKasten('warn').innerHTML = warn.length

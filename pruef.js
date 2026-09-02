@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.3', w.__T('FASSUNG') === '3.2.3', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.4', w.__T('FASSUNG') === '3.2.4', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -632,6 +632,62 @@ setTimeout(async () => {
   [0,1,2].forEach(i => {
     pruef('Doktor · Schritt ' + (i+1), zielDa('doktor', i) === 'da', zielDa('doktor', i));
   });
+
+  /* Der Doktor war der einzige Assistent, der seine Stufen stapelte:
+     jede erledigte blieb stehen, und am Ende scrollte man durch vier
+     untereinander. Genau eine darf sichtbar sein. */
+  const dokSicht = () => ['dok-s1','dok-s2','dok-s3','dok-ki-zeile','dok-s4']
+    .filter(i => { const e = d.getElementById(i); return e && !e.hidden; });
+  w.__T("dokWeg = null; dokStufeZeigen(1)");
+  pruef('Doktor zeigt auf Stufe 1 nur Stufe 1',
+    dokSicht().join(',') === 'dok-s1', dokSicht().join(','));
+  w.__T("dokStufeZeigen(2)");
+  pruef('Doktor zeigt auf Stufe 2 nur Stufe 2',
+    dokSicht().join(',') === 'dok-s2', dokSicht().join(','));
+  pruef('Ohne Weg bleibt Weiter gesperrt',
+    d.getElementById('dok-weiter-f').disabled === true);
+  w.__T("dokWeg = 'ki'; dokStufeZeigen(3)");
+  pruef('Der KI-Weg zeigt nur seine Stufe',
+    dokSicht().join(',') === 'dok-ki-zeile', dokSicht().join(','));
+  w.__T("dokWeg = 'selbst'; dokStufeZeigen(3)");
+  pruef('Der Merkmalsweg zeigt nur seine Stufe',
+    dokSicht().join(',') === 'dok-s3', dokSicht().join(','));
+  w.__T("dokStufeZeigen(4)");
+  pruef('Die Einschätzung steht allein',
+    dokSicht().join(',') === 'dok-s4', dokSicht().join(','));
+  pruef('Auf der letzten Stufe gibt es kein Weiter',
+    d.getElementById('dok-weiter-f').hidden === true);
+  pruef('Zurück ist auf Stufe 1 verborgen',
+    (w.__T("dokStufeZeigen(1)"), d.getElementById('dok-zurueck-f').hidden === true));
+
+  /* Die eigene Frage: sie ist der Anlass und muss im Prompt stehen. */
+  pruef('Es gibt ein Feld für die eigene Frage',
+    !!d.getElementById('dok-frage-eigen'));
+  w.__T("dokFrage = 'Was ist die braune Stelle am mittleren Blatt?'");
+  const dokP = w.__T('dokPromptBauen()');
+  pruef('Die eigene Frage steht im Prompt',
+    /MEINE FRAGE: Was ist die braune Stelle/.test(dokP));
+  pruef('Der Prompt verlangt eine Antwort darauf',
+    /\nANTWORT: Beantworte zuerst/.test(dokP));
+  pruef('Der Prompt verlangt die genaue Stelle',
+    /\nSTELLE: Wo genau sitzt/.test(dokP));
+  pruef('Der Doktorkopf spricht von Diagnose, nicht von Bestimmung',
+    /keine Bestimmungsaufgabe/.test(dokP));
+  /* Die Zahl im Prompt zaehlt die Feldzeilen — sie muss die zwei
+     neuen mitzaehlen, sonst zaehlt die KI selbst nach und stolpert. */
+  pruef('Die Zahl im Prompt stimmt', /achtzehn Schlüsselwörter/.test(dokP),
+    (dokP.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
+  const gel = JSON.parse(w.__T(
+    "JSON.stringify(geminiLesen('ANTWORT: Sonnenbrand.\\nSTELLE: Blattmitte, trocken.\\nZUSTAND: gesund'))"));
+  pruef('Der Leser kennt ANTWORT', gel.antwort === 'Sonnenbrand.', JSON.stringify(gel));
+  pruef('Der Leser kennt STELLE', gel.stelle === 'Blattmitte, trocken.');
+  pruef('Die Antwort auf die Frage steht in der Einschätzung',
+    /dok-antwort/.test(w.__T(
+      "dokKiErgebnisHTML({antwort:'Sonnenbrand.', stelle:'Blattmitte.', zustand:'gesund'})")));
+  pruef('Ohne gestellte Frage bleibt der Kasten weg',
+    !/dok-antwort/.test(w.__T(
+      "dokKiErgebnisHTML({antwort:'keine Frage gestellt', zustand:'gesund'})")));
+  w.__T("dokFrage = ''");
   await zu('sek-modal');
 
   w.__T("sektionOeffnen('substrat')");
@@ -650,6 +706,28 @@ setTimeout(async () => {
   pruef('Substratwahl wird beim Öffnen neu gezeichnet',
     d.querySelectorAll('#sub-gitter .pwahl-k').length > 0,
     String(d.querySelectorAll('#sub-gitter .pwahl-k').length));
+
+  /* Die beiden Mischungen standen untereinander: Vergleichen hiess
+     scrollen und sich die obere merken. Jetzt liegen sie in einer
+     Wischspur nebeneinander — vorn das Machbare, dahinter das Optimum
+     mit dem Zukauf. Ohne Vorrat gibt es nichts zu vergleichen. */
+  w.__T("S.vorrat = []; subPflanze = null; subZiel = 'zimmer'; subErgebnis()");
+  pruef('Ohne Vorrat keine Wischspur',
+    !d.querySelector('#sub-mischung .vgl'));
+  w.__T("S.vorrat = ['blumenerde','perlit','bims']; subErgebnis()");
+  const vgl = d.querySelector('#sub-mischung .vgl');
+  pruef('Mit Vorrat entsteht eine Wischspur', !!vgl);
+  pruef('Genau zwei Karten in der Spur',
+    !!vgl && vgl.querySelectorAll('.vgl-karte').length === 2,
+    vgl ? String(vgl.querySelectorAll('.vgl-karte').length) : 'keine');
+  pruef('Vorn steht die Mischung aus dem Vorrat',
+    !!vgl && /Aus deinem Vorrat/.test(vgl.querySelectorAll('.vgl-karte')[0].textContent));
+  pruef('Dahinter das Optimum',
+    !!vgl && /optimal/.test(vgl.querySelectorAll('.vgl-karte')[1].textContent));
+  pruef('Die Zukaufempfehlung liegt beim Optimum',
+    !!vgl && !/Dafür fehlt dir/.test(vgl.querySelectorAll('.vgl-karte')[0].textContent));
+  pruef('Zwei Punkte zum Springen',
+    !!vgl && vgl.querySelectorAll('.vgl-punkt').length === 2);
   await zu('sek-modal');
 
   w.__T("sektionOeffnen('sicherung')");
@@ -2388,10 +2466,17 @@ setTimeout(async () => {
       !!d.querySelector('.kachelgitter section[data-wz="umtopfen"] .wz-ikon svg'));
     /* Seit 3.1.0 sechs: die Substratmischung steht zwischen Topf und
        Stecklingen, statt in ein anderes Werkzeug zu verweisen. */
-    pruef('Sechs Stufen', d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length === 6,
+    /* Seit 3.2.4 sind es sieben: Zutatenauswahl und Rechnung standen
+       in derselben Stufe, und wer ankreuzte, sah das Ergebnis erst
+       eine Bildschirmlaenge tiefer. */
+    pruef('Sieben Stufen', d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length === 7,
       String(d.querySelectorAll('#wz-in-umtopfen [data-ut-stufe]').length));
-    pruef('Fortschritt hat sechs Marken',
-      d.querySelectorAll('#ut-fortschritt li').length === 6);
+    pruef('Fortschritt hat sieben Marken',
+      d.querySelectorAll('#ut-fortschritt li').length === 7,
+      String(d.querySelectorAll('#ut-fortschritt li').length));
+    pruef('Vorrat und Mischung sind getrennte Stufen',
+      d.querySelector('[data-ut-stufe="4"]').contains(d.getElementById('ut-sub-vorrat'))
+      && d.querySelector('[data-ut-stufe="5"]').contains(d.getElementById('ut-sub-mischung')));
     pruef('Der Sprung in den Substratmischer ist ersetzt',
       !d.getElementById('ut-zum-substrat') && !!d.getElementById('ut-sub-mischung'));
     pruef('Die Pflanzenwahl ist ein Kachelgitter, kein Auswahlfeld',
