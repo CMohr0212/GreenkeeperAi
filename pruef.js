@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.2', w.__T('FASSUNG') === '3.2.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.3', w.__T('FASSUNG') === '3.2.3', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -257,6 +257,15 @@ setTimeout(async () => {
   pruef('und ist weiter aufrufbar', !!w.__T("!!sekAbschnitt('giessplan')"));
   pruef('Das Gießcenter führt hin',
     !!d.querySelector('#mh-in-giess [data-wz-go="giessplan"]'));
+  /* Die Marke `ans-erste` nimmt der ersten Sektion einer Ansicht die
+     Überschriftslinie — und gibt ihr dabei einen Außenrand. Auf einem
+     gestreckten Gitterfeld kostet der genau diese Höhe: die erste
+     Kachel stand 6 px tiefer und war 6 px flacher als die anderen. */
+  w.__T("ansichtZeigen('werkzeuge')");
+  pruef('Keine Werkzeugkachel gilt als erste Sektion',
+    !d.querySelector('.kachelgitter .ans-erste'),
+    (d.querySelector('.kachelgitter .ans-erste') || {}).id || '');
+  w.__T("ansichtZeigen('heute')");
 
   let kaputt = [];
   for (const k of keys) {
@@ -566,8 +575,17 @@ setTimeout(async () => {
     !!d.querySelector('#karte-rumpf .km-fotoband .gal'));
   pruef('Profilbild bleibt über das Foto-Menü wählbar',
     !!d.querySelector('#karte-rumpf .km-fotoband [data-do="foto-menu"]'));
+  /* Seit 3.2.3 ist das Plusfeld ein Knopf mit der Pflanzenkennung, kein
+     Label mit verstecktem Dateifeld mehr. Geprüft wird beides: dass der
+     Knopf da ist und dass er weiß, für welche Pflanze er gilt. */
   pruef('Fotos hinzufügen bleibt erreichbar',
-    !!d.querySelector('#karte-rumpf .km-fotoband .foto-add input[type="file"]'));
+    !!d.querySelector('#karte-rumpf .km-fotoband button.foto-add'));
+  pruef('Das Plusfeld kennt seine Pflanze',
+    !!(d.querySelector('#karte-rumpf .km-fotoband button.foto-add') || {}).dataset
+    && !!d.querySelector('#karte-rumpf .km-fotoband button.foto-add').dataset.p);
+  pruef('Das Plusfeld steht auch bei belegter Galerie',
+    d.querySelectorAll('#karte-rumpf .km-fotoband .gal figure').length > 0
+      ? !!d.querySelector('#karte-rumpf .km-fotoband button.foto-add') : true);
   pruef('Standzeile mit Ton vorhanden',
     !!d.querySelector('#karte-rumpf .km-stand[data-ton]'));
   pruef('Zeichenreihe steht im Kopf',
@@ -621,6 +639,17 @@ setTimeout(async () => {
   [0,1,2].forEach(i => {
     pruef('Substrat · Schritt ' + (i+1), zielDa('substrat', i) === 'da', zielDa('substrat', i));
   });
+  await zu('sek-modal');
+
+  /* Der Rechner wurde einmal beim Start aufgebaut. Da sind die Fotos
+     noch nicht aus dem großen Speicher gelesen — die Auswahlkacheln
+     blieben bis zur ersten Suche leer. Öffnen muss neu zeichnen. */
+  w.__T("document.getElementById('sub-gitter').innerHTML = ''");
+  w.__T("sektionOeffnen('substrat')");
+  await tick();
+  pruef('Substratwahl wird beim Öffnen neu gezeichnet',
+    d.querySelectorAll('#sub-gitter .pwahl-k').length > 0,
+    String(d.querySelectorAll('#sub-gitter .pwahl-k').length));
   await zu('sek-modal');
 
   w.__T("sektionOeffnen('sicherung')");
@@ -1098,6 +1127,16 @@ setTimeout(async () => {
     pruef('Die Zeile nennt die Generationen',
       /Generationen/.test(d.querySelector('#sb-liste .sb-gen').textContent),
       d.querySelector('#sb-liste .sb-gen').textContent);
+
+    /* Eine Linie ohne Mutterpflanze in der Sammlung zählte ihre
+       Mitglieder zweimal: erst in `zahl`, dann noch einmal im Durchlauf.
+       Aus zwei Venusfliegenfallen wurden vier Ableger. */
+    const linieUmfang = JSON.parse(w.__T(
+      "JSON.stringify(sbUmfang({art:'linie', mitglieder:[{id:'LX1'},{id:'LX2'}]}))"));
+    pruef('Eine Linie zählt ihre Mitglieder einmal',
+      linieUmfang.zahl === 2, JSON.stringify(linieUmfang));
+    pruef('Eine Linie ohne Nachkommen hat keine Tiefe',
+      linieUmfang.tiefe === 0, String(linieUmfang.tiefe));
 
     /* Suche */
     w.__T("sbListeRendern('Ausgangs')");

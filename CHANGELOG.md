@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.3 — 2. September 2026
+**Fünf Fehler, die beim Testen auffielen**
+
+### Behoben
+- Fotos lassen sich auch dann hinzufügen, wenn schon eines da ist. Das Plusfeld ist jetzt ein Knopf mit einem einzigen Dateieingang statt eines Labels mit verstecktem Feld darin.
+- Alle sechs Werkzeugkacheln sind gleich hoch. Die erste war 6 px flacher, weil die Regel für die erste Sektion einer Ansicht ihr einen Außenrand gab.
+- Der Substratrechner zeigt die Pflanzenbilder sofort. Er wurde einmal beim Start aufgebaut, da sind die Fotos noch nicht gelesen.
+- Der Stammbaum zählt richtig. Eine Linie ohne Mutterpflanze zählte ihre Mitglieder doppelt — zwei Pflanzen standen als vier Ableger da. Und sie heißen jetzt Pflanzen, nicht Ableger.
+- Eine abgeschnittene KI-Antwort wird gemeldet, statt halb eingelesen zu werden. Die zu knappe Obergrenze für die Antwortlänge ist weg.
+
+---
+
 ## 3.2.2 — 2. September 2026
 **Zwei hartnäckige Fehler**
 
