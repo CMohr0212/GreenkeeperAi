@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.1 — 2. September 2026
+**Feucht gemeldet ist nicht versäumt**
+
+### Behoben
+- „Noch feucht“ im Gießmodus ließ die Pflanze weiterhin als überfällig gelten, und die Gießtreue zählte sie als Versäumnis. Solange die Meldung gilt, steht jetzt „als feucht gemeldet“ auf der Karte, samt Tag zum Wiederansehen — und die Treue bleibt unberührt.
+- Läuft die Frist ohne neue Meldung ab, ist sie wieder überfällig.
+
+---
+
 ## 3.2.0 — 1. September 2026
 **Alles Schritt für Schritt, Filter mit Verstand**
 

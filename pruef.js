@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.0', w.__T('FASSUNG') === '3.2.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.1', w.__T('FASSUNG') === '3.2.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2606,6 +2606,26 @@ setTimeout(async () => {
   pruef('heute als feucht gemeldet', w.__T(`giessStatus(allePflanzen()[0]).feuchtHeute`) === true);
   pruef('heute von der Liste runter',
     w.__T(`giessListe().some(x=>x.id === '${pid}')`) === false);
+
+  /* Eine Feucht-Meldung ist Pflege, kein Versaeumnis. Solange sie
+     gilt, darf die Pflanze nicht als ueberfaellig gelten — sonst
+     bestraft die Giesstreue genau das Nachsehen, das sie belohnen
+     soll. Chris stand deshalb bei 88 statt 100 Prozent. */
+  pruef('Gemeldet, aber rechnerisch weiter ueberfaellig',
+    w.__T(`giessStatus(allePflanzen().find(x=>x.id==='${pid}')).stand`) === 'over');
+  pruef('Die Standzeile sagt nicht mehr „ueberfaellig“',
+    /feucht gemeldet/.test(w.__T(`karteStand(allePflanzen().find(x=>x.id==='${pid}')).text`)),
+    w.__T(`karteStand(allePflanzen().find(x=>x.id==='${pid}')).text`));
+  pruef('Die Giesstreue zaehlt sie als puenktlich',
+    w.__T('kennzahlen().treue') === 100, String(w.__T('kennzahlen().treue')));
+  /* Laeuft die Frist ohne neue Meldung ab, ist sie wieder ueberfaellig —
+     dann hat wirklich niemand hingesehen. */
+  w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(new Date(Date.now() - 20*864e5))`);
+  pruef('Nach Ablauf der Frist wieder ueberfaellig',
+    /überfällig/.test(w.__T(`karteStand(allePflanzen().find(x=>x.id==='${pid}')).text`)));
+  pruef('Und dann zaehlt sie auch wieder gegen die Treue',
+    w.__T('kennzahlen().treue') < 100);
+  w.__T(`S.feuchtRueck['${pid}'].zuletzt = iso(HEUTE)`);
   pruef('Gießabstand unverändert',
     w.__T(`giessStatus(allePflanzen()[0]).iv === intervallVon(allePflanzen()[0])`) === true);
   pruef('kein Gießvermerk eingetragen',

@@ -9620,8 +9620,15 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.0';
+const FASSUNG = '3.2.1';
 const PATCHNOTES = [
+  {
+    nr: '3.2.1', datum: '2026-09-02', titel: 'Feucht gemeldet ist nicht versäumt',
+    besser: [
+      'Wer im Gießmodus „noch feucht“ meldet, hat nachgesehen — das ist Pflege. Bisher stand die Pflanze trotzdem als überfällig auf der Karte, und die Gießtreue zählte sie als Versäumnis. Solange die Meldung gilt, heißt es jetzt „als feucht gemeldet“ mit dem Tag, an dem du wieder nachsehen solltest, und die Gießtreue lässt sie in Ruhe.',
+      'Läuft die Frist ohne neue Meldung ab, wird sie wieder überfällig. Dann hat wirklich niemand hingeschaut.'
+    ]
+  },
   {
     nr: '3.2.0', datum: '2026-09-01', titel: 'Alles Schritt für Schritt, Filter mit Verstand',
     neu: [
@@ -12375,6 +12382,11 @@ function karteStand(p){
      widerspricht dem, was der Rhythmus sagen wuerde. */
   if(st.stand === 'stopp')     return {ton:'alarm', text:'Jetzt nicht gießen'};
   if(zTon === 'alarm')         return {ton:'alarm', text:z.def.name};
+  if(st.stand === 'over' && st.feuchtHeute){
+    const rest = feuchtRest(p.id);
+    return {ton:'still', text:'Als feucht gemeldet'
+      + (rest > 0 ? ' · in ' + rest + (rest === 1 ? ' Tag' : ' Tagen') + ' wieder ansehen' : '')};
+  }
   if(st.stand === 'over')      return {ton:'gift',  text:'Gießen: überfällig'};
   if(st.stand === 'unbekannt') return {ton:'still', text:'Noch nicht erfasst'};
   if(st.rest <= 0)             return {ton:'wasser', text:'Gießen: heute'};
@@ -12658,7 +12670,14 @@ function kennzahlen(){
     const st = giessStatus(p);
     return st.stand !== 'stopp' && st.stand !== 'unbekannt';
   });
-  const puenktlich = zaehlbar.filter(p=>giessStatus(p).stand !== 'over').length;
+  /* Wer „noch feucht“ meldet, hat nachgesehen — das ist Pflege, kein
+     Versäumnis. Solange die Meldung gilt, zählt die Pflanze als
+     pünktlich. Läuft die Frist ohne neue Meldung ab, wird sie wieder
+     überfällig; dann hat wirklich niemand hingeschaut. */
+  const puenktlich = zaehlbar.filter(p=>{
+    const st = giessStatus(p);
+    return st.stand !== 'over' || st.feuchtHeute;
+  }).length;
   const treue = zaehlbar.length ? Math.round(puenktlich / zaehlbar.length * 100) : null;
 
   /* Zuwachs im laufenden Monat, aus dem Zugangsdatum. */
