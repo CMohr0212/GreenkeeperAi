@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.7 — 3. September 2026
+**Ein Knopf, eine Stelle**
+
+### Besser
+- Jeder Assistent endet an derselben Stelle: Auf der letzten Stufe wird aus „Weiter“ die Abschlussaktion — „Pflanze anlegen“, „Umtopfen eintragen“, „Ableger anlegen“. Vorher lag der Abschluss mal unten in der Leiste, mal mitten im Text der letzten Stufe.
+- Was beim Abschluss herauskommt, bleibt lesbar: die Bestätigung nach dem Umtopfen, die Liste der neuen Ableger nach dem Vermehren. Danach heißt der Knopf „Fertig“ und schließt das Werkzeug.
+- Der Substratrechner hat auf der Ergebnisstufe wieder einen Knopf, statt nur „Zurück“.
+
+### Behoben
+- Die Meldung „Eingetragen.“ nach dem Umtopfen bekam niemand zu sehen — der Ablauf sprang vorher auf Stufe 1 zurück.
+
+---
+
 ## 3.2.6 — 2. September 2026
 **Die Raumansicht ist zurück**
 

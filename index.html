@@ -8408,9 +8408,6 @@ function papierkorbRender(){
       <div class="ut-stufe" data-ut-stufe="7">
         <p class="ut-frage">Das wird eingetragen</p>
         <div class="ut-zsf" id="ut-zsf"></div>
-        <div class="tools">
-          <button class="haupt" id="ut-fertig">Umtopfen eintragen</button>
-        </div>
       </div>
 
       <div class="ut-fuss">
@@ -8587,17 +8584,21 @@ function papierkorbRender(){
 
       <!-- 3 Ableger -->
       <div class="as-stufe" data-ver-stufe="3">
-        <p class="as-frage">Wie viele Ableger?</p>
-        <p class="as-unter">Jeder wird eine eigene Pflanze mit eigenem Namen, eigenem Bild und eigenem Gießrhythmus. Alle hängen im Stammbaum unter der Mutter.</p>
-        <div class="ver-zahl" id="ver-zahl"></div>
-        <div id="ver-ableger"></div>
+        <!-- Nach dem Anlegen bleibt nur die Meldung stehen: die
+             Namensfelder daneben gehoerten zu einem Durchgang, der
+             vorbei ist. -->
+        <div id="ver-form3">
+          <p class="as-frage">Wie viele Ableger?</p>
+          <p class="as-unter">Jeder wird eine eigene Pflanze mit eigenem Namen, eigenem Bild und eigenem Gießrhythmus. Alle hängen im Stammbaum unter der Mutter.</p>
+          <div class="ver-zahl" id="ver-zahl"></div>
+          <div id="ver-ableger"></div>
+        </div>
         <div class="alert info" id="ver-meldung" hidden></div>
       </div>
 
       <div class="as-fuss">
         <button id="ver-zurueck" type="button" hidden>Zurück</button>
         <button id="ver-weiter" type="button" class="haupt">Weiter</button>
-        <button id="ver-los" type="button" class="haupt" hidden>Ableger anlegen</button>
       </div>
 
         </div>
@@ -9758,7 +9759,6 @@ function papierkorbRender(){
   <div class="al-fuss">
     <button id="al-zurueck" type="button" hidden>Zurück</button>
     <button id="al-weiter" type="button" class="haupt">Weiter</button>
-    <button id="btn-neu-save" type="button" class="haupt" hidden>Pflanze anlegen</button>
   </div>
 </div>
 
@@ -9836,8 +9836,19 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.6';
+const FASSUNG = '3.2.7';
 const PATCHNOTES = [
+  {
+    nr: '3.2.7', datum: '2026-09-03', titel: 'Ein Knopf, eine Stelle',
+    besser: [
+      'Alle Assistenten enden an derselben Stelle: Auf der letzten Stufe wird aus „Weiter“ die Abschlussaktion — „Pflanze anlegen“, „Umtopfen eintragen“, „Ableger anlegen“. Der Abschluss stand vorher mal in der Fußleiste, mal mitten im Text der letzten Stufe, mal gar nicht.',
+      'Nach dem Eintragen bleibt stehen, was dabei herauskam: Beim Umtopfen die Bestätigung über der Zusammenfassung, beim Vermehren die Liste der neuen Ableger zum Antippen. Der Knopf heißt dann „Fertig“ und schließt das Werkzeug.',
+      'Der Substratrechner hat auf der Ergebnisstufe wieder einen Knopf. Vorher stand dort nur „Zurück“, und man musste über den Fensterkopf hinaus.'
+    ],
+    behoben: [
+      'Die Meldung „Eingetragen.“ nach dem Umtopfen war nie zu sehen: Der Ablauf sprang vorher auf Stufe 1 zurück, und die Meldung landete auf einer Stufe, die niemand mehr sah.'
+    ]
+  },
   {
     nr: '3.2.6', datum: '2026-09-02', titel: 'Die Raumansicht ist zurück',
     neu: [
@@ -14927,11 +14938,16 @@ function alStufeZeigen(nr){
     + '<span class="nurlesbar">' + esc(n) + '</span></li>').join('');
   const zurueck = document.getElementById('al-zurueck');
   const weiter = document.getElementById('al-weiter');
-  const speichern = document.getElementById('btn-neu-save');
   const letzte = alStufe === AL_STUFEN.length;
   if(zurueck) zurueck.hidden = alStufe === 1;
-  if(weiter) weiter.hidden = letzte;
-  if(speichern) speichern.hidden = !letzte;
+  /* Ein Hauptknopf, der auf der letzten Stufe die Abschlussaktion
+     traegt — dasselbe Muster wie beim Doktor. Zwei Knoepfe an
+     derselben Stelle, von denen immer einer versteckt war, hiessen
+     an jedem Assistenten etwas anderes. */
+  if(weiter){
+    weiter.hidden = false;
+    weiter.textContent = letzte ? 'Pflanze anlegen' : 'Weiter';
+  }
   const titel = document.getElementById('al-titel');
   if(titel) titel.textContent = 'Pflanze anlegen · ' + AL_STUFEN[alStufe - 1];
 
@@ -14969,6 +14985,10 @@ function alWeiter(){
     if(w) w.animate
       ? w.animate([{opacity:1}, {opacity:.4}, {opacity:1}], {duration:320})
       : null;
+    return;
+  }
+  if(alStufe === AL_STUFEN.length){
+    if(typeof alSpeichern === 'function') alSpeichern();
     return;
   }
   alStufeZeigen(alStufe + 1);
@@ -16838,7 +16858,7 @@ formLageZeichnen();
 /* Zuletzt eingelesene KI-Antwort, damit ihre Maßnahmen beim Anlegen
    direkt zu Aufgaben werden. */
 let letzteKiAntwort = null;
-$('#btn-neu-save').onclick = async ()=>{
+async function alSpeichern(){
   const name = $('#f-name').value.trim();
   const suchtext = $('#f-art').value.trim();
   const art = gewaehlteArt ? gewaehlteArt.de : suchtext;
@@ -16919,7 +16939,7 @@ $('#btn-neu-save').onclick = async ()=>{
   }
   render();
   karteOeffnen(id);
-};
+}
 
 /* ── Zustandsbedienung auf den Karten ────────────────────── */
 document.addEventListener('change', e=>{
@@ -21557,7 +21577,10 @@ function umtopfVorgemerkt(){
 }
 
 const UT = {stufe:1, pflanze:null, gruende:[], form:'kultur', topf:18,
-            stecklinge:false, zahl:1, art:null, langzeit:false};
+            stecklinge:false, zahl:1, art:null, langzeit:false,
+            /* erledigt: eingetragen, aber noch nicht abgeraeumt — die
+               Meldung soll stehen bleiben, bis „Fertig“ kommt. */
+            erledigt:false};
 /* Seit 3.1.0 sechs: zwischen Topf und Stecklingen steht die
    Substratmischung. Vorher fuehrte an dieser Stelle ein Link in den
    Substratmischer — man verlor den halbfertigen Umtopfvorgang aus dem
@@ -21660,8 +21683,12 @@ function utZeichnen(){
   });
   const zur = document.getElementById('ut-zurueck');
   const wei = document.getElementById('ut-weiter');
-  if(zur) zur.hidden = UT.stufe === 1;
-  if(wei) wei.hidden = UT.stufe === UT_STUFEN;
+  if(zur) zur.hidden = UT.stufe === 1 || !!UT.erledigt;
+  if(wei){
+    wei.hidden = false;
+    wei.textContent = UT.erledigt ? 'Fertig'
+      : UT.stufe === UT_STUFEN ? 'Umtopfen eintragen' : 'Weiter';
+  }
 
   const p = UT.pflanze ? allePflanzen().find(x=>x.id === UT.pflanze) : null;
   if(typeof utWahlZeichnen === 'function' && UT.stufe === 1) utWahlZeichnen();
@@ -21742,9 +21769,10 @@ function utZeichnen(){
   if(stx && UT.art && typeof V_METHODEN === 'object' && V_METHODEN[UT.art])
     stx.textContent = V_METHODEN[UT.art].kurz || '';
 
-  /* Stufe 7 */
+  /* Stufe 7. Ist eingetragen, steht dort die Meldung ueber der
+     Zusammenfassung — die darf kein Neuzeichnen wegwischen. */
   const z = document.getElementById('ut-zsf');
-  if(z && p) z.innerHTML = utZusammenfassung(p);
+  if(z && p && !UT.erledigt) z.innerHTML = utZusammenfassung(p);
 }
 
 function utZusammenfassung(p){
@@ -21807,9 +21835,20 @@ function utEintragen(){
 
   sichern();
   render();
-  UT.stufe = 1; UT.gruende = []; UT.stecklinge = false; UT.zahl = 1; UT.langzeit = false;
-  utZeichnen();
+  /* Zurueckgesetzt wird erst in utAbschliessen. Vorher sprang die
+     Stufe hier auf 1, und die Meldung, die der Aufrufer gleich
+     danach in #ut-zsf schrieb, stand auf einer Stufe, die niemand
+     mehr sah. */
   return {pflanze:p.id, kinder};
+}
+
+/* „Fertig“ raeumt ab und verlaesst das Werkzeug. */
+function utAbschliessen(){
+  UT.erledigt = false;
+  UT.stufe = 1; UT.gruende = []; UT.stecklinge = false;
+  UT.zahl = 1; UT.langzeit = false;
+  utZeichnen();
+  if(typeof modalZu === 'function') modalZu('sek-modal');
 }
 
 document.addEventListener('click', e=>{
@@ -21824,16 +21863,12 @@ document.addEventListener('click', e=>{
   if(f){ UT.form = f.dataset.utForm; utZeichnen(); return; }
 
   if(e.target.closest('#ut-weiter')){
-    if(UT.stufe < UT_STUFEN) UT.stufe++;
-    utZeichnen(); return;
-  }
-  if(e.target.closest('#ut-zurueck')){
-    if(UT.stufe > 1) UT.stufe--;
-    utZeichnen(); return;
-  }
-  if(e.target.closest('#ut-fertig')){
+    if(UT.erledigt){ utAbschliessen(); return; }
+    if(UT.stufe < UT_STUFEN){ UT.stufe++; utZeichnen(); return; }
     const r = utEintragen();
     if(r){
+      UT.erledigt = true;
+      utZeichnen();
       const z = document.getElementById('ut-zsf');
       if(z) z.innerHTML = '<p class="ut-fertig-melde">Eingetragen.'
         + (r.kinder.length ? ' ' + r.kinder.length + ' Steckling'
@@ -21841,6 +21876,10 @@ document.addEventListener('click', e=>{
         + '</p>' + z.innerHTML;
     }
     return;
+  }
+  if(e.target.closest('#ut-zurueck')){
+    if(UT.stufe > 1) UT.stufe--;
+    utZeichnen(); return;
   }
 });
 
@@ -22313,7 +22352,12 @@ function subStufeZeigen(nr){
   const zur = document.getElementById('sub-zurueck');
   const wei = document.getElementById('sub-weiter');
   if(zur) zur.hidden = subStufe === 1;
-  if(wei) wei.hidden = subStufe === SUB_STUFEN;
+  /* Auf der letzten Stufe stand hier gar kein Hauptknopf mehr — man
+     musste ueber den Fensterkopf hinaus. */
+  if(wei){
+    wei.hidden = false;
+    wei.textContent = subStufe === SUB_STUFEN ? 'Fertig' : 'Weiter';
+  }
   if(subStufe === 2) topfZeichnen();
   if(subStufe >= 3) subErgebnis();
 }
@@ -22362,7 +22406,14 @@ document.addEventListener('click', e => {
   const z = document.getElementById('sub-zurueck');
   if(z) z.onclick = ()=>subStufeZeigen(subStufe - 1);
   const w = document.getElementById('sub-weiter');
-  if(w) w.onclick = ()=>subStufeZeigen(subStufe + 1);
+  if(w) w.onclick = ()=>{
+    if(subStufe === SUB_STUFEN){
+      subStufeZeigen(1);
+      if(typeof modalZu === 'function') modalZu('sek-modal');
+      return;
+    }
+    subStufeZeigen(subStufe + 1);
+  };
 }
 
 const _slider = document.getElementById('topf-slider');
@@ -22389,6 +22440,10 @@ let verMethode = null;
    Umtopfen: Pflanze, Weg, Ableger. */
 const VER_STUFEN = 3;
 let verStufe = 1;
+/* Dritter Zustand des Hauptknopfs: die Ableger sind angelegt, die
+   Meldung mit den Links auf die neuen Pflanzen soll aber stehen
+   bleiben. Erst „Fertig“ raeumt ab. */
+let verErledigt = false;
 let VER_ABLEGER = [];    /* [{name, bearbeitet, datei, vorschau}] */
 const VER_MAX = 10;
 
@@ -22520,25 +22575,34 @@ function verStufeZeigen(nr){
     li.classList.toggle('jetzt', i + 1 === verStufe);
     li.classList.toggle('fertig', i + 1 < verStufe);
   });
-  const zur = document.getElementById('ver-zurueck');
-  const wei = document.getElementById('ver-weiter');
-  const los = document.getElementById('ver-los');
-  if(zur) zur.hidden = verStufe === 1;
-  if(wei){
-    wei.hidden = verStufe === VER_STUFEN;
-    /* Ohne Pflanze und ohne Weg führt Weiter ins Leere. */
-    wei.disabled = (verStufe === 1 && !verPflanze) || (verStufe === 2 && !verMethode);
-  }
-  if(los) los.hidden = verStufe !== VER_STUFEN;
-  if(verStufe === 3){
+  verFussZeichnen();
+  if(verStufe === 3 && !verErledigt){
     if(!VER_ABLEGER.length) verAnzahlSetzen(1);
     else verAblegerZeichnen();
   }
 }
 
+/* Die Fussleiste wird auch ohne Stufenwechsel neu gezeichnet — nach
+   dem Anlegen aendert sich nur die Beschriftung. */
+function verFussZeichnen(){
+  const zur = document.getElementById('ver-zurueck');
+  const wei = document.getElementById('ver-weiter');
+  const form = document.getElementById('ver-form3');
+  const letzte = verStufe === VER_STUFEN;
+  if(zur) zur.hidden = verStufe === 1 || verErledigt;
+  if(wei){
+    wei.hidden = false;
+    wei.textContent = verErledigt ? 'Fertig'
+      : letzte ? 'Ableger anlegen' : 'Weiter';
+    /* Ohne Pflanze und ohne Weg führt Weiter ins Leere. */
+    wei.disabled = (verStufe === 1 && !verPflanze) || (verStufe === 2 && !verMethode);
+  }
+  if(form) form.hidden = verErledigt;
+}
+
 /* ── Anlegen ──────────────────────────────────────────────── */
 async function verAblegerAnlegen(){
-  const los = document.getElementById('ver-los');
+  const los = document.getElementById('ver-weiter');
   const meld = document.getElementById('ver-meldung');
   if(!verPflanze || !verMethode || !VER_ABLEGER.length) return;
   if(los){ los.disabled = true; los.textContent = 'Wird angelegt …'; }
@@ -22573,17 +22637,39 @@ async function verAblegerAnlegen(){
   VER_ABLEGER.forEach(a => { if(a.vorschau){ try{ URL.revokeObjectURL(a.vorschau); }catch(e){} } });
   VER_ABLEGER = [];
   verMethode = null;
-  if(los){ los.disabled = false; los.textContent = 'Ableger anlegen'; }
+  verErledigt = true;
+  if(los) los.disabled = false;
+  verFussZeichnen();
   render();
+}
+
+/* „Fertig“ raeumt den Durchgang ab und verlaesst das Werkzeug —
+   dasselbe wie „Diagnose abschließen“ beim Doktor. */
+function verAbschliessen(){
+  verErledigt = false;
+  verPflanze = null;
+  verMethode = null;
+  VER_ABLEGER = [];
+  const meld = document.getElementById('ver-meldung');
+  if(meld){ meld.hidden = true; meld.innerHTML = ''; }
+  verStufeZeigen(1);
+  if(typeof verWahlZeichnen === 'function') verWahlZeichnen();
+  if(typeof verGitterZeichnen === 'function')
+    verGitterZeichnen((document.getElementById('ver-such') || {}).value || '');
+  if(typeof modalZu === 'function') modalZu('sek-modal');
+}
+
+function verWeiter(){
+  if(verErledigt){ verAbschliessen(); return; }
+  if(verStufe === VER_STUFEN){ verAblegerAnlegen(); return; }
+  verStufeZeigen(verStufe + 1);
 }
 
 {
   const z = document.getElementById('ver-zurueck');
   if(z) z.onclick = ()=>verStufeZeigen(verStufe - 1);
   const w = document.getElementById('ver-weiter');
-  if(w) w.onclick = ()=>verStufeZeigen(verStufe + 1);
-  const l = document.getElementById('ver-los');
-  if(l) l.onclick = verAblegerAnlegen;
+  if(w) w.onclick = verWeiter;
 }
 
 function verAufbau(){
@@ -23424,7 +23510,7 @@ const TOUR_KAPITEL = {
         text: 'Das erste Bild wird das Profilbild. Fotos liegen im großen Speicher des Browsers, nicht im kleinen — es passen also viele hinein.',
         weiter: true },
 
-      { ziel: ()=>document.getElementById('btn-neu-save'),
+      { ziel: ()=>document.getElementById('al-weiter'),
         titel: 'Anlegen',
         text: 'Danach steht sie in der Sammlung, und die App fängt an, für sie mitzuzählen.',
         fertig: ()=>{ try{ return allePflanzen().length > (tourLauf ? tourLauf.stand : 0); }

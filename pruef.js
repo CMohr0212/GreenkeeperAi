@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.6', w.__T('FASSUNG') === '3.2.6', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.7', w.__T('FASSUNG') === '3.2.7', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -769,6 +769,56 @@ setTimeout(async () => {
     !!vgl && !/Dafür fehlt dir/.test(vgl.querySelectorAll('.vgl-karte')[0].textContent));
   pruef('Zwei Punkte zum Springen',
     !!vgl && vgl.querySelectorAll('.vgl-punkt').length === 2);
+
+  /* ── Abschlussknopf ──
+     Ein Hauptknopf, der auf der letzten Stufe die Abschlussaktion
+     traegt. Beim Substrat stand dort vorher gar keiner: man musste
+     ueber den Fensterkopf hinaus. */
+  w.__T('subStufeZeigen(1)');
+  pruef('Substrat \u00b7 Stufe 1 hei\u00dft Weiter',
+    d.getElementById('sub-weiter').hidden === false
+    && d.getElementById('sub-weiter').textContent === 'Weiter',
+    d.getElementById('sub-weiter').textContent);
+  w.__T('subStufeZeigen(SUB_STUFEN)');
+  pruef('Substrat \u00b7 auf der letzten Stufe steht Fertig',
+    d.getElementById('sub-weiter').hidden === false
+    && d.getElementById('sub-weiter').textContent === 'Fertig',
+    d.getElementById('sub-weiter').textContent);
+  d.getElementById('sub-weiter').click();
+  pruef('Substrat \u00b7 Fertig setzt auf Stufe 1 zur\u00fcck',
+    w.__T('subStufe') === 1, String(w.__T('subStufe')));
+  await zu('sek-modal');
+
+  w.__T("sektionOeffnen('vermehren')");
+  await tick();
+  pruef('Vermehren \u00b7 nur noch ein Hauptknopf',
+    d.getElementById('ver-los') === null && !!d.getElementById('ver-weiter'));
+  w.__T('verPflanze = allePflanzen()[0].id; verErledigt = false; verStufeZeigen(1)');
+  pruef('Vermehren \u00b7 Stufe 1 hei\u00dft Weiter',
+    d.getElementById('ver-weiter').textContent === 'Weiter',
+    d.getElementById('ver-weiter').textContent);
+  w.__T('verStufeZeigen(VER_STUFEN)');
+  pruef('Vermehren \u00b7 auf der letzten Stufe steht die Abschlussaktion',
+    d.getElementById('ver-weiter').hidden === false
+    && /Ableger anlegen/.test(d.getElementById('ver-weiter').textContent),
+    d.getElementById('ver-weiter').textContent
+    + ' hidden=' + d.getElementById('ver-weiter').hidden);
+  /* Dritter Zustand: angelegt, aber noch nicht abgeraeumt — die
+     Meldung mit den Links auf die neuen Pflanzen muss lesbar
+     bleiben, das Formular daneben nicht. */
+  w.__T('verErledigt = true; verFussZeichnen()');
+  pruef('Vermehren \u00b7 danach hei\u00dft der Knopf Fertig',
+    d.getElementById('ver-weiter').textContent === 'Fertig',
+    d.getElementById('ver-weiter').textContent);
+  pruef('Vermehren \u00b7 das Formular tritt hinter die Meldung zur\u00fcck',
+    d.getElementById('ver-form3').hidden === true);
+  pruef('Vermehren \u00b7 Zur\u00fcck ist dann weg',
+    d.getElementById('ver-zurueck').hidden === true);
+  d.getElementById('ver-weiter').click();
+  pruef('Vermehren \u00b7 Fertig r\u00e4umt ab',
+    w.__T('verStufe') === 1 && w.__T('verErledigt') === false
+    && d.getElementById('ver-form3').hidden === false,
+    String(w.__T('verStufe')) + '/' + String(w.__T('verErledigt')));
   await zu('sek-modal');
 
   w.__T("sektionOeffnen('sicherung')");
@@ -1878,7 +1928,7 @@ setTimeout(async () => {
     ['f-name','f-bot','f-art','f-typ','f-notiz','f-wichtig','f-paste','f-fotos',
      'f-zustand','f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
      'bib-liste','bib-gewaehlt','paste-box','paste-meld','neu-unsicher','neu-massnahmen',
-     'btn-neu-save','btn-neu-leeren','btn-neu-cancel','btn-bib','btn-paste-los',
+     'al-weiter','btn-neu-leeren','btn-neu-cancel','btn-bib','btn-paste-los',
      'btn-paste-auf','btn-ki-kopie','ki-text','neu-bibbox','neu-kibox','f-quar'
     ].forEach(id => pruef('Feld ' + id + ' hat den Umbau ueberlebt', !!d.getElementById(id)));
 
@@ -1888,7 +1938,12 @@ setTimeout(async () => {
     pruef('Der schwebende Knopf verschwindet',
       d.getElementById('fab-neu').hidden === true);
     pruef('Zurueck ist auf Stufe 1 weg', d.getElementById('al-zurueck').hidden === true);
-    pruef('Anlegen ist auf Stufe 1 weg', d.getElementById('btn-neu-save').hidden === true);
+    pruef('Auf Stufe 1 heisst der Hauptknopf Weiter',
+      d.getElementById('al-weiter').hidden === false
+      && d.getElementById('al-weiter').textContent === 'Weiter',
+      d.getElementById('al-weiter').textContent);
+    pruef('Es gibt keinen zweiten Abschlussknopf mehr',
+      d.getElementById('btn-neu-save') === null);
 
     /* Ohne gewaehlten Weg fuehrt Weiter nirgendwohin — Stufe 2 waere
        eine leere Seite. */
@@ -1951,11 +2006,13 @@ setTimeout(async () => {
       d.getElementById('al-bibzsf').hidden === true
       && d.getElementById('al-pflege').hidden === false);
 
-    /* Stufe 5: Fuss wechselt auf Anlegen */
+    /* Stufe 5: aus Weiter wird die Abschlussaktion — ein Knopf an
+       einer Stelle, wie beim Doktor. */
     w.__T('alStufeZeigen(5)');
-    pruef('Auf der letzten Stufe steht Anlegen statt Weiter',
-      d.getElementById('al-weiter').hidden === true
-      && d.getElementById('btn-neu-save').hidden === false);
+    pruef('Auf der letzten Stufe traegt der Hauptknopf die Abschlussaktion',
+      d.getElementById('al-weiter').hidden === false
+      && /anlegen/i.test(d.getElementById('al-weiter').textContent),
+      d.getElementById('al-weiter').textContent);
     pruef('Die Zusammenfassung ist gefuellt',
       d.getElementById('al-zsf').textContent.length > 10);
     pruef('Die Fotoauswahl hat einen Knopf zum Nachlegen',
@@ -2652,7 +2709,10 @@ setTimeout(async () => {
     const vorPflanzen = w.__T('allePflanzen().length');
     w.__T("UT.topf = 18; UT.form = 'schale'; UT.gruende = ['wurzelig'];");
     w.__T("UT.stecklinge = true; UT.zahl = 2; UT.art = Object.keys(V_METHODEN)[0];");
+    w.__T('UT.stufe = UT_STUFEN; utZeichnen()');
     const erg = JSON.parse(w.__T('JSON.stringify(utEintragen())'));
+    pruef('Eintragen l\u00e4sst die Stufe stehen',
+      w.__T('UT.stufe') === 7, String(w.__T('UT.stufe')));
 
     pruef('Neue Topfgr\u00f6\u00dfe steht an der Pflanze',
       String(w.__T(`allePflanzen().find(x=>x.id==='${pid3}').topf`)) === '18',
@@ -2691,7 +2751,42 @@ setTimeout(async () => {
         w.__T(`abstammungHTML(allePflanzen().find(x=>x.id==='${k}'))`)
           .indexOf('data-go="' + pid3 + '"') !== -1));
 
-    pruef('Der Ablauf steht danach wieder auf Stufe 1', w.__T('UT.stufe') === 1);
+    /* ── Abschlussknopf ──
+       Der Abschluss stand im Text der Stufe 7, nicht in der
+       Fussleiste. Und utEintragen sprang selbst auf Stufe 1 zurueck:
+       die Meldung, die der Aufrufer gleich danach schrieb, landete
+       auf einer Stufe, die niemand mehr sah. */
+    pruef('Der Abschluss steht nicht mehr im Text der Stufe',
+      d.getElementById('ut-fertig') === null);
+    w.__T('UT.erledigt = false; UT.stufe = 1; utZeichnen()');
+    pruef('Umtopfen \u00b7 Stufe 1 hei\u00dft Weiter',
+      d.getElementById('ut-weiter').hidden === false
+      && d.getElementById('ut-weiter').textContent === 'Weiter',
+      d.getElementById('ut-weiter').textContent);
+    w.__T('UT.stufe = UT_STUFEN; utZeichnen()');
+    /* Nicht nur die Beschriftung: der Knopf war auf der letzten Stufe
+       ueberhaupt versteckt, weil der Abschluss im Text stand. Ohne
+       hidden faellt die Gegenprobe hier nicht um. */
+    pruef('Umtopfen \u00b7 auf der letzten Stufe steht die Abschlussaktion',
+      d.getElementById('ut-weiter').hidden === false
+      && /eintragen/i.test(d.getElementById('ut-weiter').textContent),
+      d.getElementById('ut-weiter').textContent
+      + ' hidden=' + d.getElementById('ut-weiter').hidden);
+    w.__T('UT.erledigt = true; utZeichnen()');
+    pruef('Umtopfen \u00b7 danach hei\u00dft der Knopf Fertig',
+      d.getElementById('ut-weiter').textContent === 'Fertig',
+      d.getElementById('ut-weiter').textContent);
+    pruef('Umtopfen \u00b7 Zur\u00fcck ist dann weg',
+      d.getElementById('ut-zurueck').hidden === true);
+    w.__T(`document.getElementById('ut-zsf').innerHTML =
+      '<p class="ut-fertig-melde">Eingetragen.</p>'; utZeichnen()`);
+    pruef('Neuzeichnen wischt die Meldung nicht weg',
+      /Eingetragen/.test(d.getElementById('ut-zsf').textContent),
+      d.getElementById('ut-zsf').textContent.slice(0, 40));
+    d.getElementById('ut-weiter').click();
+    pruef('Umtopfen \u00b7 Fertig r\u00e4umt ab und geht auf Stufe 1',
+      w.__T('UT.stufe') === 1 && w.__T('UT.erledigt') === false,
+      String(w.__T('UT.stufe')) + '/' + String(w.__T('UT.erledigt')));
 
     /* Aufr\u00e4umen */
     erg.kinder.forEach(k=>{
