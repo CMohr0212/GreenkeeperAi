@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.3.0', w.__T('FASSUNG') === '3.3.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.3.1', w.__T('FASSUNG') === '3.3.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -662,6 +662,108 @@ setTimeout(async () => {
     d.getElementById('dok-weiter-f').textContent);
   pruef('Zurück ist auf Stufe 1 verborgen',
     (w.__T("dokStufeZeigen(1)"), d.getElementById('dok-zurueck-f').hidden === true));
+
+  /* ── Der Doktor nach 3.3.1 ──────────────────────────────────
+     Die Bilder sind die eigentliche Arbeit und standen unter dem
+     Fragefeld; der Knopf, der ein Bild in die Galerie legt, stand
+     mitten in der Anfrage; und „Weiter" sprang auf eine leere
+     Einschätzung. */
+  {
+    const zeile = d.getElementById('dok-ki-zeile');
+    const fotos = d.getElementById('ki-fotos-doktor');
+    const frage = d.getElementById('dok-frage-eigen');
+    pruef('Die Bilderzeile im Doktor gibt es', !!fotos);
+    pruef('Sie steht über dem Fragefeld',
+      !!fotos && !!frage && !!zeile
+      && (fotos.compareDocumentPosition(frage) & 4) !== 0);
+    pruef('Die Bilder sind gro\u00df',
+      (d.getElementById('ki-bilder-doktor').className || '').indexOf('gross') !== -1);
+    pruef('Der Galerieauszug steht offen',
+      d.getElementById('ki-galerie-auf').hasAttribute('open'));
+    const feld = d.getElementById('dok-foto-feld');
+    pruef('Foto in die Galerie legen geh\u00f6rt zur Einsch\u00e4tzung',
+      !!feld && !!feld.closest('#dok-s4'));
+
+    /* Ohne Merkmal gibt es nichts einzuschaetzen. */
+    w.__T("dokWeg = 'selbst'; dokSymptome.clear(); dokStufeZeigen(3)");
+    pruef('Ohne ein einziges Merkmal bleibt Weiter grau',
+      d.getElementById('dok-weiter-f').disabled === true);
+
+    /* Mit Schluessel wird aus „Weiter" die Handlung selbst. */
+    const merkS = w.__T("kiSchluessel()");
+    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTESTTESTTESTTES');"
+      + "S.kiModelle = [{id:'gemini-9.9-flash', anzeige:'9.9 Flash'}];"
+      + "S.kiModell = 'gemini-9.9-flash';"
+      + "dokKiFertig = false; dokWeg = 'ki'; dokStufeZeigen(3)");
+    pruef('Mit Schl\u00fcssel fragt der Fu\u00dfknopf',
+      /frag/i.test(d.getElementById('dok-weiter-f').textContent),
+      d.getElementById('dok-weiter-f').textContent);
+    pruef('Der doppelte Knopf dar\u00fcber ist weg',
+      d.getElementById('dok-ki-knopfzeile').hidden === true);
+    w.__T("dokKiFertig = true; dokStufeZeigen(3)");
+    pruef('Liegt eine Antwort vor, f\u00fchrt er wieder weiter',
+      /weiter/i.test(d.getElementById('dok-weiter-f').textContent),
+      d.getElementById('dok-weiter-f').textContent);
+    w.__T("dokKiFertig = false; kiSchluesselSetzen(" + JSON.stringify(merkS || '') + ");"
+      + "delete S.kiModelle; delete S.kiModell; kiModusZeigen(); dokStufeZeigen(1)");
+  }
+
+  /* ── Der Verlauf, ohne Umweg ─────────────────────
+     Aus der Pflanzenkarte fuehrte nur ein Weg in den Stammbaum. Das
+     Blatt mit dem Verlauf soll direkt aufgehen — und sagen, von wem
+     die Pflanze abstammt. */
+  {
+    const mutter = w.__T('allePflanzen()[0].id');
+    const kind = w.__T(`(function(){
+      const m = allePflanzen().find(function(x){ return x.id === '${mutter}'; });
+      const k = allePflanzen().find(function(x){ return x.eltern === '${mutter}'; });
+      if(k) return k.id;
+      const neu = JSON.parse(JSON.stringify(m));
+      neu.id = 'pruef-kind';
+      neu.name = 'Pr\u00fcfableger';
+      neu.eltern = '${mutter}';
+      S.eigene = S.eigene || [];
+      S.eigene.push(neu);
+      return neu.id;
+    })()`);
+
+    pruef('Das Verlaufsblatt l\u00e4sst sich direkt \u00f6ffnen',
+      w.__T(`sbBlattOeffnen('${kind}', true)`) === true);
+    pruef('Es liegt dann \u00fcber allem',
+      d.getElementById('sb-blatt').classList.contains('frei'));
+    pruef('Die Mutterpflanze steht dar\u00fcber',
+      !!d.querySelector('.sb-herkunft'));
+    pruef('und f\u00fchrt selbst auf ihren Verlauf',
+      !!d.querySelector(`.sb-herkunft [data-sbblatt="${mutter}"]`));
+    w.__T('sbBlattSchliessen()');
+    pruef('Schlie\u00dfen nimmt beides zur\u00fcck',
+      !d.getElementById('sb-blatt').classList.contains('an')
+      && !d.getElementById('sb-blatt').classList.contains('frei'));
+
+    /* Im Stammbaum bleibt es eingespannt wie vorher. */
+    w.__T(`sbBlattOeffnen('${kind}')`);
+    pruef('Aus dem Stammbaum heraus bleibt es eingespannt',
+      !d.getElementById('sb-blatt').classList.contains('frei'));
+    w.__T('sbBlattSchliessen()');
+
+    w.__T("S.eigene = (S.eigene||[]).filter(function(x){ return x.id !== 'pruef-kind'; })");
+  }
+
+  /* ── Wie lange die App auf Google wartet ────────────────────
+     Ohne Frist wartete sie unbegrenzt, wenn Google langsam antwortete
+     statt „\u00fcberlastet" zu melden. */
+  {
+    pruef('Es gibt eine Frist f\u00fcr Anfragen mit Bild',
+      w.__T('KI_FRIST_BILD') === 30000, String(w.__T('KI_FRIST_BILD')));
+    pruef('und eine k\u00fcrzere f\u00fcr Anfragen ohne',
+      w.__T('KI_FRIST_TEXT') === 15000, String(w.__T('KI_FRIST_TEXT')));
+    pruef('Die Frist mit Bild ist die l\u00e4ngere',
+      w.__T('KI_FRIST_BILD') > w.__T('KI_FRIST_TEXT'));
+    pruef('Nachgefasst wird nur noch einmal',
+      w.__T('KI_NACHFASSEN.length') === 1, String(w.__T('KI_NACHFASSEN.length')));
+    pruef('und zwar z\u00fcgig',
+      w.__T('KI_NACHFASSEN[0]') <= 2000, String(w.__T('KI_NACHFASSEN[0]')));
+  }
 
   /* Die eigene Frage: sie ist der Anlass und muss im Prompt stehen. */
   pruef('Es gibt ein Feld für die eigene Frage',
@@ -1874,6 +1976,41 @@ setTimeout(async () => {
       w.__T(`vollbild = false; pModus = '${merk}'; schubladeFuellen()`);
     }
 
+    /* ── Auch eine Wand hat eine Breite ────────────────
+       Bis 3.3.0 liess sich nur ein Fenster oder eine Tuer bemassen.
+       Wer ein 130er Fenster setzt, muss der Wand daneben aber sagen
+       koennen, wie lang sie ist. */
+    {
+      const wid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[2]');
+      w.__T(`delete raum().kanten['${wid}']; pKanteArt = 'wand'`);
+      /* Der Weg dorthin fuehrt ueber das Tippen im Grundriss, nicht
+         ueber den direkten Aufruf — genau dort war die Wand gesperrt. */
+      w.__T("pModus = 'kanten'; planRender()");
+      w.__T(`planTipp({target: document.querySelector('#plan-svg [data-kante="${wid}"]')})`);
+      await tick();
+      pruef('Ein zweiter Tipp auf eine Wand \u00f6ffnet das Ma\u00dfblatt',
+        w.__T("modalOffen('km-modal')") === true);
+      pruef('Unterkante und Oberkante bleiben dabei weg',
+        d.getElementById('km-sockel').closest('.km-oeffnung').hidden === true);
+      d.getElementById('km-b').value = '150';
+      w.__T('kmSpeichern()');
+      await tick();
+      pruef('Eine Wandbreite l\u00e4sst sich eintragen',
+        Math.round(w.__T(`kantenBreite(raum(), '${wid}')`)) === 150,
+        String(w.__T(`kantenBreite(raum(), '${wid}')`)));
+      w.__T(`kantenMassSetzen(raum(), '${wid}', {})`);
+
+      /* Bei einer Oeffnung stehen die Felder wieder da. */
+      w.__T(`raum().kanten['${wid}'] = 'fenster'`);
+      w.__T(`kantenMassFragen(raum(), '${wid}')`);
+      await tick();
+      pruef('Bei einem Fenster stehen sie wieder da',
+        d.getElementById('km-sockel').closest('.km-oeffnung').hidden === false);
+      w.__T("modalZu('km-modal')");
+      w.__T(`delete raum().kanten['${wid}']; kantenMassSetzen(raum(), '${wid}', {})`);
+      await tick();
+    }
+
     /* ── Kantenbreiten ── */
     const kid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
     if(kid){
@@ -2505,7 +2642,11 @@ setTimeout(async () => {
       {id:'models/gemini-3-flash-lite', anzeige:'3 Flash Lite'},
       {id:'models/gemini-2.5-flash', anzeige:'2.5 Flash'}];
       S.kiModell = 'models/gemini-3.6-flash'`);
-    w.__T('KI_NACHFASSEN[0] = 5; KI_NACHFASSEN[1] = 5');
+    /* Die Wartezeiten werden fuer den Pruefstand auf 5 ms gekuerzt.
+       Die LAENGE bleibt, wie sie in der App steht — sie bestimmt,
+       wie oft nachgefasst wird, und darf hier nicht verstellt
+       werden, sonst prueft man eine andere Leiter als die echte. */
+    w.__T('KI_NACHFASSEN.forEach(function(_, i){ KI_NACHFASSEN[i] = 5; })');
 
     const kette = () => w.__T("kiAusweichModelle('models/gemini-3.6-flash').map(m=>m.anzeige)");
     pruef('Ausgewichen wird auf das naechstaeltere, nicht auf irgendein altes',
@@ -2516,17 +2657,33 @@ setTimeout(async () => {
       kette().every(x => !/2\.5/.test(x)));
     pruef('Hoechstens zwei Schritte', kette().length <= 2);
 
-    /* Kurze Lastspitze: dasselbe Modell, dritter Versuch klappt. */
+    /* Kurze Lastspitze: dasselbe Modell, zweiter Versuch klappt.
+       Seit 3.3.1 wird genau einmal nachgefasst — wer laenger wartet,
+       wartet meistens umsonst. */
+    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
+      return window.__n < 2
+        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
+        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
+    }`);
+    const r1 = await w.__T("kiFragenHartnaeckig('x', [])");
+    pruef('Bei 503 wird einmal nachgefasst', w.__T('window.__n') === 2,
+      String(w.__T('window.__n')));
+    pruef('Dafuer braucht es keinen Modellwechsel',
+      r1.gewechselt === false && r1.modell.id === 'models/gemini-3.6-flash');
+    pruef('Die Antwort kommt trotzdem an', r1.text === 'ART: Efeutute');
+
+    /* Beim dritten Fehlschlag desselben Modells ist Schluss mit
+       Nachfassen — dann zaehlt Tempo. */
+    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
     w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
       return window.__n < 3
         ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
         : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
     }`);
-    const r1 = await w.__T("kiFragenHartnaeckig('x', [])");
-    pruef('Bei 503 wird zweimal nachgefasst', w.__T('window.__n') === 3);
-    pruef('Dafuer braucht es keinen Modellwechsel',
-      r1.gewechselt === false && r1.modell.id === 'models/gemini-3.6-flash');
-    pruef('Die Antwort kommt trotzdem an', r1.text === 'ART: Efeutute');
+    const r1b = await w.__T("kiFragenHartnaeckig('x', [])");
+    pruef('Beim zweiten Fehlschlag wird gewechselt statt gewartet',
+      r1b.gewechselt === true && r1b.modell.id === 'models/gemini-3.5-flash',
+      r1b.modell.id);
 
     /* Bleibt es voll, uebernimmt das naechste Modell. */
     w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
@@ -2556,9 +2713,17 @@ setTimeout(async () => {
     w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
     w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
       return Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})}); }`);
+    /* Seit 3.3.1: nachgefasst wird nur beim ersten Modell, danach
+       zaehlt Tempo. Erwartet sind also zwei Versuche fuer das erste
+       und je einer fuer die Ausweichmodelle. Die Kettenlaenge muss
+       VOR dem Lauf stehen — waehrenddessen werden alle Modelle als
+       voll gemerkt und fallen aus der Kette. */
+    const ketteN = w.__T('kiAusweichModelle(kiModellAktiv().id).length + 1');
     let voll = '';
     try{ await w.__T("kiFragenHartnaeckig('x', [])"); }catch(e){ voll = String(e.message || e); }
-    pruef('Drei Modelle mal drei Versuche', w.__T('window.__n') === 9, String(w.__T('window.__n')));
+    pruef('Nur das erste Modell wird zweimal gefragt',
+      w.__T('window.__n') === ketteN + 1,
+      w.__T('window.__n') + ' Anfragen bei ' + ketteN + ' Modellen');
     pruef('Die Meldung nennt die Ausweichversuche',
       /Ausweichmodelle/.test(voll), voll.slice(-60));
 

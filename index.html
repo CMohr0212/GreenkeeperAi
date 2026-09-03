@@ -1182,6 +1182,22 @@ html[data-design="klartext"] .sb-knoten-txt b{font-size:var(--t-s)}
   border:0;background:none;color:var(--schrift-2);font-size:1.1rem;cursor:pointer}
 .sb-blatt-inhalt{padding:13px 15px 22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .sb-blatt-taten{margin-bottom:12px}
+/* Aus der Pflanzenkarte heraus liegt das Blatt ueber allem, auch ueber
+   dem Kartenfenster (z-index 60). Im Stammbaum bleibt es eingespannt. */
+.sb-blatt.frei{position:fixed;z-index:120}
+.sb-blatt-deckel.frei{position:fixed;z-index:119}
+.sb-herkunft{margin:0 0 10px;font-size:var(--t-sm);color:var(--schrift-2)}
+/* Die Bilderzeile im Doktor: erste Handlung, also erste Fläche. */
+.kifotos{margin:0 0 14px;padding:12px;border:1px solid var(--linie);
+  border-radius:var(--r-mittel);background:var(--fl-karte)}
+.kifotos[hidden]{display:none}
+.kifotos-titel{margin:0 0 9px;font-size:var(--t-sm);font-weight:600}
+.kibilder.gross .kibild,.kibilder.gross .kibild-neu{width:92px;height:92px}
+.kibilder.gross .kibild-neu{font-size:1.5rem}
+.kibilder.gross .kibild-zahl{font-size:var(--t-sm)}
+.dok-foto.klein{display:inline-flex;margin:0 0 12px;padding:8px 14px;
+  font-size:var(--t-sm);border-style:solid}
+.linkbtn.schmal{font-size:var(--t-xs);margin-left:12px}
 
 .sb-schritt{padding:0 0 14px}
 .sb-schritt-kopf{display:flex;gap:11px;align-items:flex-start}
@@ -7774,7 +7790,8 @@ function abstammungHTML(p){
       ${kinder.map(k=>`<button class="kid-link" data-go="${k.id}">${esc(nice(k))}</button>`).join(' · ')}</p>`);
 
   return `<div class="abstammung">${zeilen.join('')}
-    <p class="ab-zeile"><button class="linkbtn" data-do="stammbaum-auf">Im Stammbaum ansehen</button></p>
+    <p class="ab-zeile"><button class="linkbtn" data-sbblatt="${p.id}">Verlauf ansehen</button>
+      <button class="linkbtn schmal" data-do="stammbaum-auf">Im Stammbaum</button></p>
   </div>`;
 }
 
@@ -8449,27 +8466,31 @@ function papierkorbRender(){
 
     <div class="kibox dok-stufe" id="dok-ki-zeile" hidden>
       <h3><span class="dok-nr">3</span> Mit Foto ansehen lassen</h3>
+      <!-- Die Bilder stehen ganz oben, weil sie die Arbeit sind: ohne
+           sie kann die KI nur raten. Die Frage darunter ist der
+           Zusatz, nicht umgekehrt. -->
+      <div class="kifotos" id="ki-fotos-doktor" hidden>
+        <p class="kifotos-titel">Fotos anhängen</p>
+        <div class="kibilder gross" id="ki-bilder-doktor"></div>
+        <details class="kiprompt" id="ki-galerie-auf" open>
+          <summary>Bild aus der Galerie dieser Pflanze nehmen</summary>
+          <div class="kigalerie" id="ki-galerie-doktor"></div>
+        </details>
+      </div>
       <label class="dok-eigen">
         <span class="lab">Was möchtest du wissen?</span>
         <textarea id="dok-frage-eigen" rows="3"
           placeholder="Zum Beispiel: Was ist die braune Stelle am mittleren Blatt?"></textarea>
         <span class="fhint">Deine Frage wird zuerst beantwortet. Ohne Eingabe schaut die KI die Pflanze allgemein an.</span>
       </label>
-      <div class="kizeile">
-      </div>
       <div class="kidirekt" id="ki-direkt-doktor" hidden>
         <div class="kimodell">
           <select class="ki-modell-wahl" aria-label="Welches Modell"></select>
           <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
         </div>
-        <div class="kibilder" id="ki-bilder-doktor"></div>
-        <details class="kiprompt" id="ki-galerie-auf">
-          <summary>Bild aus der Galerie dieser Pflanze nehmen</summary>
-          <div class="kigalerie" id="ki-galerie-doktor"></div>
-        </details>
         <p class="kihinweis" id="ki-lauf-doktor" hidden></p>
       </div>
-      <div class="kizeile kizeile-haupt">
+      <div class="kizeile kizeile-haupt" id="dok-ki-knopfzeile">
         <button id="btn-dok-ki" class="haupt" type="button">Fragen</button>
       </div>
       <div class="fotokrit">
@@ -8481,10 +8502,6 @@ function papierkorbRender(){
         </ol>
         <p>Alle drei an dieselbe Unterhaltung anhängen. Was fehlt, meldet die Antwort unter „nicht beurteilbar“.</p>
       </div>
-      <label class="dok-foto" id="dok-foto-feld">
-        <input type="file" accept="image/*" id="dok-datei" hidden>
-        <span id="dok-foto-txt">Foto zur Pflanze hinzufügen</span>
-      </label>
       <p class="kihinweis" id="dok-ki-hinweis"></p>
       <details class="kialt" id="dok-alt">
         <summary id="dok-alt-titel">Anderer Weg: Frage kopieren</summary>
@@ -8516,6 +8533,13 @@ function papierkorbRender(){
          alles Abgleichende liegt darunter im Aufklapper. -->
     <div class="dok-stufe" id="dok-s4" hidden>
       <h3><span class="dok-nr">4</span> Einschätzung</h3>
+      <!-- Erst wenn der Befund steht, ist klar, ob das Bild es wert
+           ist, in der Galerie zu bleiben. Im Frageschritt stand der
+           Knopf mitten im Weg und sah aus wie das Anhängen. -->
+      <label class="dok-foto klein" id="dok-foto-feld">
+        <input type="file" accept="image/*" id="dok-datei" hidden>
+        <span id="dok-foto-txt">Foto zur Galerie dieser Pflanze</span>
+      </label>
       <div id="dok-abgleich-hinweis"></div>
       <div id="dok-ergebnis"></div>
       <div id="dok-massnahmen"></div>
@@ -10030,14 +10054,14 @@ function papierkorbRender(){
     <div class="fgrid km-grid">
       <label><span class="lab">Breite in cm</span>
         <input id="km-b" type="number" inputmode="numeric" min="5" step="1"></label>
-      <label><span class="lab">Unterkante in cm</span>
+      <label class="km-oeffnung"><span class="lab">Unterkante in cm</span>
         <input id="km-sockel" type="number" inputmode="numeric" min="0" max="400" step="1"></label>
-      <label><span class="lab">Oberkante in cm</span>
+      <label class="km-oeffnung"><span class="lab">Oberkante in cm</span>
         <input id="km-oben" type="number" inputmode="numeric" min="5" max="500" step="1"></label>
     </div>
-    <p class="fhint">Steht etwas davor — Balkon, Dachüberstand, Markise, Haus gegenüber —
+    <p class="fhint km-oeffnung">Steht etwas davor — Balkon, Dachüberstand, Markise, Haus gegenüber —
       nimmt es Sonne weg. Tiefe nach außen, Höhe über diesem Fußboden. Null heißt: nichts davor.</p>
-    <div class="fgrid km-grid">
+    <div class="fgrid km-grid km-oeffnung">
       <label><span class="lab">Vorbau, Tiefe in cm</span>
         <input id="km-vt" type="number" inputmode="numeric" min="0" max="2000" step="10"></label>
       <label><span class="lab">Vorbau, Höhe in cm</span>
@@ -10093,8 +10117,23 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.3.0';
+const FASSUNG = '3.3.1';
 const PATCHNOTES = [
+  {
+    nr: '3.3.1', datum: '2026-09-03', titel: 'Weniger warten, weniger suchen',
+    neu: [
+      'Auch eine Wand lässt sich bemaßen. Zweimal auf ein Wandstück tippen öffnet die Breite — vorher ging das nur bei Fenstern und Türen.',
+      'Der Verlauf einer Pflanze geht direkt aus ihrer Karte auf, ohne Umweg über den Stammbaum. Darüber steht, von wem sie abstammt; ein Tipp darauf führt weiter zur Mutterpflanze.'
+    ],
+    besser: [
+      'Im Pflanzendoktor stehen die Fotos jetzt ganz oben und in groß — sie sind die eigentliche Arbeit, nicht ein Anhängsel unter dem Fragefeld. Der Auszug aus der Galerie steht offen, wenn es dort etwas zu holen gibt.',
+      'Aus „Weiter“ wird auf der Fragestufe der Knopf „Fragen“. Er sitzt da, wo der Daumen ohnehin liegt, und die Antwort führt selbst weiter zur Einschätzung. Ohne ein einziges Merkmal bleibt er grau, statt auf eine leere Seite zu springen.',
+      'Ein Foto in die Galerie zu legen gehört jetzt zur Einschätzung. Mitten in der Anfrage sah der Knopf aus wie das Anhängen fürs Bild und war nicht dasselbe.'
+    ],
+    behoben: [
+      'Eine Anfrage an Google hatte keine Zeitgrenze: antwortete das Modell langsam, statt „überlastet“ zu melden, wartete die App unbegrenzt. Jetzt gilt eine Frist von dreißig Sekunden mit Bildern, fünfzehn ohne — danach geht es auf dem nächsten Modell weiter. Nachgefasst wird nur noch einmal und nur beim ersten Modell. Aus über vier Minuten werden schlimmstenfalls gut achtzig Sekunden.'
+    ]
+  },
   {
     nr: '3.3.0', datum: '2026-09-03', titel: 'Der Raum wächst mit',
     neu: [
@@ -13865,7 +13904,21 @@ function sbBlattPunkte(p){
   return punkte;
 }
 
-function sbBlattOeffnen(id){
+/* Der Ursprung einer Linie: so weit zurueck, wie die Sammlung reicht.
+   Ein Ring in den Eltern waere ein Datenfehler, aber er darf die App
+   nicht aufhaengen — daher die Zaehlgrenze. */
+function sbUrsprung(p){
+  const alle = allePflanzen();
+  let jetzt = p, tiefe = 0;
+  while(jetzt && jetzt.eltern && tiefe++ < 50){
+    const m = alle.find(x => x.id === jetzt.eltern);
+    if(!m) break;
+    jetzt = m;
+  }
+  return jetzt === p ? null : jetzt;
+}
+
+function sbBlattOeffnen(id, frei){
   const p = allePflanzen().find(x => x.id === id);
   if(!p) return false;
   const punkte = sbBlattPunkte(p);
@@ -13873,7 +13926,22 @@ function sbBlattOeffnen(id){
   document.getElementById('sb-blatt-untertitel').textContent =
     p.eltern ? 'Vermehrungsablauf' : 'Verlauf';
 
-  const kopf = `<div class="sb-blatt-taten">
+  /* Woher die Pflanze kommt, gehoert ueber ihren Verlauf — sonst
+     steht eine Reihe von Schritten da, ohne dass klar ist, wessen. */
+  const alle = allePflanzen();
+  const mutter = p.eltern ? alle.find(x => x.id === p.eltern) : null;
+  const wurzel = sbUrsprung(p);
+  const herkunft = [];
+  if(mutter)
+    herkunft.push(`Ableger von <button class="kid-link" data-sbblatt="${mutter.id}">${esc(nice(mutter))}</button>`);
+  if(wurzel && mutter && wurzel.id !== mutter.id)
+    herkunft.push(`Ursprung: <button class="kid-link" data-sbblatt="${wurzel.id}">${esc(nice(wurzel))}</button>`);
+  if(!mutter && p.linie)
+    herkunft.push(`Aus der Linie „${esc(p.linie)}“`);
+
+  const kopf = (herkunft.length
+      ? `<p class="sb-herkunft">${herkunft.join(' · ')}</p>` : '')
+    + `<div class="sb-blatt-taten">
     <button class="linkbtn" data-go="${p.id}">Karte öffnen</button>
   </div>`;
 
@@ -13892,16 +13960,30 @@ function sbBlattOeffnen(id){
       </div>`).join('')
     : '<p class="sb-leer">Für diese Pflanze ist noch nichts eingetragen.</p>');
 
+  /* „frei" heisst: nicht im Stammbaum eingespannt, sondern ueber allem
+     — so laesst sich derselbe Verlauf aus der Pflanzenkarte zeigen,
+     ohne dass man erst in den Stammbaum wechseln muss. */
+  document.getElementById('sb-blatt').classList.toggle('frei', !!frei);
+  document.getElementById('sb-blatt-deckel').classList.toggle('frei', !!frei);
   document.getElementById('sb-blatt').classList.add('an');
   document.getElementById('sb-blatt-deckel').classList.add('an');
   return true;
 }
 
+/* Jeder Weg ins Blatt laeuft hierueber: aus der Karte, aus dem Blatt
+   selbst (Mutterpflanze), aus dem Stammbaum. */
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('[data-sbblatt]') : null;
+  if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  sbBlattOeffnen(b.dataset.sbblatt, true);
+});
+
 function sbBlattSchliessen(){
   const b = document.getElementById('sb-blatt');
   const d = document.getElementById('sb-blatt-deckel');
-  if(b) b.classList.remove('an');
-  if(d) d.classList.remove('an');
+  if(b) b.classList.remove('an', 'frei');
+  if(d) d.classList.remove('an', 'frei');
 }
 
 function sbZeigeListe(){
@@ -14169,7 +14251,10 @@ function wunschSichtbarkeit(){
 
 document.addEventListener('click', e=>{
   const go = e.target.closest('[data-go]');
-  if(go){ oeffne(go.dataset.go); return; }
+  /* Fuehrt der Weg auf eine Karte, hat das Verlaufsblatt seinen Zweck
+     erfuellt — sonst laege es ueber dem, was es aufgerufen hat. */
+  if(go){ if(typeof sbBlattSchliessen === 'function') sbBlattSchliessen();
+          oeffne(go.dataset.go); return; }
 
   const btn = e.target.closest('[data-do]');
   if(!btn) return;
@@ -15961,7 +16046,16 @@ async function kiModelleHolen(schluessel){
    neueste schlägt die Empfehlungsregel vor. Deshalb zwei Notausgänge:
    kurz nachfassen, und wenn das nicht hilft, eine Stufe zurück. */
 let KI_LAEUFT = null;
-const KI_NACHFASSEN = [2000, 6000];   /* Wartezeiten vor Versuch 2 und 3 */
+/* Eine Anfrage darf nicht ewig laufen. Ohne Zeitgrenze wartete die App
+   unbegrenzt, wenn Google langsam antwortete statt „ueberlastet" zu
+   melden — vier Minuten vor einem drehenden Rad waren moeglich.
+   Mit Bildern dauert eine ehrliche Antwort selten laenger als 30 s. */
+const KI_FRIST_BILD = 30000;
+const KI_FRIST_TEXT = 15000;
+/* Nur noch ein Nachfassen, und nur beim ersten Modell. Ist das voll,
+   ist es meistens laenger voll — dann bringt Warten weniger als der
+   Wechsel. Frueher: zwei Wiederholungen je Modell mit 2 s und 6 s. */
+const KI_NACHFASSEN = [1500];         /* Wartezeit vor Versuch 2 */
 const KI_MERK_DAUER = 10 * 60 * 1000; /* so lange gilt ein Modell als voll */
 const KI_UEBERLASTET = {};            /* Modellkennung → Zeitpunkt */
 
@@ -16002,6 +16096,14 @@ async function kiFragen(prompt, bilder, modellId){
   });
   const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   KI_LAEUFT = c;
+  /* Die Frist bricht selbst ab. Damit der Aufrufer den Abbruch von
+     einem Abbruch durch den Nutzer unterscheiden kann, wird er hier
+     gemerkt und weiter unten in einen „voll"-Fehler uebersetzt. */
+  let frist = false;
+  const uhr = c ? setTimeout(()=>{
+    frist = true;
+    try{ c.abort(); }catch(e){}
+  }, (bilder && bilder.length) ? KI_FRIST_BILD : KI_FRIST_TEXT) : null;
   let r;
   try{
     r = await fetch(KI_BASIS + '/' + m.id + ':generateContent?key=' + encodeURIComponent(k), {
@@ -16022,10 +16124,17 @@ async function kiFragen(prompt, bilder, modellId){
       signal:c ? c.signal : undefined
     });
   }catch(e){
+    if(uhr) clearTimeout(uhr);
     KI_LAEUFT = null;
+    if(frist){
+      const f = new Error('Das Modell hat nicht rechtzeitig geantwortet.');
+      f.voll = true; f.modell = m.id;
+      throw f;
+    }
     if(e && e.name === 'AbortError') throw e;
     throw new Error(KI_NETZ);
   }
+  if(uhr) clearTimeout(uhr);
   KI_LAEUFT = null;
   if(!r.ok){
     const fehler = new Error(await kiFehlerText(r));
@@ -16078,14 +16187,15 @@ async function kiFragenHartnaeckig(prompt, bilder, sagen){
   for(let mi = 0; mi < kette.length; mi++){
     const m = kette[mi];
     if(mi > 0){
-      if(sagen) sagen('Das Modell ist überlastet. Ich versuche es mit ' + m.anzeige + ' …');
-      await warte(600);
+      if(sagen) sagen('Das Modell antwortet nicht. Ich versuche es mit ' + m.anzeige + ' …');
       if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
     }
-    for(let v = 0; v <= KI_NACHFASSEN.length; v++){
+    /* Nachgefasst wird nur beim ersten Modell. Ab dem zweiten zaehlt
+       Tempo mehr als Beharrlichkeit — der Nutzer wartet schon. */
+    const versuche = mi === 0 ? KI_NACHFASSEN.length : 0;
+    for(let v = 0; v <= versuche; v++){
       if(v > 0){
-        if(sagen) sagen('Google ist gerade voll. '
-          + (v === 1 ? 'Zweiter' : 'Dritter') + ' Versuch in '
+        if(sagen) sagen('Google ist gerade voll. Zweiter Versuch in '
           + Math.round(KI_NACHFASSEN[v - 1] / 1000) + ' Sekunden …');
         await warte(KI_NACHFASSEN[v - 1]);
         if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
@@ -16161,6 +16271,10 @@ function kiGalerieZeichnen(){
   if(!box) return;
   const id = (typeof dokPflanze !== 'undefined') ? dokPflanze : null;
   const fotos = (id && S.fotos && S.fotos[id]) ? S.fotos[id] : [];
+  /* Zugeklappt war die Galerie so gut wie nicht vorhanden. Gibt es
+     etwas zu sehen, steht sie offen; gibt es nichts, bleibt sie zu. */
+  const klappe = document.getElementById('ki-galerie-auf');
+  if(klappe) klappe.open = fotos.length > 0;
   if(!fotos.length){
     box.innerHTML = '<p class="kihinweis" style="margin:0">'
       + (id ? 'Zu dieser Pflanze liegt noch kein Foto in der Galerie.' : 'Wähle oben zuerst eine Pflanze aus.')
@@ -16271,7 +16385,8 @@ function kiLaufZeigen(wo, laeuft){
     p.hidden = !laeuft;
     p.innerHTML = laeuft
       ? '<span class="kilauf"><span class="kispin"></span>'
-        + '<span class="kilauf-txt">Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden.</span>'
+        + '<span class="kilauf-txt">Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden. '
+        + 'Nach dreißig steige ich auf ein anderes Modell um.</span>'
         + '<button type="button" data-do="ki-stop">Abbrechen</button></span>'
       : '';
   }
@@ -16279,6 +16394,8 @@ function kiLaufZeigen(wo, laeuft){
     knopf.disabled = !!laeuft;
     knopf.textContent = laeuft ? 'Läuft …' : (kiDirektAn() ? 'Fragen' : 'Öffnen');
   }
+  /* Der Fussknopf im Doktor zeigt dasselbe an wie der innere. */
+  if(wo === 'doktor' && typeof dokZeigen === 'function') dokZeigen();
   document.querySelectorAll('.ki-modell-wahl').forEach(sel => {
     sel.disabled = laeuft ? true : !kiModelle().length;
   });
@@ -16303,6 +16420,12 @@ function kiModusZeigen(){
     const titel = document.getElementById(x[3]);
     const knopf = document.getElementById(x[4]);
     if(kasten) kasten.hidden = !an;
+    /* Die Bilderzeile steht ausserhalb des Kastens, weil sie oben
+       liegt — sie muss dieselbe Sichtbarkeit bekommen. */
+    if(x[0] === 'doktor'){
+      const fotos = document.getElementById('ki-fotos-doktor');
+      if(fotos) fotos.hidden = !an;
+    }
     if(klappe){
       /* Ohne Schlüssel ist der Kopierweg der einzige Weg — dann steht
          er offen und ohne Zusammenfassung da, genau wie früher. Mit
@@ -18076,6 +18199,12 @@ function kantenMassFragen(r, id){
     + w.glieder.length + ' ' + (w.glieder.length === 1 ? 'Abschnitt' : 'Abschnitte')
     + '. Trägst du hier eine Breite ein, rücken die übrigen zusammen — '
     + 'die Wand bleibt so lang wie der Raum.';
+  /* Eine Wand hat keine Unterkante, keine Oberkante und nichts, was
+     davor stehen koennte — sie ist nur so und so lang. Die Felder
+     dafuer bleiben weg, statt leer dazustehen. */
+  const nurBreite = (r.kanten[id] || 'wand') === 'wand';
+  document.querySelectorAll('#km-modal .km-oeffnung')
+    .forEach(el => { el.hidden = nurBreite; });
   setz('km-b', Math.round(m.b));
   setz('km-sockel', m.sockel);
   setz('km-oben', m.oben === 9999 ? (r.deckeH || 250) : m.oben);
@@ -18161,8 +18290,13 @@ function planTipp(ev){
     const k = ev.target.closest('[data-kante]'); if(!k) return;
     const id = k.dataset.kante;
     /* Hat die Kante schon die gewählte Art, geht es beim zweiten Tippen
-       um die genauen Maße — kein zusätzlicher Knopf nötig. */
-    if(r.kanten[id] === pKanteArt && pKanteArt !== 'wand'){ kantenMassFragen(r, id); return; }
+       um die genauen Maße — kein zusätzlicher Knopf nötig.
+       Auch bei einer Wand: sie ist ein Glied wie jedes andere, und wer
+       ein 130er Fenster in eine Wand setzt, muss der Wand daneben
+       sagen duerfen, wie lang sie ist. */
+    const istWand = (r.kanten[id] || 'wand') === 'wand';
+    if((r.kanten[id] || 'wand') === pKanteArt){ kantenMassFragen(r, id); return; }
+    void istWand;
     r.kanten[id] = pKanteArt;
     sichern(); planRender(); return;
   }
@@ -20738,6 +20872,27 @@ function dokZeigen(){
     /* Ohne gewaehlten Weg fuehrt Weiter ins Leere — dasselbe Muster
        wie beim Vermehren. */
     wei.disabled = dokSchritt === 2 && !dokWeg;
+
+    /* Auf der Fragestufe hiess der Knopf „Weiter" und sprang auf eine
+       leere Einschaetzung. Jetzt ist er die Handlung selbst: mit
+       Schluessel fragt er, danach traegt die Antwort weiter. */
+    const innen = document.getElementById('btn-dok-ki');
+    const direkt = (typeof kiDirektAn === 'function') && kiDirektAn();
+    /* Mit Schluessel fragt der Fussknopf. Zwei Knoepfe fuer dieselbe
+       Handlung, einer davon weiter oben, waren der Grund, warum
+       „Weiter" ins Leere fuehrte. */
+    const zeile = document.getElementById('dok-ki-knopfzeile');
+    if(zeile) zeile.hidden = direkt;
+    if(dokSchritt === 3 && ki && direkt && !dokKiFertig){
+      wei.textContent = innen && innen.disabled ? 'Läuft …' : 'Fragen';
+      wei.disabled = !!(innen && innen.disabled);
+      wei.dataset.fragt = '1';
+    } else {
+      delete wei.dataset.fragt;
+      /* Selbst beschreiben ohne ein einziges Merkmal ergibt keine
+         Einschaetzung — dann bleibt der Knopf grau. */
+      if(dokSchritt === 3 && !ki && !dokSymptome.size) wei.disabled = true;
+    }
   }
 }
 
@@ -20779,6 +20934,15 @@ function dokStufeZeigen(nr){
 }
 document.addEventListener('click', e => {
   if(e.target.closest && e.target.closest('#dok-weiter-f')){
+    const wei = document.getElementById('dok-weiter-f');
+    /* Fragt der Knopf, laeuft die Anfrage ueber denselben Weg wie
+       vorher — nur an einer Stelle, an der der Daumen schon liegt.
+       Den Sprung auf die Einschaetzung macht die Antwort selbst. */
+    if(wei && wei.dataset.fragt){
+      const innen = document.getElementById('btn-dok-ki');
+      if(innen && !innen.disabled) innen.click();
+      return;
+    }
     if(dokSchritt === DOK_SCHRITTE.length) dokAbschliessen();
     else dokStufeZeigen(dokSchritt + 1);
     return;

@@ -4,6 +4,24 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.3.1 — 3. September 2026
+**Weniger warten, weniger suchen**
+
+### Neu
+- Auch eine Wand lässt sich bemaßen. Zweimal auf ein Wandstück tippen öffnet die Breite — vorher ging das nur bei Fenstern und Türen.
+- Der Verlauf einer Pflanze geht direkt aus ihrer Karte auf, ohne Umweg über den Stammbaum. Darüber steht, von wem sie abstammt; ein Tipp darauf führt weiter zur Mutterpflanze.
+
+### Besser
+- Im Pflanzendoktor stehen die Fotos ganz oben und in groß. Sie sind die eigentliche Arbeit, nicht ein Anhängsel unter dem Fragefeld.
+- Der Auszug aus der Galerie steht offen, wenn es dort etwas zu holen gibt.
+- Aus „Weiter“ wird auf der Fragestufe der Knopf „Fragen“. Die Antwort führt selbst weiter zur Einschätzung. Ohne ein einziges Merkmal bleibt er grau, statt auf eine leere Seite zu springen.
+- Ein Foto in die Galerie zu legen gehört jetzt zur Einschätzung statt mitten in die Anfrage.
+
+### Behoben
+- Eine Anfrage an Google hatte keine Zeitgrenze: antwortete das Modell langsam, statt „überlastet“ zu melden, wartete die App unbegrenzt. Jetzt gilt eine Frist von dreißig Sekunden mit Bildern, fünfzehn ohne — danach geht es auf dem nächsten Modell weiter. Nachgefasst wird nur noch einmal und nur beim ersten Modell.
+
+---
+
 ## 3.3.0 — 3. September 2026
 **Der Raum wächst mit**
 
