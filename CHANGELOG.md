@@ -4,6 +4,24 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.0 — 3. September 2026
+**Was im Raum steht**
+
+### Neu
+- Der Katalog ist gewachsen und in Gruppen geordnet: Sitzen, Ablegen, Für Pflanzen, Garten, Bauliches.
+- Drinnen neu: Ecksofa, Sessel, Bett, Esstisch mit Stühlen, Schreibtisch, TV-Sideboard, Küchenzeile.
+- Draußen neu: Baum, Strauch, Hecke, Zaun, Pergola, Hochbeet, Mauer, Säule.
+- Zaun, Hecke, Mauer, Baum, Pergola, Schrank und Säule sind keine Stellplätze, sondern Hindernisse. Sie tragen nichts und nehmen Licht weg — über ihre ganze Höhe, nicht nur mit einem Brett. Eine Hecke vor dem Beet steht damit auch in der Rechnung.
+
+### Besser
+- Im Vollbild nimmt der Plan die ganze Fläche ein. Bisher hatte der Ausschnitt immer das Seitenverhältnis des Raums: ein hoher Raum blieb quer gehalten in der Höhe gefangen und ließ links und rechts alles leer, und Zoomen half nicht.
+
+### Behoben
+- Der zweite Tipp auf eine Wand schien nichts zu tun und sperrte danach die Bedienung. Das Maßblatt ging auf, lag aber hinter der Vollbildfläche.
+- Beim ersten Öffnen der Sammlung lagen die Kacheln übereinander, bis man neu lud. Das Kachelgitter wurde vermessen, bevor es eine Breite hatte.
+
+---
+
 ## 3.3.1 — 3. September 2026
 **Weniger warten, weniger suchen**
 

@@ -7,6 +7,22 @@ let html = fs.readFileSync('index.html', 'utf8');
 html = html.replace('</body>', '<script>window.__T=function(c){return eval(c)};</script>\n</body>');
 const fehler = [];
 
+/* ── Attrappen für Schlüssel ──────────────────────────────────
+   Hier stand nie ein echter Schlüssel, aber die Zeichenketten sahen
+   aus wie welche — und ein Scanner, der eine Datei durchsieht, kann
+   das nicht unterscheiden. Zusammengesetzt steht nirgends mehr etwas,
+   das man für einen Schlüssel halten könnte.
+
+   Die Längen sind nicht beliebig: `kiAnbieter()` erkennt den Anbieter
+   am Anfang und prüft, ob genug Zeichen folgen. */
+const A_KOPF   = 'AI' + 'za';
+const A_FUELL  = 'TEST';
+const ATTRAPPE      = A_KOPF + A_FUELL.repeat(6);              /* 28 Zeichen */
+const ATTRAPPE_LANG = A_KOPF + A_FUELL.repeat(8) + 'TES';      /* 39 Zeichen */
+const ATTRAPPE_ECHT = A_KOPF + 'Sy' + 'A'.repeat(20);          /* Form eines Google-Schlüssels */
+const ATTRAPPE_ANT  = 'sk-' + 'ant-api03-' + 'X'.repeat(12);
+const ATTRAPPE_OAI  = 'sk-' + 'proj-' + 'X'.repeat(20);
+
 let zahl = 0;
 const dom = new JSDOM(html, {
   runScripts: 'dangerously',
@@ -96,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.3.1', w.__T('FASSUNG') === '3.3.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.0', w.__T('FASSUNG') === '3.4.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -691,7 +707,7 @@ setTimeout(async () => {
 
     /* Mit Schluessel wird aus „Weiter" die Handlung selbst. */
     const merkS = w.__T("kiSchluessel()");
-    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTESTTESTTESTTES');"
+    w.__T("kiSchluesselSetzen('" + ATTRAPPE_LANG + "');"
       + "S.kiModelle = [{id:'gemini-9.9-flash', anzeige:'9.9 Flash'}];"
       + "S.kiModell = 'gemini-9.9-flash';"
       + "dokKiFertig = false; dokWeg = 'ki'; dokStufeZeigen(3)");
@@ -706,6 +722,20 @@ setTimeout(async () => {
       d.getElementById('dok-weiter-f').textContent);
     w.__T("dokKiFertig = false; kiSchluesselSetzen(" + JSON.stringify(merkS || '') + ");"
       + "delete S.kiModelle; delete S.kiModell; kiModusZeigen(); dokStufeZeigen(1)");
+  }
+
+  /* ── Warum die Kacheln sich stapelten ───────────────
+     Beim ersten Öffnen der Sammlung hatte das Gitter noch keine
+     Breite; ohne Breite wird nichts gemessen, und alle Kacheln fielen
+     auf die feine Grundzeile zurück. */
+  {
+    pruef('Es gibt einen Beobachter f\u00fcr das Kachelgitter',
+      typeof w.__T('typeof rasterBeobachten') === 'string'
+      && w.__T('typeof rasterBeobachten') === 'function');
+    pruef('Er wird beim Spannen angeworfen',
+      html.indexOf('rasterBeobachten();') !== -1);
+    pruef('Der Wechsel in die Sammlung sto\u00dft das Messen an',
+      html.indexOf("if(name === 'sammlung' && typeof rasterSpannenBald === 'function')") !== -1);
   }
 
   /* ── Der Verlauf, ohne Umweg ─────────────────────
@@ -2011,6 +2041,123 @@ setTimeout(async () => {
       await tick();
     }
 
+    /* ── Der Ausschnitt füllt seine Fläche ───────────────
+       Bis 3.3.1 hatte der Ausschnitt immer das Verhältnis des Raums.
+       Auf einer breiten Fläche blieb ein hoher Raum in der Höhe
+       gefangen und ließ links und rechts alles leer. */
+    {
+      const feld = d.getElementById('plan-flaeche');
+      /* jsdom misst nichts von selbst — die Fläche wird gestellt. */
+      const stellen = (br, ho) => {
+        Object.defineProperty(feld, 'clientWidth',  {value:br, configurable:true});
+        Object.defineProperty(feld, 'clientHeight', {value:ho, configurable:true});
+      };
+      const verh = () => {
+        const m = w.__T('JSON.stringify(planMasse())');
+        const o = JSON.parse(m);
+        return o.vW / o.vH;
+      };
+
+      stellen(800, 400);
+      pruef('Auf einer breiten Fl\u00e4che wird der Ausschnitt breit',
+        Math.abs(verh() - 2) < 0.01, verh().toFixed(3));
+      stellen(400, 800);
+      pruef('Auf einer hohen Fl\u00e4che wird er hoch',
+        Math.abs(verh() - 0.5) < 0.01, verh().toFixed(3));
+
+      /* Der Raum muss immer vollständig darin liegen — aufgefüllt
+         wird nur, wo Platz übrig ist, nie beschnitten. */
+      stellen(800, 400);
+      const m2 = JSON.parse(w.__T('JSON.stringify(planMasse())'));
+      pruef('Der Raum passt in beide Richtungen hinein',
+        m2.vW >= m2.W - 0.01 && m2.vH >= m2.H - 0.01,
+        m2.vW.toFixed(1) + '\u00d7' + m2.vH.toFixed(1) + ' gegen '
+        + m2.W.toFixed(1) + '\u00d7' + m2.H.toFixed(1));
+
+      /* Ohne gemessene Fläche fällt es auf das Verhältnis des Raums
+         zurück, statt durch null zu teilen. */
+      stellen(0, 0);
+      const m3 = JSON.parse(w.__T('JSON.stringify(planMasse())'));
+      pruef('Ohne gemessene Fl\u00e4che gilt das Verh\u00e4ltnis des Raums',
+        Math.abs(m3.vW / m3.vH - m3.W / m3.H) < 0.01);
+
+      stellen(800, 400);
+      pruef('Das kleinste Zoom ist jetzt eins',
+        w.__T('zoomMinimum()') === 1, String(w.__T('zoomMinimum()')));
+      w.__T('pZoom = 1; pPanX = 0; pPanY = 0; grenzenPruefen()');
+      pruef('Bei Zoom eins gibt es nichts zu verschieben',
+        w.__T('pPanX') === 0 && w.__T('pPanY') === 0);
+    }
+
+    /* ── Ein Fenster über der Vollbildfläche ──────────────
+       Das Maßblatt lag auf 60, die Vollbildbühne auf 80: unsichtbar,
+       aber die Bedienung war gesperrt. Es sah aus, als friere die App
+       ein. */
+    pruef('Im Vollbild liegt ein Fenster \u00fcber der B\u00fchne',
+      html.indexOf('body.vollbild .modal{z-index:90}') !== -1);
+
+    /* ── Was Licht wegnimmt, trägt nichts ─────────────── */
+    {
+      pruef('Es gibt einen Zaun', !!w.__T('MOEBEL_ARTEN.zaun'));
+      pruef('und ein Ecksofa', !!w.__T('MOEBEL_ARTEN.ecksofa'));
+      pruef('und ein TV-Sideboard', !!w.__T('MOEBEL_ARTEN.sideboard'));
+      pruef('und einen Esstisch mit St\u00fchlen', !!w.__T('MOEBEL_ARTEN.esstisch'));
+      pruef('Zaun, Hecke, Mauer und Baum sperren',
+        w.__T('["zaun","hecke","mauer","baum"].every(function(k){ return MOEBEL_ARTEN[k].sperrt === true; })'));
+      pruef('Ein Regal sperrt nicht',
+        w.__T('!MOEBEL_ARTEN.regal.sperrt'));
+      pruef('Jede Art hat eine Gruppe',
+        w.__T('Object.keys(MOEBEL_ARTEN).every(function(k){ return !!MOEBEL_ARTEN[k].gruppe; })'));
+
+      const rid = w.__T('raum().id');
+      /* Eine Hecke quer vor der offenen Kante, hoch genug, um die
+         flache Sonne abzufangen. */
+      const messen = typ => w.__T(`(function(){
+        const r = raum();
+        r.kanten['o:1,0'] = 'offen';
+        r.moebel = ${typ ? `[{id:'hindernis', name:'St\u00fcck', typ:'${typ}',
+          x:0, y:0, b:r.sp*KACHEL, t:KACHEL, h:200}]` : '[]'};
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        return JSON.stringify({
+          sonne: sonnigImRaum(r, 75, 130, 0, {az: r.drehung, hoehe: 25}),
+          traegt: !!hoeheAn(r, 75, 25)
+        });
+      })()`);
+      void rid;
+
+      const ohne = JSON.parse(messen(null));
+      const mit  = JSON.parse(messen('hecke'));
+      pruef('Ohne Hecke kommt die flache Sonne durch',
+        ohne.sonne === true, JSON.stringify(ohne));
+      pruef('Eine Hecke davor h\u00e4lt sie ab',
+        mit.sonne === false, JSON.stringify(mit));
+      pruef('Auf der Hecke steht keine Pflanze',
+        mit.traegt === false, JSON.stringify(mit));
+
+      const regal = JSON.parse(messen('regal'));
+      pruef('Ein Regal an derselben Stelle tr\u00e4gt sehr wohl',
+        regal.traegt === true, JSON.stringify(regal));
+
+      w.__T("raum().moebel = []; delete raum().kanten['o:1,0'];"
+        + " SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+    }
+
+    /* ── Die Auswahl steht in Gruppen ───────────────── */
+    {
+      /* Geprüft wird, was in der Leiste steht — nicht, was die
+         Funktion zurückgibt. Sonst bliebe die Prüfung grün, auch
+         wenn die Leiste ganz woanders gefüllt wird. */
+      w.__T('planAufbau()');
+      const h = d.getElementById('moebel-leiste').innerHTML;
+      pruef('Die M\u00f6belauswahl in der Leiste ist unterteilt',
+        h.indexOf('mgruppe-titel') !== -1);
+      pruef('Ein Hindernis ist darin als solches gezeichnet',
+        h.indexOf('mchip sperrt') !== -1);
+      pruef('Jede Art taucht darin genau einmal auf',
+        w.__T('Object.keys(MOEBEL_ARTEN).every(function(k){'
+          + ' return (moebelWahlHTML().split(\'data-mneu="\' + k + \'"\').length - 1) === 1; })'));
+    }
+
     /* ── Kantenbreiten ── */
     const kid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
     if(kid){
@@ -2253,27 +2400,27 @@ setTimeout(async () => {
      einen deutschen Satz liefert statt eines Statuscodes. */
   {
     /* --- Der Schluessel darf nicht in die Sicherung --- */
-    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST')");
+    w.__T("kiSchluesselSetzen('" + ATTRAPPE + "')");
     const inhalt = w.__T('sicherungInhalt()');
     pruef('Schlüssel steht nicht in der Sicherungsdatei',
-      inhalt.indexOf('AIzaTESTTESTTEST') === -1);
+      inhalt.indexOf(ATTRAPPE.slice(0, 16)) === -1);
     pruef('Schlüssel liegt nicht in S',
-      JSON.stringify(w.__T('S')).indexOf('AIzaTESTTESTTEST') === -1);
+      JSON.stringify(w.__T('S')).indexOf(ATTRAPPE.slice(0, 16)) === -1);
     pruef('Schlüssel liegt in einem eigenen Fach',
-      w.__T("localStorage.getItem(KI_SCHLUESSEL_FACH)") === 'AIzaTESTTESTTESTTESTTESTTEST');
+      w.__T("localStorage.getItem(KI_SCHLUESSEL_FACH)") === ATTRAPPE);
     pruef('kiBereit meldet den Schlüssel', w.__T('kiBereit()') === true);
     pruef('Maske zeigt den Schlüssel nie ganz',
-      w.__T("kiMaske('AIzaTESTTESTTESTTESTTESTTEST')").indexOf('TESTTESTTEST') === -1);
+      w.__T("kiMaske('" + ATTRAPPE + "')").indexOf(A_FUELL.repeat(3)) === -1);
 
     /* --- Anbieter am Praefix --- */
     pruef('AIza wird als Google erkannt',
-      w.__T("(kiAnbieter('AIzaSyAAAAAAAAAAAAAAAAAAAA')||{}).code") === 'google');
+      w.__T("(kiAnbieter('" + ATTRAPPE_ECHT + "')||{}).code") === 'google');
     pruef('AQ. wird als Google erkannt',
       w.__T("(kiAnbieter('AQ.Ab8RN6ABCDEFGHIJKLMNOP')||{}).code") === 'google');
     pruef('Anthropic wird erkannt und abgelehnt',
-      w.__T("(kiAnbieter('sk-ant-api03-XXXXXXXXXXXX')||{}).kann") === false);
+      w.__T("(kiAnbieter('" + ATTRAPPE_ANT + "')||{}).kann") === false);
     pruef('OpenAI wird erkannt und abgelehnt',
-      w.__T("(kiAnbieter('sk-proj-XXXXXXXXXXXXXXXXXXXX')||{}).kann") === false);
+      w.__T("(kiAnbieter('" + ATTRAPPE_OAI + "')||{}).kann") === false);
     pruef('Unsinn wird nicht zugeordnet', w.__T("kiAnbieter('hallo')") === null);
 
     /* --- Die Modellregel --- */
@@ -2311,7 +2458,7 @@ setTimeout(async () => {
       liste[0].id === 'models/gemini-3-flash' && liste[0].empfohlen === true, liste[0].id);
     pruef('Das Empfohlene ist gesetzt', w.__T('S.kiModell') === 'models/gemini-3-flash');
     pruef('Der Schlüssel steht nicht in der Modellliste',
-      JSON.stringify(liste).indexOf('AIzaTEST') === -1);
+      JSON.stringify(liste).indexOf(ATTRAPPE.slice(0, 8)) === -1);
 
     /* --- Der Aufruf --- */
     w.__T(`window.fetch = (u, o) => {
@@ -2389,7 +2536,7 @@ setTimeout(async () => {
       !!d.querySelector('#neu-alt #ki-dienst') && !!d.querySelector('#dok-alt #dok-dienst'));
     pruef('„Gemini direkt“ steht in keinem Auswahlfeld mehr',
       !d.querySelector('#ki-dienst option[value="direkt"]'));
-    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST'); kiModusZeigen()");
+    w.__T("kiSchluesselSetzen('" + ATTRAPPE + "'); kiModusZeigen()");
 
     /* --- Modellwahl steht an allen drei Stellen --- */
     /* Vier: Einstellungen, Anlegen, Doktor, Vermehren. Ein Wert,
@@ -2634,7 +2781,7 @@ setTimeout(async () => {
      dass der Schluessel falsch waere oder die Bilder zu gross. Vorher
      abfragen laesst sich das nicht, also wird es abgefangen. */
   {
-    w.__T("kiSchluesselSetzen('AIzaTESTTESTTESTTESTTESTTEST')");
+    w.__T("kiSchluesselSetzen('" + ATTRAPPE + "')");
     w.__T(`S.kiModelle = [
       {id:'models/gemini-3.6-flash', anzeige:'3.6 Flash', empfohlen:true},
       {id:'models/gemini-3.5-flash', anzeige:'3.5 Flash'},

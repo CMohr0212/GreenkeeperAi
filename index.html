@@ -1184,6 +1184,16 @@ html[data-design="klartext"] .sb-knoten-txt b{font-size:var(--t-s)}
 .sb-blatt-taten{margin-bottom:12px}
 /* Aus der Pflanzenkarte heraus liegt das Blatt ueber allem, auch ueber
    dem Kartenfenster (z-index 60). Im Stammbaum bleibt es eingespannt. */
+/* Die Vollbildbuehne liegt auf 80. Ein Fenster darueber war bis 3.3.1
+   unsichtbar, sperrte aber die Bedienung — es sah aus, als friere die
+   App ein. Unter der Werkzeugansicht (120) bleibt es trotzdem. */
+body.vollbild .modal{z-index:90}
+.mgruppe{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.mgruppe-titel{flex:0 0 100%;margin:0 0 2px;font-family:var(--f-data);
+  font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--schrift-2)}
+/* Was Licht wegnimmt, aber nichts traegt, sieht auch so aus. */
+.mchip.sperrt{border-style:dashed}
 .sb-blatt.frei{position:fixed;z-index:120}
 .sb-blatt-deckel.frei{position:fixed;z-index:119}
 .sb-herkunft{margin:0 0 10px;font-size:var(--t-sm);color:var(--schrift-2)}
@@ -3016,7 +3026,11 @@ body.vollbild #plan-flaeche{flex:1;min-height:0;border:0;border-radius:0;
   display:flex;align-items:center;justify-content:center;
   padding:var(--a-2) var(--a-2) 104px 60px;transition:padding-left .18s ease}
 body.vollbild.schublade-auf #plan-flaeche{padding-left:min(48vw,296px)}
-body.vollbild .plan-svg{max-height:100%;width:auto;max-width:100%}
+/* Der Ausschnitt hat jetzt das Verhaeltnis der Flaeche — dann darf
+   die Zeichnung sie auch ganz einnehmen. Mit `width:auto` blieb ein
+   hoher Raum auf einer breiten Flaeche in der Hoehe gefangen. */
+body.vollbild #plan-flaeche{display:block;position:relative}
+body.vollbild .plan-svg{width:100%;height:100%;display:block}
 .vb-leiste{position:absolute;left:0;top:0;bottom:0;width:52px;z-index:3;
   background:var(--sand);border-right:1px solid var(--line);
   display:flex;flex-direction:column;align-items:center;gap:var(--a-1);padding:var(--a-2) 0;overflow-y:auto}
@@ -5972,20 +5986,67 @@ const KANTEN_ART = {
               kurz:'Durchgang', innen:true}
 };
 
+/* ══════════════════ Was im Raum steht ══════════════════
+   Zwei Sorten von Dingen stehen hier nebeneinander:
+
+   Das meiste sind **Stellplätze** — Flächen, auf die eine Pflanze
+   passt. Für sie zählt die Höhe der Ablage.
+
+   Ein paar sind **Hindernisse**: Zaun, Hecke, Mauer, Baum, Schrank.
+   Auf ihnen steht nichts, sie nehmen Licht weg. Sie tragen
+   `sperrt:true` und werfen in `sonnigImRaum()` einen Schatten über
+   ihre ganze Höhe — anders als ein Regal, das nur mit seinen Böden
+   verschattet. Ein Zaun vor dem Beet ist genau das, was eine
+   Lichtrechnung im Garten wissen muss.
+
+   `gruppe` ordnet die Auswahl. Dreißig Namen in einer Reihe waren
+   nicht mehr zu überblicken. */
+const MOEBEL_GRUPPEN = [
+  ['sitzen',  'Sitzen'],
+  ['ablegen', 'Ablegen'],
+  ['pflanzen','Für Pflanzen'],
+  ['garten',  'Garten'],
+  ['bau',     'Bauliches']
+];
 const MOEBEL_ARTEN = {
-  boden:     {name:'Freie Fläche', b:100, t:100, h:0,   form:'rect',  katze:true},
-  tisch:     {name:'Tisch',        b:120, t:80,  h:75,  form:'rect',  katze:true},
-  beistell:  {name:'Beistelltisch',b:50,  t:50,  h:55,  form:'kreis', katze:true},
-  stuhl:     {name:'Stuhl',        b:45,  t:45,  h:45,  form:'stuhl', katze:true},
-  hocker:    {name:'Hocker',       b:40,  t:40,  h:45,  form:'kreis', katze:true},
-  sofa:      {name:'Sofa',         b:200, t:90,  h:45,  form:'sofa',  katze:true},
-  kommode:   {name:'Kommode',      b:100, t:45,  h:85,  form:'rect',  katze:true},
-  regal:     {name:'Regal',        b:80,  t:35,  h:150, form:'rect',  katze:true, boeden:4},
-  fensterbank:{name:'Fensterbank', b:100, t:25,  h:95,  form:'rect',  katze:true},
-  kasten:    {name:'Balkonkasten', b:80,  t:20,  h:90,  form:'rect',  katze:true},
-  turm:      {name:'Kräuterturm',  b:60,  t:60,  h:120, form:'turm',  katze:false, boeden:3},
-  ampel:     {name:'Hängeampel',   b:35,  t:35,  h:200, form:'ampel', katze:false},
-  wandregal: {name:'Wandbrett',    b:80,  t:22,  h:170, form:'rect',  katze:false}
+  /* ── Sitzen ── */
+  sofa:      {name:'Sofa',         b:200, t:90,  h:45,  form:'sofa',  katze:true,  gruppe:'sitzen'},
+  ecksofa:   {name:'Ecksofa',      b:260, t:200, h:45,  form:'ecke',  katze:true,  gruppe:'sitzen'},
+  sessel:    {name:'Sessel',       b:85,  t:85,  h:45,  form:'sofa',  katze:true,  gruppe:'sitzen'},
+  stuhl:     {name:'Stuhl',        b:45,  t:45,  h:45,  form:'stuhl', katze:true,  gruppe:'sitzen'},
+  hocker:    {name:'Hocker',       b:40,  t:40,  h:45,  form:'kreis', katze:true,  gruppe:'sitzen'},
+  bett:      {name:'Bett',         b:160, t:200, h:55,  form:'bett',  katze:true,  gruppe:'sitzen'},
+
+  /* ── Ablegen ── */
+  tisch:     {name:'Tisch',        b:120, t:80,  h:75,  form:'rect',  katze:true,  gruppe:'ablegen'},
+  esstisch:  {name:'Esstisch mit Stühlen', b:180, t:90, h:75, form:'esstisch', katze:true, gruppe:'ablegen'},
+  schreibtisch:{name:'Schreibtisch', b:140, t:70, h:75, form:'rect',  katze:true,  gruppe:'ablegen'},
+  beistell:  {name:'Beistelltisch',b:50,  t:50,  h:55,  form:'kreis', katze:true,  gruppe:'ablegen'},
+  kommode:   {name:'Kommode',      b:100, t:45,  h:85,  form:'rect',  katze:true,  gruppe:'ablegen'},
+  sideboard: {name:'TV-Sideboard', b:180, t:40,  h:50,  form:'rect',  katze:true,  gruppe:'ablegen'},
+  kueche:    {name:'Küchenzeile',  b:240, t:60,  h:90,  form:'rect',  katze:true,  gruppe:'ablegen'},
+  boden:     {name:'Freie Fläche', b:100, t:100, h:0,   form:'rect',  katze:true,  gruppe:'ablegen'},
+
+  /* ── Für Pflanzen ── */
+  regal:     {name:'Regal',        b:80,  t:35,  h:150, form:'rect',  katze:true,  gruppe:'pflanzen', boeden:4},
+  fensterbank:{name:'Fensterbank', b:100, t:25,  h:95,  form:'rect',  katze:true,  gruppe:'pflanzen'},
+  kasten:    {name:'Balkonkasten', b:80,  t:20,  h:90,  form:'rect',  katze:true,  gruppe:'pflanzen'},
+  turm:      {name:'Kräuterturm',  b:60,  t:60,  h:120, form:'turm',  katze:false, gruppe:'pflanzen', boeden:3},
+  ampel:     {name:'Hängeampel',   b:35,  t:35,  h:200, form:'ampel', katze:false, gruppe:'pflanzen'},
+  wandregal: {name:'Wandbrett',    b:80,  t:22,  h:170, form:'rect',  katze:false, gruppe:'pflanzen'},
+  hochbeet:  {name:'Hochbeet',     b:120, t:60,  h:80,  form:'rect',  katze:true,  gruppe:'garten'},
+
+  /* ── Garten ── */
+  baum:      {name:'Baum',         b:250, t:250, h:450, form:'baum',  katze:false, gruppe:'garten', sperrt:true},
+  strauch:   {name:'Strauch',      b:120, t:120, h:150, form:'busch', katze:false, gruppe:'garten', sperrt:true},
+  hecke:     {name:'Hecke',        b:300, t:50,  h:180, form:'busch', katze:false, gruppe:'garten', sperrt:true},
+  zaun:      {name:'Zaun',         b:300, t:10,  h:180, form:'zaun',  katze:false, gruppe:'garten', sperrt:true},
+  pergola:   {name:'Pergola',      b:300, t:250, h:230, form:'zaun',  katze:false, gruppe:'garten', sperrt:true},
+
+  /* ── Bauliches ── */
+  mauer:     {name:'Mauer',        b:300, t:25,  h:200, form:'rect',  katze:false, gruppe:'bau', sperrt:true},
+  schrank:   {name:'Schrank',      b:120, t:60,  h:200, form:'rect',  katze:false, gruppe:'bau', sperrt:true},
+  saeule:    {name:'Säule',        b:40,  t:40,  h:250, form:'kreis', katze:false, gruppe:'bau', sperrt:true}
 };
 
 function raeume(){
@@ -6247,6 +6308,30 @@ function brettImWeg(r, x, y, z, dx, dy, steig){
   const mo = r.moebel || [];
   for(let n=0;n<mo.length;n++){
     const m = mo[n];
+    const art = MOEBEL_ARTEN[m.typ] || {};
+    /* Ein Hindernis ist keine Ablage mit Boeden, sondern ein Koerper:
+       Zaun, Hecke, Mauer, Baum. Der Strahl muss ueber seine ganze
+       Hoehe hinweg, nicht ueber ein Brett darin. Ein Regal daneben
+       verschattet nur mit seinen Boeden — deshalb zwei Wege. */
+    if(art.sperrt){
+      const hoehe = m.h != null ? m.h : (art.h || 0);
+      /* Wo betritt der Strahl den Grundriss dieses Koerpers, wo
+         verlaesst er ihn? Weil er steigt, ist er am Eintritt am
+         tiefsten — liegt er dort unter der Oberkante, steckt er im
+         Koerper und kommt nicht durch. */
+      let tEin = 0, tAus = Infinity;
+      const paare = [[x, dx, m.x, m.x + m.b], [y, dy, m.y, m.y + m.t]];
+      let daneben = false;
+      paare.forEach(([p0, d, lo, hi])=>{
+        if(Math.abs(d) < 1e-9){ if(p0 < lo || p0 > hi) daneben = true; return; }
+        let ta = (lo - p0)/d, tb = (hi - p0)/d;
+        if(ta > tb){ const h2 = ta; ta = tb; tb = h2; }
+        if(ta > tEin) tEin = ta;
+        if(tb < tAus) tAus = tb;
+      });
+      if(!daneben && tAus > tEin && tAus > 0 && z + steig*tEin < hoehe) return true;
+      continue;
+    }
     const et = etagenVon(m);
     if(et.length < 2) continue;          /* einboedig wirft keinen Schatten */
     for(let i=0;i<et.length;i++){
@@ -6438,6 +6523,10 @@ const HELL_NAME = ['sehr dunkel','dunkel','mittelhell','hell','sehr hell'];
 function hoeheAn(r, x, y){
   let best = null;
   (r.moebel||[]).forEach(m=>{
+    /* Auf einem Zaun, einer Hecke oder einem Baum steht keine
+       Pflanze. Sonst saesse sie in einer Baumkrone auf 4,50 m und
+       bekaeme dort Sonne im Ueberfluss zugerechnet. */
+    if((MOEBEL_ARTEN[m.typ] || {}).sperrt) return;
     if(x >= m.x && x <= m.x+m.b && y >= m.y && y <= m.y+m.t){
       if(!best || m.h > best.h) best = m;
     }
@@ -10117,8 +10206,23 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.3.1';
+const FASSUNG = '3.4.0';
 const PATCHNOTES = [
+  {
+    nr: '3.4.0', datum: '2026-09-03', titel: 'Was im Raum steht',
+    neu: [
+      'Der Katalog ist gewachsen und in Gruppen geordnet: Sitzen, Ablegen, Für Pflanzen, Garten, Bauliches. Neu dabei sind Ecksofa, Sessel, Bett, Esstisch mit Stühlen, Schreibtisch, TV-Sideboard und Küchenzeile.',
+      'Für draußen: Baum, Strauch, Hecke, Zaun, Pergola, Hochbeet, Mauer, Säule.',
+      'Zaun, Hecke, Mauer, Baum, Pergola, Schrank und Säule sind keine Stellplätze, sondern Hindernisse. Sie tragen nichts und nehmen Licht weg — über ihre ganze Höhe, nicht nur mit einem Brett. Eine Hecke vor dem Beet steht damit endlich auch in der Rechnung.'
+    ],
+    besser: [
+      'Im Vollbild nimmt der Plan die ganze Fläche ein. Bisher hatte der Ausschnitt immer das Seitenverhältnis des Raums: ein hoher Raum blieb quer auf dem Telefon in der Höhe gefangen und ließ links und rechts alles leer, und Zoomen half nicht.'
+    ],
+    behoben: [
+      'Der zweite Tipp auf eine Wand schien nichts zu tun und sperrte danach die Bedienung. Das Maßblatt ging auf, lag aber hinter der Vollbildfläche. Jetzt liegt es darüber.',
+      'Beim ersten Öffnen der Sammlung lagen die Kacheln übereinander, bis man neu lud. Das Kachelgitter wurde vermessen, bevor es eine Breite hatte. Jetzt wird der Augenblick abgewartet, in dem es eine bekommt.'
+    ]
+  },
   {
     nr: '3.3.1', datum: '2026-09-03', titel: 'Weniger warten, weniger suchen',
     neu: [
@@ -13613,6 +13717,7 @@ function rasterSpannenEin(gitter){
 function rasterSpannen(){
   const gitter = document.querySelectorAll('.sam-raster .grid');
   if(!gitter.length) return;
+  rasterBeobachten();
   bildFormateSetzen();
   gitter.forEach(rasterSpannenEin);
 }
@@ -13628,6 +13733,31 @@ document.addEventListener('load', e=>{
   if(img && img.tagName === 'IMG' && img.hasAttribute('data-mass')) bildFormatMessen(img);
 }, true);
 window.addEventListener('resize', rasterSpannenBald);
+
+/* ── Warum die Kacheln sich beim ersten Mal stapelten ─────────
+   `rasterSpannenEin` steigt aus, solange das Gitter keine Breite hat
+   — ohne Breite laesst sich nichts messen. Beim ersten Oeffnen der
+   Sammlung ist die Ansicht im Augenblick des naechsten Bildaufbaus
+   aber noch verborgen: Breite null, keine Zeilenspannen, und alle
+   Kacheln fielen auf die feine Grundzeile von vier Pixeln zurueck und
+   lagen uebereinander. Wer neu lud, sah es nie — dann war die Ansicht
+   von Anfang an da.
+
+   Ein Beobachter meldet den Augenblick, in dem das Gitter seine
+   Breite bekommt. Das ist genau der Augenblick, in dem gemessen
+   werden kann. */
+let _rasterAuge = null;
+function rasterBeobachten(){
+  if(typeof ResizeObserver === 'undefined') return;
+  if(!_rasterAuge){
+    _rasterAuge = new ResizeObserver(eintraege => {
+      if(eintraege.some(e => e.contentRect && e.contentRect.width > 0))
+        rasterSpannenBald();
+    });
+  }
+  _rasterAuge.disconnect();
+  document.querySelectorAll('.sam-raster .grid').forEach(g => _rasterAuge.observe(g));
+}
 
 /* ══════════════════ Kartendetail als Fenster ══════════════════
 
@@ -17563,6 +17693,29 @@ function aufRaster(cm){
   return Math.max(ZEICHEN_RASTER, w);
 }
 
+/* Die Auswahl nach Gruppen. Alles, was keine Gruppe traegt, landet
+   unter „Sonstiges" — so faellt beim Erweitern nichts aus der Liste,
+   nur weil eine Zeile vergessen wurde. */
+function moebelWahlHTML(){
+  const faecher = {};
+  Object.keys(MOEBEL_ARTEN).forEach(k=>{
+    const g = MOEBEL_ARTEN[k].gruppe || 'rest';
+    (faecher[g] = faecher[g] || []).push(k);
+  });
+  return MOEBEL_GRUPPEN.concat([['rest', 'Sonstiges']]).map(([g, name])=>{
+    const liste = faecher[g];
+    if(!liste || !liste.length) return '';
+    return `<div class="mgruppe"><p class="mgruppe-titel">${esc(name)}</p>`
+      + liste.map(k=>{
+          const a = MOEBEL_ARTEN[k];
+          return `<button class="mchip${a.sperrt ? ' sperrt' : ''}" data-mneu="${k}"`
+            + `${a.sperrt ? ' title="Nimmt Licht weg, trägt aber nichts"' : ''}>`
+            + `${esc(a.name)}</button>`;
+        }).join('')
+      + '</div>';
+  }).join('');
+}
+
 function moebelForm(m, fuell){
   const x = m.x*MASS, y = m.y*MASS,
         b = aufRaster(m.b)*MASS, t = aufRaster(m.t)*MASS;
@@ -17580,7 +17733,79 @@ function moebelForm(m, fuell){
     <rect x="${x+2}" y="${y}" width="${b-4}" height="${t*0.26}" style="fill:var(--z-schrift)"/>
     <rect x="${x}" y="${y}" width="${b*0.08}" height="${t}" style="fill:var(--z-schrift)"/>
     <rect x="${x+b*0.92}" y="${y}" width="${b*0.08}" height="${t}" style="fill:var(--z-schrift)"/>`;
+  if(art.form === 'ecke'){
+    /* Ein Ecksofa ist ein L: die lange Seite oben, der kurze Schenkel
+       links. Gezeichnet als ein Zug, damit die Kontur durchlaeuft. */
+    const s1 = t*0.42, s2 = b*0.38;
+    return `<path d="M${x} ${y} H${x+b} V${y+s1} H${x+s2} V${y+t} H${x} Z" rx="5" ${stil}/>
+      <rect x="${x+2}" y="${y}" width="${b-4}" height="${s1*0.3}" style="fill:var(--z-schrift)"/>`;
+  }
+  if(art.form === 'bett') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="4" ${stil}/>
+    <rect x="${x}" y="${y}" width="${b}" height="${Math.max(4, t*0.12)}" style="fill:var(--z-schrift)"/>
+    <line x1="${x}" y1="${y+t*0.3}" x2="${x+b}" y2="${y+t*0.3}" style="stroke:var(--z-kontur)" stroke-width="${sk}"/>`;
+  if(art.form === 'esstisch'){
+    /* Der Tisch traegt die Pflanze, die Stuehle stehen nur dabei —
+       darum sind sie Beiwerk und keine eigenen Moebel. */
+    const kr = Math.min(b, t) * 0.11;
+    const platz = [[0.25, -0.1], [0.5, -0.1], [0.75, -0.1],
+                   [0.25, 1.1],  [0.5, 1.1],  [0.75, 1.1]];
+    return `<rect x="${x}" y="${y+t*0.16}" width="${b}" height="${t*0.68}" rx="4" ${stil}/>`
+      + platz.map(([fx, fy])=>`<circle cx="${x+b*fx}" cy="${y+t*(fy<0?0.1:0.9)}" r="${kr}"
+          style="fill:none;stroke:var(--z-kontur)" stroke-width="${sk}"/>`).join('');
+  }
+  if(art.form === 'baum') return `<circle cx="${x+b/2}" cy="${y+t/2}" r="${Math.min(b,t)/2}"
+      style="fill:${fuell};stroke:var(--z-kontur)" stroke-width="${1.4*sk}" stroke-dasharray="${7*sk} ${4*sk}"/>
+    <circle cx="${x+b/2}" cy="${y+t/2}" r="${Math.min(b,t)*0.12}" style="fill:var(--z-kontur)"/>`;
+  if(art.form === 'busch') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="${Math.min(b,t)*0.45}" ${stil}/>`;
+  if(art.form === 'zaun'){
+    /* Ein Zaun ist ein Strich mit Pfosten — flaechig gezeichnet
+       saehe er aus wie eine Mauer, und das ist er nicht. */
+    const n = Math.max(2, Math.round(b / (KACHEL/2)));
+    let pf = '';
+    for(let i=0;i<=n;i++)
+      pf += `<circle cx="${x + b*i/n}" cy="${y+t/2}" r="${Math.max(1.5, t*0.5)}" style="fill:var(--z-kontur)"/>`;
+    return `<rect x="${x}" y="${y}" width="${b}" height="${t}" ${stil}/>` + pf;
+  }
   return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="3" ${stil}/>`;
+}
+
+/* ══════════════════ Der Ausschnitt ══════════════════
+   Bis 3.3.1 hatte der Ausschnitt immer das Seitenverhaeltnis des
+   Raums. Auf einer Flaeche mit einem anderen Verhaeltnis blieb links
+   und rechts alles leer, und Zoomen half nicht: Breite und Hoehe
+   wurden durch dieselbe Zahl geteilt, das Verhaeltnis blieb.
+
+   Jetzt nimmt der Ausschnitt das Verhaeltnis der Flaeche an. Der Raum
+   bleibt vollstaendig darin — aufgefuellt wird nur die Richtung, in
+   der Platz uebrig ist. `zoomMinimum` und `grenzenPruefen` rechnen mit
+   denselben Zahlen; vorher verglich `zoomMinimum` Zentimeter mit
+   Bildschirmpunkten und `grenzenPruefen` kannte den Rand nicht, den
+   der Flaechenmodus seit 3.3.0 anlegt. */
+function planMasse(){
+  const r = raum();
+  if(!r) return null;
+  const ring = (pModus === 'kacheln') ? 1 : 0;
+  const R = ring * KACHEL * MASS;
+  const sk = planSkala() / pZoom;
+  const rand = 30 * sk;
+  /* Der Raum samt Rand und Anbauring — das, was mindestens zu sehen
+     sein muss. */
+  const W = r.sp*KACHEL*MASS + rand*2 + R*2;
+  const H = r.re*KACHEL*MASS + rand*2 + R*2;
+  const feld = document.getElementById('plan-flaeche');
+  const bx = (feld && feld.clientWidth)  || 0;
+  const by = (feld && feld.clientHeight) || 0;
+  /* Ohne gemessene Flaeche bleibt es beim Verhaeltnis des Raums —
+     besser als durch Null zu teilen. */
+  let vW = W / pZoom, vH = H / pZoom;
+  if(bx > 0 && by > 0){
+    const flaeche = bx / by, plan = vW / vH;
+    if(flaeche > plan) vW = vH * flaeche;   /* breiter: Breite auffuellen */
+    else               vH = vW / flaeche;   /* hoeher: Hoehe auffuellen */
+  }
+  return {r, ring, R, sk, rand, W, H, vW, vH,
+          x0: -rand - R - (vW - W/pZoom)/2,
+          y0: -rand - R - (vH - H/pZoom)/2};
 }
 
 function grundrissSVG(){
@@ -17588,14 +17813,15 @@ function grundrissSVG(){
   /* Im Flaechenmodus liegt ein Ring leerer Kacheln um den Raum. Er ist
      die Flaeche zum Anbauen: ohne ihn gaebe es ausserhalb der Grenzen
      nichts, worauf der Finger treffen koennte. */
-  const ring = (pModus === 'kacheln') ? 1 : 0;
-  const R = ring*KACHEL*MASS;
+  const M = planMasse(); if(!M) return '';
+  const ring = M.ring, sk = M.sk;
+  /* Der Kompass haengt an der rechten Kante des Raums, nicht an der
+     des Ausschnitts — sonst wandert er, sobald die Flaeche breiter
+     wird als der Raum. */
   const W = r.sp*KACHEL*MASS, H = r.re*KACHEL*MASS;
-  const sk = planSkala() / pZoom;
-  const rand = 30*sk;
-  /* Ausschnitt: bei Zoom 1 der ganze Raum, sonst ein Teilbereich */
-  const vbW = (W + rand*2 + R*2) / pZoom, vbH = (H + rand*2 + R*2) / pZoom;
-  const vbX = -rand - R + pPanX, vbY = -rand - R + pPanY;
+  void H;
+  const vbW = M.vW, vbH = M.vH;
+  const vbX = M.x0 + pPanX, vbY = M.y0 + pPanY;
   let s = `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" class="plan-svg modus-${pModus}" id="plan-svg" preserveAspectRatio="xMidYMid meet">`;
 
   /* Kacheln in ihrer Bodenfarbe */
@@ -18315,8 +18541,7 @@ function planTipp(ev){
 
 /* ── Aufbau ──────────────────────────────────────────────── */
 function planAufbau(){
-  $('#moebel-leiste').innerHTML = Object.keys(MOEBEL_ARTEN).map(k=>
-    `<button class="mchip" data-mneu="${k}">${esc(MOEBEL_ARTEN[k].name)}</button>`).join('');
+  $('#moebel-leiste').innerHTML = moebelWahlHTML();
   $('#kanten-leiste').innerHTML = Object.keys(KANTEN_ART).map(k=>
     `<button class="mchip${k===pKanteArt?' on':''}" data-kart="${k}">${esc(KANTEN_ART[k].name)}</button>`).join('');
   $('#p-monat').value = pMonat; $('#p-zeit').value = pZeit;
@@ -18620,17 +18845,11 @@ let vollbild = false;
    Früher war die Untergrenze hart 1 — im Vollbild-Hochformat reichte
    das bei breiten Räumen nicht, und man kam nicht mehr ganz heraus. */
 function zoomMinimum(){
-  const r = raum();
-  const feld = document.getElementById('plan-flaeche');
-  if(!r || !feld) return 1;
-  const sk = planSkala();
-  const rand = 30 * sk;
-  const W = r.sp * KACHEL + rand * 2, H = r.re * KACHEL + rand * 2;
-  const bx = feld.clientWidth || 0, by = feld.clientHeight || 0;
-  if(!bx || !by) return 1;
-  /* Unter 0,4 wird nichts mehr lesbar; darueber darf es beliebig
-     weit heraus, damit auch ein langer Raum ganz sichtbar wird. */
-  return Math.max(0.4, Math.min(1, Math.min(bx / W, by / H)));
+  /* Seit der Ausschnitt das Verhaeltnis der Flaeche annimmt, passt
+     der ganze Raum bei Zoom 1 immer aufs Bild — ein kleinerer Zoom
+     wuerde ihn nur weiter schrumpfen. Frueher stand hier ein
+     Vergleich von Zentimetern mit Bildschirmpunkten. */
+  return 1;
 }
 
 function zoomSetzen(f, mitte){
@@ -18650,18 +18869,15 @@ function zoomSetzen(f, mitte){
   planRender();
 }
 function grenzenPruefen(){
-  const r = raum(); if(!r) return;
-  const sk = planSkala()/pZoom, rand = 30*sk;
-  const W = r.sp*KACHEL + rand*2, H = r.re*KACHEL + rand*2;
-  const sichtW = W/pZoom, sichtH = H/pZoom;
-  /* Der Ausschnitt beginnt bei -rand + pPan. Damit links wie rechts
-     derselbe Rand bleibt, ist die untere Grenze 0 und nicht -rand —
-     sonst wird das Bild um genau einen Rand nach links oben versetzt,
-     und bei Zoom 1 fallen beide Grenzen auf -rand zusammen: der Raum
-     stand dann immer außermittig. */
-  const maxX = Math.max(0, W - sichtW), maxY = Math.max(0, H - sichtH);
-  pPanX = Math.max(0, Math.min(maxX, pPanX));
-  pPanY = Math.max(0, Math.min(maxY, pPanY));
+  const M = planMasse(); if(!M) return;
+  /* Verschoben werden darf nur so weit, wie ausserhalb des
+     Ausschnitts ueberhaupt noch Raum liegt. Der Ausschnitt beginnt
+     bei M.x0 + pPan; bei Zoom 1 deckt er alles ab und beide Grenzen
+     fallen auf null zusammen. */
+  const maxX = Math.max(0, M.W - M.vW), maxY = Math.max(0, M.H - M.vH);
+  const minX = Math.min(0, -(M.vW - M.W) / 2), minY = Math.min(0, -(M.vH - M.H) / 2);
+  pPanX = Math.max(minX, Math.min(maxX, pPanX));
+  pPanY = Math.max(minY, Math.min(maxY, pPanY));
 }
 
 function vollbildAn(an){
@@ -18704,10 +18920,8 @@ document.addEventListener('click', e=>{
   else zoomSetzen(zoomMinimum());   /* ⥂ zeigt den ganzen Raum */
 });
 function mitteJetzt(){
-  const r = raum(); if(!r) return null;
-  const sk = planSkala()/pZoom, rand = 30*sk;
-  return {x: pPanX + (r.sp*KACHEL + rand*2)/pZoom/2,
-          y: pPanY + (r.re*KACHEL + rand*2)/pZoom/2};
+  const M = planMasse(); if(!M) return null;
+  return {x: pPanX + M.vW/2, y: pPanY + M.vH/2};
 }
 
 /* Schublade für Möbel und Wandarten */
@@ -18751,7 +18965,7 @@ function schubladeFuellen(){
   }
 
   box.innerHTML = pModus === 'moebel'
-    ? Object.keys(MOEBEL_ARTEN).map(k=>`<button class="mchip" data-mneu="${k}">${esc(MOEBEL_ARTEN[k].name)}</button>`).join('')
+    ? moebelWahlHTML()
     : Object.keys(KANTEN_ART).map(k=>`<button class="mchip${k===pKanteArt?' on':''}" data-kart="${k}">${esc(KANTEN_ART[k].name)}</button>`).join('');
 }
 
@@ -19305,6 +19519,11 @@ function ansichtZeigen(name, merken){
      („26 Pflanzen", „Einstellungen") sagte nichts, was nicht eine
      Zeile weiter unten ohnehin steht, und nahm dem Namen den Platz.
      Das Etikett bleibt im Markup, aber leer — `:empty` blendet es aus. */
+  /* Beim Wechsel in die Sammlung bekommt das Kachelgitter seine
+     Breite erst jetzt. Der Beobachter faengt das ab, aber ein
+     Anstoss von hier kostet nichts und wirkt auch dort, wo es
+     keinen ResizeObserver gibt. */
+  if(name === 'sammlung' && typeof rasterSpannenBald === 'function') rasterSpannenBald();
   const kopf = ANSICHT_KOPF[name];
   if(kopf) $('#kopf-titel').textContent = kopf[1] || '';
   const etikett = document.getElementById('kopf-etikett');
