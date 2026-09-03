@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.8', w.__T('FASSUNG') === '3.2.8', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.9', w.__T('FASSUNG') === '3.2.9', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1602,62 +1602,75 @@ setTimeout(async () => {
       w.__T("raeume()[0].moebel[0].etagen = [20,40,60,80]");
     }
 
-    /* ── Das Fenster „von vorne" ────────────────────────────── */
+    /* ── Kanten nach innen ──────────────────────────────────────
+       Eine Tuer zum Flur ist keine Lichtquelle wie ein Fenster:
+       dahinter liegt ein Raum. Direkte Sonne endet dort, Streulicht
+       kommt gedaempft durch. */
     {
-      pruef('Es gibt ein Fenster f\u00fcr die Frontansicht',
-        !!d.getElementById('mf-modal'));
-      pruef('Aus dem M\u00f6belformular f\u00fchrt ein Weg dorthin',
-        !!d.getElementById('btn-mb-front'));
-      w.__T("mfOeffnen('mtest', false)");
-      await tick();
-      pruef('Das Fenster geht auf', w.__T("modalOffen('mf-modal')") === true);
-      pruef('Die Frontansicht wird gezeichnet',
-        !!d.querySelector('#mf-front svg'));
-      pruef('Der Querschnitt wird gezeichnet',
-        !!d.querySelector('#mf-quer svg'));
-      pruef('Jeder Boden hat einen Griff',
-        d.querySelectorAll('#mf-front [data-brett]').length === 4,
-        String(d.querySelectorAll('#mf-front [data-brett]').length));
-      pruef('Die Tabelle nennt jeden Boden',
-        d.querySelectorAll('#mf-tabelle .mf-zeile').length === 4,
-        String(d.querySelectorAll('#mf-tabelle .mf-zeile').length));
-      pruef('Die Lichtart l\u00e4sst sich umstellen',
-        d.querySelectorAll('#mf-regler [data-mflicht]').length === 3);
-      pruef('Der Monatsschieber steht im Fenster',
-        !!d.getElementById('mf-monat'));
-      pruef('Die Uhrzeit erscheint erst im Moment-Modus',
-        !d.getElementById('mf-zeit'));
-      w.__T("pLicht = 'moment'; mfZeichnen()");
-      pruef('und dann steht sie da', !!d.getElementById('mf-zeit'));
-      w.__T("pLicht = 'stunden'; mfZeichnen()");
-      pruef('Der Abschlussknopf hei\u00dft Fertig',
-        d.getElementById('mf-weiter').hidden === false
-        && /Fertig/.test(d.getElementById('mf-weiter').textContent),
-        d.getElementById('mf-weiter').textContent);
+      const rid0 = w.__T('raeume()[0].id');
+      pruef('Es gibt eine T\u00fcr nach innen',
+        w.__T('!!KANTEN_ART.innentuer') === true);
+      pruef('und einen Durchgang nach innen',
+        w.__T('!!KANTEN_ART.durchgang') === true);
+      pruef('Beide sind als innen gekennzeichnet',
+        w.__T('KANTEN_ART.innentuer.innen === true && KANTEN_ART.durchgang.innen === true'));
+      pruef('Eine Kante nach aussen ist es nicht',
+        w.__T('!KANTEN_ART.fenster.innen && !KANTEN_ART.offen.innen'));
 
-      /* Im Ansehen wird nichts verschoben: keine Griffe, kein
-         Umsetzen. Das ist der ganze Unterschied zwischen den
-         beiden Wegen ins Fenster. */
-      w.__T("mfSehen = true; mfZeichnen()");
-      pruef('Die Ansicht ist als solche gekennzeichnet',
-        d.getElementById('mf-modal').classList.contains('sehen'));
-      w.__T("mfSehen = false; mfZeichnen()");
-      pruef('Im Bearbeiten ist die Kennzeichnung weg',
-        !d.getElementById('mf-modal').classList.contains('sehen'));
+      const ik = w.__T('aussenKanten(raeume()[0]).filter(k=>k.k==="o").map(k=>k.id)[0]');
+      pruef('Eine Kante zum Pr\u00fcfen ist da', !!ik, String(ik));
 
-      /* Eine Pflanze auf einen anderen Boden setzen. */
-      const pid2 = w.__T('allePflanzen()[0].id');
-      w.__T(`pflanzeSetzen('${pid2}', raeume()[0].id, 40, 30, 0)`);
-      w.__T(`mfPflanze = '${pid2}'; mfZug = {i:2, bewegt:false}; mfZugEnde()`);
-      pruef('Ein Tipp auf einen Boden setzt die Pflanze dorthin',
-        w.__T(`(pflanzenOrt('${pid2}')||{}).etage`) === 2,
-        String(w.__T(`(pflanzenOrt('${pid2}')||{}).etage`)));
-      pruef('und die Wahl ist danach aufgehoben',
-        w.__T('mfPflanze') === null);
-      w.__T("modalZu('mf-modal')");
-      await tick();
-      pruef('Das Fenster l\u00e4sst sich schlie\u00dfen',
-        w.__T("modalOffen('mf-modal')") === false);
+      /* Dieselbe Kante zweimal: einmal offen, einmal nach innen. Der
+         Messpunkt liegt in genau der Kachel, zu der die Kante gehoert,
+         und die Sonne steht senkrecht darueber hinaus — sonst misst
+         man eine Wand woanders. */
+      const messen = art => w.__T(`(function(){
+        const r = raeume().find(function(x){ return x.id === '${rid0}'; });
+        r.kanten['${ik}'] = '${art}';
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        const t = '${ik}'.split(':')[1].split(',');
+        const px = (+t[0] + 0.5) * KACHEL, py = (+t[1] + 0.5) * KACHEL;
+        return JSON.stringify({
+          sonne: sonnigImRaum(r, px, py, 100, {az: r.drehung, hoehe: 60}),
+          hell: helligkeit(r, px, py, 100)
+        });
+      })()`);
+
+      const offen = JSON.parse(messen('offen'));
+      const innen = JSON.parse(messen('durchgang'));
+
+      pruef('Durch einen Durchgang nach innen f\u00e4llt keine Sonne',
+        innen.sonne === false, JSON.stringify(innen));
+      pruef('Durch dieselbe Kante als „offen\u201c schon',
+        offen.sonne === true, JSON.stringify(offen));
+      pruef('Streulicht kommt trotzdem an',
+        innen.hell > 0, String(innen.hell));
+      pruef('aber deutlich weniger als von aussen',
+        innen.hell < offen.hell * 0.9,
+        innen.hell.toFixed(1) + ' gegen ' + offen.hell.toFixed(1));
+
+      /* Auch die Tuer nach innen sperrt die Sonne aus — nicht nur der
+         Durchgang, sonst haenge die Pruefung an einer einzigen Art. */
+      const tuer = JSON.parse(messen('innentuer'));
+      pruef('Eine T\u00fcr nach innen sperrt die Sonne genauso aus',
+        tuer.sonne === false, JSON.stringify(tuer));
+
+      w.__T(`(function(){
+        const r = raeume().find(function(x){ return x.id === '${rid0}'; });
+        delete r.kanten['${ik}'];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      })()`);
+    }
+
+    /* ── Die Ansicht „von vorne" ist wieder draussen ──────────── */
+    {
+      pruef('Das Fenster f\u00fcr die Frontansicht ist weg',
+        !d.getElementById('mf-modal'));
+      pruef('Der Weg dorthin aus dem M\u00f6belformular ebenfalls',
+        !d.getElementById('btn-mb-front'));
+      pruef('Die Rechnung dahinter bleibt',
+        typeof w.__T('typeof brettStunden') === 'string'
+        && w.__T('typeof brettStunden') === 'function');
     }
 
     /* ── Kantenbreiten ── */

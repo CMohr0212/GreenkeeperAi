@@ -1597,33 +1597,6 @@ html[data-design="klartext"] .dokwahl-gewaehlt{border-width:2px}
    Fortschritt, Stufen, Frage, Knoepfe, Zusammenfassung und Fusszeile
    stehen oben bei den gemeinsamen Bausteinen. Hier bleibt nur, was
    wirklich nur das Umtopfen betrifft. */
-/* ── Möbel von vorne ──────────────────────────────────────────
-   Zwei Schnitte übereinander: Front zum Setzen, Querschnitt für den
-   Lichtverlauf. Die Griffe erscheinen nur im Bearbeiten. */
-.mf-bild{background:var(--fl-karte);border:1px solid var(--linie);
-  border-radius:var(--r-klein);padding:8px;margin:0 0 4px}
-.mf-bild svg{display:block;width:100%;height:auto;touch-action:none}
-#mf-modal.sehen .mf-bild svg{touch-action:auto}
-.mf-bu{margin:0 0 14px;font-size:13.5px;color:var(--schrift-3)}
-.mf-wahl{margin:0 0 10px;padding:9px 12px;border-radius:var(--r-klein);
-  background:var(--ton-wasser);color:var(--wasser);font-size:14.5px}
-.mf-regler{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px}
-.mf-regler label{display:flex;align-items:center;gap:10px;font-size:14px;
-  color:var(--schrift-2)}
-.mf-regler .lab{flex:0 0 76px}
-.mf-regler input[type=range]{flex:1;min-width:0;accent-color:var(--wasser)}
-.mf-regler output{flex:0 0 82px;text-align:right;font-size:13.5px}
-.mf-arten{display:flex;gap:6px;flex-wrap:wrap}
-.mf-arten button{flex:1;min-width:96px;min-height:38px}
-.mf-arten button.on{background:var(--fl-akzent);border-color:var(--fl-akzent);
-  color:var(--schrift-invers)}
-.mf-zeile{display:flex;justify-content:space-between;gap:12px;padding:8px 0;
-  border-bottom:1px solid var(--linie);font-size:14.5px}
-.mf-zeile:last-child{border-bottom:0}
-.mf-zeile b{font-weight:600;text-align:right}
-.mf-leer{color:var(--schrift-3);font-size:14px;margin:4px 0}
-#mf-modal .brett{cursor:ns-resize}
-#mf-modal.sehen .brett{cursor:default}
 .ut-fertig-melde{padding:11px 12px;border-radius:var(--r-klein);
   background:var(--ton-ok);color:var(--sicher);font-weight:600;
   font-size:var(--t-s);margin:0 0 14px}
@@ -1956,11 +1929,9 @@ body.gm-offen #fab-neu{display:none}
    Verschieben, nur Antippen. */
 #gra-flaeche .plan-svg{width:100%;height:auto;touch-action:auto}
 #gra-flaeche .marke{cursor:pointer}
-/* Möbel nahmen in der Ansicht keine Klicks an, weil dort nichts zu
-   verschieben ist. Seit sie in die Frontansicht führen, müssen sie
-   wieder anklickbar sein — Kacheln bleiben stumm. */
+/* In der Ansicht wird nichts angetippt ausser Pflanzenmarken. */
 #gra-flaeche .kachel{pointer-events:none}
-#gra-flaeche .moebel{pointer-events:auto;cursor:pointer}
+#gra-flaeche .moebel{pointer-events:none}
 .gra-licht{margin:12px 0 6px}
 #gra-karte{margin:10px 0 0}
 .gr-karte-tools{display:flex;gap:8px;margin:10px 0 0}
@@ -5965,7 +5936,14 @@ const KANTEN_ART = {
   bodenfenster:{name:'Bodentiefes Fenster', sockel:5, oben:230, kurz:'Bodenfenster'},
   tuer:      {name:'Tür',        sockel:0,   oben:210, kurz:'Tür'},
   bruestung: {name:'Brüstung',   sockel:100, oben:9999, kurz:'Brüstung'},
-  offen:     {name:'Offen',      sockel:0,   oben:9999, kurz:'offen'}
+  offen:     {name:'Offen',      sockel:0,   oben:9999, kurz:'offen'},
+  /* Kanten, hinter denen kein Himmel liegt, sondern der naechste Raum.
+     Sie lassen Licht ins Zimmer, aber keine Sonne: was durch eine
+     Zimmertuer faellt, ist Streulicht aus dem Flur. */
+  innentuer: {name:'Tür nach innen', sockel:0, oben:210, kurz:'Innentür',
+              innen:true},
+  durchgang: {name:'Durchgang nach innen', sockel:0, oben:9999,
+              kurz:'Durchgang', innen:true}
 };
 
 const MOEBEL_ARTEN = {
@@ -6042,6 +6020,9 @@ function kantenMass(r, kanteId){
               : (typeof kantenBreite === 'function' ? kantenBreite(r, kanteId) : KACHEL),
     sockel: eigen.sockel != null ? eigen.sockel : art.sockel,
     oben:   eigen.oben   != null ? eigen.oben   : art.oben,
+    /* Kein eigenes Mass, sondern eine Eigenschaft der Art: dahinter
+       liegt ein Raum, kein Himmel. */
+    innen:  !!art.innen,
     eigen:  Object.keys(eigen).length > 0
   };
 }
@@ -6217,6 +6198,7 @@ function sonnigImRaum(r, x, y, h, sonne){
     for(const kanteId of kanten){
       const mm = kantenMass(r, kanteId);
       if(mm.oben === 0) return false;                  // massive Wand
+      if(mm.innen) return false;                       // dahinter ein Raum
       if(z < mm.sockel || z > mm.oben) return false;
       /* Für die Breitenprüfung unten die engste Öffnung nehmen. */
       if(!m || mm.b < m.b){ m = mm; m.k = kanteId.charAt(0); }
@@ -6308,7 +6290,9 @@ function helligkeit(r, x, y, h, moebel, etage){
     const mx = (k.x + (k.k==='r'?1:k.k==='l'?0:0.5)) * KACHEL;
     const my = (k.y + (k.k==='u'?1:k.k==='o'?0:0.5)) * KACHEL;
     const dist = Math.max(60, Math.hypot(x-mx, y-my));
-    summe += (KACHEL * hoehe) / (dist*dist) * 10000;
+    /* Eine Kante nach innen sieht keinen Himmel. Sie bringt trotzdem
+       etwas mit — das Licht des Nachbarraums, aus zweiter Hand. */
+    summe += (KACHEL * hoehe) / (dist*dist) * 10000 * (art.innen ? .25 : 1);
   });
   if(r.dach === false) summe += 60;
   /* Ein Boden dicht darueber nimmt einen Teil des Himmels weg —
@@ -8942,7 +8926,6 @@ function papierkorbRender(){
         <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
         <label class="fspan check"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
       </div>
-      <div class="tools"><button id="btn-mb-front">Von vorne ansehen</button></div>
       <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
     </div>
 
@@ -9937,27 +9920,6 @@ function papierkorbRender(){
   </div>
 </div>
 
-<div id="mf-modal" class="sekm as-fenster" hidden>
-  <div class="sekm-kopf">
-    <button class="sekm-raus" id="mf-zu" aria-label="Zurück">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19l-7-7 7-7"/></svg>
-    </button>
-    <h2 class="sekm-titel" id="mf-titel" tabindex="-1">&nbsp;</h2>
-  </div>
-  <div class="sekm-rumpf as-rumpf" id="mf-rumpf">
-    <p class="mf-wahl" id="mf-wahl" hidden></p>
-    <div class="mf-bild" id="mf-front"></div>
-    <p class="mf-bu" id="mf-front-bu"></p>
-    <div class="mf-bild" id="mf-quer"></div>
-    <p class="mf-bu" id="mf-quer-bu"></p>
-    <div class="mf-regler" id="mf-regler"></div>
-    <div class="mf-tabelle" id="mf-tabelle"></div>
-  </div>
-  <div class="as-fuss">
-    <button id="mf-weiter" type="button" class="haupt">Fertig</button>
-  </div>
-</div>
-
 <div id="gift-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gift-titel" hidden>
   <div class="modal-box">
     <h3 id="gift-titel">Achtung, giftig für Katzen</h3>
@@ -9999,8 +9961,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.8';
+const FASSUNG = '3.2.9';
 const PATCHNOTES = [
+  {
+    nr: '3.2.9', datum: '2026-09-03', titel: 'Türen, hinter denen kein Himmel ist',
+    neu: [
+      'Zwei neue Kantenarten: „Tür nach innen“ und „Durchgang nach innen“. Damit steht im Plan, wo eine Öffnung nicht ins Freie führt, sondern in den nächsten Raum.',
+      'Durch eine Innenkante fällt keine Sonne mehr. Grundhelligkeit kommt weiter an, aber nur zu einem Viertel — das Licht des Nachbarraums, aus zweiter Hand.'
+    ],
+    besser: [
+      'Bisher rechnete eine Zimmertür wie ein Fenster: der Flur schien mittags voll herein. Wer seine Türen umstellt, bekommt für Räume mit Durchgang deutlich ehrlichere Zahlen.'
+    ],
+    behoben: [
+      'Die Ansicht „Von vorne ansehen“ ist wieder draußen. Die beiden Schnitte trafen nicht, was sie treffen sollten. Die Rechnung dahinter bleibt: Böden verschatten einander weiterhin, und jeder Boden bekommt sein eigenes Licht.'
+    ]
+  },
   {
     nr: '3.2.8', datum: '2026-09-03', titel: 'Regale haben Böden',
     neu: [
@@ -14891,11 +14866,6 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'ArrowRight') karteBlaettern(1);
 });
 
-modalAnmelden('mf-modal', {
-  groesse:'voll', schleier:false,
-  nachZu: ()=>{ mfId = null; mfPflanze = null;
-    if(typeof planRender === 'function') planRender(); }
-});
 modalAnmelden('gift-modal', {groesse:'blatt'});
 modalAnmelden('neu-modal',  {groesse:'blatt'});
 modalAnmelden('filter-modal', {groesse:'voll', schleier:false});
@@ -17308,310 +17278,6 @@ function stufeFuer(r, x, y, h, wert){
   return pLicht === 'hell' ? helligkeitStufe(wert) : 0;
 }
 
-/* ══════════════════ Möbel von vorne ══════════════════
-   Zwei feste, zueinander senkrechte Schnitte, wie in einer
-   Bauzeichnung: die Front zeigt links–rechts, der Querschnitt
-   vorn–hinten. Zusammen sagen sie, wo Licht anfängt, wo es aufhört
-   und wie es über den Tag wandert.
-
-   Das Lichtband wird nicht aus dem Fenster konstruiert, sondern
-   abgetastet: jeder Rasterpunkt einmal durch sonnigImRaum(). Damit
-   stimmt es fuer jede Oeffnung, jede Bruestung und jeden Dachueberstand,
-   ohne einen einzigen Sonderfall. Was der Querschnitt nicht kann: die
-   Neigung der Bandkante ist die projizierte, nicht der wahre
-   Sonnenwinkel — deshalb steht dort nie eine Gradzahl. */
-let mfId = null;           /* Moebel, das im Fenster liegt */
-let mfSehen = false;       /* true = Ansicht ohne Griffe */
-let mfPflanze = null;      /* zum Umsetzen gewaehlte Pflanze */
-
-function mfMoebel(){
-  const r = raum(); if(!r || !mfId) return null;
-  return (r.moebel||[]).find(m=>m.id === mfId) || null;
-}
-/* Pflanzen, die auf diesem Moebel stehen, samt ihrer Etage. */
-function mfPflanzen(r, m){
-  return pflanzenIm(r.id).map(p=>({p, o:pflanzenOrt(p.id)}))
-    .filter(({o})=> o && o.x >= m.x && o.x <= m.x+m.b && o.y >= m.y && o.y <= m.y+m.t)
-    .map(({p, o})=>({p, o, etage: etageVon(m, o)}));
-}
-function mfSonne(){
-  return sonnenstand(new Date(new Date().getFullYear(), pMonat-1, 15),
-    pZeit/60, balkonOrt());
-}
-/* Ein Punkt im Schnitt: hell, halbhell oder dunkel — je nach Lichtart
-   dieselbe Skala wie im Grundriss. */
-function mfPunktFarbe(r, x, y, z){
-  if(pLicht === 'moment')
-    return sonnigImRaum(r, x, y, z, mfSonne()) ? 'var(--licht-4)' : 'var(--licht-0)';
-  if(pLicht === 'hell')
-    return ['var(--licht-0)','var(--licht-1)','var(--licht-2)','var(--licht-3)',
-            'var(--licht-4)'][helligkeitStufe(helligkeit(r, x, y, z))];
-  return farbeFuer(sonnenstundenRaum(r, x, y, z, pMonat), 0);
-}
-
-/* ── Front: Breite × Höhe ─────────────────────────────────── */
-function mfFrontSVG(r, m){
-  const et = etagenVon(m);
-  const hoehe = Math.max(m.h, et[et.length-1]) + 30;
-  const B = 320, H = 240, rand = 34;
-  const sk = Math.min((B - rand*2) / m.b, (H - 28) / hoehe);
-  const px = cm => rand + cm*sk;
-  const py = cm => H - 16 - cm*sk;
-  const SP = 8, TI = 3;              /* Raster: Spalten × Tiefe */
-  let g = `<svg viewBox="0 0 ${B} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">`;
-  g += `<rect x="0" y="0" width="${B}" height="${H}" fill="var(--fl-karte)"/>`;
-
-  /* Fächer: jede Spalte in der Farbe ihres Lichts */
-  et.forEach((bh, i)=>{
-    const unten = i === 0 ? 0 : et[i-1];
-    if(bh <= unten) return;
-    for(let c=0;c<SP;c++){
-      const x = m.x + m.b*(c+0.5)/SP;
-      let best = 0, farbe = 'var(--licht-0)';
-      for(let d=0;d<TI;d++){
-        const y = m.y + m.t*(d+0.5)/TI;
-        const f = mfPunktFarbe(r, x, y, bh + 2);
-        const n = +(f.match(/licht-(\d)/)||[0,0])[1];
-        if(n >= best){ best = n; farbe = f; }
-      }
-      g += `<rect x="${(px(m.b*c/SP)).toFixed(1)}" y="${py(bh).toFixed(1)}"
-        width="${(m.b/SP*sk+0.6).toFixed(1)}" height="${((bh-unten)*sk).toFixed(1)}"
-        fill="${farbe}"/>`;
-    }
-  });
-
-  /* Seitenwangen */
-  g += `<rect x="${px(0)-5}" y="${py(et[et.length-1])}" width="5"
-    height="${(et[et.length-1])*sk}" fill="var(--z-moebel)" opacity=".75"/>`;
-  g += `<rect x="${px(m.b)}" y="${py(et[et.length-1])}" width="5"
-    height="${(et[et.length-1])*sk}" fill="var(--z-moebel)" opacity=".75"/>`;
-  g += `<line x1="${px(0)-16}" y1="${py(0)}" x2="${px(m.b)+16}" y2="${py(0)}"
-    stroke="var(--linie-stark)" stroke-width="1.4"/>`;
-
-  const drauf = mfPflanzen(r, m);
-  et.forEach((bh, i)=>{
-    g += `<g class="brett" data-brett="${i}">
-      <rect x="${px(0)-5}" y="${py(bh)-3.5}" width="${m.b*sk+10}" height="7"
-        fill="var(--z-moebel)" rx="2"/>
-      <rect x="${px(0)-5}" y="${py(bh)-15}" width="${m.b*sk+10}" height="30"
-        fill="transparent"/>
-      <text x="${px(0)-10}" y="${py(bh)+4}" text-anchor="end" font-size="10"
-        fill="var(--schrift-3)">${bh}</text></g>`;
-    const hier = drauf.filter(d=>d.etage === i);
-    hier.forEach((d, n)=>{
-      const cx = px(m.b*(n+0.5)/Math.max(1, hier.length)), cy = py(bh) - 5;
-      const gew = mfPflanze === d.p.id;
-      g += `<g data-mfpfl="${d.p.id}" style="cursor:pointer">
-        <ellipse cx="${cx.toFixed(1)}" cy="${(cy-5).toFixed(1)}" rx="8" ry="9"
-          fill="var(--z-blatt)"/>
-        <path d="M${(cx-5).toFixed(1)} ${cy.toFixed(1)} h10 l-1.6 -6 h-6.8 z"
-          fill="var(--z-stamm)"/>
-        ${gew ? `<circle cx="${cx.toFixed(1)}" cy="${(cy-5).toFixed(1)}" r="12"
-          fill="none" stroke="var(--fl-akzent)" stroke-width="2"/>` : ''}
-        <title>${esc(d.p.name || 'Pflanze')}</title></g>`;
-    });
-  });
-  return g + '</svg>';
-}
-
-/* ── Querschnitt: Tiefe × Höhe ────────────────────────────── */
-function mfQuerSVG(r, m){
-  const et = etagenVon(m);
-  const bis = Math.max(m.h, et[et.length-1]);
-  const tiefeBild = Math.max(m.t * 3, 160);        /* Raum vor dem Möbel */
-  const B = 320, H = 200, rand = 34;
-  const sk = Math.min((B - rand*2) / tiefeBild, (H - 26) / (r.deckeH || 250));
-  /* y wächst nach hinten; im Bild liegt hinten links. */
-  const px = cm => rand + (cm - m.y + m.t*0.4) * sk;
-  const py = cm => H - 14 - cm*sk;
-  const SP = 22, ZE = 16;
-  let g = `<svg viewBox="0 0 ${B} ${H}" xmlns="http://www.w3.org/2000/svg" role="img">`;
-  g += `<rect x="0" y="0" width="${B}" height="${H}" fill="var(--fl-karte)"/>`;
-
-  /* Das Lichtband: abgetastet, nicht konstruiert */
-  const y0 = m.y - m.t*0.4, y1 = m.y + m.t + tiefeBild*0.5;
-  const zMax = r.deckeH || 250;
-  const mitte = m.x + m.b/2;
-  for(let c=0;c<SP;c++){
-    const y = y0 + (y1-y0)*(c+0.5)/SP;
-    for(let z=0;z<ZE;z++){
-      const zz = zMax*(z+0.5)/ZE;
-      const f = mfPunktFarbe(r, mitte, y, zz);
-      if(f === 'var(--licht-0)') continue;
-      g += `<rect x="${px(y0 + (y1-y0)*c/SP).toFixed(1)}"
-        y="${py(zMax*(z+1)/ZE).toFixed(1)}"
-        width="${((y1-y0)/SP*sk+0.6).toFixed(1)}"
-        height="${(zMax/ZE*sk+0.6).toFixed(1)}" fill="${f}" opacity=".85"/>`;
-    }
-  }
-  g += `<line x1="0" y1="${py(0)}" x2="${B}" y2="${py(0)}"
-    stroke="var(--linie-stark)" stroke-width="1.4"/>`;
-  /* Rückwand andeuten, damit klar ist, wo hinten ist */
-  g += `<line x1="${px(m.y - m.t*0.4)}" y1="${py(zMax)}"
-    x2="${px(m.y - m.t*0.4)}" y2="${py(0)}" stroke="var(--linie)" stroke-width="1.4"/>`;
-  g += `<text x="${px(m.y - m.t*0.4)+4}" y="${py(zMax)+12}" font-size="10"
-    fill="var(--schrift-3)">hinten</text>`;
-  g += `<text x="${B-6}" y="${py(0)-6}" text-anchor="end" font-size="10"
-    fill="var(--schrift-3)">vorne</text>`;
-
-  et.forEach(bh=>{
-    g += `<rect x="${px(m.y).toFixed(1)}" y="${py(bh).toFixed(1)}"
-      width="${(m.t*sk).toFixed(1)}" height="5" fill="var(--z-moebel)" rx="2"/>`;
-  });
-  return g + '</svg>';
-}
-
-/* ── Das Fenster füllen ───────────────────────────────────── */
-const MF_ARTEN = [['stunden','Sonnenstunden'],['moment','Dieser Moment'],
-  ['hell','Grundhelligkeit']];
-
-function mfZeichnen(){
-  const el = document.getElementById('mf-modal');
-  const r = raum(), m = mfMoebel();
-  if(!el || !r || !m) return;
-  el.classList.toggle('sehen', mfSehen);
-  const t = document.getElementById('mf-titel');
-  if(t) t.textContent = m.name + ' von vorne';
-
-  const et = etagenVon(m);
-  document.getElementById('mf-front').innerHTML = mfFrontSVG(r, m);
-  document.getElementById('mf-quer').innerHTML  = mfQuerSVG(r, m);
-  document.getElementById('mf-front-bu').textContent = mfSehen
-    ? 'Von vorne. Ein Tipp auf eine Pflanze öffnet sie.'
-    : (et.length > 1
-        ? 'Von vorne. Bretter lassen sich in der Höhe ziehen. Erst eine '
-          + 'Pflanze antippen, dann ein Brett — sie wandert dorthin.'
-        : 'Von vorne. Unter „Böden“ im Möbelformular werden aus einer '
-          + 'Fläche mehrere.');
-  document.getElementById('mf-quer-bu').textContent =
-    'Im Querschnitt, von der Seite gesehen: wie weit das Licht nach '
-    + 'hinten reicht und wo ein Brett es abschneidet.';
-
-  const wahl = document.getElementById('mf-wahl');
-  if(wahl){
-    const p = mfPflanze ? allePflanzen().find(x=>x.id === mfPflanze) : null;
-    wahl.hidden = !p;
-    if(p) wahl.textContent = p.name + ' ist gewählt — jetzt ein Brett antippen.';
-  }
-
-  const st = Math.floor(pZeit/60), mi = pZeit % 60;
-  document.getElementById('mf-regler').innerHTML =
-    `<div class="tools mf-arten">` + MF_ARTEN.map(([k, n])=>
-      `<button data-mflicht="${k}" class="${pLicht===k?'on':''}">${n}</button>`).join('')
-    + `</div>`
-    + `<label><span class="lab">Monat</span>
-       <input type="range" id="mf-monat" min="1" max="12" step="1" value="${pMonat}">
-       <output>${MONATE[pMonat-1]}</output></label>`
-    + (pLicht === 'moment'
-      ? `<label><span class="lab">Uhrzeit</span>
-         <input type="range" id="mf-zeit" min="0" max="1439" step="10" value="${pZeit}">
-         <output>${st}:${String(mi).padStart(2,'0')} Uhr</output></label>` : '');
-
-  /* Was auf jedem Boden ankommt — von oben nach unten gelesen. */
-  const drauf = mfPflanzen(r, m);
-  let tab = '';
-  for(let i = et.length-1; i >= 0; i--){
-    const std = brettStunden(r, m, i, pMonat);
-    const sp = brettSpanne(r, m, i);
-    const namen = drauf.filter(d=>d.etage === i).map(d=>d.p.name);
-    const wie = sp.min === sp.max ? HELL_NAME[sp.max]
-      : HELL_NAME[sp.min] + ' bis ' + HELL_NAME[sp.max];
-    tab += `<div class="mf-zeile"><span>${et.length > 1 ? 'Boden ' + (i+1) + ' · ' : ''}`
-      + `${et[i]} cm${namen.length ? ' · ' + esc(namen.join(', ')) : ''}</span>`
-      + `<b>${(Math.round(std*10)/10).toFixed(1).replace('.', ',')} h Sonne<br>${wie}</b></div>`;
-  }
-  document.getElementById('mf-tabelle').innerHTML = tab;
-}
-
-function mfOeffnen(id, sehen){
-  mfId = id; mfSehen = !!sehen; mfPflanze = null;
-  mfZeichnen();
-  modalAuf('mf-modal');
-}
-
-document.addEventListener('click', e=>{
-  if(e.target.closest('#mf-zu') || e.target.closest('#mf-weiter')){
-    modalZu('mf-modal'); return;
-  }
-  if(!modalOffen('mf-modal')) return;
-  const la = e.target.closest('[data-mflicht]');
-  if(la){ pLicht = la.dataset.mflicht; mfZeichnen(); return; }
-  /* In der Ansicht wird nichts umgesetzt: ein Tipp öffnet die Pflanze. */
-  const pf = e.target.closest('#mf-front [data-mfpfl]');
-  if(pf){
-    if(mfSehen){
-      const p = allePflanzen().find(x=>x.id === pf.dataset.mfpfl);
-      if(p){ modalZu('mf-modal'); karteOeffnen(p.id); }
-      return;
-    }
-    mfPflanze = mfPflanze === pf.dataset.mfpfl ? null : pf.dataset.mfpfl;
-    mfZeichnen(); return;
-  }
-});
-document.addEventListener('input', e=>{
-  if(!modalOffen('mf-modal') || !e.target) return;
-  if(e.target.id === 'mf-monat'){ pMonat = +e.target.value; mfZeichnen(); }
-  if(e.target.id === 'mf-zeit'){ pZeit = +e.target.value; mfZeichnen(); }
-});
-
-/* Brett ziehen ändert seine Höhe, in Fünferschritten. Ein Tipp ohne
-   Ziehen setzt die gewählte Pflanze auf dieses Brett. Beides nur im
-   Bearbeiten — in der Ansicht hängen die Griffe gar nicht erst dran. */
-let mfZug = null;
-function mfZugStart(ev){
-  if(mfSehen) return;
-  const g = ev.target.closest('[data-brett]'); if(!g) return;
-  const m = mfMoebel(); if(!m) return;
-  const i = +g.dataset.brett;
-  mfZug = {i, y0: ev.clientY, h0: etagenVon(m)[i], bewegt:false};
-  try{ ev.target.setPointerCapture(ev.pointerId); }catch(err){}
-  ev.preventDefault();
-}
-function mfZugLauf(ev){
-  if(!mfZug) return;
-  const m = mfMoebel(); if(!m) return;
-  const el = document.getElementById('mf-front');
-  const hoehe = el ? el.getBoundingClientRect().height : 240;
-  if(!hoehe) return;
-  /* Bildhöhe 240 Einheiten; wieviel Zentimeter ein Pixel ist, hängt
-     am Maßstab der Zeichnung. */
-  const et = etagenVon(m).slice();
-  const sk = (hoehe / 240) * Math.min((320 - 68) / m.b,
-    (240 - 28) / (Math.max(m.h, et[et.length-1]) + 30));
-  if(!sk) return;
-  const d = (mfZug.y0 - ev.clientY) / sk;
-  if(!mfZug.bewegt && Math.abs(d) < 4) return;
-  mfZug.bewegt = true;
-  ev.preventDefault();
-  const unten = mfZug.i === 0 ? 5 : et[mfZug.i-1] + 15;
-  const oben = mfZug.i === et.length-1 ? Math.max(m.h, 20) : et[mfZug.i+1] - 15;
-  et[mfZug.i] = Math.max(unten, Math.min(oben, Math.round((mfZug.h0 + d)/5)*5));
-  m.etagen = et;
-  mfZeichnen();
-}
-function mfZugEnde(){
-  if(!mfZug) return;
-  const r = raum(), m = mfMoebel();
-  if(mfZug.bewegt){ sichern(); }
-  else if(mfPflanze && r && m){
-    const o = pflanzenOrt(mfPflanze);
-    /* Die Pflanze bekommt die Etage; steht sie noch gar nicht auf dem
-       Möbel, wird sie zusätzlich dorthin gesetzt. */
-    pflanzeSetzen(mfPflanze, r.id,
-      o && o.x >= m.x && o.x <= m.x+m.b ? o.x : m.x + m.b/2,
-      o && o.y >= m.y && o.y <= m.y+m.t ? o.y : m.y + m.t/2,
-      mfZug.i);
-    mfPflanze = null;
-    mfZeichnen();
-  }
-  mfZug = null;
-}
-document.addEventListener('pointerdown', e=>{
-  if(modalOffen('mf-modal') && e.target.closest('#mf-front')) mfZugStart(e);
-});
-document.addEventListener('pointermove', e=>{ if(mfZug) mfZugLauf(e); });
-document.addEventListener('pointerup', mfZugEnde);
-document.addEventListener('pointercancel', mfZugEnde);
 
 /* ══════════════════ Möbel im Raster zeichnen ══════════════════
    Ein 90 cm breites Möbel wurde bisher pixelgenau gezeichnet und saß
@@ -17680,6 +17346,10 @@ function grundrissSVG(){
     else if(art==='tuer'){ farbe = 'var(--z-tuer)'; dash = ` stroke-dasharray="${8*sk} ${5*sk}"`; }
     else if(art==='bruestung'){ farbe = 'var(--z-moebel)'; dicke = 4*sk; dash = ` stroke-dasharray="${2.5*sk} ${3.5*sk}"`; }
     else if(art==='offen'){ farbe = 'var(--z-moebel-2)'; dicke = 2*sk; dash = ` stroke-dasharray="${2.5*sk} ${5*sk}"`; }
+    /* Innenkanten duenner und luftiger als ihre Geschwister nach
+       aussen — der Strich sagt schon, dass von dort wenig kommt. */
+    else if(art==='innentuer'){ farbe = 'var(--z-tuer)'; dicke = 3*sk; dash = ` stroke-dasharray="${3*sk} ${7*sk}"`; }
+    else if(art==='durchgang'){ farbe = 'var(--z-moebel-2)'; dicke = 1.6*sk; dash = ` stroke-dasharray="${1.6*sk} ${7*sk}"`; }
     s += `<line class="kante" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" style="stroke:${farbe}" stroke-width="${dicke}" stroke-linecap="square"${dash}/>`;
     s += `<line class="kante-griff" data-kante="${k.id}" x1="${p[0]}" y1="${p[1]}" x2="${p[2]}" y2="${p[3]}" stroke="transparent" stroke-width="${16*sk}"/>`;
     /* Ein Punkt markiert Kanten mit eigenen Maßen. */
@@ -17871,10 +17541,6 @@ document.addEventListener('click', e=>{
       grAnsichtZeichnen();
       return;
     }
-    /* Ein Möbel führt in die Frontansicht — ohne Griffe, denn in der
-       Ansicht wird nichts verschoben. */
-    const mo = e.target.closest('#gra-flaeche [data-moebel]');
-    if(mo){ mfOeffnen(mo.dataset.moebel, true); return; }
     if(e.target.closest('#gra-flaeche')){ pKarte = null; grAnsichtZeichnen(); }
   }
 });
@@ -18340,13 +18006,6 @@ function moebelEtagenPruefen(r, m){
       o.etage = Math.min(o.etage, n-1);
   });
 }
-/* Erst speichern, dann zeigen: sonst rechnet die Frontansicht mit den
-   alten Maßen, während im Formular schon die neuen stehen. */
-$('#btn-mb-front').onclick = ()=>{
-  const id = $('#moebel-bearb').dataset.id;
-  $('#btn-mb-save').click();
-  if(id) mfOeffnen(id, false);
-};
 $('#btn-mb-weg').onclick = ()=>{
   const r = raum(), id = $('#moebel-bearb').dataset.id;
   r.moebel = (r.moebel||[]).filter(x=>x.id!==id);

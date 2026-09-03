@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.9 — 3. September 2026
+**Türen, hinter denen kein Himmel ist**
+
+### Neu
+- Zwei neue Kantenarten: „Tür nach innen“ und „Durchgang nach innen“. Damit lässt sich im Plan festhalten, wo eine Öffnung nicht ins Freie führt, sondern in den nächsten Raum.
+- Durch eine Innenkante fällt keine Sonne mehr. Grundhelligkeit kommt weiter an, aber nur zu einem Viertel — das Licht des Nachbarraums, aus zweiter Hand.
+
+### Besser
+- Bisher rechnete eine Zimmertür wie ein Fenster: der Flur schien mittags voll herein. Wer seine Türen umstellt, bekommt für Räume mit Durchgang deutlich ehrlichere Zahlen.
+
+### Behoben
+- Die Ansicht „Von vorne ansehen“ ist wieder draußen. Die beiden Schnitte zeigten nicht, was sie zeigen sollten. Die Rechnung dahinter bleibt bestehen: Böden verschatten einander weiterhin, und jeder Boden bekommt sein eigenes Licht.
+
+---
+
 ## 3.2.8 — 3. September 2026
 **Regale haben Böden**
 
