@@ -4,6 +4,24 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.3.0 — 3. September 2026
+**Der Raum wächst mit**
+
+### Neu
+- Unter „Fläche“ wird gewischt statt getippt. Was beim Aufsetzen des Fingers passiert — Boden anlegen oder wegnehmen — gilt für den ganzen Zug.
+- Der Raum wächst in jede Richtung mit. Außen herum liegt ein blasser Rand; wer dort weitermalt, baut an, auch nach links und oben. Wände, Fenster, Möbel und Stellplätze wandern mit.
+- Die Maße einer Wand stehen in einem eigenen Blatt statt in einem Systemfenster.
+- Neu in diesem Blatt: was vor der Öffnung steht. Balkon, Dachüberstand, Markise, Haus gegenüber — Tiefe und Höhe eintragen, und die Sonnenrechnung nimmt es mit. Die flache Wintersonne hält so ein Balkon ab, die hohe Mittagssonne kommt darüber hinweg.
+- Im Vollbild gibt es ein Werkzeug „Raum“: Name, Drehung auf dem Kompass, offener Himmel und Deckenhöhe.
+
+### Besser
+- Die Raumgröße wird nur noch für den ersten Wurf eingetragen. Alles danach wird gemalt, ohne dass die Einrichtung geleert wird.
+
+### Behoben
+- Die Grundhelligkeit war falsch skaliert: jeder Punkt in jedem Raum mit auch nur einem Fenster galt als „sehr hell“. Der Grundriss war einfarbig eingefärbt, und die Warnung „steht zu dunkel“ konnte nie auslösen. Der Maßstab ist an vier Fällen neu geeicht.
+
+---
+
 ## 3.2.9 — 3. September 2026
 **Türen, hinter denen kein Himmel ist**
 

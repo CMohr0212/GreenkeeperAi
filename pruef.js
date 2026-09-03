@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.9', w.__T('FASSUNG') === '3.2.9', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.3.0', w.__T('FASSUNG') === '3.3.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1673,6 +1673,207 @@ setTimeout(async () => {
         && w.__T('typeof brettStunden') === 'function');
     }
 
+    /* ── Der Maßstab der Grundhelligkeit ──────────────────
+       Bis 3.2.9 lag der Faktor bei 10000 und die oberste Schwelle bei
+       45 — jeder Punkt in jedem Raum mit einer Öffnung war Stufe 4.
+       Diese vier Fälle sind die Eichung. Fällt einer, stimmt der
+       Maßstab nicht mehr. */
+    {
+      const stufen = art => w.__T(`(function(){
+        const kacheln = {};
+        for(let y=0;y<8;y++) for(let x=0;x<6;x++) kacheln[x+','+y] = 1;
+        const r = {id:'refhell', sp:6, re:8, kacheln, drehung:180, dach:true,
+          deckeH:250, moebel:[],
+          kanten:{'o:1,0':'${art}','o:2,0':'${art}','o:3,0':'${art}'}};
+        return JSON.stringify([
+          helligkeitStufe(helligkeit(r, 125, 25, 0)),
+          helligkeitStufe(helligkeit(r, 125, 175, 0)),
+          helligkeitStufe(helligkeit(r, 125, 325, 0))
+        ]);
+      })()`);
+
+      const f = JSON.parse(stufen('fenster'));
+      pruef('Direkt am Fenster ist es sehr hell', f[0] === 4, JSON.stringify(f));
+      pruef('Anderthalb Meter tiefer noch hell', f[1] === 3, JSON.stringify(f));
+      pruef('Drei Meter tief im Raum ist es dunkel', f[2] === 1, JSON.stringify(f));
+      pruef('Die Helligkeit nimmt nach hinten wirklich ab',
+        f[0] > f[1] && f[1] > f[2], JSON.stringify(f));
+
+      const t = JSON.parse(stufen('innentuer'));
+      pruef('Ein Raum, der nur eine T\u00fcr nach innen hat, ist hinten sehr dunkel',
+        t[2] === 0, JSON.stringify(t));
+
+      pruef('Der Faktor steht als eigene Gr\u00f6\u00dfe da',
+        w.__T('HELL_FAKTOR') === 50, String(w.__T('HELL_FAKTOR')));
+    }
+
+    /* ── Der Raum wächst mit ──────────────────────────
+       Anbauen nach links ergibt negative Kachelnummern. Sie dürfen
+       den Zug überleben, aber nicht das Loslassen. */
+    {
+      const rid0 = w.__T('raeume()[0].id');
+      w.__T(`(function(){
+        const r = raeume()[0];
+        r.kacheln = {}; r.sp = 2; r.re = 2;
+        for(let y=0;y<2;y++) for(let x=0;x<2;x++) r.kacheln[x+','+y] = 1;
+        r.kanten = {'o:0,0':'fenster'};
+        r.kantenMass = {'o:0,0':{b:70}};
+        r.moebel = [{id:'wtest', name:'Regal', typ:'regal', x:0, y:0,
+                     b:50, t:50, h:150, etagen:[150]}];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      })()`);
+      const pidW = w.__T('allePflanzen()[0].id');
+      w.__T(`pflanzeSetzen('${pidW}', '${rid0}', 25, 25)`);
+
+      w.__T("malt = {an:true}; kachelMalen(raeume()[0], -1, 0)");
+      pruef('W\u00e4hrend des Zuges darf eine Kachel negativ hei\u00dfen',
+        w.__T("!!raeume()[0].kacheln['-1,0']") === true);
+
+      w.__T('raumZuschneiden(raeume()[0]); malt = null');
+      pruef('Nach dem Loslassen f\u00e4ngt der Raum wieder bei null an',
+        w.__T("!!raeume()[0].kacheln['0,0']") === true
+        && w.__T("!!raeume()[0].kacheln['-1,0']") === false);
+      pruef('Der Raum ist eine Spalte breiter geworden',
+        w.__T('raeume()[0].sp') === 3, String(w.__T('raeume()[0].sp')));
+      pruef('Die Wand ist mitgewandert',
+        w.__T("!!raeume()[0].kanten['o:1,0']") === true,
+        JSON.stringify(w.__T('JSON.stringify(raeume()[0].kanten)')));
+      pruef('Ihre eigenen Ma\u00dfe ebenfalls',
+        w.__T("(raeume()[0].kantenMass['o:1,0']||{}).b") === 70);
+      pruef('Das M\u00f6bel ist mitgewandert',
+        w.__T("raeume()[0].moebel[0].x") === 50,
+        String(w.__T("raeume()[0].moebel[0].x")));
+      pruef('Die Pflanze auch',
+        w.__T(`(pflanzenOrt('${pidW}')||{}).x`) === 75,
+        String(w.__T(`(pflanzenOrt('${pidW}')||{}).x`)));
+
+      /* Wegnehmen schneidet die Grenzen wieder zurück. */
+      w.__T(`(function(){
+        const r = raeume()[0];
+        malt = {an:false};
+        kachelMalen(r, 0, 0); kachelMalen(r, 0, 1);
+        raumZuschneiden(r); malt = null;
+      })()`);
+      pruef('Wegnehmen schneidet den Raum wieder zu',
+        w.__T('raeume()[0].sp') === 2, String(w.__T('raeume()[0].sp')));
+
+      /* Die letzte Kachel bleibt, sonst gäbe es nichts mehr zum Tippen. */
+      w.__T(`(function(){
+        const r = raeume()[0];
+        r.kacheln = {'0,0':1}; r.sp = 1; r.re = 1;
+        malt = {an:false}; kachelMalen(r, 0, 0); malt = null;
+      })()`);
+      pruef('Die letzte Kachel l\u00e4sst sich nicht wegnehmen',
+        w.__T('Object.keys(raeume()[0].kacheln).length') === 1);
+
+      /* Ausgangslage für alles Weitere wiederherstellen. */
+      w.__T(`(function(){
+        const r = raeume()[0];
+        r.kacheln = {}; r.sp = 6; r.re = 3;
+        for(let y=0;y<3;y++) for(let x=0;x<6;x++) r.kacheln[x+','+y] = 1;
+        r.kanten = {}; r.kantenMass = {}; r.moebel = [];
+        for(let x=0;x<6;x++) r.kanten['u:'+x+',2'] = 'bruestung';
+        r.kanten['o:2,0'] = 'tuer';
+        r.kanten['o:3,0'] = 'fenster';
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        sichern();
+      })()`);
+      w.__T(`pflanzeSetzen('${pidW}', '${rid0}', 40, 30)`);
+      pruef('Der Pr\u00fcfraum steht wieder', w.__T('raeume()[0].sp') === 6);
+
+      /* Der Rand zum Anbauen ist kein Schmuck: ohne ihn gibt es
+         ausserhalb der Grenzen nichts, was der Finger treffen kann. */
+      const merkM = w.__T('pModus');
+      w.__T("pModus = 'kacheln'; planRender()");
+      pruef('Im Fl\u00e4chenmodus liegt ein Rand zum Anbauen',
+        !!d.querySelector('#plan-svg [data-kx="-1"]'));
+      w.__T("pModus = 'pflanzen'; planRender()");
+      pruef('In den anderen Werkzeugen nicht',
+        !d.querySelector('#plan-svg [data-kx="-1"]'));
+      w.__T(`pModus = '${merkM}'; planRender()`);
+    }
+
+    /* ── Was vor der Öffnung steht ─────────────────────
+       Ein Balkon vor dem Fenster nimmt die flache Sonne weg und lässt
+       die hohe durch. Genau das ist der Unterschied zu einer Wand. */
+    {
+      const rid0 = w.__T('raeume()[0].id');
+      const ik = w.__T('aussenKanten(raeume()[0]).filter(k=>k.k==="o").map(k=>k.id)[0]');
+      const messen = (vt, vh, hoehe) => w.__T(`(function(){
+        const r = raeume().find(function(x){ return x.id === '${rid0}'; });
+        r.kanten['${ik}'] = 'offen';
+        kantenMassSetzen(r, '${ik}', {vorTiefe:${vt}, vorHoehe:${vh}});
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        const t = '${ik}'.split(':')[1].split(',');
+        const px = (+t[0] + 0.5) * KACHEL, py = (+t[1] + 0.5) * KACHEL;
+        return sonnigImRaum(r, px, py, 100, {az: r.drehung, hoehe: ${hoehe}});
+      })()`);
+
+      pruef('Ohne Vorbau kommt die flache Sonne herein',
+        messen(0, 0, 20) === true);
+      pruef('Ein Balkon davor h\u00e4lt sie ab',
+        messen(300, 400, 20) === false);
+      pruef('Die hohe Sonne kommt \u00fcber denselben Balkon hinweg',
+        messen(300, 400, 60) === true);
+      pruef('Eine Tiefe ohne H\u00f6he \u00e4ndert nichts',
+        messen(300, 0, 20) === true);
+
+      w.__T(`(function(){
+        const r = raeume().find(function(x){ return x.id === '${rid0}'; });
+        delete r.kanten['${ik}'];
+        kantenMassSetzen(r, '${ik}', {});
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      })()`);
+    }
+
+    /* ── Maße als Blatt statt prompt() ────────────────── */
+    {
+      pruef('Es gibt ein Blatt f\u00fcr die Kantenma\u00dfe',
+        !!d.getElementById('km-modal'));
+      const kid2 = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
+      w.__T(`raum().kanten['${kid2}'] = 'fenster'`);
+      w.__T(`kantenMassFragen(raum(), '${kid2}')`);
+      await tick();
+      pruef('Ein zweiter Tipp auf eine Kante \u00f6ffnet es',
+        w.__T("modalOffen('km-modal')") === true);
+      pruef('Die H\u00f6hen stehen schon drin',
+        +d.getElementById('km-sockel').value === 90,
+        d.getElementById('km-sockel').value);
+      pruef('Und die Felder f\u00fcr den Vorbau auch',
+        !!d.getElementById('km-vt') && !!d.getElementById('km-vh'));
+      d.getElementById('km-vt').value = '150';
+      d.getElementById('km-vh').value = '250';
+      w.__T('kmSpeichern()');
+      await tick();
+      pruef('\u00dcbernehmen schreibt den Vorbau weg',
+        w.__T(`kantenMass(raum(), '${kid2}').vorTiefe`) === 150,
+        String(w.__T(`kantenMass(raum(), '${kid2}').vorTiefe`)));
+      pruef('und schlie\u00dft das Blatt',
+        w.__T("modalOffen('km-modal')") === false);
+      w.__T(`kantenMassSetzen(raum(), '${kid2}', {})`);
+    }
+
+    /* ── Raumeinstellungen im Vollbild ────────────────── */
+    {
+      pruef('Die Vollbildleiste hat ein Werkzeug f\u00fcr den Raum',
+        !!d.getElementById('btn-vb-raum'));
+      const merk = w.__T('pModus');
+      w.__T("vollbild = true; pModus = 'raum'; schubladeFuellen()");
+      pruef('Die Drehung ist im Vollbild erreichbar',
+        !!d.getElementById('vb-r-drehung'));
+      pruef('Der offene Himmel auch',
+        !!d.getElementById('vb-r-dach'));
+      const vor = w.__T('raum().drehung');
+      const feld = d.getElementById('vb-r-drehung');
+      feld.value = String((vor + 90) % 360);
+      feld.dispatchEvent(new w.Event('input', {bubbles:true}));
+      pruef('Der Schieber dreht den Raum wirklich',
+        w.__T('raum().drehung') === (vor + 90) % 360,
+        String(w.__T('raum().drehung')));
+      w.__T(`raum().drehung = ${vor}`);
+      w.__T(`vollbild = false; pModus = '${merk}'; schubladeFuellen()`);
+    }
+
     /* ── Kantenbreiten ── */
     const kid = w.__T('aussenKanten(raum()).filter(k=>k.k==="o").map(k=>k.id)[0]');
     if(kid){
@@ -1719,9 +1920,10 @@ setTimeout(async () => {
     pruef('Der Auswahlknopf kann ein Bild tragen',
       typeof w.__T('zchipHTML') === 'function');
     /* Die Schublade kannte den Pflanzenmodus nicht — im Vollbild gab
-       es damit keine Möglichkeit, eine Pflanze zu setzen. */
+       es damit keine Möglichkeit, eine Pflanze zu setzen. Seit 3.3.0
+       steht der Raummodus mit in derselben Liste. */
     pruef('Die Vollbild-Schublade kennt den Pflanzenmodus',
-      html.indexOf("['moebel','kanten','pflanzen'].includes(pModus)") !== -1);
+      html.indexOf("['moebel','kanten','pflanzen','raum'].includes(pModus)") !== -1);
     }
     w.__T("modalZu('sek-modal')");
     await tick();

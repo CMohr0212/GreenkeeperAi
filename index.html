@@ -1066,6 +1066,8 @@ html[data-design="klartext"] .zchip.mitbild img{width:34px;height:34px}
 .vb-sch-titel{margin:0 0 8px;font-size:var(--t-xs);color:var(--schrift-2);
   letter-spacing:.06em;text-transform:uppercase}
 .vb-sch-liste{display:flex;flex-direction:column;gap:6px}
+.km-grid{gap:10px;margin:0 0 10px}
+#km-fehler{color:var(--terra)}
 .vb-sch-liste .zchip{width:100%;justify-content:flex-start}
 
 /* ── Düngen ───────────────────────────────────────────────── */
@@ -3014,6 +3016,14 @@ body.vollbild .plan-svg{max-height:100%;width:auto;max-width:100%}
 .vbi-mo{border-radius:2px}
 .vbi-ka{border-radius:2px;border-style:dashed}
 .vbi-wa{border:0;border-left:3px solid currentColor;border-bottom:3px solid currentColor;width:16px;height:16px}
+/* Kompassnadel: schraeger Strich im Kreis */
+.vbi-ra{border-radius:50%}
+.vbi-ra::after{content:"";position:absolute;left:50%;top:2px;bottom:2px;width:2px;
+  margin-left:-1px;background:currentColor;transform:rotate(35deg)}
+.vb-sch-feld{flex:0 0 100%;display:flex;flex-direction:column;gap:4px;
+  font-size:var(--t-xs);color:var(--schrift-2)}
+.vb-sch-feld input[type=range]{width:100%;accent-color:var(--terra)}
+.vb-sch-feld.zeile{flex-direction:row;align-items:center;gap:8px}
 .vb-schublade{position:absolute;left:52px;top:0;bottom:0;width:min(46vw,240px);z-index:2;
   background:var(--paper);border-right:1px solid var(--line);padding:var(--a-2);
   display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;overflow-y:auto}
@@ -5986,6 +5996,68 @@ function neuerRaum(name, sp, re, drehung, dach){
 }
 function kachelAn(r, x, y){ return !!r.kacheln[x+','+y]; }
 
+/* ══════════════════ Der Raum waechst mit ══════════════════
+   Bis 3.2.9 war die Flaeche in das Rechteck `sp × re` gesperrt. Wer
+   nach aussen anbauen wollte, musste die Raumgroesse aendern — und die
+   raeumte den Raum leer. Jetzt wird gemalt, und die Grenzen richten
+   sich danach.
+
+   `raumVerschieben` ist noetig, weil beim Anbauen nach links oder oben
+   negative Kachelnummern entstehen. Statt negative Nummern zu erlauben
+   — die durch jede Schleife, jede Kanten-Kennung und jeden Prüfstand
+   müssten — wird der ganze Raum zurückgeschoben, sobald der Finger
+   los ist. */
+function raumVerschieben(r, dx, dy){
+  if(!dx && !dy) return;
+  const kacheln = {};
+  Object.keys(r.kacheln).forEach(k=>{
+    const t = k.split(',');
+    kacheln[(+t[0] + dx) + ',' + (+t[1] + dy)] = r.kacheln[k];
+  });
+  r.kacheln = kacheln;
+  const schiebId = id =>{
+    const teile = String(id).split(':');
+    const t = teile[1].split(',');
+    return teile[0] + ':' + (+t[0] + dx) + ',' + (+t[1] + dy);
+  };
+  const kanten = {};
+  Object.keys(r.kanten || {}).forEach(k=>{ kanten[schiebId(k)] = r.kanten[k]; });
+  r.kanten = kanten;
+  if(r.kantenMass){
+    const mass = {};
+    Object.keys(r.kantenMass).forEach(k=>{ mass[schiebId(k)] = r.kantenMass[k]; });
+    r.kantenMass = mass;
+  }
+  (r.moebel || []).forEach(m=>{ m.x += dx*KACHEL; m.y += dy*KACHEL; });
+  Object.keys(S.orte || {}).forEach(id=>{
+    const o = S.orte[id];
+    if(o && o.raum === r.id){ o.x += dx*KACHEL; o.y += dy*KACHEL; }
+  });
+}
+
+/* Grenzen aus der gemalten Flaeche neu bestimmen und den Raum so
+   schieben, dass er wieder bei 0,0 anfaengt. Gibt zurueck, ob sich
+   etwas geaendert hat. */
+function raumZuschneiden(r){
+  const schl = Object.keys(r.kacheln || {});
+  if(!schl.length){ r.kacheln['0,0'] = 1; schl.push('0,0'); }
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  schl.forEach(k=>{
+    const t = k.split(',');
+    const x = +t[0], y = +t[1];
+    if(x < minX) minX = x; if(x > maxX) maxX = x;
+    if(y < minY) minY = y; if(y > maxY) maxY = y;
+  });
+  const spNeu = maxX - minX + 1, reNeu = maxY - minY + 1;
+  const anders = minX !== 0 || minY !== 0 || r.sp !== spNeu || r.re !== reNeu;
+  if(minX || minY) raumVerschieben(r, -minX, -minY);
+  r.sp = spNeu; r.re = reNeu;
+  /* Die von Hand eingetragene Raumgroesse gilt nicht mehr, sobald die
+     Flaeche eine andere Form hat. */
+  if(anders){ delete r.echtB; delete r.echtT; }
+  return anders;
+}
+
 /* Außenkanten: alle Kanten aktiver Kacheln ohne aktiven Nachbarn */
 function aussenKanten(r){
   const raus = [];
@@ -6023,6 +6095,11 @@ function kantenMass(r, kanteId){
     /* Kein eigenes Mass, sondern eine Eigenschaft der Art: dahinter
        liegt ein Raum, kein Himmel. */
     innen:  !!art.innen,
+    /* Was vor der Oeffnung steht und Licht wegnimmt: Balkon,
+       Dachueberstand, Markise, Haus gegenueber. Tiefe nach aussen,
+       Hoehe ueber dem Fussboden dieses Raums. */
+    vorTiefe: eigen.vorTiefe != null ? eigen.vorTiefe : 0,
+    vorHoehe: eigen.vorHoehe != null ? eigen.vorHoehe : 0,
     eigen:  Object.keys(eigen).length > 0
   };
 }
@@ -6107,7 +6184,8 @@ function kantenBreite(r, kanteId){
 function kantenMassSetzen(r, kanteId, werte){
   r.kantenMass = r.kantenMass || {};
   const sauber = {};
-  ['b','sockel','oben'].forEach(k=>{ if(werte[k] != null) sauber[k] = werte[k]; });
+  ['b','sockel','oben','vorTiefe','vorHoehe'].forEach(k=>{
+    if(werte[k] != null) sauber[k] = werte[k]; });
   if(Object.keys(sauber).length) r.kantenMass[kanteId] = sauber;
   else delete r.kantenMass[kanteId];
   sichern();
@@ -6205,6 +6283,16 @@ function sonnigImRaum(r, x, y, h, sonne){
     }
     if(!m) return false;
     const k = m.k;
+    /* Ein Balkon vor dem Fenster: der Strahl ist zwar durch die
+       Oeffnung, muss aber noch ueber den Vorbau hinauskommen. Gerechnet
+       wird die Strecke nach aussen, nicht die Strecke laengs — sonst
+       kaeme ein flach einfallender Strahl zu billig davon. */
+    if(m.vorTiefe > 0 && m.vorHoehe > 0){
+      const n = {o:[0,-1], u:[0,1], l:[-1,0], r:[1,0]}[k];
+      const dn = dx*n[0] + dy*n[1];
+      if(dn <= 0.001) return false;
+      if(z + steig * (m.vorTiefe / dn) < m.vorHoehe) return false;
+    }
     /* Ist die Öffnung schmaler als die Kachel, sitzt sie mittig. Der
        Strahl muss dann auch seitlich durch die Öffnung passen. */
     if(m.b < KACHEL){
@@ -6292,7 +6380,7 @@ function helligkeit(r, x, y, h, moebel, etage){
     const dist = Math.max(60, Math.hypot(x-mx, y-my));
     /* Eine Kante nach innen sieht keinen Himmel. Sie bringt trotzdem
        etwas mit — das Licht des Nachbarraums, aus zweiter Hand. */
-    summe += (KACHEL * hoehe) / (dist*dist) * 10000 * (art.innen ? .25 : 1);
+    summe += (KACHEL * hoehe) / (dist*dist) * HELL_FAKTOR * (art.innen ? .25 : 1);
   });
   if(r.dach === false) summe += 60;
   /* Ein Boden dicht darueber nimmt einen Teil des Himmels weg —
@@ -6310,6 +6398,20 @@ function helligkeit(r, x, y, h, moebel, etage){
   }
   return summe;
 }
+/* ── Der Maßstab der Grundhelligkeit ─────────────────────────
+   Der Faktor hier und die Schwellen darunter gehoeren zusammen. Bis
+   3.2.9 stand hier 10000, waehrend die oberste Schwelle bei 45 lag —
+   jeder Punkt in jedem Raum mit auch nur einem Fenster kam auf die
+   hoechste Stufe. Der Grundriss war einfarbig und die Warnung „steht
+   zu dunkel" konnte nie ausloesen.
+
+   50 ist an vier Faellen geeicht, die auch im Pruefstand stehen:
+     · direkt am Fenster (drei Kacheln, 90–220 cm)   →  sehr hell
+     · 1,5 m tief im selben Raum                     →  hell
+     · 3 m tief im selben Raum                       →  dunkel
+     · Raum, der nur eine Tuer nach innen hat        →  sehr dunkel
+   Wer den Faktor anfasst, muss diese vier nachrechnen. */
+const HELL_FAKTOR = 50;
 function helligkeitStufe(w){
   if(w >= 45) return 4; if(w >= 22) return 3;
   if(w >= 10) return 2; if(w >= 4) return 1; return 0;
@@ -8843,8 +8945,8 @@ function papierkorbRender(){
           <button id="btn-raum-groesse">Übernehmen</button>
           <button id="btn-raum-undo" hidden>Änderung rückgängig</button>
         </div>
-        <span class="fhint" id="r-mass-hint">Gezeichnet wird in Schritten von 50 cm. Angebaut wird nach rechts und unten.
-          Beim Übernehmen wird die Einrichtung des Raums geleert — Fläche, Wände, Fenster, Möbel und Stellplätze.</span>
+        <span class="fhint" id="r-mass-hint">Setzt ein neues Rechteck und leert dabei die Einrichtung — Fläche, Wände, Fenster, Möbel und Stellplätze.
+          Für alles andere brauchst du das hier nicht mehr: unter „Fläche“ wächst der Raum in jede Richtung mit, ohne etwas zu verlieren.</span>
       </div>
     </div>
 
@@ -8882,6 +8984,7 @@ function papierkorbRender(){
         <button class="vb-w" data-pmodus="moebel" title="Möbel"><span class="vbi vbi-mo"></span></button>
         <button class="vb-w" data-pmodus="kacheln" title="Grundriss"><span class="vbi vbi-ka"></span></button>
         <button class="vb-w" data-pmodus="kanten" title="Wände"><span class="vbi vbi-wa"></span></button>
+        <button class="vb-w" data-pmodus="raum" id="btn-vb-raum" title="Raum"><span class="vbi vbi-ra"></span></button>
         <span class="vb-trenn"></span>
         <button class="vb-w" data-zoom="rein" title="Näher">+</button>
         <button class="vb-w" data-zoom="raus" title="Weiter weg">−</button>
@@ -9920,6 +10023,35 @@ function papierkorbRender(){
   </div>
 </div>
 
+<div id="km-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="km-titel" hidden>
+  <div class="modal-box">
+    <h3 id="km-titel">Genaue Maße</h3>
+    <p class="fhint" id="km-wand"></p>
+    <div class="fgrid km-grid">
+      <label><span class="lab">Breite in cm</span>
+        <input id="km-b" type="number" inputmode="numeric" min="5" step="1"></label>
+      <label><span class="lab">Unterkante in cm</span>
+        <input id="km-sockel" type="number" inputmode="numeric" min="0" max="400" step="1"></label>
+      <label><span class="lab">Oberkante in cm</span>
+        <input id="km-oben" type="number" inputmode="numeric" min="5" max="500" step="1"></label>
+    </div>
+    <p class="fhint">Steht etwas davor — Balkon, Dachüberstand, Markise, Haus gegenüber —
+      nimmt es Sonne weg. Tiefe nach außen, Höhe über diesem Fußboden. Null heißt: nichts davor.</p>
+    <div class="fgrid km-grid">
+      <label><span class="lab">Vorbau, Tiefe in cm</span>
+        <input id="km-vt" type="number" inputmode="numeric" min="0" max="2000" step="10"></label>
+      <label><span class="lab">Vorbau, Höhe in cm</span>
+        <input id="km-vh" type="number" inputmode="numeric" min="0" max="2000" step="10"></label>
+    </div>
+    <p class="fhint" id="km-fehler" hidden></p>
+    <div class="tools">
+      <button id="km-save" class="haupt">Übernehmen</button>
+      <button id="km-std">Zurücksetzen</button>
+      <button id="km-zu">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <div id="gift-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="gift-titel" hidden>
   <div class="modal-box">
     <h3 id="gift-titel">Achtung, giftig für Katzen</h3>
@@ -9961,8 +10093,23 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.2.9';
+const FASSUNG = '3.3.0';
 const PATCHNOTES = [
+  {
+    nr: '3.3.0', datum: '2026-09-03', titel: 'Der Raum wächst mit',
+    neu: [
+      'Unter „Fläche“ wird jetzt gewischt statt getippt. Was beim Aufsetzen des Fingers passiert — anlegen oder wegnehmen — gilt für den ganzen Zug.',
+      'Der Raum wächst in jede Richtung mit. Außen herum liegt ein blasser Rand; wer dort weitermalt, baut an. Auch nach links und oben. Nichts geht dabei verloren.',
+      'Die Maße einer Wand stehen in einem eigenen Blatt statt in einem Systemfenster. Neu darin: was vor der Öffnung steht. Ein Balkon vor dem Fenster, ein Dachüberstand, eine Markise, das Haus gegenüber — Tiefe und Höhe eintragen, und die Sonnenrechnung nimmt es mit. Die flache Wintersonne hält so ein Balkon ab, die hohe Mittagssonne kommt darüber hinweg.',
+      'Im Vollbild gibt es ein Werkzeug „Raum“: Name, Drehung auf dem Kompass, offener Himmel und Deckenhöhe — ausgerechnet beim Drehen will man das große Bild sehen.'
+    ],
+    besser: [
+      'Die Raumgröße muss nur noch für den ersten Wurf eingetragen werden. Alles danach wird gemalt, ohne dass die Einrichtung geleert wird.'
+    ],
+    behoben: [
+      'Die Grundhelligkeit war falsch skaliert: jeder Punkt in jedem Raum mit auch nur einem Fenster galt als „sehr hell“. Der Grundriss war einfarbig, und die Warnung „steht zu dunkel“ konnte nie auslösen. Der Maßstab ist jetzt an vier Fällen geeicht — direkt am Fenster, anderthalb Meter tiefer, drei Meter tiefer und in einem Raum, der nur eine Tür nach innen hat.'
+    ]
+  },
   {
     nr: '3.2.9', datum: '2026-09-03', titel: 'Türen, hinter denen kein Himmel ist',
     neu: [
@@ -14866,6 +15013,7 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'ArrowRight') karteBlaettern(1);
 });
 
+modalAnmelden('km-modal',   {groesse:'blatt'});
 modalAnmelden('gift-modal', {groesse:'blatt'});
 modalAnmelden('neu-modal',  {groesse:'blatt'});
 modalAnmelden('filter-modal', {groesse:'voll', schleier:false});
@@ -17314,20 +17462,26 @@ function moebelForm(m, fuell){
 
 function grundrissSVG(){
   const r = raum(); if(!r) return '';
+  /* Im Flaechenmodus liegt ein Ring leerer Kacheln um den Raum. Er ist
+     die Flaeche zum Anbauen: ohne ihn gaebe es ausserhalb der Grenzen
+     nichts, worauf der Finger treffen koennte. */
+  const ring = (pModus === 'kacheln') ? 1 : 0;
+  const R = ring*KACHEL*MASS;
   const W = r.sp*KACHEL*MASS, H = r.re*KACHEL*MASS;
   const sk = planSkala() / pZoom;
   const rand = 30*sk;
   /* Ausschnitt: bei Zoom 1 der ganze Raum, sonst ein Teilbereich */
-  const vbW = (W + rand*2) / pZoom, vbH = (H + rand*2) / pZoom;
-  const vbX = -rand + pPanX, vbY = -rand + pPanY;
+  const vbW = (W + rand*2 + R*2) / pZoom, vbH = (H + rand*2 + R*2) / pZoom;
+  const vbX = -rand - R + pPanX, vbY = -rand - R + pPanY;
   let s = `<svg viewBox="${vbX} ${vbY} ${vbW} ${vbH}" class="plan-svg modus-${pModus}" id="plan-svg" preserveAspectRatio="xMidYMid meet">`;
 
   /* Kacheln in ihrer Bodenfarbe */
-  for(let y=0;y<r.re;y++) for(let x=0;x<r.sp;x++){
+  for(let y=-ring;y<r.re+ring;y++) for(let x=-ring;x<r.sp+ring;x++){
     const an = kachelAn(r,x,y);
     const px = x*KACHEL*MASS, py = y*KACHEL*MASS, k = KACHEL*MASS;
     if(!an){
-      s += `<rect class="kachel aus" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" style="fill:var(--z-papier);stroke:var(--z-wand)" stroke-width="${0.8*sk}" stroke-dasharray="${4*sk} ${4*sk}"/>`;
+      const draussen = x < 0 || y < 0 || x >= r.sp || y >= r.re;
+      s += `<rect class="kachel aus${draussen ? ' ring' : ''}" data-kx="${x}" data-ky="${y}" x="${px}" y="${py}" width="${k}" height="${k}" style="fill:var(--z-papier);stroke:var(--z-wand)" stroke-width="${0.8*sk}" stroke-dasharray="${4*sk} ${4*sk}"${draussen ? ' opacity=".4"' : ''}/>`;
       continue;
     }
     const cx = (x+0.5)*KACHEL, cy = (y+0.5)*KACHEL;
@@ -17745,11 +17899,42 @@ function inRaum(r, x, y){
 
 /* ── Ziehen ──────────────────────────────────────────────── */
 let zieht = null;
+let malt = null;          /* {an:true|false} waehrend die Flaeche gemalt wird */
+
+/* Eine Kachel auf den Zustand des laufenden Zuges bringen. Nummern
+   duerfen hier negativ sein — zugeschnitten wird erst beim Loslassen. */
+function kachelMalen(r, x, y){
+  if(!malt) return false;
+  const key = x + ',' + y;
+  const ist = !!r.kacheln[key];
+  if(ist === malt.an) return false;
+  if(malt.an) r.kacheln[key] = 1;
+  else {
+    delete r.kacheln[key];
+    /* Die letzte Kachel darf nicht weg — sonst gibt es keinen Raum
+       mehr, auf den man tippen koennte. */
+    if(!Object.keys(r.kacheln).length){ r.kacheln[key] = 1; return false; }
+  }
+  planRender();
+  return true;
+}
 function planZeiger(ev){
   const r = raum(); if(!r) return;
   const marke = ev.target.closest('[data-pfl]');
   const moeb  = ev.target.closest('[data-moebel]');
   const p = planPunkt(ev);
+  /* Flaeche malen: was beim Aufsetzen des Fingers passiert, gilt fuer
+     den ganzen Zug. Sonst schaltet dieselbe Bewegung Kacheln an und
+     gleich wieder aus. */
+  if(pModus === 'kacheln'){
+    const k = ev.target.closest('[data-kx]'); if(!k) return;
+    if(r.roh){ delete r.roh; }
+    malt = {an: !kachelAn(r, +k.dataset.kx, +k.dataset.ky)};
+    kachelMalen(r, +k.dataset.kx, +k.dataset.ky);
+    try{ ev.target.setPointerCapture(ev.pointerId); }catch(e){}
+    ev.preventDefault();
+    return;
+  }
   if(pModus === 'pflanzen' && marke){
     zieht = {typ:'pflanze', id:marke.dataset.pfl, bewegt:false, sx:ev.clientX, sy:ev.clientY,
              el:marke, ox:0, oy:0};
@@ -17766,6 +17951,14 @@ function planZeiger(ev){
 /* Während der Bewegung wird nur das gezogene Element verschoben.
    Die Lichtberechnung läuft erst beim Loslassen — sonst ruckelt es. */
 function planZug(ev){
+  if(malt){
+    const r = raum(); if(!r) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const k = el && el.closest ? el.closest('[data-kx]') : null;
+    if(k) kachelMalen(r, +k.dataset.kx, +k.dataset.ky);
+    ev.preventDefault();
+    return;
+  }
   if(!zieht) return;
   if(!zieht.bewegt && Math.hypot(ev.clientX-zieht.sx, ev.clientY-zieht.sy) < 6) return;
   zieht.bewegt = true;
@@ -17808,13 +18001,24 @@ function moebelFormular(m){
   if($('#mb-boeden')) $('#mb-boeden').value = et.length;
   const bh = $('#mb-boeden-hinweis');
   if(bh) bh.textContent = et.length > 1
-    ? 'Böden bei ' + et.join(', ') + ' cm. Eine andere Zahl verteilt sie neu; '
-      + 'einzelne Höhen ziehst du in der Frontansicht zurecht.'
+    ? 'Böden bei ' + et.join(', ') + ' cm. Eine andere Zahl verteilt sie neu.'
     : 'Ein Boden in Höhe des Möbels. Mehr Böden rechnen das Licht für '
       + 'jedes Fach einzeln.';
   $('#moebel-bearb').dataset.id = m.id;
 }
 function planLos(){
+  if(malt){
+    const r = raum();
+    malt = null;
+    if(r){
+      /* Erst jetzt: waehrend des Zuges wuerde ein Verschieben die
+         Kachel unter dem Finger wegziehen. */
+      raumZuschneiden(r);
+      moebelInDenRaum(r);
+      sichern(); planRender(); raumMasseZeichnen(); planInfo();
+    }
+    return;
+  }
   if(!zieht) return;
   const r = raum();
   if(zieht.bewegt && zieht.zx !== undefined){
@@ -17839,56 +18043,105 @@ function planLos(){
   planRender();
 }
 
+/* Nach dem Malen kann ein Moebel ausserhalb der Flaeche liegen. Es
+   wird nicht geloescht, sondern an den naechsten Platz im Raum
+   gerueckt — Loeschen waere die haertere Antwort auf einen Fehlgriff. */
+function moebelInDenRaum(r){
+  (r.moebel || []).forEach(m=>{
+    m.x = Math.max(0, Math.min(r.sp*KACHEL - Math.min(m.b, r.sp*KACHEL), m.x));
+    m.y = Math.max(0, Math.min(r.re*KACHEL - Math.min(m.t, r.re*KACHEL), m.y));
+  });
+  Object.keys(S.orte || {}).forEach(id=>{
+    const o = S.orte[id];
+    if(!o || o.raum !== r.id) return;
+    o.x = Math.max(0, Math.min(r.sp*KACHEL, o.x));
+    o.y = Math.max(0, Math.min(r.re*KACHEL, o.y));
+  });
+}
+
 /* Maße einer Kante abfragen. Kurz gehalten, weil es auf dem Handy
    ohne eigenes Fenster auskommen soll. */
+let kmKante = null;
 function kantenMassFragen(r, id){
   const art = KANTEN_ART[r.kanten[id] || 'wand'] || KANTEN_ART.wand;
   const m = kantenMass(r, id);
   const w = wandBreiten(r, id);
-  const andere = Math.round(w.gesamt - (w.breiten[id] || 0));
-
-  const roh = prompt(
-    art.name + ' — genaue Maße\n\n'
-    + 'Diese Wand ist ' + w.gesamt + ' cm lang und hat '
-    + w.glieder.length + ' ' + (w.glieder.length === 1 ? 'Abschnitt' : 'Abschnitte') + '.\n'
-    + 'Trägst du hier eine Breite ein, rücken die übrigen zusammen — '
-    + 'die Wand bleibt so lang wie der Raum.\n\n'
-    + 'Breite in cm, dann Unterkante, dann Oberkante. Mit Komma trennen.\n'
-    + 'Leer lassen setzt auf die Standardwerte zurück.',
-    Math.round(m.b) + ', ' + m.sockel + ', ' + m.oben);
-
-  if(roh === null) return;
-  if(!roh.trim()){ kantenMassSetzen(r, id, {}); planRender(); return; }
-  const z = roh.replace(/,/g, ' ').match(/\d+/g);
-  if(!z || !z.length){ alert('Das konnte ich nicht lesen.'); return; }
+  kmKante = {raum: r.id, id};
+  const setz = (feld, wert)=>{ const el = document.getElementById(feld);
+    if(el) el.value = wert; };
+  const t = document.getElementById('km-titel');
+  if(t) t.textContent = art.name + ' — genaue Maße';
+  const hw = document.getElementById('km-wand');
+  if(hw) hw.textContent = 'Diese Wand ist ' + w.gesamt + ' cm lang und hat '
+    + w.glieder.length + ' ' + (w.glieder.length === 1 ? 'Abschnitt' : 'Abschnitte')
+    + '. Trägst du hier eine Breite ein, rücken die übrigen zusammen — '
+    + 'die Wand bleibt so lang wie der Raum.';
+  setz('km-b', Math.round(m.b));
+  setz('km-sockel', m.sockel);
+  setz('km-oben', m.oben === 9999 ? (r.deckeH || 250) : m.oben);
+  setz('km-vt', m.vorTiefe || 0);
+  setz('km-vh', m.vorHoehe || 0);
+  const f = document.getElementById('km-fehler'); if(f) f.hidden = true;
+  modalAuf('km-modal');
+}
+function kmSpeichern(){
+  if(!kmKante) return;
+  const r = raeume().find(x=>x.id === kmKante.raum); if(!r) return;
+  const id = kmKante.id;
+  const lies = feld =>{ const el = document.getElementById(feld);
+    const v = el ? parseInt(String(el.value).replace(/[^0-9-]/g, ''), 10) : NaN;
+    return isNaN(v) ? null : v; };
+  const w = wandBreiten(r, id);
+  const f = document.getElementById('km-fehler');
+  const melde = txt =>{ if(f){ f.textContent = txt; f.hidden = false; } };
 
   /* Die Grenze ist die Wandlänge, nicht die Kachel. Ein Fenster darf
      ueber mehrere Kacheln gehen — genau dafür ist das hier da. */
-  let b = Math.max(5, parseInt(z[0], 10) || KACHEL);
-  const rest = w.glieder.length - 1;
-  const hoechstens = w.gesamt - rest * 5;
+  let b = Math.max(5, lies('km-b') || KACHEL);
+  const hoechstens = w.gesamt - (w.glieder.length - 1) * 5;
   if(b > hoechstens){
-    alert('Die Wand ist ' + w.gesamt + ' cm lang. Bei '
-      + w.glieder.length + ' Abschnitten bleiben höchstens '
-      + hoechstens + ' cm für diesen — die übrigen brauchen je 5 cm.\n\n'
+    melde('Die Wand ist ' + w.gesamt + ' cm lang. Bei ' + w.glieder.length
+      + ' Abschnitten bleiben höchstens ' + hoechstens + ' cm für diesen. '
       + 'Markiere eine Kachel mehr, wenn das Fenster breiter sein soll.');
     b = hoechstens;
+    const el = document.getElementById('km-b'); if(el) el.value = b;
+    return;
   }
-  const sockel = z[1] != null ? Math.max(0, Math.min(400, parseInt(z[1],10))) : m.sockel;
-  const oben = z[2] != null ? Math.max(sockel + 5, Math.min(500, parseInt(z[2],10))) : m.oben;
-  kantenMassSetzen(r, id, {b, sockel, oben});
+  const jetzt = kantenMass(r, id);
+  const sockel = Math.max(0, Math.min(400, lies('km-sockel') != null ? lies('km-sockel') : jetzt.sockel));
+  const oben = Math.max(sockel + 5, Math.min(500, lies('km-oben') != null ? lies('km-oben') : jetzt.oben));
+  const vorTiefe = Math.max(0, Math.min(2000, lies('km-vt') || 0));
+  const vorHoehe = Math.max(0, Math.min(2000, lies('km-vh') || 0));
+  if(vorTiefe > 0 && vorHoehe === 0){
+    melde('Ein Vorbau braucht beide Zahlen: wie weit er nach außen reicht '
+      + 'und wie hoch er über diesem Fußboden liegt.');
+    return;
+  }
+  kantenMassSetzen(r, id, {b, sockel, oben, vorTiefe, vorHoehe});
+  modalZu('km-modal');
+  kmKante = null;
   planRender();
 }
+document.addEventListener('click', e=>{
+  if(!e.target || !e.target.closest) return;
+  if(e.target.closest('#km-save')){ kmSpeichern(); return; }
+  if(e.target.closest('#km-std')){
+    const r = kmKante ? raeume().find(x=>x.id === kmKante.raum) : null;
+    if(r && kmKante) kantenMassSetzen(r, kmKante.id, {});
+    modalZu('km-modal'); kmKante = null; planRender(); return;
+  }
+  if(e.target.closest('#km-zu')){ modalZu('km-modal'); kmKante = null; return; }
+});
 
 /* Kurze Anleitung je Modus. Ohne sie war zum Beispiel nicht zu ahnen,
    dass ein zweites Tippen auf ein Fenster dessen Maße öffnet. */
 const MODUS_HINWEISE = {
   pflanzen: 'Eine Pflanze antippen und in den Raum setzen. Nochmal antippen zeigt ihren Steckbrief.',
   moebel:   'Tippen setzt ein Möbelstück. Ein zweites Tippen öffnet Maße, Höhe und die Frage, ob Tiere drankommen.',
-  kacheln:  'Tippen legt Bodenfläche an oder nimmt sie weg. So schneidest du Erker und Nischen zurecht.',
+  kacheln:  'Über die Fläche wischen legt Boden an oder nimmt ihn weg — was beim Aufsetzen des Fingers passiert, gilt für den ganzen Zug. Der blasse Rand außen herum ist zum Anbauen da: der Raum wächst mit, in jede Richtung.',
   licht:    'Zeigt nur an, verändert nichts. Monat und Uhrzeit schieben, der Grundriss färbt sich mit.',
   raum:     'Name, Drehung auf dem Kompass, offener Himmel und Rastergröße — hier wird nicht gezeichnet.',
-  kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. Ein 130 cm breites Fenster: drei Kacheln als Fenster setzen, bei einer davon 130 eintragen. Die anderen beiden rücken zusammen, die Wand bleibt so lang wie der Raum. Gezeichnet wird weiter im 50er-Raster.'
+  kanten:   'Eine Kante antippen setzt die gewählte Art. Nochmal auf dieselbe Kante tippen öffnet die genauen Maße — Breite, Unterkante, Oberkante. Ein 130 cm breites Fenster: drei Kacheln als Fenster setzen, bei einer davon 130 eintragen. Die anderen beiden rücken zusammen, die Wand bleibt so lang wie der Raum. Gezeichnet wird weiter im 50er-Raster. Im selben Blatt steht, was vor der Öffnung steht — ein Balkon vor dem Fenster nimmt Sonne weg.'
 };
 function modusHinweisZeichnen(){
   const el = document.getElementById('modus-hinweis');
@@ -17900,12 +18153,10 @@ function planTipp(ev){
   const r = raum(); if(!r) return;
   /* Sobald hier gezeichnet wird, gilt der Raum als eingerichtet */
   if(r.roh){ delete r.roh; sichern(); }
-  if(pModus === 'kacheln'){
-    const k = ev.target.closest('[data-kx]'); if(!k) return;
-    const key = k.dataset.kx+','+k.dataset.ky;
-    if(r.kacheln[key]) delete r.kacheln[key]; else r.kacheln[key] = 1;
-    sichern(); planRender(); return;
-  }
+  /* Die Flaeche wird gezogen, nicht getippt — planZeiger faengt das ab.
+     Ein einzelner Tipp ist dort der Sonderfall eines Zuges ohne
+     Bewegung und braucht hier nichts mehr. */
+  if(pModus === 'kacheln') return;
   if(pModus === 'kanten'){
     const k = ev.target.closest('[data-kante]'); if(!k) return;
     const id = k.dataset.kante;
@@ -18331,7 +18582,7 @@ function schubladeFuellen(){
   /* Der Pflanzenmodus fehlte hier — im Vollbild gab es keine Liste der
      Pflanzen ohne Platz, und damit keine Möglichkeit, welche zu
      setzen. Ausgerechnet im Vollbild, wo am meisten Raum dafür ist. */
-  const auf = vollbild && ['moebel','kanten','pflanzen'].includes(pModus);
+  const auf = vollbild && ['moebel','kanten','pflanzen','raum'].includes(pModus);
   document.body.classList.toggle('schublade-auf', auf);
   if(!auf){ box.hidden = true; return; }
   box.hidden = false;
@@ -18348,10 +18599,58 @@ function schubladeFuellen(){
     return;
   }
 
+  /* Die Drehung gehoerte bisher nur ins kleine Fenster. Ausgerechnet
+     beim Drehen will man aber das grosse Bild sehen. */
+  if(pModus === 'raum'){
+    const r = raum(); if(!r){ box.innerHTML = ''; return; }
+    box.innerHTML =
+      `<label class="vb-sch-feld"><span>Name</span>
+         <input id="vb-r-name" value="${esc(r.name || '')}"></label>
+       <label class="vb-sch-feld"><span>Drehung auf dem Kompass · ${r.drehung}°</span>
+         <input type="range" id="vb-r-drehung" min="0" max="345" step="15" value="${r.drehung}"></label>
+       <label class="vb-sch-feld zeile"><input type="checkbox" id="vb-r-dach"${r.dach ? ' checked' : ''}>
+         <span>Offener Himmel</span></label>
+       <label class="vb-sch-feld"><span>Deckenhöhe in cm</span>
+         <input type="number" id="vb-r-decke" min="150" max="500" step="5" value="${r.deckeH || 250}"></label>
+       <p class="vb-sch-titel">${esc(r.name || 'Raum')} · ${(r.sp*KACHEL/100).toFixed(2).replace('.', ',')} × ${(r.re*KACHEL/100).toFixed(2).replace('.', ',')} m</p>`;
+    return;
+  }
+
   box.innerHTML = pModus === 'moebel'
     ? Object.keys(MOEBEL_ARTEN).map(k=>`<button class="mchip" data-mneu="${k}">${esc(MOEBEL_ARTEN[k].name)}</button>`).join('')
     : Object.keys(KANTEN_ART).map(k=>`<button class="mchip${k===pKanteArt?' on':''}" data-kart="${k}">${esc(KANTEN_ART[k].name)}</button>`).join('');
 }
+
+/* Die Felder in der Schublade wirken auf denselben Raum wie die im
+   kleinen Fenster — beide Seiten werden nachgezogen. */
+document.addEventListener('input', e=>{
+  const r = (typeof raum === 'function') ? raum() : null;
+  if(!r || !e.target || !e.target.id) return;
+  const id = e.target.id;
+  if(id === 'vb-r-drehung'){
+    r.drehung = parseInt(e.target.value, 10) || 0;
+    const z = document.getElementById('r-drehung'); if(z) z.value = r.drehung;
+    const lab = e.target.previousElementSibling;
+    if(lab) lab.textContent = 'Drehung auf dem Kompass · ' + r.drehung + '°';
+    sichern(); planRender(); return;
+  }
+  if(id === 'vb-r-name'){
+    r.name = e.target.value;
+    const z = document.getElementById('r-name'); if(z) z.value = r.name;
+    sichern(); planRender(); return;
+  }
+  if(id === 'vb-r-decke'){
+    r.deckeH = Math.max(150, Math.min(500, parseInt(e.target.value, 10) || 250));
+    sichern(); planRender(); return;
+  }
+});
+document.addEventListener('change', e=>{
+  const r = (typeof raum === 'function') ? raum() : null;
+  if(!r || !e.target || e.target.id !== 'vb-r-dach') return;
+  r.dach = !!e.target.checked;
+  const z = document.getElementById('r-dach'); if(z) z.checked = r.dach;
+  sichern(); planRender();
+});
 
 /* Zwei Finger zum Zoomen, ein Finger auf freier Fläche zum Schieben */
 const zeiger = new Map();
@@ -18361,10 +18660,10 @@ const flaeche2 = document.getElementById('plan-flaeche');
 flaeche2.addEventListener('pointerdown', ev=>{
   zeiger.set(ev.pointerId, {x:ev.clientX, y:ev.clientY});
   if(zeiger.size === 2){
-    zieht = null;
+    zieht = null; malt = null;
     const [a, b] = [...zeiger.values()];
     kneifStart = {dist: Math.hypot(a.x-b.x, a.y-b.y), zoom: pZoom};
-  } else if(vollbild && !zieht && pZoom > 1){
+  } else if(vollbild && !zieht && !malt && pZoom > 1){
     schiebt = {x:ev.clientX, y:ev.clientY, px:pPanX, py:pPanY};
   }
 }, true);
