@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.1 — 4. September 2026
+**Drehen, schieben, aufnehmen**
+
+### Neu
+- Möbel lassen sich drehen. Vier Lagen, ein Knopf im Möbelfenster. Breite und Tiefe tauschen dabei mit, damit Schatten und Stellfläche zum Bild passen — ein quer gestelltes Sofa steht auch für die Rechnung quer.
+- Beim Anhängen eines Fotos steht die Kamera direkt daneben. Bisher führte jeder Weg über die Bilderauswahl des Telefons.
+
+### Besser
+- Im Vollbild lässt sich der Grundriss über die ganze Strecke schieben, nicht mehr nur zwischen zwei Punkten. Beim Zoomen bleibt er außerdem mittig, statt mit jeder Stufe weiter zur Seite zu wandern.
+
+### Behoben
+- Die Maße einer Wand oder eines Fensters öffneten sich hinter der Seite: die Tastatur ging auf, im Nichts wurde Text markiert, und die App schien zu hängen. Fenster liegen jetzt vor allem anderen.
+
+---
+
 ## 3.4.0 — 3. September 2026
 **Was im Raum steht**
 

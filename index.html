@@ -823,7 +823,17 @@ html[data-design="klartext"] .abstammung{border:2px solid var(--linie);
 .stich-q span{font-size:var(--t-m);color:var(--ink-2)}
 .stich-btns{display:flex;flex-wrap:wrap;gap:8px}
 .modal[hidden]{display:none}
-.modal{position:fixed;inset:0;z-index:60;background:var(--schleier);display:flex;align-items:center;justify-content:center;padding:22px}
+/* ── Die Schichten der App ────────────────────────────────────
+   Vollbildbühne 80 · Lichtkasten 100 · Sektionsfenster 120 ·
+   Werkzeugansicht 200 · Fenster 210 · Tour 300.
+
+   Bis 3.4.0 lag ein Fenster auf 60 und damit UNTER dem
+   Sektionsfenster, aus dem es geöffnet wurde. Es war unsichtbar, nahm
+   aber Eingaben an: die Tastatur ging auf, im Nichts wurde Text
+   markiert, und es sah aus, als sei die App eingefroren. Ein Fenster
+   ist immer die vorderste Antwort auf eine Handlung — nur die Tour
+   darf darüber liegen. */
+.modal{position:fixed;inset:0;z-index:210;background:var(--schleier);display:flex;align-items:center;justify-content:center;padding:22px}
 .modal-box{background:var(--paper);border:1px solid var(--terra);border-radius:var(--r-mittel);padding:20px;max-width:420px;width:100%}
 .modal-box h3{margin:0 0 9px;font-size:var(--t-xl);color:var(--terra)}
 .modal-box p{margin:0 0 14px;font-size:var(--t-md);line-height:1.6}
@@ -1184,10 +1194,14 @@ html[data-design="klartext"] .sb-knoten-txt b{font-size:var(--t-s)}
 .sb-blatt-taten{margin-bottom:12px}
 /* Aus der Pflanzenkarte heraus liegt das Blatt ueber allem, auch ueber
    dem Kartenfenster (z-index 60). Im Stammbaum bleibt es eingespannt. */
-/* Die Vollbildbuehne liegt auf 80. Ein Fenster darueber war bis 3.3.1
-   unsichtbar, sperrte aber die Bedienung — es sah aus, als friere die
-   App ein. Unter der Werkzeugansicht (120) bleibt es trotzdem. */
-body.vollbild .modal{z-index:90}
+/* Nur fuer Vorleseprogramme: der Knopf traegt ein Bild, kein Wort. */
+.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.kibild-kamera{display:inline-flex;align-items:center;justify-content:center;
+  color:var(--schrift-2)}
+.kibild-kamera svg{display:block}
+.dok-foto-zeile{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.dok-foto-zeile .dok-foto{margin:0}
 .mgruppe{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .mgruppe-titel{flex:0 0 100%;margin:0 0 2px;font-family:var(--f-data);
   font-size:var(--t-mono);letter-spacing:.1em;text-transform:uppercase;
@@ -8625,10 +8639,16 @@ function papierkorbRender(){
       <!-- Erst wenn der Befund steht, ist klar, ob das Bild es wert
            ist, in der Galerie zu bleiben. Im Frageschritt stand der
            Knopf mitten im Weg und sah aus wie das Anhängen. -->
-      <label class="dok-foto klein" id="dok-foto-feld">
-        <input type="file" accept="image/*" id="dok-datei" hidden>
-        <span id="dok-foto-txt">Foto zur Galerie dieser Pflanze</span>
-      </label>
+      <div class="dok-foto-zeile">
+        <label class="dok-foto klein" id="dok-foto-feld">
+          <input type="file" accept="image/*" id="dok-datei" hidden>
+          <span id="dok-foto-txt">Foto zur Galerie dieser Pflanze</span>
+        </label>
+        <label class="dok-foto klein" id="dok-foto-kamera">
+          <input type="file" accept="image/*" capture="environment" id="dok-datei-kamera" hidden>
+          <span>Aufnehmen</span>
+        </label>
+      </div>
       <div id="dok-abgleich-hinweis"></div>
       <div id="dok-ergebnis"></div>
       <div id="dok-massnahmen"></div>
@@ -9142,7 +9162,7 @@ function papierkorbRender(){
         <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
         <label class="fspan check"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
       </div>
-      <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
+      <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-dreh">Drehen</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
     </div>
 
     
@@ -10206,8 +10226,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.0';
+const FASSUNG = '3.4.1';
 const PATCHNOTES = [
+  {
+    nr: '3.4.1', datum: '2026-09-04', titel: 'Drehen, schieben, aufnehmen',
+    neu: [
+      'Möbel lassen sich drehen. Vier Lagen, ein Knopf im Möbelfenster. Breite und Tiefe tauschen dabei mit, damit Schatten und Stellfläche zum Bild passen — ein quer gestelltes Sofa steht auch für die Rechnung quer.',
+      'Beim Anhängen eines Fotos steht die Kamera direkt daneben. Bisher führte jeder Weg über die Bilderauswahl des Telefons.'
+    ],
+    besser: [
+      'Im Vollbild lässt sich der Grundriss über die ganze Strecke schieben, nicht mehr nur zwischen zwei Punkten. Beim Zoomen bleibt er außerdem mittig, statt mit jeder Stufe weiter zur Seite zu wandern.'
+    ],
+    behoben: [
+      'Die Maße einer Wand oder eines Fensters öffneten sich hinter der Seite: die Tastatur ging auf, im Nichts wurde Text markiert, und die App schien zu hängen. Fenster liegen jetzt vor allem anderen.'
+    ]
+  },
   {
     nr: '3.4.0', datum: '2026-09-03', titel: 'Was im Raum steht',
     neu: [
@@ -16387,8 +16420,19 @@ function kiBilderZeichnen(wo){
       '<span class="kibild"><img alt="" src="' + x.vorschau + '">'
       + '<button type="button" data-kibild-weg="' + i + '" data-kiwo="' + wo
       + '" aria-label="Bild entfernen">×</button></span>').join('')
-    + '<label class="kibild-neu' + (voll ? ' voll' : '') + '">'
+    /* Zwei Wege, weil ein einzelnes Feld auf dem Telefon immer den
+       Umweg ueber die Auswahl nimmt. `capture` geht direkt an die
+       Kamera — dafuer kann es dann nur die Kamera, deshalb steht das
+       Feld fuer die Galerie daneben und nicht dahinter. */
+    + '<label class="kibild-neu' + (voll ? ' voll' : '') + '" title="Aus der Galerie">'
     + '<input type="file" accept="image/*" multiple hidden data-kibild-neu="' + wo + '">+</label>'
+    + '<label class="kibild-neu kibild-kamera' + (voll ? ' voll' : '') + '" title="Foto aufnehmen">'
+    + '<input type="file" accept="image/*" capture="environment" hidden data-kibild-neu="' + wo + '">'
+    + '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">'
+    + '<path d="M4 8h3l1.5-2h7L17 8h3v11H4z" fill="none" stroke="currentColor" stroke-width="1.6"'
+    + ' stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none"'
+    + ' stroke="currentColor" stroke-width="1.6"/></svg>'
+    + '<span class="vh">Foto aufnehmen</span></label>'
     + '<span class="kibild-zahl">'
     + (b.length ? b.length + ' von ' + KI_BILD_MAX : 'Noch kein Bild gewählt') + '</span>';
 }
@@ -17716,11 +17760,39 @@ function moebelWahlHTML(){
   }).join('');
 }
 
+/* ══════════════════ Möbel drehen ══════════════════
+   Gedreht wird die Zeichnung, getauscht werden die Maße. Das ist
+   wichtiger, als es klingt: Breite und Tiefe eines Möbels stecken in
+   `hoeheAn()`, `brettImWeg()` und der Prüfung, ob etwas noch im Raum
+   liegt. Würde nur das Bild gedreht, stünde ein quer gestelltes Sofa
+   für die Rechnung weiter längs — der Schatten läge falsch und die
+   Pflanze darauf hinge in der Luft.
+
+   Vier Lagen. Bei 90 und 270 tauschen Breite und Tiefe; die Form wird
+   danach um den Mittelpunkt gedreht. */
+function moebelDrehen(m){
+  if(!m) return;
+  m.dreh = ((m.dreh || 0) + 90) % 360;
+  const b = m.b; m.b = m.t; m.t = b;
+}
+
 function moebelForm(m, fuell){
-  const x = m.x*MASS, y = m.y*MASS,
-        b = aufRaster(m.b)*MASS, t = aufRaster(m.t)*MASS;
+  const dreh = ((m.dreh || 0) % 360 + 360) % 360;
+  const quer = dreh === 90 || dreh === 270;
+  const aussenB = aufRaster(m.b)*MASS, aussenT = aufRaster(m.t)*MASS;
+  const x0 = m.x*MASS, y0 = m.y*MASS;
+  /* Gezeichnet wird in der ungedrehten Ausdehnung, mittig in der
+     gedrehten Huelle — danach dreht die Gruppe alles zurecht. */
+  const b = quer ? aussenT : aussenB, t = quer ? aussenB : aussenT;
+  const x = x0 + (aussenB - b)/2, y = y0 + (aussenT - t)/2;
   const art = MOEBEL_ARTEN[m.typ] || MOEBEL_ARTEN.boden;
   const sk = planSkala();
+  if(dreh){
+    const mx = x0 + aussenB/2, my = y0 + aussenT/2;
+    const innen = moebelForm({...m, dreh:0, x:x/MASS, y:y/MASS,
+      b:b/MASS, t:t/MASS}, fuell);
+    return `<g transform="rotate(${dreh} ${mx} ${my})">${innen}</g>`;
+  }
   const stil = `style="fill:${fuell};stroke:var(--z-kontur)" stroke-width="${1.4*sk}"`;
   if(art.form === 'kreis') return `<ellipse cx="${x+b/2}" cy="${y+t/2}" rx="${b/2}" ry="${t/2}" ${stil}/>`;
   if(art.form === 'ampel') return `<circle cx="${x+b/2}" cy="${y+t/2}" r="${b/2}" ${stil} stroke-dasharray="${5*sk} ${4*sk}"/>`;
@@ -17803,9 +17875,18 @@ function planMasse(){
     if(flaeche > plan) vW = vH * flaeche;   /* breiter: Breite auffuellen */
     else               vH = vW / flaeche;   /* hoeher: Hoehe auffuellen */
   }
+  /* Der Inhalt liegt zwischen -rand-R und -rand-R+W. Ist der
+     Ausschnitt breiter als der Inhalt, wird der Ueberschuss auf beide
+     Seiten verteilt und es gibt nichts zu verschieben. Ist er
+     schmaler, faengt er links am Inhalt an und wandert von dort.
+
+     Bis 3.4.0 stand hier `(vW - W/pZoom)/2` — bei einem Ausschnitt,
+     der schmaler ist als der Inhalt, wurde daraus eine Verschiebung
+     nach links, die keine sein sollte. Zusammen mit einer Grenze bei
+     null liess sich der Grundriss nur zwischen zwei Punkten bewegen. */
   return {r, ring, R, sk, rand, W, H, vW, vH,
-          x0: -rand - R - (vW - W/pZoom)/2,
-          y0: -rand - R - (vH - H/pZoom)/2};
+          x0: -rand - R - Math.max(0, (vW - W)/2),
+          y0: -rand - R - Math.max(0, (vH - H)/2)};
 }
 
 function grundrissSVG(){
@@ -18586,6 +18667,19 @@ document.addEventListener('click', e=>{
   }
 });
 
+/* Drehen wirkt sofort und bleibt sofort stehen. Ein Möbel, das man
+   erst drehen und dann noch speichern müsste, sähe im Plan schon
+   gedreht aus, in den Daten aber nicht. */
+$('#btn-mb-dreh').onclick = ()=>{
+  const r = raum(), id = $('#moebel-bearb').dataset.id;
+  const m = (r.moebel||[]).find(x=>x.id===id); if(!m) return;
+  moebelDrehen(m);
+  moebelInDenRaum(r);
+  $('#mb-breite').value = m.b;
+  $('#mb-tiefe').value  = m.t;
+  sichern(); planRender();
+};
+
 $('#btn-mb-save').onclick = ()=>{
   const r = raum(), id = $('#moebel-bearb').dataset.id;
   const m = (r.moebel||[]).find(x=>x.id===id); if(!m) return;
@@ -18870,14 +18964,13 @@ function zoomSetzen(f, mitte){
 }
 function grenzenPruefen(){
   const M = planMasse(); if(!M) return;
-  /* Verschoben werden darf nur so weit, wie ausserhalb des
-     Ausschnitts ueberhaupt noch Raum liegt. Der Ausschnitt beginnt
-     bei M.x0 + pPan; bei Zoom 1 deckt er alles ab und beide Grenzen
-     fallen auf null zusammen. */
+  /* Verschoben wird von der linken oberen Ecke des Inhalts bis zu dem
+     Punkt, an dem seine rechte untere Ecke den Ausschnitt erreicht.
+     Passt alles hinein, ist die Spanne null und der Ausschnitt bleibt
+     mittig — dafuer sorgt schon M.x0. */
   const maxX = Math.max(0, M.W - M.vW), maxY = Math.max(0, M.H - M.vH);
-  const minX = Math.min(0, -(M.vW - M.W) / 2), minY = Math.min(0, -(M.vH - M.H) / 2);
-  pPanX = Math.max(minX, Math.min(maxX, pPanX));
-  pPanY = Math.max(minY, Math.min(maxY, pPanY));
+  pPanX = Math.max(0, Math.min(maxX, pPanX));
+  pPanY = Math.max(0, Math.min(maxY, pPanY));
 }
 
 function vollbildAn(an){
@@ -22062,8 +22155,12 @@ function dokAbgleichZeichnen(){
 
 /* Fotos aus dem Doktor zeigen meist Schäden. Sie landen in der
    Galerie, werden aber nicht von selbst zum Profilbild. */
-const dokDatei = document.getElementById('dok-datei');
-if(dokDatei) dokDatei.onchange = async ()=>{
+/* Zwei Felder, ein Weg: das eine geht in die Galerie des Telefons,
+   das andere direkt an die Kamera. `capture` kann nur das eine oder
+   das andere, deshalb zwei. */
+const dokDateiFelder = ['dok-datei', 'dok-datei-kamera']
+  .map(id => document.getElementById(id)).filter(Boolean);
+dokDateiFelder.forEach(dokDatei => { dokDatei.onchange = async ()=>{
   if(!dokDatei.files || !dokDatei.files.length) return;
   if(!dokPflanze){ dokKiHinweis('Wähle oben zuerst eine Pflanze aus.', 'warn'); dokDatei.value = ''; return; }
   const n = dokDatei.files.length;
@@ -22076,7 +22173,7 @@ if(dokDatei) dokDatei.onchange = async ()=>{
     + (p ? nice(p) : 'dieser Pflanze') + '“. Profilbild wird es nicht — Doktorfotos zeigen meist Schäden.', 'ok');
   if(typeof kiGalerieZeichnen === 'function') kiGalerieZeichnen();
   render();
-};
+}; });
 
 {
   const leer = document.getElementById('btn-dok-leeren');

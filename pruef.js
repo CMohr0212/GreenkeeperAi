@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.0', w.__T('FASSUNG') === '3.4.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.1', w.__T('FASSUNG') === '3.4.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -696,6 +696,21 @@ setTimeout(async () => {
       (d.getElementById('ki-bilder-doktor').className || '').indexOf('gross') !== -1);
     pruef('Der Galerieauszug steht offen',
       d.getElementById('ki-galerie-auf').hasAttribute('open'));
+
+    /* Ein einzelnes Dateifeld nimmt am Telefon immer den Umweg ueber
+       die Auswahl. Fuer den geraden Weg an die Kamera braucht es ein
+       zweites mit `capture` — beides in einem geht nicht. */
+    w.__T("kiBilderZeichnen('doktor')");
+    const felder = d.querySelectorAll('#ki-bilder-doktor input[type=file]');
+    pruef('Es gibt zwei Wege zu einem Bild', felder.length === 2,
+      String(felder.length));
+    pruef('Einer davon geht direkt an die Kamera',
+      !!d.querySelector('#ki-bilder-doktor input[capture]'));
+    pruef('Der andere darf mehrere auf einmal',
+      !!d.querySelector('#ki-bilder-doktor input[multiple]:not([capture])'));
+    pruef('Auch die Galerie der Pflanze l\u00e4sst sich mit der Kamera f\u00fcllen',
+      !!d.getElementById('dok-datei-kamera')
+      && d.getElementById('dok-datei-kamera').hasAttribute('capture'));
     const feld = d.getElementById('dok-foto-feld');
     pruef('Foto in die Galerie legen geh\u00f6rt zur Einsch\u00e4tzung',
       !!feld && !!feld.closest('#dok-s4'));
@@ -2089,12 +2104,148 @@ setTimeout(async () => {
         w.__T('pPanX') === 0 && w.__T('pPanY') === 0);
     }
 
-    /* ── Ein Fenster über der Vollbildfläche ──────────────
-       Das Maßblatt lag auf 60, die Vollbildbühne auf 80: unsichtbar,
-       aber die Bedienung war gesperrt. Es sah aus, als friere die App
-       ein. */
-    pruef('Im Vollbild liegt ein Fenster \u00fcber der B\u00fchne',
-      html.indexOf('body.vollbild .modal{z-index:90}') !== -1);
+    /* ── Ein Fenster liegt vorn ──────────────────────
+       Erst lag das Maßblatt unter der Vollbildbühne (80), dann unter
+       dem Sektionsfenster (120), aus dem es geoeffnet wird. Beide Male
+       war es unsichtbar, nahm aber Eingaben an: die Tastatur ging auf,
+       im Nichts wurde Text markiert. Ein Fenster gehoert vor alles
+       ausser die Tour. */
+    {
+      const zahl = muster => {
+        const t = html.match(muster);
+        return t ? parseInt(t[1], 10) : null;
+      };
+      const modal = zahl(/\.modal\{[^}]*z-index:(\d+)/);
+      const sekm  = zahl(/\.sekm\{[^}]*z-index:(\d+)/);
+      const wk    = zahl(/\.wk\{[^}]*z-index:(\d+)/);
+      const tour  = zahl(/#tour\{[^}]*z-index:(\d+)/);
+      pruef('Alle Schichten sind auffindbar',
+        modal && sekm && wk && tour,
+        JSON.stringify({modal, sekm, wk, tour}));
+      pruef('Ein Fenster liegt \u00fcber dem Sektionsfenster', modal > sekm,
+        modal + ' gegen ' + sekm);
+      pruef('und \u00fcber der Werkzeugansicht', modal > wk, modal + ' gegen ' + wk);
+      pruef('Die Tour liegt weiter dar\u00fcber', tour > modal, tour + ' gegen ' + modal);
+      pruef('Die Sonderregel f\u00fcrs Vollbild wird nicht mehr gebraucht',
+        html.indexOf('body.vollbild .modal') === -1);
+    }
+
+    /* ── Verschieben im Vollbild ────────────────────
+       Der Grundriss liess sich nur zwischen zwei Punkten bewegen: die
+       Mittelstellung des Ausschnitts wurde als Verschiebung mitgezaehlt
+       und die Grenze lag trotzdem bei null. */
+    {
+      const feld = d.getElementById('plan-flaeche');
+      const stellen = (br, ho) => {
+        Object.defineProperty(feld, 'clientWidth',  {value:br, configurable:true});
+        Object.defineProperty(feld, 'clientHeight', {value:ho, configurable:true});
+      };
+      stellen(400, 800);
+      w.__T('pZoom = 3; pPanX = 0; pPanY = 0');
+      const M = JSON.parse(w.__T('JSON.stringify(planMasse())'));
+      /* Welche Richtung eingeengt ist, haengt davon ab, wie Raum und
+         Flaeche zueinander stehen. Geprueft wird die, in der es
+         ueberhaupt etwas zu verschieben gibt. */
+      const engX = M.vW < M.W;
+      const achse = engX ? 'pPanX' : 'pPanY';
+      const spanne = engX ? (M.W - M.vW) : (M.H - M.vH);
+      pruef('Bei dreifachem Zoom ist der Ausschnitt in einer Richtung kleiner',
+        spanne > 1, achse + ': ' + spanne.toFixed(1));
+
+      /* Bis ans Ende und wieder zurueck. */
+      w.__T(achse + ' = 99999; grenzenPruefen()');
+      const weit = w.__T(achse);
+      pruef('Verschieben reicht bis an den Rand des Raums',
+        Math.abs(weit - spanne) < 0.5,
+        weit.toFixed(1) + ' gegen ' + spanne.toFixed(1));
+      pruef('und das ist eine echte Strecke, kein Punkt', weit > 1, String(weit));
+      w.__T(achse + ' = -99999; grenzenPruefen()');
+      pruef('Am anderen Ende ist bei null Schluss',
+        w.__T(achse) === 0, String(w.__T(achse)));
+      /* Die freie Richtung bleibt stehen. */
+      w.__T((engX ? 'pPanY' : 'pPanX') + ' = 500; grenzenPruefen()');
+      pruef('Wo alles ins Bild passt, wird nicht verschoben',
+        w.__T(engX ? 'pPanY' : 'pPanX') === 0);
+      w.__T((engX ? 'pPanY' : 'pPanX') + ' = -500; grenzenPruefen()');
+      pruef('Auch nicht in die andere Richtung',
+        w.__T(engX ? 'pPanY' : 'pPanX') === 0,
+        String(w.__T(engX ? 'pPanY' : 'pPanX')));
+
+      /* Und der Raum steht in dieser Richtung mittig. Genau das ging
+         beim Zoomen verloren: der Ausgangspunkt rechnete mit dem
+         verkleinerten Raum statt mit dem ganzen, und der Grundriss
+         wanderte mit jeder Stufe weiter zur Seite. */
+      w.__T('pPanX = 0; pPanY = 0');
+      const M2 = JSON.parse(w.__T('JSON.stringify(planMasse())'));
+      const freiVoll = engX ? (M2.vH >= M2.H) : (M2.vW >= M2.W);
+      const mitteInhalt = engX
+        ? (-M2.rand - M2.R + M2.H/2) : (-M2.rand - M2.R + M2.W/2);
+      const mitteBild = engX ? (M2.y0 + M2.vH/2) : (M2.x0 + M2.vW/2);
+      pruef('In der freien Richtung ist reichlich Platz', freiVoll);
+      pruef('Der Raum steht dort mittig',
+        Math.abs(mitteInhalt - mitteBild) < 0.5,
+        mitteInhalt.toFixed(1) + ' gegen ' + mitteBild.toFixed(1));
+
+      /* Passt alles ins Bild, gibt es nichts zu verschieben. */
+      w.__T('pZoom = 1; pPanX = 0; pPanY = 0; pPanX = 500; grenzenPruefen()');
+      pruef('Bei Zoom eins bleibt der Ausschnitt stehen',
+        w.__T('pPanX') === 0, String(w.__T('pPanX')));
+      w.__T('pZoom = 1; pPanX = 0; pPanY = 0');
+      stellen(800, 400);
+    }
+
+    /* ── Möbel drehen ──────────────────────────
+       Gedreht wird die Zeichnung, getauscht werden die Maße. Nur so
+       stimmen Schatten und Stellflaeche mit dem Bild ueberein. */
+    {
+      w.__T(`raum().moebel = [{id:'drehtest', name:'Sofa', typ:'sofa',
+        x:0, y:0, b:200, t:90, h:45}]`);
+      const m = () => JSON.parse(w.__T("JSON.stringify(raum().moebel[0])"));
+      pruef('Ein neues M\u00f6bel liegt ungedreht', (m().dreh || 0) === 0);
+
+      w.__T('moebelDrehen(raum().moebel[0])');
+      const eins = m();
+      pruef('Einmal drehen macht 90 Grad', eins.dreh === 90, String(eins.dreh));
+      pruef('Breite und Tiefe tauschen dabei',
+        eins.b === 90 && eins.t === 200, eins.b + '\u00d7' + eins.t);
+
+      w.__T('moebelDrehen(raum().moebel[0]); moebelDrehen(raum().moebel[0])');
+      const drei = m();
+      pruef('Dreimal weiter macht 270', drei.dreh === 270, String(drei.dreh));
+      pruef('und stellt es wieder quer', drei.b === 90 && drei.t === 200,
+        drei.b + '\u00d7' + drei.t);
+
+      w.__T('moebelDrehen(raum().moebel[0])');
+      const rund = m();
+      pruef('Viermal drehen f\u00fchrt zur\u00fcck an den Anfang',
+        (rund.dreh % 360) === 0 && rund.b === 200 && rund.t === 90,
+        rund.dreh + ' / ' + rund.b + '\u00d7' + rund.t);
+
+      /* Die Zeichnung muss die Drehung ebenfalls tragen. */
+      w.__T('moebelDrehen(raum().moebel[0])');
+      const svg = w.__T('moebelForm(raum().moebel[0], "red")');
+      pruef('Die Zeichnung dreht mit', /rotate\(90 /.test(svg), svg.slice(0, 60));
+
+      /* Der Schatten dreht mit, weil er an b und t haengt. */
+      w.__T(`(function(){
+        const r = raum();
+        r.moebel = [{id:'drehtest', name:'Regal', typ:'regal',
+          x:0, y:0, b:300, t:25, h:150}];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      })()`);
+      const breit = w.__T('!!hoeheAn(raum(), 250, 10)');
+      w.__T('moebelDrehen(raum().moebel[0])');
+      const hoch = w.__T('!!hoeheAn(raum(), 250, 10)');
+      pruef('Vorher tr\u00e4gt es an der weit rechts gelegenen Stelle',
+        breit === true, String(breit));
+      pruef('Nach dem Drehen nicht mehr \u2014 die Ma\u00dfe sind mitgewandert',
+        hoch === false, String(hoch));
+      pruef('Die gedrehte H\u00fclle stimmt',
+        w.__T('raum().moebel[0].b') === 25 && w.__T('raum().moebel[0].t') === 300);
+
+      w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+      pruef('Es gibt einen Knopf zum Drehen', !!d.getElementById('btn-mb-dreh'));
+    }
 
     /* ── Was Licht wegnimmt, trägt nichts ─────────────── */
     {
