@@ -96,7 +96,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.2.7', w.__T('FASSUNG') === '3.2.7', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.2.8', w.__T('FASSUNG') === '3.2.8', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1488,6 +1488,176 @@ setTimeout(async () => {
       pruef('Bodenpflanzen bleiben an ihrem Ort',
         !!pos2[frei] && pos2[frei].x === echt.x && pos2[frei].y === echt.y,
         JSON.stringify(pos2[frei]) + ' statt ' + JSON.stringify(echt));
+    }
+
+    /* ── Etagen ──────────────────────────────────────────────
+       Ein Regal ist nicht eine Flaeche in einer Hoehe, sondern
+       mehrere. Alte Raeume haben kein `etagen`-Feld und muessen sich
+       trotzdem genau wie vorher verhalten. */
+    {
+      const rid0 = w.__T('raeume()[0].id');
+      pruef('Ein M\u00f6bel ohne Etagenfeld hat einen Boden in seiner H\u00f6he',
+        JSON.stringify(w.__T("etagenVon({h:80})")) === '[80]',
+        JSON.stringify(w.__T("etagenVon({h:80})")));
+      pruef('Ohne Etagenangabe gilt der oberste Boden',
+        w.__T("etageVon({h:150, etagen:[40,80,120,150]}, null)") === 3,
+        String(w.__T("etageVon({h:150, etagen:[40,80,120,150]}, null)")));
+      pruef('Eine zu hohe Etagennummer f\u00e4llt auf den obersten Boden',
+        w.__T("etageVon({h:150, etagen:[40,80]}, {etage:7})") === 1);
+      const vert = w.__T('JSON.stringify(etagenVerteilen(150, 4))');
+      pruef('Vier B\u00f6den verteilen sich gleichm\u00e4\u00dfig \u00fcber die H\u00f6he',
+        vert === '[40,75,115,150]', vert);
+      pruef('Ein Regal bekommt beim Einsetzen vier B\u00f6den',
+        w.__T('MOEBEL_ARTEN.regal.boeden') === 4,
+        String(w.__T('MOEBEL_ARTEN.regal.boeden')));
+
+      /* Das Pruefregal aus dem Block darueber bekommt Boeden. */
+      w.__T(`(function(){
+        const r = raeume()[0];
+        const m = r.moebel.find(function(x){ return x.id === 'mtest'; });
+        m.etagen = etagenVerteilen(m.h, 4);
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        sichern();
+      })()`);
+      const et = w.__T("JSON.stringify(raeume()[0].moebel[0].etagen)");
+      pruef('Das Pr\u00fcfregal hat jetzt vier B\u00f6den', et === '[20,40,60,80]', et);
+
+      /* Ein Boden verschattet den darunter. Gemessen wird an einem
+         Punkt mitten unter dem Regal, einmal mit und einmal ohne die
+         Boeden darueber. */
+      const untenMit = w.__T(`(function(){
+        const r = raeume()[0];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        return sonnenstundenRaum(r, 80, 40, 20, 6);
+      })()`);
+      const untenOhne = w.__T(`(function(){
+        const r = raeume()[0];
+        const m = r.moebel[0], alt = m.etagen;
+        m.etagen = [20];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        const v = sonnenstundenRaum(r, 80, 40, 20, 6);
+        m.etagen = alt;
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+        return v;
+      })()`);
+      pruef('Ein Boden nimmt dem darunter Sonne weg',
+        untenMit < untenOhne, untenMit + ' statt weniger als ' + untenOhne);
+      pruef('Der oberste Boden verliert dadurch nichts',
+        w.__T('(function(){ const r=raeume()[0]; SONNE_CACHE={}; SONNE_CACHE_SIG=\'\'; '
+          + 'return sonnenstundenRaum(r, 80, 40, 80, 6); })()') > untenMit);
+
+      /* Der Sonnen-Cache kannte Moebel nicht. Nach dem Ziehen eines
+         Bretts lieferte er weiter die alten Stunden. */
+      const sig1 = w.__T('raumSignatur(raeume()[0])');
+      w.__T("raeume()[0].moebel[0].etagen = [25,45,65,85]");
+      const sig2 = w.__T('raumSignatur(raeume()[0])');
+      pruef('Der Sonnen-Cache merkt, wenn ein Boden wandert',
+        sig1 !== sig2, 'Signatur unver\u00e4ndert');
+      w.__T("raeume()[0].moebel[0].etagen = [20,40,60,80]");
+
+      /* Ein Brettwert ist der Mittelwert ueber das Brett, kein
+         einzelner Punkt in seiner Mitte. */
+      const bs = w.__T('brettStunden(raeume()[0], raeume()[0].moebel[0], 0, 6)');
+      pruef('Ein Boden hat einen eigenen Sonnenwert',
+        typeof bs === 'number' && isFinite(bs), String(bs));
+      const sp = JSON.parse(w.__T(
+        'JSON.stringify(brettSpanne(raeume()[0], raeume()[0].moebel[0], 3))'));
+      pruef('Ein Boden kennt seine dunkelste und hellste Ecke',
+        sp.min <= sp.max && sp.min >= 0 && sp.max <= 4, JSON.stringify(sp));
+
+      /* Der Ort merkt sich die Etage, und ein Umzug verliert sie
+         nicht — solange das neue Moebel sie hat. */
+      const pid = w.__T('allePflanzen()[0].id');
+      w.__T(`pflanzeSetzen('${pid}', '${rid0}', 40, 30, 1)`);
+      pruef('Ein Platz merkt sich seinen Boden',
+        w.__T(`(pflanzenOrt('${pid}')||{}).etage`) === 1,
+        String(w.__T(`(pflanzenOrt('${pid}')||{}).etage`)));
+      w.__T(`pflanzeSetzen('${pid}', '${rid0}', 45, 32)`);
+      pruef('Verschieben im Grundriss beh\u00e4lt den Boden',
+        w.__T(`(pflanzenOrt('${pid}')||{}).etage`) === 1,
+        String(w.__T(`(pflanzenOrt('${pid}')||{}).etage`)));
+      pruef('Das Urteil rechnet mit der H\u00f6he dieses Bodens',
+        w.__T(`platzUrteil(raeume()[0], 45, 32, 6, 1).hoehe`) === 40,
+        String(w.__T(`platzUrteil(raeume()[0], 45, 32, 6, 1).hoehe`)));
+      pruef('und ohne Angabe mit dem obersten',
+        w.__T(`platzUrteil(raeume()[0], 45, 32, 6).hoehe`) === 80,
+        String(w.__T(`platzUrteil(raeume()[0], 45, 32, 6).hoehe`)));
+
+      /* Weniger Boeden: wer oben stand, faellt nicht ins Leere.
+         Die Pflanze muss dafuer vorher auf einem Boden stehen, den es
+         danach wirklich nicht mehr gibt — sonst ist die Pruefung schon
+         erfuellt, bevor die Funktion irgendetwas tut. */
+      w.__T(`pflanzeSetzen('${pid}', '${rid0}', 45, 32, 3)`);
+      pruef('Die Pflanze steht auf dem obersten von vier B\u00f6den',
+        w.__T(`(pflanzenOrt('${pid}')||{}).etage`) === 3,
+        String(w.__T(`(pflanzenOrt('${pid}')||{}).etage`)));
+      w.__T(`(function(){
+        const r = raeume()[0], m = r.moebel[0];
+        m.etagen = [40, 80];
+        moebelEtagenPruefen(r, m);
+      })()`);
+      pruef('Weniger B\u00f6den setzen die Pflanze auf den obersten',
+        w.__T(`(pflanzenOrt('${pid}')||{}).etage`) === 1,
+        String(w.__T(`(pflanzenOrt('${pid}')||{}).etage`)));
+      w.__T("raeume()[0].moebel[0].etagen = [20,40,60,80]");
+    }
+
+    /* ── Das Fenster „von vorne" ────────────────────────────── */
+    {
+      pruef('Es gibt ein Fenster f\u00fcr die Frontansicht',
+        !!d.getElementById('mf-modal'));
+      pruef('Aus dem M\u00f6belformular f\u00fchrt ein Weg dorthin',
+        !!d.getElementById('btn-mb-front'));
+      w.__T("mfOeffnen('mtest', false)");
+      await tick();
+      pruef('Das Fenster geht auf', w.__T("modalOffen('mf-modal')") === true);
+      pruef('Die Frontansicht wird gezeichnet',
+        !!d.querySelector('#mf-front svg'));
+      pruef('Der Querschnitt wird gezeichnet',
+        !!d.querySelector('#mf-quer svg'));
+      pruef('Jeder Boden hat einen Griff',
+        d.querySelectorAll('#mf-front [data-brett]').length === 4,
+        String(d.querySelectorAll('#mf-front [data-brett]').length));
+      pruef('Die Tabelle nennt jeden Boden',
+        d.querySelectorAll('#mf-tabelle .mf-zeile').length === 4,
+        String(d.querySelectorAll('#mf-tabelle .mf-zeile').length));
+      pruef('Die Lichtart l\u00e4sst sich umstellen',
+        d.querySelectorAll('#mf-regler [data-mflicht]').length === 3);
+      pruef('Der Monatsschieber steht im Fenster',
+        !!d.getElementById('mf-monat'));
+      pruef('Die Uhrzeit erscheint erst im Moment-Modus',
+        !d.getElementById('mf-zeit'));
+      w.__T("pLicht = 'moment'; mfZeichnen()");
+      pruef('und dann steht sie da', !!d.getElementById('mf-zeit'));
+      w.__T("pLicht = 'stunden'; mfZeichnen()");
+      pruef('Der Abschlussknopf hei\u00dft Fertig',
+        d.getElementById('mf-weiter').hidden === false
+        && /Fertig/.test(d.getElementById('mf-weiter').textContent),
+        d.getElementById('mf-weiter').textContent);
+
+      /* Im Ansehen wird nichts verschoben: keine Griffe, kein
+         Umsetzen. Das ist der ganze Unterschied zwischen den
+         beiden Wegen ins Fenster. */
+      w.__T("mfSehen = true; mfZeichnen()");
+      pruef('Die Ansicht ist als solche gekennzeichnet',
+        d.getElementById('mf-modal').classList.contains('sehen'));
+      w.__T("mfSehen = false; mfZeichnen()");
+      pruef('Im Bearbeiten ist die Kennzeichnung weg',
+        !d.getElementById('mf-modal').classList.contains('sehen'));
+
+      /* Eine Pflanze auf einen anderen Boden setzen. */
+      const pid2 = w.__T('allePflanzen()[0].id');
+      w.__T(`pflanzeSetzen('${pid2}', raeume()[0].id, 40, 30, 0)`);
+      w.__T(`mfPflanze = '${pid2}'; mfZug = {i:2, bewegt:false}; mfZugEnde()`);
+      pruef('Ein Tipp auf einen Boden setzt die Pflanze dorthin',
+        w.__T(`(pflanzenOrt('${pid2}')||{}).etage`) === 2,
+        String(w.__T(`(pflanzenOrt('${pid2}')||{}).etage`)));
+      pruef('und die Wahl ist danach aufgehoben',
+        w.__T('mfPflanze') === null);
+      w.__T("modalZu('mf-modal')");
+      await tick();
+      pruef('Das Fenster l\u00e4sst sich schlie\u00dfen',
+        w.__T("modalOffen('mf-modal')") === false);
     }
 
     /* ── Kantenbreiten ── */

@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.2.8 — 3. September 2026
+**Regale haben Böden**
+
+### Neu
+- Ein Möbel kann mehrere Böden haben. Im Möbelformular steht dafür „Böden“; ein Regal bringt vier mit, ein Kräuterturm drei. Die Höhen verteilen sich zunächst gleichmäßig und lassen sich danach einzeln zurechtziehen.
+- „Von vorne ansehen“ zeigt das Möbel in zwei Schnitten: von vorne über die Breite und im Querschnitt von der Seite. Die Front färbt jedes Fach nach seinem Licht ein, der Querschnitt zeigt, wie weit das Licht nach hinten reicht und wo ein Boden es abschneidet.
+- Pflanzen lassen sich einem Boden zuordnen — erst die Pflanze antippen, dann den Boden. Aus der Raumansicht führt ein Tipp auf das Möbel in dieselbe Ansicht, dort ohne Griffe.
+- Unter den Bildern steht für jeden Boden, wie viele Sonnenstunden ankommen und wie weit Helligkeit zwischen der dunkelsten und der hellsten Ecke auseinanderliegt.
+
+### Besser
+- Das Licht wird für jeden Boden einzeln gerechnet: ein Boden verschattet den darunter, und gemessen wird über die ganze Fläche statt an einem einzelnen Punkt in der Mitte.
+
+### Behoben
+- Der Sonnenspeicher kannte keine Möbel und gab nach dem Verschieben eines Möbels weiter die alten Werte aus.
+
+---
+
 ## 3.2.7 — 3. September 2026
 **Ein Knopf, eine Stelle**
 
