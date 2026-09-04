@@ -1770,7 +1770,12 @@ html[data-design="klartext"] .kz-feld em{font-size:var(--t-md)}
 .plan-svg .p-warn{text-anchor:middle;fill:#fff;font-family:inherit;font-weight:700}
 .plan-svg .k-lab{text-anchor:middle;fill:#7a7264;font-family:inherit}
 .plan-svg .marke{cursor:pointer}
+.plan-svg .b-zahl{text-anchor:middle;fill:#2a2620;font-family:inherit;font-weight:700}
+.plan-svg .b-lab{text-anchor:start;fill:#2a2620;font-family:inherit;font-weight:600}
+.plan-svg .buendel{cursor:pointer}
+.plan-svg .buendel-zeile{cursor:pointer}
 .plan-svg:not(.modus-pflanzen) .marke{pointer-events:none}
+.plan-svg:not(.modus-pflanzen) .buendel{pointer-events:none}
 .plan-svg:not(.modus-moebel) .moebel{pointer-events:none}
 .plan-svg.modus-kacheln .kachel,.plan-svg.modus-kanten .kante-griff{pointer-events:auto}
 .plan-svg:not(.modus-kacheln) .kachel{pointer-events:none}
@@ -10226,8 +10231,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.2';
+const FASSUNG = '3.4.3';
 const PATCHNOTES = [
+  {
+    nr: '3.4.3', datum: '2026-09-04', titel: 'Zusammenfassen statt wegschieben',
+    besser: [
+      'Stehen mehrere Pflanzen an derselben Stelle, zeigt die Ansicht einen Kreis mit ihrer Anzahl — genau dort, wo sie wirklich stehen. Angetippt fährt er die Namen aus, und jeder Name öffnet seine Karte.',
+      'Bis eben wurden solche Marken auseinandergeschoben. Das kannte die Wand nicht und setzte Pflanzen neben den Raum, an Orte, an denen keine steht. Eine Marke, die lügt, ist schlimmer als eine, die sich versteckt.',
+      'Möbelnamen laufen nicht mehr über ihre Nachbarn. Jedes Möbel trägt so viel Text, wie es breit ist — ein schmales Wandbrett bekommt einen gekürzten Namen statt einen, der quer über dem Sideboard liegt.'
+    ]
+  },
   {
     nr: '3.4.2', datum: '2026-09-04', titel: 'Unter dem Finger, nicht untereinander',
     besser: [
@@ -17708,6 +17721,7 @@ let pLicht = 'stunden';    // stunden | moment | hell
 let pKanteArt = 'fenster';
 let pGewaehlt = null;      // {typ:'pflanze'|'moebel', id}
 let pKarte = null;         // Pflanze, deren Karte offen ist
+let pBuendel = null;       // Schlüssel des ausgefahrenen Markenbündels
 let pZoom = 1, pPanX = 0, pPanY = 0;   // Ausschnitt im Vollbild
 
 const MASS = 1;            // Zeichnung rechnet direkt in Zentimetern
@@ -17957,38 +17971,38 @@ function grundrissSVG(){
     const gew = pGewaehlt && pGewaehlt.typ==='moebel' && pGewaehlt.id===m.id;
     s += `<g class="moebel${gew?' gewaehlt':''}" data-moebel="${m.id}">
       ${moebelForm(m, farbeFuer(wert, stufeFuer(r,cx,cy,m.h,wert)))}
-      <text x="${m.x*MASS+4*sk}" y="${m.y*MASS+11*sk}" class="m-lab" font-size="${9.5*sk}">${esc(m.name)}</text>
-      <text x="${m.x*MASS+4*sk}" y="${m.y*MASS+21*sk}" class="m-h" font-size="${8.5*sk}">${m.h} cm</text>
+      ${moebelLabel(m, sk)}
     </g>`;
   });
 
   /* Pflanzenmarken. In der Ansicht stehen sie ausgerichtet auf ihrem
      Moebel, im Editor an ihrem echten Ort — sonst zoege man eine Marke
      und sie spraenge zurueck. */
-  let stellung = grStufe === 'ansicht' ? markenPositionen(r) : null;
-  /* Eine Marke ist 13*sk gross, zwei nebeneinander brauchen also gut
-     28*sk. Fuer die Beschriftung das Doppelte. */
-  if(stellung) stellung = markenEntzerren(stellung, 30*sk);
+  const stellung = grStufe === 'ansicht' ? markenPositionen(r) : null;
+  const pfl = pflanzenIm(r.id);
   const orte = {};
-  pflanzenIm(r.id).forEach(p=>{
+  pfl.forEach(p=>{
     orte[p.id] = (stellung && stellung[p.id]) || pflanzenOrt(p.id) || {x:0, y:0};
   });
-  const eng = markenGedraengt(orte, 58*sk);
-  pflanzenIm(r.id).forEach(p=>{
-    const o = orte[p.id];
-    const u = platzUrteil(r, o.x, o.y, pMonat);
-    const gift = istGiftig(p, 'katze') !== false;
-    const warn = gift && u.katze;
-    const gew = pGewaehlt && pGewaehlt.typ==='pflanze' && pGewaehlt.id===p.id;
-    const form = FORMEN[formVon(p)] ? FORMEN[formVon(p)]() : FORMEN.bluete();
-    s += `<g class="marke${gew?' gewaehlt':''}${warn?' warn':''}" data-pfl="${p.id}"
-        transform="translate(${o.x*MASS},${o.y*MASS})">
-      <circle r="${13*sk}" style="fill:var(--z-marke);stroke:${gift?'var(--z-gift)':'var(--z-ok)'}" stroke-width="${2.4*sk}"/>
-      <g transform="scale(${0.48*sk})">${form}</g>
-      ${(!eng[p.id] || gew) ? `<text y="${24*sk}" class="p-lab" font-size="${10*sk}">${esc(kurz(p)).slice(0,10)}</text>` : ''}
-      ${warn?`<circle cx="${10*sk}" cy="${-10*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${11*sk}" y="${-8*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
-    </g>`;
-  });
+  /* In der Ansicht werden Marken, die einander verdecken, zu einem
+     Buendel zusammengefasst: ein Kreis mit der Zahl, angetippt faehrt
+     er die Namen aus. Im Editor darf das nicht passieren — dort muss
+     jede Marke einzeln unter dem Finger liegen. Dort hilft nur, die
+     Beschriftung im Gedraenge wegzulassen. */
+  const buendel = grStufe === 'ansicht' ? markenBuendel(orte, 30*sk) : null;
+  const eng = buendel ? {} : markenGedraengt(orte, 58*sk);
+  const nach = {}; pfl.forEach(p=>{ nach[p.id] = p; });
+  if(buendel){
+    buendel.forEach(b=>{
+      if(b.ids.length === 1 && nach[b.ids[0]]){
+        s += markeSVG(r, nach[b.ids[0]], orte[b.ids[0]], sk, false);
+        return;
+      }
+      s += buendelSVG(r, b, nach, orte, sk, W);
+    });
+  } else {
+    pfl.forEach(p=>{ s += markeSVG(r, p, orte[p.id], sk, !!eng[p.id]); });
+  }
 
   /* Kompass */
   const a = (-r.drehung) * GRAD;
@@ -18014,45 +18028,127 @@ function grundrissSVG(){
    Die Kreise ueberlappen, die Namen ueberlagern sich zu einem Brei,
    und man sieht weder, was wo steht, noch wie hell es dort ist.
 
-   Zwei Mittel, und sie greifen an verschiedenen Stellen:
+   Bis 3.4.2 wurden sie auseinandergeschoben. Das war der falsche Weg:
+   das Schieben kannte die Wand nicht und setzte Marken neben den Raum,
+   also an Orte, an denen keine Pflanze steht. Eine Marke, die luegt,
+   ist schlimmer als eine, die sich versteckt.
 
-   `markenEntzerren` schiebt Marken, die fast aufeinander liegen, in
-   wenigen Durchgaengen auseinander. Das darf nur in der Ansicht
-   passieren — im Editor ist die Marke da, wo der Finger sie
-   hingezogen hat, und duerfte nicht von selbst wegrutschen.
+   `markenBuendel` fasst deshalb zusammen, statt zu verteilen. Was zu
+   nah beieinander liegt, wird ein Kreis mit einer Zahl — an genau der
+   Stelle, an der die Pflanzen wirklich stehen. Angetippt faehrt er die
+   Namen aus. Nur in der Ansicht: im Editor muss jede Marke einzeln
+   unter dem Finger liegen, sonst koennte man sie nicht mehr ziehen.
 
-   `markenGedraengt` sagt fuer jede Marke, ob eine Nachbarin so nah
-   ist, dass die Beschriftung im Weg waere. Das gilt in beiden
-   Ansichten: Namen verschwinden, Kreise bleiben. Die ausgewaehlte
-   Pflanze behaelt ihren Namen immer — sonst waere gerade die nicht
-   mehr zu erkennen, um die es geht. */
-function markenEntzerren(stellung, mindest){
-  const ids = Object.keys(stellung);
-  if(ids.length < 2) return stellung;
-  for(let runde = 0; runde < 6; runde++){
-    let ruhig = true;
-    for(let i = 0; i < ids.length; i++){
-      for(let j = i + 1; j < ids.length; j++){
-        const a = stellung[ids[i]], b = stellung[ids[j]];
-        let ax = b.x - a.x, ay = b.y - a.y;
-        let d = Math.hypot(ax, ay);
-        if(d >= mindest) continue;
-        /* Genau uebereinander gibt es keine Richtung — dann eine
-           ausdenken, sonst teilt man durch null. */
-        if(d < 0.001){
-          const w = (i * 2.399963) % (Math.PI * 2);
-          ax = Math.cos(w); ay = Math.sin(w); d = 1;
-        }
-        const schub = (mindest - d) / 2;
-        const ex = ax / d * schub, ey = ay / d * schub;
-        stellung[ids[i]] = {...a, x: a.x - ex, y: a.y - ey};
-        stellung[ids[j]] = {...b, x: b.x + ex, y: b.y + ey};
-        ruhig = false;
-      }
-    }
-    if(ruhig) break;
+   `markenGedraengt` bleibt fuer den Editor. Dort sagt es fuer jede
+   Marke, ob eine Nachbarin so nah ist, dass die Beschriftung im Weg
+   waere: Namen verschwinden, Kreise bleiben. Die ausgewaehlte Pflanze
+   behaelt ihren Namen immer — sonst waere gerade die nicht mehr zu
+   erkennen, um die es geht. */
+/* ── Was auf einem Moebel steht, drauf ─────────────────────────
+   Der Name sass bisher immer oben links im Kasten, egal wie schmal
+   der war. Bei einem Wandbrett von 30 cm lief er quer ueber das
+   Sideboard daneben, und aus zwei Beschriftungen wurde ein Brei.
+   Jetzt traegt jedes Moebel nur so viel Text, wie es breit ist. */
+function moebelLabel(m, sk){
+  const breite = m.b*MASS - 8*sk;
+  const hoch   = m.t*MASS;
+  const proZ   = 5.2*sk;               // grobe Breite eines Zeichens
+  const maxN   = Math.floor(breite / proZ);
+  let t = '';
+  if(maxN >= 3 && hoch >= 13*sk){
+    const nam = m.name.length > maxN ? m.name.slice(0, Math.max(1, maxN-1)) + '…' : m.name;
+    t += `<text x="${m.x*MASS+4*sk}" y="${m.y*MASS+11*sk}" class="m-lab" font-size="${9.5*sk}">${esc(nam)}</text>`;
   }
-  return stellung;
+  /* Die Hoehe ist die zweite Zeile. Sie faellt zuerst weg: den Namen
+     braucht man, die Zentimeter stehen auch in der Karte. */
+  if(breite >= 32*sk && hoch >= 24*sk){
+    t += `<text x="${m.x*MASS+4*sk}" y="${m.y*MASS+21*sk}" class="m-h" font-size="${8.5*sk}">${m.h} cm</text>`;
+  }
+  return t;
+}
+
+/* Eine einzelne Marke. Steht hier fuer sich, weil sie an zwei Stellen
+   gebraucht wird: allein im Bild und als Zeile in einem Buendel. */
+function markeSVG(r, p, o, sk, eng){
+  const u = platzUrteil(r, o.x, o.y, pMonat);
+  const gift = istGiftig(p, 'katze') !== false;
+  const warn = gift && u.katze;
+  const gew = pGewaehlt && pGewaehlt.typ==='pflanze' && pGewaehlt.id===p.id;
+  const form = FORMEN[formVon(p)] ? FORMEN[formVon(p)]() : FORMEN.bluete();
+  return `<g class="marke${gew?' gewaehlt':''}${warn?' warn':''}" data-pfl="${p.id}"
+      transform="translate(${o.x*MASS},${o.y*MASS})">
+    <circle r="${13*sk}" style="fill:var(--z-marke);stroke:${gift?'var(--z-gift)':'var(--z-ok)'}" stroke-width="${2.4*sk}"/>
+    <g transform="scale(${0.48*sk})">${form}</g>
+    ${(!eng || gew) ? `<text y="${24*sk}" class="p-lab" font-size="${10*sk}">${esc(kurz(p)).slice(0,10)}</text>` : ''}
+    ${warn?`<circle cx="${10*sk}" cy="${-10*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${11*sk}" y="${-8*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
+  </g>`;
+}
+
+/* Mehrere Pflanzen an derselben Stelle: ein Kreis, eine Zahl. Der
+   Kreis steht dort, wo die Pflanzen wirklich stehen — er wandert
+   nicht. Angetippt faehrt er die Namen aus; jede Zeile oeffnet ihre
+   Karte. */
+function buendelSVG(r, b, nach, orte, sk, W){
+  const offen = pBuendel === b.key;
+  const dabei = b.ids.map(id=>nach[id]).filter(Boolean);
+  const warn = dabei.some(p=>{
+    const o = orte[p.id];
+    return istGiftig(p, 'katze') !== false && platzUrteil(r, o.x, o.y, pMonat).katze;
+  });
+  const gew = pGewaehlt && pGewaehlt.typ==='pflanze' && b.ids.indexOf(pGewaehlt.id) >= 0;
+  const x = b.x*MASS, y = b.y*MASS;
+  let t = `<g class="buendel${offen?' auf':''}${warn?' warn':''}" data-buendel="${b.key}"
+      transform="translate(${x},${y})">
+    <circle r="${15*sk}" style="fill:var(--z-marke);stroke:${gew?'var(--z-ok)':'var(--z-marke-rand)'}" stroke-width="${2.4*sk}"/>
+    <text y="${4.5*sk}" class="b-zahl" font-size="${14*sk}">${b.ids.length}</text>
+    ${warn?`<circle cx="${11*sk}" cy="${-11*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${12*sk}" y="${-9*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
+  </g>`;
+  if(!offen) return t;
+  /* Die Liste geht nach rechts, wenn dort Platz ist, sonst nach
+     links — sie soll nicht ueber den Rand des Bildes hinauslaufen. */
+  const bre = 104*sk, zei = 18*sk;
+  const rechts = x + 18*sk + bre <= W + 30*sk;
+  const lx = rechts ? x + 18*sk : x - 18*sk - bre;
+  const ly = y - (dabei.length * zei) / 2;
+  t += `<g class="buendel-liste">
+    <rect x="${lx}" y="${ly}" width="${bre}" height="${dabei.length*zei}" rx="${5*sk}"
+      style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>`;
+  dabei.forEach((p, i)=>{
+    const gift = istGiftig(p, 'katze') !== false;
+    t += `<g data-pfl="${p.id}" class="buendel-zeile">
+      <rect x="${lx}" y="${ly + i*zei}" width="${bre}" height="${zei}" fill="transparent"/>
+      <circle cx="${lx + 9*sk}" cy="${ly + i*zei + zei/2}" r="${4*sk}"
+        style="fill:${gift?'var(--z-gift)':'var(--z-ok)'}"/>
+      <text x="${lx + 17*sk}" y="${ly + i*zei + zei/2 + 3.4*sk}" class="b-lab"
+        font-size="${9.5*sk}">${esc(kurz(p)).slice(0,13)}</text>
+    </g>`;
+  });
+  return t + '</g>';
+}
+
+function markenBuendel(orte, mindest){
+  /* Sortiert, damit dieselbe Lage immer dieselben Buendel ergibt und
+     die Kreise beim Neuzeichnen nicht springen. */
+  const ids = Object.keys(orte).sort();
+  const gruppen = [];
+  ids.forEach(id=>{
+    const o = orte[id];
+    let ziel = null;
+    for(let i = 0; i < gruppen.length; i++){
+      const g = gruppen[i];
+      if(Math.hypot(g.x - o.x, g.y - o.y) < mindest){ ziel = g; break; }
+    }
+    if(ziel){
+      const n = ziel.ids.length;
+      ziel.x = (ziel.x * n + o.x) / (n + 1);
+      ziel.y = (ziel.y * n + o.y) / (n + 1);
+      ziel.ids.push(id);
+    } else {
+      gruppen.push({ids:[id], x:o.x, y:o.y});
+    }
+  });
+  gruppen.forEach(g=>{ g.key = g.ids[0]; });
+  return gruppen;
 }
 
 function markenGedraengt(orte, mindest){
@@ -18173,13 +18269,13 @@ function grAnsichtZeichnen(){
 function grAnsehen(raumId){
   if(raumId) S.raumAktiv = raumId;
   grStufe = 'ansicht';
-  pKarte = null; pGewaehlt = null;
+  pKarte = null; pGewaehlt = null; pBuendel = null;
   sichern(); planRender();
 }
 function grOeffnen(raumId){
   if(raumId) S.raumAktiv = raumId;
   grStufe = 'editor';
-  pKarte = null; pGewaehlt = null;
+  pKarte = null; pGewaehlt = null; pBuendel = null;
   sichern(); planRender();
 }
 document.addEventListener('click', e=>{
@@ -18189,11 +18285,14 @@ document.addEventListener('click', e=>{
   if(a){ grAnsehen(a.dataset.raumSehen); return; }
   if(e.target.closest('#btn-gra-bearbeiten')){ grOeffnen(S.raumAktiv); return; }
   if(e.target.closest('#btn-gr-zurueck') || e.target.closest('#btn-gra-zurueck')){
-    grStufe = 'liste'; pKarte = null; pGewaehlt = null; planRender();
+    grStufe = 'liste'; pKarte = null; pGewaehlt = null; pBuendel = null; planRender();
   }
   /* In der Ansicht wird nichts verschoben — ein Tipp auf eine Marke
      oeffnet die Pflanze, mehr passiert nicht. */
   if(grStufe === 'ansicht'){
+    /* Erst die Pflanze, dann das Buendel: die Zeilen der ausgefahrenen
+       Liste liegen innerhalb des Buendels, und ein Tipp darauf meint
+       die Pflanze, nicht das Zuklappen. */
     const m = e.target.closest('#gra-flaeche [data-pfl]');
     if(m){
       const p = allePflanzen().find(x=>x.id === m.dataset.pfl);
@@ -18201,7 +18300,13 @@ document.addEventListener('click', e=>{
       grAnsichtZeichnen();
       return;
     }
-    if(e.target.closest('#gra-flaeche')){ pKarte = null; grAnsichtZeichnen(); }
+    const b = e.target.closest('#gra-flaeche [data-buendel]');
+    if(b){
+      pBuendel = pBuendel === b.dataset.buendel ? null : b.dataset.buendel;
+      grAnsichtZeichnen();
+      return;
+    }
+    if(e.target.closest('#gra-flaeche')){ pKarte = null; pBuendel = null; grAnsichtZeichnen(); }
   }
 });
 document.addEventListener('input', e=>{

@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.2', w.__T('FASSUNG') === '3.4.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.3', w.__T('FASSUNG') === '3.4.3', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2198,22 +2198,30 @@ setTimeout(async () => {
        Vier Pflanzen auf einem Fensterbrett ergaben einen Klumpen aus
        Kreisen und einen Brei aus Namen. */
     {
-      /* Auseinanderschieben ─ auch aus dem Sonderfall heraus, dass
-         alle auf demselben Punkt liegen. */
-      const eng = w.__T(`(function(){
-        const st = {a:{x:100,y:100}, b:{x:100,y:100}, c:{x:104,y:100}, d:{x:400,y:400}};
-        markenEntzerren(st, 30);
-        return JSON.stringify(st);
-      })()`);
-      const st = JSON.parse(eng);
-      const abst = (u, v) => Math.hypot(st[u].x - st[v].x, st[u].y - st[v].y);
-      pruef('Zwei Marken auf demselben Punkt werden getrennt',
-        abst('a', 'b') > 29, abst('a', 'b').toFixed(1));
-      pruef('Auch die dritte daneben bekommt Platz',
-        abst('a', 'c') > 29 && abst('b', 'c') > 29,
-        abst('a', 'c').toFixed(1) + ' / ' + abst('b', 'c').toFixed(1));
-      pruef('Wer schon weit weg steht, bleibt stehen',
-        st.d.x === 400 && st.d.y === 400);
+      /* Zusammenfassen statt auseinanderschieben ─ auch aus dem
+         Sonderfall heraus, dass alle auf demselben Punkt liegen. */
+      const roh = w.__T(`JSON.stringify(markenBuendel(
+        {a:{x:100,y:100}, b:{x:100,y:100}, c:{x:104,y:100}, d:{x:400,y:400}}, 30))`);
+      const gr = JSON.parse(roh);
+      const von = id => gr.find(g=>g.ids.indexOf(id) >= 0);
+      pruef('Drei nahe Marken werden ein B\u00fcndel',
+        von('a').ids.length === 3, JSON.stringify(gr.map(g=>g.ids)));
+      pruef('Wer weit weg steht, bleibt f\u00fcr sich',
+        von('d').ids.length === 1, JSON.stringify(von('d').ids));
+      pruef('Es bleiben genau zwei B\u00fcndel', gr.length === 2, String(gr.length));
+      /* Das Buendel steht dort, wo die Pflanzen stehen ─ nicht daneben.
+         Genau das war der Fehler des Auseinanderschiebens. */
+      pruef('Das B\u00fcndel steht bei seinen Pflanzen',
+        Math.abs(von('a').x - 101.33) < 0.1 && Math.abs(von('a').y - 100) < 0.1,
+        von('a').x + ',' + von('a').y);
+      /* Der Schluessel haengt an den Mitgliedern, nicht an der
+         Reihenfolge ─ sonst klappte das offene Buendel bei jedem
+         Neuzeichnen zu. */
+      const roh2 = w.__T(`JSON.stringify(markenBuendel(
+        {c:{x:104,y:100}, b:{x:100,y:100}, a:{x:100,y:100}, d:{x:400,y:400}}, 30))`);
+      pruef('Dieselbe Lage ergibt denselben Schl\u00fcssel',
+        JSON.parse(roh2).map(g=>g.key).join() === gr.map(g=>g.key).join(),
+        JSON.parse(roh2).map(g=>g.key).join());
 
       /* Und die Beschriftung: eng ist eng. */
       const gedraengt = JSON.parse(w.__T(`JSON.stringify(markenGedraengt(
@@ -2250,9 +2258,9 @@ setTimeout(async () => {
         zaehl(weit, 'class="p-lab"') > zaehl(bild, 'class="p-lab"'),
         zaehl(weit, 'class="p-lab"') + ' gegen ' + zaehl(bild, 'class="p-lab"'));
 
-      /* In der Ansicht werden Marken auch dann getrennt, wenn sie auf
-         keinem M\u00f6bel stehen \u2014 dort verteilt `markenPositionen` sie
-         nicht, und ohne Entzerren l\u00e4gen sie aufeinander. */
+      /* In der Ansicht werden Marken, die aufeinander liegen, zu einem
+         B\u00fcndel. Gepr\u00fcft wird am fertigen Bild, nicht an der
+         Funktion \u2014 sonst bliebe ein fehlender Aufruf unbemerkt. */
       {
         const stelleVon = (t, id) => {
           const tr = new RegExp('data-pfl="' + id + '"[\\s\\S]{0,120}?translate\\(([-0-9.]+),([-0-9.]+)\\)');
@@ -2262,22 +2270,49 @@ setTimeout(async () => {
         w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
         w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 120, 60)`);
         w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 120, 60)`);
-        w.__T("grStufe = 'ansicht'; pGewaehlt = null");
+        w.__T("grStufe = 'ansicht'; pGewaehlt = null; pBuendel = null");
         const bildA = w.__T('grundrissSVG()');
-        const a = stelleVon(bildA, zwei[0]), b = stelleVon(bildA, zwei[1]);
-        pruef('Beide Marken sind in der Ansicht auffindbar', !!a && !!b);
-        pruef('Sie liegen nicht mehr aufeinander',
-          a && b && Math.hypot(a.x - b.x, a.y - b.y) > 20,
-          a && b ? Math.hypot(a.x - b.x, a.y - b.y).toFixed(1) : '—');
+        const zaehlA = (t, m) => (t.split(m).length - 1);
+        const drin = (t, id) => t.indexOf('data-pfl="' + id + '"') >= 0;
+        pruef('In der Ansicht stehen die zwei als ein B\u00fcndel',
+          zaehlA(bildA, 'data-buendel=') === 1
+          && !drin(bildA, zwei[0]) && !drin(bildA, zwei[1]),
+          zaehlA(bildA, 'data-buendel=') + ' B\u00fcndel');
+        pruef('Es tr\u00e4gt die Zahl zwei',
+          /class="b-zahl"[^>]*>2</.test(bildA));
+        /* Und es steht dort, wo die Pflanzen stehen. Das
+           Auseinanderschieben setzte Marken neben den Raum. */
+        const bm = bildA.match(/data-buendel="[^"]*"[\s\S]{0,120}?translate\(([-0-9.]+),([-0-9.]+)\)/);
+        pruef('Das B\u00fcndel steht am Ort der Pflanzen',
+          bm && Math.abs(+bm[1] - 120) < 0.5 && Math.abs(+bm[2] - 60) < 0.5,
+          bm ? bm[1] + ',' + bm[2] : '—');
+
+        /* Angetippt f\u00e4hrt es die Namen aus \u2014 zwei Zeilen, jede
+           mit ihrer Pflanze daran. */
+        const key = bildA.match(/data-buendel="([^"]*)"/)[1];
+        w.__T(`pBuendel = '${key}'`);
+        const bildAuf = w.__T('grundrissSVG()');
+        pruef('Aufgeklappt stehen beide Namen in der Liste',
+          drin(bildAuf, zwei[0]) && drin(bildAuf, zwei[1]),
+          String(zaehlA(bildAuf, 'class="b-lab"')));
+        pruef('Zugeklappt wieder nicht',
+          zaehlA(bildA, 'class="b-lab"') === 0);
+        w.__T('pBuendel = null');
 
         /* Im Editor bleibt die Marke da, wo der Finger sie hingezogen
-           hat \u2014 dort darf nichts von selbst wegrutschen. */
+           hat \u2014 dort darf nichts von selbst wegrutschen, und
+           geb\u00fcndelt werden darf auch nichts: was man ziehen soll,
+           muss einzeln unter dem Finger liegen. */
         w.__T("grStufe = 'editor'");
         const bildE = w.__T('grundrissSVG()');
         const e0 = stelleVon(bildE, zwei[0]);
         pruef('Im Editor bleibt sie an ihrem echten Ort',
           e0 && Math.abs(e0.x - 120) < 0.5 && Math.abs(e0.y - 60) < 0.5,
           e0 ? e0.x + ',' + e0.y : '—');
+        pruef('Im Editor wird nicht geb\u00fcndelt',
+          bildE.indexOf('data-buendel=') < 0
+          && bildE.indexOf('data-pfl="' + zwei[0] + '"') >= 0
+          && bildE.indexOf('data-pfl="' + zwei[1] + '"') >= 0);
         w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 104, 100)`);
         w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 100, 100)`);
       }
@@ -2302,6 +2337,43 @@ setTimeout(async () => {
         html.indexOf('Math.min(r.sp*KACHEL, p.x - zieht.dx)') !== -1);
       pruef('Die Schwelle ist klein genug',
         html.indexOf('zieht.sy) < 3) return;') !== -1);
+    }
+
+    /* ── Beschriftung der Möbel ────────────────
+       Ein Name, der breiter ist als sein Möbel, lief bis 3.4.2 quer
+       über das Nachbarmöbel: „Wandbrett" lag auf „TV-Sideboard".
+       Jetzt trägt jedes Möbel nur so viel Text, wie es breit ist. */
+    {
+      w.__T(`raum().moebel = [
+        {id:'breit',  name:'Esstisch mit St\u00fchlen', typ:'tisch', x:0, y:0, b:220, t:100, h:75},
+        {id:'schmal', name:'Wandbrett am Fenster',  typ:'regal', x:0, y:250, b:34, t:24, h:120}];
+        SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+      w.__T("grStufe = 'editor'; pGewaehlt = null");
+      const bildM = w.__T('grundrissSVG()');
+      /* Der Text steht hinter der Klasse, nicht hinter einer Kennung —
+         also wird er selbst gelesen. */
+      const labels = (bildM.match(/class="m-lab"[^>]*>([^<]*)</g) || [])
+        .map(t=>t.replace(/^[\s\S]*>/, '').replace(/<$/, ''));
+      const hoehen = (bildM.match(/class="m-h"/g) || []).length;
+      pruef('Das breite M\u00f6bel tr\u00e4gt seinen vollen Namen',
+        labels.indexOf('Esstisch mit St\u00fchlen') >= 0, JSON.stringify(labels));
+      const kurzL = labels.filter(t=>t !== 'Esstisch mit St\u00fchlen');
+      pruef('Das schmale bekommt einen gek\u00fcrzten',
+        kurzL.length === 1 && kurzL[0].length < 'Wandbrett am Fenster'.length
+        && kurzL[0].slice(-1) === '\u2026', JSON.stringify(kurzL));
+      pruef('Und der gek\u00fcrzte passt in seine Breite',
+        kurzL.length === 1 && kurzL[0].length <= 8, kurzL[0]);
+      pruef('Nur das breite zeigt seine H\u00f6he',
+        hoehen === 1, String(hoehen));
+
+      /* Ein Brett, das f\u00fcr drei Zeichen zu schmal ist, tr\u00e4gt gar
+         nichts — ein einzelner Buchstabe sagt weniger als nichts. */
+      w.__T(`raum().moebel[1].b = 12; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+      const bildW = w.__T('grundrissSVG()');
+      pruef('Ein sehr schmales M\u00f6bel bleibt unbeschriftet',
+        (bildW.match(/class="m-lab"/g) || []).length === 1,
+        String((bildW.match(/class="m-lab"/g) || []).length));
+      w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
     }
 
     /* ── Möbel drehen ──────────────────────────

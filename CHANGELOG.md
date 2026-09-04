@@ -4,6 +4,16 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.3 — 4. September 2026
+**Zusammenfassen statt wegschieben**
+
+### Besser
+- Stehen mehrere Pflanzen an derselben Stelle, zeigt die Ansicht einen Kreis mit ihrer Anzahl — genau dort, wo sie wirklich stehen. Angetippt fährt er die Namen aus, und jeder Name öffnet seine Karte.
+- Bis eben wurden solche Marken auseinandergeschoben. Das kannte die Wand nicht und setzte Pflanzen neben den Raum, an Orte, an denen keine steht. Im Editor bleibt weiter jede Marke einzeln greifbar — dort muss man sie ja ziehen können.
+- Möbelnamen laufen nicht mehr über ihre Nachbarn. Jedes Möbel trägt so viel Text, wie es breit ist; ein schmales Wandbrett bekommt einen gekürzten Namen, ein sehr schmales gar keinen. Die Höhe in Zentimetern fällt zuerst weg — sie steht auch in der Karte.
+
+---
+
 ## 3.4.2 — 4. September 2026
 **Unter dem Finger, nicht untereinander**
 
