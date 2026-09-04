@@ -1980,6 +1980,16 @@ body.gm-offen #fab-neu{display:none}
 #gra-flaeche .kachel{pointer-events:none}
 #gra-flaeche .moebel{pointer-events:none}
 .gra-licht{margin:12px 0 6px}
+.leiste-kopf{display:flex;width:100%;align-items:center;justify-content:space-between;
+  gap:10px;font:inherit;font-size:var(--t-s);color:var(--ink-2);text-align:left;
+  padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-klein);
+  background:var(--paper);cursor:pointer}
+.leiste-kopf .leiste-pfeil{color:var(--peat);transition:transform .15s}
+.leiste-kopf.auf{margin-bottom:9px}
+.leiste-kopf.auf .leiste-pfeil{transform:rotate(180deg)}
+#gra-info{margin:4px 0 12px;font-size:var(--t-m);color:var(--ink-2);line-height:1.55}
+#gra-info span{display:block}
+#gra-info .p-tipp{font-size:var(--t-s);margin-top:3px}
 #gra-karte{margin:10px 0 0}
 .gr-karte-tools{display:flex;gap:8px;margin:10px 0 0}
 .gr-karte-tools button{flex:1;min-height:var(--tap);cursor:pointer;font:inherit;
@@ -9037,15 +9047,20 @@ function papierkorbRender(){
       </div>
       <div id="gra-flaeche"></div>
       <div class="gra-licht">
-        <div class="pleiste">
-          <button data-plicht="stunden">Sonnenstunden</button>
-          <button data-plicht="moment">Einzelner Moment</button>
-          <button data-plicht="hell">Grundhelligkeit</button>
+        <button class="leiste-kopf" id="btn-gra-leiste" aria-expanded="false">
+          <span id="gra-leiste-stand"></span><span class="leiste-pfeil">▾</span>
+        </button>
+        <div id="gra-leiste-inhalt" hidden>
+          <div class="pleiste">
+            <button data-plicht="stunden">Sonnenstunden</button>
+            <button data-plicht="moment">Einzelner Moment</button>
+            <button data-plicht="hell">Grundhelligkeit</button>
+          </div>
+          <label class="zslider"><span class="lab">Monat</span>
+            <input type="range" id="gra-monat" min="1" max="12" step="1"></label>
+          <label class="zslider" id="gra-zeit-wrap" hidden><span class="lab">Uhrzeit</span>
+            <input type="range" id="gra-zeit" min="0" max="1439" step="10"></label>
         </div>
-        <label class="zslider"><span class="lab">Monat</span>
-          <input type="range" id="gra-monat" min="1" max="12" step="1"></label>
-        <label class="zslider" id="gra-zeit-wrap" hidden><span class="lab">Uhrzeit</span>
-          <input type="range" id="gra-zeit" min="0" max="1439" step="10"></label>
       </div>
       <p id="gra-info"></p>
       <div id="gra-karte" hidden></div>
@@ -10231,8 +10246,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.3';
+const FASSUNG = '3.4.4';
 const PATCHNOTES = [
+  {
+    nr: '3.4.4', datum: '2026-09-04', titel: 'Wer höher steht, liegt oben',
+    besser: [
+      'Möbel werden von niedrig nach hoch gezeichnet. Ein Wandbrett auf 1,80 m lag bisher unter einem Sideboard auf 50 cm, wenn es früher eingetragen war — beim Ansehen wie beim Antippen.',
+      'Die Leiste mit Lichtwahl und Monatsregler klappt zu. Im Kopf steht, was gerade zu sehen ist, etwa „Sonnenstunden · September" — die Zeichnung bleibt deutbar, ohne dass die Regler den Platz belegen.',
+      'Die Ansicht erklärt sich selbst, statt den Hinweis des Editors zu zeigen. Dort stand „Ziehen verschiebt, langes Tippen löscht" an einer Stelle, an der sich nichts verschieben und nichts löschen lässt.'
+    ]
+  },
   {
     nr: '3.4.3', datum: '2026-09-04', titel: 'Zusammenfassen statt wegschieben',
     besser: [
@@ -17722,6 +17745,11 @@ let pKanteArt = 'fenster';
 let pGewaehlt = null;      // {typ:'pflanze'|'moebel', id}
 let pKarte = null;         // Pflanze, deren Karte offen ist
 let pBuendel = null;       // Schlüssel des ausgefahrenen Markenbündels
+/* Die Leiste mit Lichtwahl und Reglern faengt zu an. Sie wird selten
+   angefasst und stand bisher zwischen Grundriss und Text im Weg. Im
+   Kopf steht, was gerade gezeigt wird — zugeklappt weiss man das
+   sonst nicht mehr. */
+let graLeiste = false;
 let pZoom = 1, pPanX = 0, pPanY = 0;   // Ausschnitt im Vollbild
 
 const MASS = 1;            // Zeichnung rechnet direkt in Zentimetern
@@ -17964,8 +17992,17 @@ function grundrissSVG(){
     }
   });
 
-  /* Möbel, jedes in seiner eigenen Lichtfarbe */
-  (r.moebel||[]).forEach(m=>{
+  /* Möbel, jedes in seiner eigenen Lichtfarbe. Gezeichnet wird von
+     niedrig nach hoch: sonst lag ein Wandbrett auf 1,80 m unter einem
+     Sideboard auf 50 cm, nur weil es frueher eingetragen wurde. Wer
+     hoeher steht, liegt oben — und liegt damit auch beim Antippen
+     oben, was zu `hoeheAn()` passt: dort gewinnt ebenfalls das
+     hoechste Moebel. Sortiert wird eine Kopie; die Reihenfolge in
+     `r.moebel` ist die Reihenfolge des Eintragens und bleibt. */
+  (r.moebel||[]).map((m, i)=>({m, i}))
+    .sort((a, b)=> (a.m.h - b.m.h) || (a.i - b.i))
+    .map(e=>e.m)
+    .forEach(m=>{
     const cx = m.x + m.b/2, cy = m.y + m.t/2;
     const wert = lichtWert(r, cx, cy, m.h);
     const gew = pGewaehlt && pGewaehlt.typ==='moebel' && pGewaehlt.id===m.id;
@@ -18259,8 +18296,19 @@ function grAnsichtZeichnen(){
   const ze = document.getElementById('gra-zeit');  if(ze) ze.value = pZeit;
   document.querySelectorAll('#gr-ansicht [data-plicht]').forEach(b=>
     b.classList.toggle('on', b.dataset.plicht === pLicht));
+  const inh = document.getElementById('gra-leiste-inhalt');
+  if(inh) inh.hidden = !graLeiste;
+  const kopf = document.getElementById('btn-gra-leiste');
+  if(kopf){
+    kopf.setAttribute('aria-expanded', graLeiste ? 'true' : 'false');
+    kopf.classList.toggle('auf', graLeiste);
+  }
+  const stand = document.getElementById('gra-leiste-stand');
+  if(stand) stand.textContent = lichtStand();
+  /* Der Bedienhinweis gehoert zur aufgeklappten Leiste: wer sie
+     zumacht, will die Zeichnung sehen und nicht die Anleitung. */
   const info = document.getElementById('gra-info');
-  if(info) info.innerHTML = planInfo();
+  if(info) info.innerHTML = planInfo(graLeiste);
   const warn = document.getElementById('gra-warnungen');
   if(warn) warn.innerHTML = planWarnungen();
   const k = document.getElementById('gra-karte');
@@ -18284,6 +18332,7 @@ document.addEventListener('click', e=>{
   const a = e.target.closest('[data-raum-sehen]');
   if(a){ grAnsehen(a.dataset.raumSehen); return; }
   if(e.target.closest('#btn-gra-bearbeiten')){ grOeffnen(S.raumAktiv); return; }
+  if(e.target.closest('#btn-gra-leiste')){ graLeiste = !graLeiste; grAnsichtZeichnen(); return; }
   if(e.target.closest('#btn-gr-zurueck') || e.target.closest('#btn-gra-zurueck')){
     grStufe = 'liste'; pKarte = null; pGewaehlt = null; pBuendel = null; planRender();
   }
@@ -18343,9 +18392,27 @@ function planRender(){
   $('#r-dach').checked = !r.dach;
 }
 
-function planInfo(){
+/* Was gerade gezeigt wird, in einer Zeile. Steht im Kopf der
+   zusammengeklappten Leiste — sonst wuesste man nicht mehr, welches
+   Licht man da eigentlich sieht. */
+function lichtStand(){
+  if(pLicht === 'moment'){
+    const hh = String(Math.floor(pZeit/60)).padStart(2,'0'), mm = String(pZeit%60).padStart(2,'0');
+    return `Einzelner Moment · ${MONATE[pMonat-1]}, ${hh}:${mm} Uhr`;
+  }
+  if(pLicht === 'hell') return 'Grundhelligkeit';
+  return `Sonnenstunden · ${MONATE[pMonat-1]}`;
+}
+
+function planInfo(tipp){
+  if(tipp === undefined) tipp = true;
   const r = raum();
-  const hinweis = {
+  /* In der Ansicht wird nichts verschoben. Bis 3.4.3 stand dort der
+     Hinweis des zuletzt im Editor gewaehlten Werkzeugs — „langes
+     Tippen loescht" an einer Stelle, an der man nichts loeschen kann. */
+  const hinweis = grStufe === 'ansicht'
+    ? 'Marke antippen öffnet die Karte. Stehen mehrere Pflanzen an einer Stelle, zeigt ein Kreis ihre Anzahl — antippen fährt die Namen aus.'
+    : {
     pflanzen:'Marke antippen öffnet die Karte, ziehen verschiebt sie. Auf ein Möbelstück gezogen, steht die Pflanze darauf.',
     moebel:'Möbel aus der Leiste antippen setzt es in die Mitte. Ziehen verschiebt, langes Tippen löscht.',
     kacheln:'Kacheln antippen schaltet Bodenfläche an und aus. So entstehen Erker und L-Formen.',
@@ -18364,7 +18431,7 @@ function planInfo(){
   } else {
     licht = `${MONATE[pMonat-1]} · Stunden direkte Sonne pro Tag`;
   }
-  return `<span>${esc(licht)}</span><span class="p-tipp">${esc(hinweis)}</span>
+  return `<span>${esc(licht)}</span>${tipp ? `<span class="p-tipp">${esc(hinweis)}</span>` : ''}
     <span class="p-tipp">${esc(r.name)} · ${
       (r.echtB && r.echtT)
         ? (r.echtB/100).toFixed(2).replace('.',',') + ' × ' + (r.echtT/100).toFixed(2).replace('.',',') + ' m'

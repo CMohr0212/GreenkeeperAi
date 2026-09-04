@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.3', w.__T('FASSUNG') === '3.4.3', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.4', w.__T('FASSUNG') === '3.4.4', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2366,6 +2366,36 @@ setTimeout(async () => {
       pruef('Nur das breite zeigt seine H\u00f6he',
         hoehen === 1, String(hoehen));
 
+      /* ── Wer hoeher steht, liegt oben ────────────────
+         Gezeichnet wurde in der Reihenfolge des Eintragens. Ein
+         Wandbrett auf 1,80 m lag damit unter einem Sideboard auf
+         50 cm, wenn es frueher eingetragen war. */
+      {
+        const platz = (t, id) => t.indexOf('data-moebel="' + id + '"');
+        pruef('Das h\u00f6here M\u00f6bel wird zuletzt gezeichnet',
+          platz(bildM, 'schmal') > platz(bildM, 'breit'),
+          platz(bildM, 'schmal') + ' nach ' + platz(bildM, 'breit'));
+        /* Und umgekehrt, damit nicht blosse Eintragsreihenfolge
+           bestanden hat: dasselbe Paar andersherum eingetragen. */
+        w.__T(`raum().moebel = [
+          {id:'hoch',  name:'Wandbrett', typ:'regal', x:0, y:0,   b:120, t:30, h:180},
+          {id:'flach', name:'Sideboard', typ:'kommode', x:0, y:60, b:120, t:40, h:50}];
+          SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+        const bildH = w.__T('grundrissSVG()');
+        pruef('Auch wenn es zuerst eingetragen wurde',
+          bildH.indexOf('data-moebel="hoch"') > bildH.indexOf('data-moebel="flach"'),
+          bildH.indexOf('data-moebel="hoch"') + ' nach '
+          + bildH.indexOf('data-moebel="flach"'));
+        /* Die Liste selbst bleibt in der Reihenfolge des Eintragens \u2014
+           sonst zeigte die Moebelleiste jedes Mal etwas anderes. */
+        pruef('Die Liste wird dabei nicht umsortiert',
+          w.__T("raum().moebel[0].id") === 'hoch', w.__T("raum().moebel[0].id"));
+        w.__T(`raum().moebel = [
+          {id:'breit',  name:'Esstisch mit St\u00fchlen', typ:'tisch', x:0, y:0, b:220, t:100, h:75},
+          {id:'schmal', name:'Wandbrett am Fenster',  typ:'regal', x:0, y:250, b:34, t:24, h:120}];
+          SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+      }
+
       /* Ein Brett, das f\u00fcr drei Zeichen zu schmal ist, tr\u00e4gt gar
          nichts — ein einzelner Buchstabe sagt weniger als nichts. */
       w.__T(`raum().moebel[1].b = 12; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
@@ -2374,6 +2404,43 @@ setTimeout(async () => {
         (bildW.match(/class="m-lab"/g) || []).length === 1,
         String((bildW.match(/class="m-lab"/g) || []).length));
       w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+    }
+
+    /* ── Die Leiste der Ansicht klappt ─────────
+       Der Monatsregler stand zwischen Grundriss und Text im Weg.
+       Zugeklappt muss trotzdem ablesbar bleiben, welches Licht man
+       gerade sieht \u2014 sonst waere die Zeichnung nicht mehr zu deuten. */
+    {
+      w.__T("grStufe = 'ansicht'; pLicht = 'stunden'; pMonat = 9; graLeiste = false");
+      w.__T('grAnsichtZeichnen()');
+      const inh = () => w.__T("document.getElementById('gra-leiste-inhalt').hidden");
+      const stand = () => w.__T("document.getElementById('gra-leiste-stand').textContent");
+      pruef('Zugeklappt sind Wahl und Regler weg', inh() === true, String(inh()));
+      pruef('Der Kopf sagt trotzdem, was zu sehen ist',
+        stand() === 'Sonnenstunden \u00b7 September', stand());
+
+      w.__T("document.getElementById('btn-gra-leiste').click()");
+      pruef('Ein Tipp klappt sie auf', inh() === false, String(inh()));
+      pruef('Und das merkt sich der Zustand', w.__T('graLeiste') === true);
+
+      /* Der Bedienhinweis geh\u00f6rt zur aufgeklappten Leiste. */
+      const mitTipp = w.__T("document.getElementById('gra-info').innerHTML");
+      w.__T("document.getElementById('btn-gra-leiste').click()");
+      const ohneTipp = w.__T("document.getElementById('gra-info').innerHTML");
+      pruef('Aufgeklappt steht der Bedienhinweis da',
+        mitTipp.indexOf('Marke antippen') >= 0);
+      pruef('Zugeklappt nicht mehr',
+        ohneTipp.indexOf('Marke antippen') < 0);
+      pruef('Der Raum mit seinen Ma\u00dfen bleibt in beiden F\u00e4llen',
+        ohneTipp.indexOf('geschlossen') >= 0 || ohneTipp.indexOf('offener Himmel') >= 0);
+
+      /* Ein anderer Monat, ein anderer Kopf. */
+      w.__T('pMonat = 1; grAnsichtZeichnen()');
+      pruef('Der Kopf folgt dem Monat',
+        stand() === 'Sonnenstunden \u00b7 Januar', stand());
+      w.__T("pLicht = 'hell'; grAnsichtZeichnen()");
+      pruef('und der Lichtart', stand() === 'Grundhelligkeit', stand());
+      w.__T("pLicht = 'stunden'; pMonat = 9; graLeiste = false; grStufe = 'editor'");
     }
 
     /* ── Möbel drehen ──────────────────────────

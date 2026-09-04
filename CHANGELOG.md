@@ -4,6 +4,17 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.4 — 4. September 2026
+**Wer höher steht, liegt oben**
+
+### Besser
+- Möbel werden von niedrig nach hoch gezeichnet. Ein Wandbrett auf 1,80 m lag bisher unter einem Sideboard auf 50 cm, wenn es früher eingetragen war — beim Ansehen wie beim Antippen. Die Reihenfolge in der Möbelliste bleibt davon unberührt.
+- Die Leiste mit Lichtwahl und Monatsregler klappt zu. Im Kopf steht, was gerade zu sehen ist, etwa „Sonnenstunden · September" — die Zeichnung bleibt deutbar, ohne dass die Regler den Platz zwischen ihr und dem Text belegen.
+- Die Ansicht erklärt sich selbst, statt den Hinweis des zuletzt gewählten Werkzeugs zu zeigen. Dort stand „Ziehen verschiebt, langes Tippen löscht" an einer Stelle, an der sich nichts verschieben und nichts löschen lässt.
+- Der Bedienhinweis gehört zur aufgeklappten Leiste: wer sie zumacht, will die Zeichnung sehen und nicht die Anleitung.
+
+---
+
 ## 3.4.3 — 4. September 2026
 **Zusammenfassen statt wegschieben**
 
