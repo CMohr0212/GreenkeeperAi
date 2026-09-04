@@ -4,6 +4,17 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.5 — 4. September 2026
+**Sieben im Kreis, sieben in der Liste**
+
+### Behoben
+- Die ausgefahrene Namensliste eines Bündels bleibt im Bild. Stand das Bündel oben in der Ecke, lief sie über den oberen Rand hinaus und wurde dort abgeschnitten: im Kreis stand sieben, sichtbar waren sechs. Sie weicht jetzt in alle vier Richtungen aus.
+
+### Besser
+- Auch die Leiste im Vollbild klappt zu. Im Kopf steht, was gerade zu sehen ist — der Grundriss bekommt den unteren Rand zurück.
+
+---
+
 ## 3.4.4 — 4. September 2026
 **Wer höher steht, liegt oben**
 

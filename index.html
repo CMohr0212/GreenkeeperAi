@@ -3092,6 +3092,14 @@ body:not(.vollbild) .vb-schublade{display:none}
   border-top:1px solid var(--line);padding:var(--a-2) var(--a-3);display:flex;flex-wrap:wrap;
   align-items:center;gap:var(--a-2) var(--a-3)}
 .vb-fuss[hidden]{display:none}
+.vb-fuss-kopf{display:flex;width:100%;align-items:center;justify-content:space-between;
+  gap:10px;font:inherit;font-size:var(--t-s);color:var(--ink-2);text-align:left;
+  padding:6px 2px;border:0;background:none;cursor:pointer}
+.vb-fuss-kopf .leiste-pfeil{color:var(--peat);transition:transform .15s}
+.vb-fuss-kopf.auf .leiste-pfeil{transform:rotate(180deg)}
+#vb-fuss-inhalt{display:flex;flex-wrap:wrap;align-items:center;
+  width:100%;gap:var(--a-2) var(--a-3)}
+#vb-fuss-inhalt[hidden]{display:none}
 .vb-fuss label{display:flex;align-items:center;gap:var(--a-2);flex:1 1 180px;min-width:0}
 .vb-fuss label span{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.1em;
   text-transform:uppercase;color:var(--peat);white-space:nowrap}
@@ -9148,6 +9156,10 @@ function papierkorbRender(){
       <div id="plan-flaeche"></div>
       <div class="vb-schublade" id="vb-schublade" hidden></div>
       <div class="vb-fuss" hidden>
+        <button class="vb-fuss-kopf" id="btn-vb-fuss" aria-expanded="true">
+          <span id="vb-fuss-stand"></span><span class="leiste-pfeil">▾</span>
+        </button>
+        <div id="vb-fuss-inhalt">
         <label><span>Monat</span><input type="range" id="vb-monat" min="1" max="12" step="1"></label>
         <label id="vb-zeit-wrap"><span>Uhrzeit</span><input type="range" id="vb-zeit" min="0" max="1439" step="10"></label>
         <div class="vb-licht">
@@ -9156,6 +9168,7 @@ function papierkorbRender(){
           <button data-plicht="hell">Helligkeit</button>
         </div>
         <p id="vb-info"></p>
+        </div>
       </div>
       <p class="vb-quer" hidden>Quer halten gibt deutlich mehr Platz.</p>
       <div id="p-karte" hidden></div>
@@ -10246,8 +10259,15 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.4';
+const FASSUNG = '3.4.5';
 const PATCHNOTES = [
+  {
+    nr: '3.4.5', datum: '2026-09-04', titel: 'Sieben im Kreis, sieben in der Liste',
+    besser: [
+      'Die ausgefahrene Namensliste eines Bündels bleibt im Bild. Stand das Bündel oben in der Ecke, lief sie über den oberen Rand hinaus und wurde dort abgeschnitten: im Kreis stand sieben, sichtbar waren sechs.',
+      'Auch die Leiste im Vollbild klappt jetzt zu. Im Kopf steht, was gerade zu sehen ist — der Grundriss bekommt den unteren Rand zurück.'
+    ]
+  },
   {
     nr: '3.4.4', datum: '2026-09-04', titel: 'Wer höher steht, liegt oben',
     besser: [
@@ -17750,6 +17770,10 @@ let pBuendel = null;       // Schlüssel des ausgefahrenen Markenbündels
    Kopf steht, was gerade gezeigt wird — zugeklappt weiss man das
    sonst nicht mehr. */
 let graLeiste = false;
+/* Dieselbe Frage im Vollbild: dort nimmt die Fussleiste den unteren
+   Rand des Grundrisses weg. Sie faengt offen an — im Vollbild sucht
+   man meist gerade den Monat. */
+let vbLeiste = true;
 let pZoom = 1, pPanX = 0, pPanY = 0;   // Ausschnitt im Vollbild
 
 const MASS = 1;            // Zeichnung rechnet direkt in Zentimetern
@@ -18035,7 +18059,8 @@ function grundrissSVG(){
         s += markeSVG(r, nach[b.ids[0]], orte[b.ids[0]], sk, false);
         return;
       }
-      s += buendelSVG(r, b, nach, orte, sk, W);
+      s += buendelSVG(r, b, nach, orte, sk,
+        {x: vbX, y: vbY, w: vbW, h: vbH});
     });
   } else {
     pfl.forEach(p=>{ s += markeSVG(r, p, orte[p.id], sk, !!eng[p.id]); });
@@ -18125,7 +18150,7 @@ function markeSVG(r, p, o, sk, eng){
    Kreis steht dort, wo die Pflanzen wirklich stehen — er wandert
    nicht. Angetippt faehrt er die Namen aus; jede Zeile oeffnet ihre
    Karte. */
-function buendelSVG(r, b, nach, orte, sk, W){
+function buendelSVG(r, b, nach, orte, sk, feld){
   const offen = pBuendel === b.key;
   const dabei = b.ids.map(id=>nach[id]).filter(Boolean);
   const warn = dabei.some(p=>{
@@ -18141,14 +18166,21 @@ function buendelSVG(r, b, nach, orte, sk, W){
     ${warn?`<circle cx="${11*sk}" cy="${-11*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${12*sk}" y="${-9*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
   </g>`;
   if(!offen) return t;
-  /* Die Liste geht nach rechts, wenn dort Platz ist, sonst nach
-     links — sie soll nicht ueber den Rand des Bildes hinauslaufen. */
+  /* Die Liste muss ins Bild passen — in alle vier Richtungen. Bis
+     3.4.4 wurde nur nach rechts und links ausgewichen; ein Buendel
+     oben in der Ecke schob seine Liste ueber den oberen Rand, und die
+     ersten Namen waren abgeschnitten. Der Kreis sagte sieben, sichtbar
+     waren sechs. */
   const bre = 104*sk, zei = 18*sk;
-  const rechts = x + 18*sk + bre <= W + 30*sk;
-  const lx = rechts ? x + 18*sk : x - 18*sk - bre;
-  const ly = y - (dabei.length * zei) / 2;
+  const hoe = dabei.length * zei;
+  const luft = 4*sk;
+  const rechts = x + 18*sk + bre <= feld.x + feld.w - luft;
+  let lx = rechts ? x + 18*sk : x - 18*sk - bre;
+  lx = Math.max(feld.x + luft, Math.min(lx, feld.x + feld.w - bre - luft));
+  let ly = y - hoe/2;
+  ly = Math.max(feld.y + luft, Math.min(ly, feld.y + feld.h - hoe - luft));
   t += `<g class="buendel-liste">
-    <rect x="${lx}" y="${ly}" width="${bre}" height="${dabei.length*zei}" rx="${5*sk}"
+    <rect x="${lx}" y="${ly}" width="${bre}" height="${hoe}" rx="${5*sk}"
       style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>`;
   dabei.forEach((p, i)=>{
     const gift = istGiftig(p, 'katze') !== false;
@@ -18333,6 +18365,7 @@ document.addEventListener('click', e=>{
   if(a){ grAnsehen(a.dataset.raumSehen); return; }
   if(e.target.closest('#btn-gra-bearbeiten')){ grOeffnen(S.raumAktiv); return; }
   if(e.target.closest('#btn-gra-leiste')){ graLeiste = !graLeiste; grAnsichtZeichnen(); return; }
+  if(e.target.closest('#btn-vb-fuss')){ vbLeiste = !vbLeiste; vbFussStellen(); return; }
   if(e.target.closest('#btn-gr-zurueck') || e.target.closest('#btn-gra-zurueck')){
     grStufe = 'liste'; pKarte = null; pGewaehlt = null; pBuendel = null; planRender();
   }
@@ -18390,6 +18423,21 @@ function planRender(){
   $('#r-drehung').value = r.drehung;
   $('#r-name').value = r.name;
   $('#r-dach').checked = !r.dach;
+}
+
+/* Auf- und zugeklappte Fussleiste im Vollbild. Steht hier fuer sich,
+   weil sie aus zwei Richtungen gestellt wird: vom Knopf und beim
+   Oeffnen des Vollbilds. */
+function vbFussStellen(){
+  const inh = document.getElementById('vb-fuss-inhalt');
+  if(inh) inh.hidden = !vbLeiste;
+  const kopf = document.getElementById('btn-vb-fuss');
+  if(kopf){
+    kopf.setAttribute('aria-expanded', vbLeiste ? 'true' : 'false');
+    kopf.classList.toggle('auf', vbLeiste);
+  }
+  const stand = document.getElementById('vb-fuss-stand');
+  if(stand) stand.textContent = lichtStand();
 }
 
 /* Was gerade gezeigt wird, in einer Zeile. Steht im Kopf der
@@ -19236,6 +19284,7 @@ function vollbildAn(an){
   vollbild = !!an;
   document.body.classList.toggle('vollbild', vollbild);
   document.querySelectorAll('#plan-buehne .vb-leiste, #plan-buehne .vb-fuss').forEach(e=>e.hidden = !vollbild);
+  vbFussStellen();
   const quer = document.querySelector('.vb-quer');
   if(quer) quer.hidden = !(vollbild && window.innerHeight > window.innerWidth);
   if(vollbild){

@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.4', w.__T('FASSUNG') === '3.4.4', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.5', w.__T('FASSUNG') === '3.4.5', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2298,6 +2298,98 @@ setTimeout(async () => {
         pruef('Zugeklappt wieder nicht',
           zaehlA(bildA, 'class="b-lab"') === 0);
         w.__T('pBuendel = null');
+
+        /* Viele auf einem Punkt: die Zahl im Kreis und die Zeilen der
+           Liste muessen dasselbe sagen. */
+        {
+          const viele = w.__T('allePflanzen().map(function(p){return p.id;})').slice(0, 7);
+          viele.forEach(id=> w.__T(`pflanzeSetzen('${id}', '${rid}', 120, 60)`));
+          w.__T("grStufe = 'ansicht'; pGewaehlt = null; pBuendel = null");
+          const bv = w.__T('grundrissSVG()');
+          const zahl7 = (bv.match(/class="b-zahl"[^>]*>(\d+)</) || [])[1];
+          const key7 = (bv.match(/data-buendel="([^"]*)"/) || [])[1];
+          w.__T(`pBuendel = '${key7}'`);
+          const auf7 = w.__T('grundrissSVG()');
+          const zeilen7 = (auf7.match(/class="buendel-zeile"/g) || []).length;
+          pruef('Die Zahl im Kreis nennt alle',
+            +zahl7 === viele.length, zahl7 + ' bei ' + viele.length + ' Pflanzen');
+          pruef('Und die Liste zeigt genauso viele',
+            zeilen7 === +zahl7, zeilen7 + ' Zeilen bei ' + zahl7);
+          /* Auf einem M\u00f6bel verteilt `markenPositionen` sie zuerst.
+             Genau so steht es beim Nutzer: sieben auf einem Brett. */
+          w.__T(`raum().moebel = [{id:'brett', name:'Brett', typ:'regal',
+            x:100, y:40, b:120, t:30, h:95}];
+            SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+          viele.forEach(id=> w.__T(`pflanzeSetzen('${id}', '${rid}', 130, 55)`));
+          w.__T('pBuendel = null');
+          const bMo = w.__T('grundrissSVG()');
+          const zMo = (bMo.match(/class="b-zahl"[^>]*>(\d+)</g) || [])
+            .map(t=>+t.replace(/[^0-9]/g, ''));
+          const eMo = (bMo.match(/data-pfl="/g) || []).length;
+          pruef('Auf einem M\u00f6bel geht keine Pflanze verloren',
+            zMo.reduce((a,b)=>a+b, 0) + eMo === viele.length,
+            zMo.join('+') + ' geb\u00fcndelt, ' + eMo + ' einzeln, '
+            + viele.length + ' Pflanzen');
+          const kMo = (bMo.match(/data-buendel="([^"]*)"/) || [])[1];
+          if(kMo){
+            w.__T(`pBuendel = '${kMo}'`);
+            const aMo = w.__T('grundrissSVG()');
+            const zahlMo = +(aMo.match(/data-buendel="[^"]*"[\s\S]{0,200}?class="b-zahl"[^>]*>(\d+)</) || [])[1];
+            const zeilenMo = (aMo.match(/class="buendel-zeile"/g) || []).length;
+            pruef('Die Zahl auf dem M\u00f6bel stimmt mit der Liste \u00fcberein',
+              zeilenMo === zahlMo, zeilenMo + ' Zeilen bei ' + zahlMo);
+            w.__T('pBuendel = null');
+          }
+          w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+          viele.forEach(id=> w.__T(`pflanzeSetzen('${id}', '${rid}', 120, 60)`));
+          w.__T(`pBuendel = '${key7}'`);
+
+          /* Und die Liste muss ins Bild passen. Ein B\u00fcndel oben in
+             der Ecke schob sie \u00fcber den oberen Rand: der Kreis sagte
+             sieben, sichtbar waren sechs \u2014 das SVG schneidet an
+             seiner viewBox ab.
+
+             Der Modus geh\u00f6rt dazu: nur im Kachelmodus liegt ein Ring
+             leerer Kacheln um den Raum, der einen \u00fcberstehenden
+             Kasten auffinge. In der Ansicht gibt es ihn nicht. */
+          w.__T("pModus = 'pflanzen'");
+          const kasten = auf7.match(
+            /class="buendel-liste"[\s\S]{0,120}?x="([-0-9.]+)" y="([-0-9.]+)" width="([-0-9.]+)" height="([-0-9.]+)"/);
+          const vb = (auf7.match(/viewBox="([-0-9.]+) ([-0-9.]+) ([-0-9.]+) ([-0-9.]+)"/) || [])
+            .slice(1).map(Number);
+          const passt = kasten && vb.length === 4
+            && +kasten[1] >= vb[0] && +kasten[2] >= vb[1]
+            && +kasten[1] + +kasten[3] <= vb[0] + vb[2]
+            && +kasten[2] + +kasten[4] <= vb[1] + vb[3];
+          pruef('Die Liste liegt ganz im Bild', !!passt,
+            kasten ? kasten.slice(1).join(',') + ' in ' + vb.join(',') : '—');
+
+          /* Gegenprobe am oberen Rand: das B\u00fcndel wandert dorthin,
+             wo der Fehler auftrat. */
+          viele.forEach(id=> w.__T(`pflanzeSetzen('${id}', '${rid}', 130, 10)`));
+          /* Der Ausschnitt wird nach unten geschoben, wie beim Schieben
+             im Vollbild \u2014 dann steht das B\u00fcndel dicht am oberen
+             Rand und die Liste muss ausweichen. */
+          w.__T('pPanY = 55');
+          const oben = w.__T('grundrissSVG()');
+          const kOben = oben.match(
+            /class="buendel-liste"[\s\S]{0,120}?x="([-0-9.]+)" y="([-0-9.]+)" width="([-0-9.]+)" height="([-0-9.]+)"/);
+          const vbO = (oben.match(/viewBox="([-0-9.]+) ([-0-9.]+) ([-0-9.]+) ([-0-9.]+)"/) || [])
+            .slice(1).map(Number);
+          pruef('Auch oben in der Ecke',
+            kOben && +kOben[2] >= vbO[1]
+            && +kOben[2] + +kOben[4] <= vbO[1] + vbO[3],
+            kOben ? kOben[2] + '+' + kOben[4] + ' in ' + vbO[1] + '+' + vbO[3] : '—');
+
+          /* Die beiden aus der Nachbarpr\u00fcfung geh\u00f6ren zur\u00fcck an
+             ihren Punkt, die \u00fcbrigen aus dem Weg. */
+          w.__T('pPanY = 0');
+          w.__T('pBuendel = null');
+          viele.slice(2).forEach((id, i)=>
+            w.__T(`pflanzeSetzen('${id}', '${rid}', ${300 + i*60}, 300)`));
+          w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 120, 60)`);
+          w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 120, 60)`);
+        }
 
         /* Im Editor bleibt die Marke da, wo der Finger sie hingezogen
            hat \u2014 dort darf nichts von selbst wegrutschen, und
