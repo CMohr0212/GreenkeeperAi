@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.5', w.__T('FASSUNG') === '3.4.5', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.5.0', w.__T('FASSUNG') === '3.5.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2496,6 +2496,145 @@ setTimeout(async () => {
         (bildW.match(/class="m-lab"/g) || []).length === 1,
         String((bildW.match(/class="m-lab"/g) || []).length));
       w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+    }
+
+    /* ── Was nicht zusammenpasst ───────────────
+       Die Giftmeldungen standen einmal je Pflanze mit dem vollen
+       Grundtext; sechs Aronstabgew\u00e4chse ergaben sechsmal denselben
+       Absatz. Und der Frostkasten sammelte aus allen R\u00e4umen \u2014 im
+       Wohnzimmer standen die Balkonpflanzen. */
+    {
+      const rid2 = w.__T('raum().id');
+      const drei = w.__T('allePflanzen().map(function(p){return p.id;})').slice(0, 3);
+      w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+      drei.forEach((id, i)=>
+        w.__T(`pflanzeSetzen('${id}', '${rid2}', ${80 + i*70}, 120)`));
+      /* Damit \u00fcberhaupt gewarnt wird, muss ein Tier gehalten werden,
+         die Pflanze giftig sein und der Platz erreichbar. Alle drei
+         werden hier gesetzt \u2014 sonst pr\u00fcft der Block gegen einen
+         leeren Bericht und h\u00e4lt jeden Fehler f\u00fcr richtig. */
+      w.__T("S.tiere = {aktiv:true, arten:['katze']}");
+      w.__T(`(function(){
+        const eigen = ['a','b','c'];
+        ['${drei[0]}', '${drei[1]}', '${drei[2]}'].forEach(function(id, i){
+          const p = allePflanzen().find(function(x){ return x.id === id; });
+          if(!p) return;
+          p.gift = {status:'fest', quelle:'pruefstand', beleg:'-',
+            grund:'Unl\u00f6sliche Calciumoxalat-Nadeln in allen Pflanzenteilen.',
+            tiere:{katze:'giftig'}};
+        });
+      })()`);
+      const gr = JSON.parse(w.__T('JSON.stringify(giftGruppen(raum()))'));
+      const wieOft = t => t.split('Calciumoxalat').length - 1;
+      const html = w.__T('planWarnungen()');
+      if(gr.length){
+        const groesste = gr.slice().sort((a,b)=>b.wer.length - a.wer.length)[0];
+        pruef('Gleiche Gr\u00fcnde stehen in einer Gruppe',
+          gr.every(g=>g.wer.length >= 1), JSON.stringify(gr.map(g=>g.wer.length)));
+        /* Der Grundtext darf h\u00f6chstens einmal je Gruppe vorkommen,
+           nicht einmal je Pflanze. */
+        const grundZahl = gr.filter(g=>g.grund.indexOf('Calciumoxalat') >= 0).length;
+        pruef('Der Grund steht einmal je Gruppe, nicht je Pflanze',
+          wieOft(html) <= grundZahl,
+          wieOft(html) + ' mal im Text, ' + grundZahl + ' Gruppen, '
+          + groesste.wer.length + ' Pflanzen in der gr\u00f6\u00dften');
+        pruef('Der Grund steckt hinter einem Aufklappen',
+          html.indexOf('warn-mehr') >= 0 || wieOft(html) === 0);
+      } else {
+        pruef('Ohne giftige Pflanze gibt es keine Gruppe', gr.length === 0);
+        pruef('und keinen Grundtext im Bericht', wieOft(html) === 0);
+        pruef('Der Bericht bleibt trotzdem eine Zeichenkette', typeof html === 'string');
+      }
+
+      /* Der Frostkasten kennt jetzt einen Raum. Damit er \u00fcberhaupt
+         etwas zeigt, braucht es einen zweiten Raum unter offenem
+         Himmel, eine frostempfindliche Pflanze darin und Herbst. */
+      const zweitR = w.__T(`(function(){
+        const rs = raeume();
+        let z = rs.find(function(x){ return x.id !== '${rid2}'; });
+        if(!z){
+          z = JSON.parse(JSON.stringify(rs[0]));
+          z.id = 'pruef-balkon'; z.name = 'Pr\u00fcfbalkon';
+          S.raeume.push(z);
+        }
+        z.dach = false;
+        return z.id;
+      })()`);
+      /* Es gibt nur wenige Pflanzen im Pr\u00fcfstand \u2014 die letzte der
+         drei zieht auf den Balkon, die Giftpr\u00fcfung oben ist durch. */
+      const frostP = w.__T('allePflanzen().map(function(p){return p.id;})')
+        .filter(id => drei.indexOf(id) < 0)[0] || drei[drei.length - 1];
+      w.__T('pMonat = 10');
+      if(frostP){
+        w.__T(`(function(){
+          const q = (S.eigene || []).find(function(x){ return x.id === '${frostP}'; });
+          if(q) q.frostMin = 10;
+          const p = allePflanzen().find(function(x){ return x.id === '${frostP}'; });
+          if(p) p.frostMin = 10;
+          pflanzeSetzen('${frostP}', '${zweitR}', 60, 60);
+        })()`);
+        w.__T(`SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
+        console.log('DBG2 frostMin', w.__T(`allePflanzen().find(function(x){return x.id==='${frostP}';}).frostMin`),
+          'ort', JSON.stringify(w.__T(`pflanzenOrt('${frostP}')`)),
+          'dach', w.__T(`raeume().find(function(x){return x.id==='${zweitR}';}).dach`),
+          'monat', w.__T('pMonat'),
+          'imBalkon', w.__T(`pflanzenIm('${zweitR}').length`));
+        const nurEiner = w.__T(`umzugHTML('${rid2}')`);
+        const alle = w.__T('umzugHTML()');
+        pruef('Der Frostkasten des Nachbarraums taucht dort nicht auf',
+          nurEiner.indexOf(w.__T(`nice(allePflanzen().find(function(x){ return x.id === '${frostP}'; }))`)) < 0,
+          nurEiner.slice(0, 90));
+        pruef('Ohne Raumangabe sammelt er weiterhin alle',
+          alle.length > nurEiner.length,
+          alle.length + ' gegen ' + nurEiner.length);
+      }
+      /* Und im Bericht des Raums steht keine Pflanze aus einem anderen. */
+      const fremd = w.__T(`(function(){
+        const r = raum();
+        const eigen = pflanzenIm(r.id).map(function(p){ return nice(p); });
+        const t = planWarnungen();
+        return allePflanzen().filter(function(p){
+          return eigen.indexOf(nice(p)) < 0
+            && t.indexOf('<b>' + nice(p) + '</b>') >= 0;
+        }).map(function(p){ return nice(p); });
+      })()`);
+      pruef('Keine Pflanze aus einem anderen Raum im Bericht',
+        fremd.length === 0, JSON.stringify(fremd));
+    }
+
+    /* ── Bild oben, Werkzeug darunter ──────────
+       Wer den Raum auf dem Kompass ausrichtete, war zwei Bildschirme
+       von dem Raum entfernt, den er ausrichtete. */
+    {
+      const ed = d.getElementById('gr-editor');
+      const stelle = id => {
+        const el = d.getElementById(id);
+        if(!el) return -1;
+        return Array.prototype.indexOf.call(ed.querySelectorAll('*'), el);
+      };
+      pruef('Das Bild steht vor der Werkzeugleiste',
+        stelle('plan-halter') < stelle('kanten-leiste'),
+        stelle('plan-halter') + ' vor ' + stelle('kanten-leiste'));
+      pruef('und vor dem Lichtfenster',
+        stelle('plan-halter') < stelle('licht-panel'));
+      pruef('und vor den Raumeinstellungen \u2014 dort liegt der Kompass',
+        stelle('plan-halter') < stelle('raum-einrichten'),
+        stelle('plan-halter') + ' vor ' + stelle('raum-einrichten'));
+      pruef('Die Reiter stehen weiterhin ganz oben',
+        stelle('plan-halter') > 0 && ed.querySelector('.gr-tabs') != null);
+
+      /* Die Hinweise klappen. */
+      w.__T("grStufe = 'editor'; pModus = 'pflanzen'; grHinweise = false");
+      w.__T('planRender()');
+      const hin = () => d.getElementById('modus-hinweis').hidden;
+      pruef('Der Bedienhinweis ist zugeklappt', hin() === true, String(hin()));
+      pruef('Der Infotext zeigt ihn dann auch nicht',
+        d.getElementById('p-info').innerHTML.indexOf('Marke antippen') < 0);
+      w.__T("document.getElementById('btn-gr-hinweise').click()");
+      pruef('Ein Tipp klappt ihn auf', hin() === false, String(hin()));
+      pruef('Und der Infotext zeigt ihn mit',
+        d.getElementById('p-info').innerHTML.indexOf('Marke antippen') >= 0);
+      w.__T("document.getElementById('btn-gr-hinweise').click()");
     }
 
     /* ── Die Leiste der Ansicht klappt ─────────

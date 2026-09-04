@@ -4,6 +4,17 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.5.0 — 4. September 2026
+**Der Raum bleibt im Blick**
+
+### Besser
+- Im Editor steht der Grundriss direkt unter den Reitern und bleibt beim Scrollen oben stehen. Vorher lagen Hinweis, Werkzeugleiste, Lichtfenster und Infotext davor — wer den Raum auf dem Kompass ausrichten wollte, war zwei Bildschirme von dem Raum entfernt, den er ausrichtete.
+- Die Bedienhinweise klappen zu. Sie standen dauerhaft als Absatz zwischen Reitern und Werkzeug und nahmen mehr Höhe ein als die Leiste, die sie erklärten.
+- Warnungen zu giftigen Pflanzen stehen einmal je Grund statt einmal je Pflanze. Sechs Aronstabgewächse ergaben sechsmal denselben Absatz über Calciumoxalat, wortgleich. Jetzt: ein Kasten, alle Namen, der Grund einmal und hinter einem Aufklappen.
+- Der Kasten „Bald wird es kalt" zeigt nur noch Pflanzen aus dem Raum, den man ansieht. Im Wohnzimmer standen bisher die Balkonpflanzen.
+
+---
+
 ## 3.4.5 — 4. September 2026
 **Sieben im Kreis, sieben in der Liste**
 

@@ -640,6 +640,11 @@ footer{padding:30px 0 60px;color:var(--peat);font-size:var(--t-m);border-top:1px
 .faellig h2{font-family:var(--f-display);font-weight:600;font-size:var(--t-xl);letter-spacing:-.01em;margin:0 0 12px}
 .allgut{color:var(--moss);font-style:italic;margin:0}
 .warn-grund{display:block;margin-top:4px;font-size:var(--t-s);opacity:.85}
+.warn-wer{display:block;margin-top:5px;font-size:var(--t-s)}
+.warn-mehr{margin-top:6px}
+.warn-mehr summary{font-size:var(--t-s);color:var(--peat);cursor:pointer;
+  font-family:var(--f-data);letter-spacing:.08em;text-transform:uppercase}
+.warn-mehr[open] summary{margin-bottom:2px}
 .modus-hinweis{font-size:var(--t-s);color:var(--peat);line-height:1.5;
   margin:2px 0 12px;padding-left:10px;border-left:2px solid var(--line)}
 
@@ -1760,6 +1765,21 @@ html[data-design="klartext"] .kz-feld em{font-size:var(--t-md)}
 #p-info{margin:4px 0 12px;font-size:var(--t-m);color:var(--ink-2);line-height:1.55}
 #p-info span{display:block}
 #p-info .p-tipp{font-size:var(--t-s);margin-top:3px}
+/* Der Halter klebt oben. Damit bleibt der Raum im Blick, waehrend man
+   darunter am Kompass dreht oder ein Moebel einstellt. Im Vollbild
+   gilt das nicht — dort liegt die Buehne ohnehin fest. */
+#plan-halter{position:sticky;top:0;z-index:6;background:var(--paper);
+  padding-bottom:6px;margin-bottom:2px}
+body.vollbild #plan-halter{position:static;padding:0;margin:0}
+#vollbild-zeile{margin-bottom:10px}
+body.vollbild #vollbild-zeile{display:none}
+.hinweis-kopf{display:flex;width:100%;align-items:center;justify-content:space-between;
+  gap:10px;font:inherit;font-size:var(--t-s);color:var(--peat);text-align:left;
+  padding:6px 2px;margin-bottom:4px;border:0;background:none;cursor:pointer;
+  font-family:var(--f-data);letter-spacing:.08em;text-transform:uppercase}
+.hinweis-kopf .leiste-pfeil{transition:transform .15s}
+.hinweis-kopf.auf .leiste-pfeil{transform:rotate(180deg)}
+body.vollbild .hinweis-kopf{display:none}
 #plan-flaeche{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:10px;overflow:hidden;touch-action:none}
 .plan-svg{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
 .plan-svg .kachel{cursor:pointer}
@@ -9088,29 +9108,6 @@ function papierkorbRender(){
       <select id="raum-wahl" aria-label="Raum wählen"></select>
       <button id="btn-raum-auf">Raum einrichten</button>
     </div>
-    <div class="fgrid raumgrid" id="raum-einrichten">
-      <label class="fspan"><span class="lab">Dieser Raum</span>
-        <span class="tools"><button id="btn-raum-weg" class="loeschen">Diesen Raum löschen</button></span></label>
-      <label><span class="lab">Name</span><input id="r-name"></label>
-      <label><span class="lab">Drehung auf dem Kompass</span>
-        <input type="range" id="r-drehung" min="0" max="345" step="15">
-        <span class="fhint">Dreht den ganzen Raum. Der rote Zeiger oben rechts zeigt nach Norden.</span></label>
-      <label class="fspan check"><input type="checkbox" id="r-dach"> <span class="lab" style="display:inline">Offener Himmel — Balkon, Terrasse, Dachgarten</span></label>
-      <div class="fspan raummass">
-        <span class="lab">Raumgröße</span>
-        <div class="rm-zeile">
-          <label class="rm-f"><span>Breite</span>
-            <input id="r-breite" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
-          <label class="rm-f"><span>Tiefe</span>
-            <input id="r-tiefe" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
-          <button id="btn-raum-groesse">Übernehmen</button>
-          <button id="btn-raum-undo" hidden>Änderung rückgängig</button>
-        </div>
-        <span class="fhint" id="r-mass-hint">Setzt ein neues Rechteck und leert dabei die Einrichtung — Fläche, Wände, Fenster, Möbel und Stellplätze.
-          Für alles andere brauchst du das hier nicht mehr: unter „Fläche“ wächst der Raum in jede Richtung mit, ohne etwas zu verlieren.</span>
-      </div>
-    </div>
-
     <div class="pleiste gr-tabs">
       <button data-pmodus="pflanzen">Pflanzen</button>
       <button data-pmodus="moebel">Möbel</button>
@@ -9119,26 +9116,12 @@ function papierkorbRender(){
       <button data-pmodus="licht">Licht</button>
       <button data-pmodus="raum">Raum</button>
     </div>
-    <p class="modus-hinweis" id="modus-hinweis"></p>
-    <div class="pleiste" id="kanten-leiste" hidden></div>
-    <div class="pleiste" id="moebel-leiste" hidden></div>
-
-    <div id="licht-panel" hidden>
-      <div class="pleiste">
-        <button data-plicht="stunden">Sonnenstunden</button>
-        <button data-plicht="moment">Einzelner Moment</button>
-        <button data-plicht="hell">Grundhelligkeit</button>
-        <button id="btn-p-sommer">Sommer</button>
-        <button id="btn-p-winter">Winter</button>
-        <button id="btn-p-jetzt">Jetzt</button>
-      </div>
-      <label class="zslider"><span class="lab">Monat</span><input type="range" id="p-monat" min="1" max="12" step="1"></label>
-      <label class="zslider" id="p-zeit-wrap" hidden><span class="lab">Uhrzeit</span><input type="range" id="p-zeit" min="0" max="1439" step="10"></label>
-    </div>
-    <p id="p-info"></p>
-
-    <div class="tools"><button id="btn-vollbild">Vollbild öffnen</button></div>
-
+    <!-- Das Bild steht direkt unter den Reitern und bleibt beim
+         Scrollen oben stehen. Bis 3.4.5 lagen Hinweis, Werkzeugleiste,
+         Lichtpanel und Infotext davor: wer den Raum auf dem Kompass
+         ausrichten wollte, war zwei Bildschirme von dem Raum entfernt,
+         den er ausrichtete. -->
+    <div id="plan-halter">
     <div id="plan-buehne">
       <div class="vb-leiste" hidden>
         <button class="vb-w" data-pmodus="pflanzen" title="Pflanzen"><span class="vbi vbi-pfl"></span></button>
@@ -9172,6 +9155,53 @@ function papierkorbRender(){
       </div>
       <p class="vb-quer" hidden>Quer halten gibt deutlich mehr Platz.</p>
       <div id="p-karte" hidden></div>
+    </div>
+    <div class="tools" id="vollbild-zeile"><button id="btn-vollbild">Vollbild öffnen</button></div>
+    <button class="hinweis-kopf" id="btn-gr-hinweise" aria-expanded="false">
+      <span>Hinweise zu diesem Werkzeug</span><span class="leiste-pfeil">▾</span>
+    </button>
+    <p class="modus-hinweis" id="modus-hinweis" hidden></p>
+    <div class="pleiste" id="kanten-leiste" hidden></div>
+    <div class="pleiste" id="moebel-leiste" hidden></div>
+
+    <div id="licht-panel" hidden>
+      <div class="pleiste">
+        <button data-plicht="stunden">Sonnenstunden</button>
+        <button data-plicht="moment">Einzelner Moment</button>
+        <button data-plicht="hell">Grundhelligkeit</button>
+        <button id="btn-p-sommer">Sommer</button>
+        <button id="btn-p-winter">Winter</button>
+        <button id="btn-p-jetzt">Jetzt</button>
+      </div>
+      <label class="zslider"><span class="lab">Monat</span><input type="range" id="p-monat" min="1" max="12" step="1"></label>
+      <label class="zslider" id="p-zeit-wrap" hidden><span class="lab">Uhrzeit</span><input type="range" id="p-zeit" min="0" max="1439" step="10"></label>
+    </div>
+    <p id="p-info"></p>
+
+    <div class="fgrid raumgrid" id="raum-einrichten">
+      <label class="fspan"><span class="lab">Dieser Raum</span>
+        <span class="tools"><button id="btn-raum-weg" class="loeschen">Diesen Raum löschen</button></span></label>
+      <label><span class="lab">Name</span><input id="r-name"></label>
+      <label><span class="lab">Drehung auf dem Kompass</span>
+        <input type="range" id="r-drehung" min="0" max="345" step="15">
+        <span class="fhint">Dreht den ganzen Raum. Der rote Zeiger oben rechts zeigt nach Norden.</span></label>
+      <label class="fspan check"><input type="checkbox" id="r-dach"> <span class="lab" style="display:inline">Offener Himmel — Balkon, Terrasse, Dachgarten</span></label>
+      <div class="fspan raummass">
+        <span class="lab">Raumgröße</span>
+        <div class="rm-zeile">
+          <label class="rm-f"><span>Breite</span>
+            <input id="r-breite" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
+          <label class="rm-f"><span>Tiefe</span>
+            <input id="r-tiefe" type="number" inputmode="decimal" step="0.1" min="0.5" max="10"> <i>m</i></label>
+          <button id="btn-raum-groesse">Übernehmen</button>
+          <button id="btn-raum-undo" hidden>Änderung rückgängig</button>
+        </div>
+        <span class="fhint" id="r-mass-hint">Setzt ein neues Rechteck und leert dabei die Einrichtung — Fläche, Wände, Fenster, Möbel und Stellplätze.
+          Für alles andere brauchst du das hier nicht mehr: unter „Fläche“ wächst der Raum in jede Richtung mit, ohne etwas zu verlieren.</span>
+      </div>
+    </div>
+
+
 <div class="formwrap" id="moebel-bearb">
       <!-- Oben, nicht nur unten: im Vollbild liegt das Formular am
            unteren Rand, und der Knopf ganz am Ende war nicht mehr zu
@@ -10259,8 +10289,17 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.5';
+const FASSUNG = '3.5.0';
 const PATCHNOTES = [
+  {
+    nr: '3.5.0', datum: '2026-09-04', titel: 'Der Raum bleibt im Blick',
+    besser: [
+      'Im Editor steht der Grundriss jetzt direkt unter den Reitern und bleibt beim Scrollen oben stehen. Vorher lagen Hinweis, Werkzeugleiste, Lichtfenster und Infotext davor — wer den Raum auf dem Kompass ausrichten wollte, war zwei Bildschirme von dem Raum entfernt, den er ausrichtete.',
+      'Die Bedienhinweise klappen zu. Sie standen dauerhaft als Absatz zwischen Reitern und Werkzeug und nahmen mehr Höhe ein als die Leiste, die sie erklärten.',
+      'Warnungen zu giftigen Pflanzen stehen einmal je Grund statt einmal je Pflanze. Sechs Aronstabgewächse ergaben sechsmal denselben Absatz über Calciumoxalat, wortgleich. Jetzt: ein Kasten, alle Namen, der Grund einmal und aufklappbar.',
+      'Der Kasten „Bald wird es kalt" zeigt nur noch Pflanzen aus dem Raum, den man ansieht. Im Wohnzimmer standen bisher die Balkonpflanzen.'
+    ]
+  },
   {
     nr: '3.4.5', datum: '2026-09-04', titel: 'Sieben im Kreis, sieben in der Liste',
     besser: [
@@ -17774,6 +17813,10 @@ let graLeiste = false;
    Rand des Grundrisses weg. Sie faengt offen an — im Vollbild sucht
    man meist gerade den Monat. */
 let vbLeiste = true;
+/* Die Bedienhinweise im Editor. Sie standen dauerhaft als Absatz
+   zwischen Reitern und Werkzeug und nahmen mehr Hoehe ein als die
+   Leiste, die sie erklaerten. */
+let grHinweise = false;
 let pZoom = 1, pPanX = 0, pPanY = 0;   // Ausschnitt im Vollbild
 
 const MASS = 1;            // Zeichnung rechnet direkt in Zentimetern
@@ -18366,6 +18409,7 @@ document.addEventListener('click', e=>{
   if(e.target.closest('#btn-gra-bearbeiten')){ grOeffnen(S.raumAktiv); return; }
   if(e.target.closest('#btn-gra-leiste')){ graLeiste = !graLeiste; grAnsichtZeichnen(); return; }
   if(e.target.closest('#btn-vb-fuss')){ vbLeiste = !vbLeiste; vbFussStellen(); return; }
+  if(e.target.closest('#btn-gr-hinweise')){ grHinweise = !grHinweise; planRender(); return; }
   if(e.target.closest('#btn-gr-zurueck') || e.target.closest('#btn-gra-zurueck')){
     grStufe = 'liste'; pKarte = null; pGewaehlt = null; pBuendel = null; planRender();
   }
@@ -18402,6 +18446,9 @@ function planRender(){
   const r = raum(); if(!r) return;
   grStufeZeichnen();
   if(grStufe === 'ansicht'){ grAnsichtZeichnen(); return; }
+  /* Der Hinweis wurde bisher nur beim Moduswechsel neu gezeichnet.
+     Seit er auf- und zuklappt, muss er bei jedem Zeichnen mitkommen. */
+  modusHinweisZeichnen();
   $('#plan-flaeche').innerHTML = grundrissSVG();
   $('#raum-wahl').innerHTML = raeume().map(x=>
     `<option value="${x.id}"${x.id===S.raumAktiv?' selected':''}>${esc(x.name)}</option>`).join('');
@@ -18415,7 +18462,7 @@ function planRender(){
   $('#licht-panel').hidden = pModus !== 'licht';
   $('#raum-einrichten').hidden = pModus !== 'raum';
   $('#p-frei').hidden = pModus !== 'pflanzen';
-  $('#p-info').innerHTML = planInfo();
+  $('#p-info').innerHTML = planInfo(grHinweise);
   $('#p-frei').innerHTML = freiHTML();
   $('#p-warnungen').innerHTML = planWarnungen();
   $('#p-karte').innerHTML = pKarte ? planKarteHTML(pKarte) : '';
@@ -18547,13 +18594,17 @@ function freiHTML(){
 }
 
 /* Im Herbst und Frühjahr: welche Pflanzen müssen umziehen? */
-function umzugHTML(){
+/* `nurRaum` grenzt auf einen Raum ein. Ohne Angabe werden alle
+   durchgesehen — das ist richtig fuer eine Uebersicht, war aber falsch
+   unter „Was nicht zusammenpasst" einer einzelnen Raumansicht: dort
+   standen im Wohnzimmer die Balkonpflanzen. */
+function umzugHTML(nurRaum){
   const monat = pMonat;
   const herbst = [9,10,11].includes(monat), winter = [12,1,2].includes(monat);
   const fruehjahr = [3,4,5].includes(monat);
   if(!herbst && !winter && !fruehjahr) return '';
   const draussen = [], drinnen = [];
-  raeume().forEach(r=>{
+  (nurRaum ? raeume().filter(r=>r.id === nurRaum) : raeume()).forEach(r=>{
     pflanzenIm(r.id).forEach(p=>{
       if(p.frostMin == null) return;
       if(!r.dach && p.frostMin > 0) draussen.push({p, r});
@@ -18577,26 +18628,61 @@ function umzugHTML(){
   return '';
 }
 
-function planWarnungen(){
-  const r = raum(), raus = [];
+/* Die Giftmeldungen standen einmal je Pflanze und Tierart, jede mit
+   dem vollen Grundtext. Sechs Aronstabgewaechse ergaben sechsmal
+   denselben Absatz ueber Calciumoxalat, wortgleich — der Abschnitt war
+   laenger als der ganze Rest der Seite.
+
+   Zusammengefasst wird nach Tierart und Grund: was denselben Text
+   traegt, bekommt einen Kasten mit allen Namen und den Text einmal.
+   Wo die Pflanzen stehen, steht am Namen. Das ist dasselbe Mittel wie
+   bei den Marken im Bild — zusammenfassen statt wiederholen. */
+function giftGruppen(r){
+  const gruppen = new Map();
   pflanzenIm(r.id).forEach(p=>{
     const o = pflanzenOrt(p.id);
+    if(!o) return;
     const u = platzUrteil(r, o.x, o.y, pMonat);
     /* Für jede gehaltene Tierart einzeln prüfen. Die Erreichbarkeit
        steht am Möbelstück; ohne Angabe gilt der Boden. */
     const stellplatz = u.moebel && u.moebel.tierZone ? u.moebel.tierZone : 'boden';
-    const wo = u.moebel ? 'auf „'+esc(u.moebel.name)+'“' : 'auf dem Boden';
+    const wo = u.moebel ? 'auf „'+u.moebel.name+'“' : 'auf dem Boden';
     meineTiere().forEach(tier=>{
       const t = TIERARTEN[tier]; if(!t) return;
       if(!erreichbarFuer(stellplatz, tier)) return;
       const g = giftFuer(p, tier);
       const st = GIFT_STUFEN[g.stufe];
       if(!st || st.rang === 0) return;
-      const kopf = g.stufe === 'unklar'
-        ? `<b>${esc(nice(p))}</b> ist für ${t.mehrzahl} nicht geprüft und steht ${wo} — dort kommen sie ran.`
-        : `<b>${esc(nice(p))}</b> ist für ${t.mehrzahl} ${st.wort} und steht ${wo} — dort kommen sie ran.`;
-      raus.push(`${kopf}<span class="warn-grund">${esc(g.grund)}</span>`);
+      const schluessel = tier + '|' + g.stufe + '|' + g.grund;
+      if(!gruppen.has(schluessel))
+        gruppen.set(schluessel, {tier:t, stufe:g.stufe, wort:st.wort, grund:g.grund, wer:[]});
+      gruppen.get(schluessel).wer.push({name:nice(p), wo});
     });
+  });
+  return Array.from(gruppen.values());
+}
+
+function giftGruppeHTML(gr){
+  const n = gr.wer.length;
+  const namen = gr.wer.map(w=>`<b>${esc(w.name)}</b> ${esc(w.wo)}`).join(', ');
+  const kopf = gr.stufe === 'unklar'
+    ? `${n === 1 ? 'Eine Pflanze ist' : n + ' Pflanzen sind'} für ${esc(gr.tier.mehrzahl)} nicht geprüft und ${n === 1 ? 'steht' : 'stehen'} erreichbar.`
+    : `${n === 1 ? 'Eine Pflanze ist' : n + ' Pflanzen sind'} für ${esc(gr.tier.mehrzahl)} ${esc(gr.wort)} und ${n === 1 ? 'steht' : 'stehen'} erreichbar.`;
+  /* Der Grund steckt hinter dem Aufklappen. Wer ihn einmal gelesen
+     hat, braucht ihn nicht bei jedem Blick auf den Raum wieder. */
+  return `<div class="alert">${kopf}
+    <span class="warn-wer">${namen}</span>
+    <details class="warn-mehr"><summary>Warum</summary>
+      <span class="warn-grund">${esc(gr.grund)}</span></details></div>`;
+}
+
+function planWarnungen(){
+  const r = raum(), raus = [];
+  giftGruppen(r).forEach(gr=>raus.push(giftGruppeHTML(gr)));
+  pflanzenIm(r.id).forEach(p=>{
+    const o = pflanzenOrt(p.id);
+    if(!o) return;
+    const u = platzUrteil(r, o.x, o.y, pMonat);
     const urteil = lichtPasst(p.sonne || 'hell', u.stunden);
     if(urteil === 'zu dunkel' && u.stufe <= 2)
       raus.push(`<b>${esc(nice(p))}</b> steht im ${MONATE[pMonat-1]} zu dunkel: ${u.stunden.toFixed(1).replace('.',',')} Std Sonne, ${HELL_NAME[u.stufe]}.`);
@@ -18605,9 +18691,12 @@ function planWarnungen(){
     if(p.frostMin != null && p.frostMin > 0 && !r.dach && [11,12,1,2,3].includes(pMonat))
       raus.push(`<b>${esc(nice(p))}</b> verträgt nicht unter ${p.frostMin} °C — im ${MONATE[pMonat-1]} in einen geschlossenen Raum.`);
   });
-  const umzug = umzugHTML();
+  const umzug = umzugHTML(r.id);
+  /* Die Giftgruppen bringen ihren eigenen Kasten mit, die uebrigen
+     Meldungen sind nackte Saetze. */
+  const html = raus.map(t=>t.slice(0, 12) === '<div class="' ? t : `<div class="alert">${t}</div>`).join('');
   return umzug + (raus.length
-    ? raus.map(s=>`<div class="alert">${s}</div>`).join('')
+    ? html
     : (umzug ? '' : '<p class="allgut">Keine Konflikte in diesem Raum.</p>'));
 }
 
@@ -18888,7 +18977,15 @@ const MODUS_HINWEISE = {
 };
 function modusHinweisZeichnen(){
   const el = document.getElementById('modus-hinweis');
-  if(el) el.textContent = MODUS_HINWEISE[pModus] || '';
+  if(el){
+    el.textContent = MODUS_HINWEISE[pModus] || '';
+    el.hidden = !grHinweise;
+  }
+  const kopf = document.getElementById('btn-gr-hinweise');
+  if(kopf){
+    kopf.setAttribute('aria-expanded', grHinweise ? 'true' : 'false');
+    kopf.classList.toggle('auf', grHinweise);
+  }
 }
 
 /* ── Tippen im Grundriss ─────────────────────────────────── */
