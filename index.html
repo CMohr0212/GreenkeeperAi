@@ -10226,8 +10226,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.4.1';
+const FASSUNG = '3.4.2';
 const PATCHNOTES = [
+  {
+    nr: '3.4.2', datum: '2026-09-04', titel: 'Unter dem Finger, nicht untereinander',
+    besser: [
+      'Eine Pflanze folgt jetzt dem Finger, statt beim ersten Millimeter unter ihn zu springen. Der Punkt, an dem du sie anfasst, bleibt der Punkt, an dem du sie hältst — auch wenn du sie am Rand erwischt hast.',
+      'Wo mehrere Pflanzen dicht beieinanderstehen, werden die Namen weggelassen. Die Kreise bleiben, und die ausgewählte Pflanze behält ihren Namen. Vorher lag auf einem Fensterbrett ein Brei aus Buchstaben.',
+      'In der Ansicht rücken Marken, die aufeinanderliegen, auseinander — auch die, die auf keinem Möbel stehen. Im Editor bleibt jede da, wo du sie hingezogen hast.'
+    ]
+  },
   {
     nr: '3.4.1', datum: '2026-09-04', titel: 'Drehen, schieben, aufnehmen',
     neu: [
@@ -17957,9 +17965,17 @@ function grundrissSVG(){
   /* Pflanzenmarken. In der Ansicht stehen sie ausgerichtet auf ihrem
      Moebel, im Editor an ihrem echten Ort — sonst zoege man eine Marke
      und sie spraenge zurueck. */
-  const stellung = grStufe === 'ansicht' ? markenPositionen(r) : null;
+  let stellung = grStufe === 'ansicht' ? markenPositionen(r) : null;
+  /* Eine Marke ist 13*sk gross, zwei nebeneinander brauchen also gut
+     28*sk. Fuer die Beschriftung das Doppelte. */
+  if(stellung) stellung = markenEntzerren(stellung, 30*sk);
+  const orte = {};
   pflanzenIm(r.id).forEach(p=>{
-    const o = (stellung && stellung[p.id]) || pflanzenOrt(p.id);
+    orte[p.id] = (stellung && stellung[p.id]) || pflanzenOrt(p.id) || {x:0, y:0};
+  });
+  const eng = markenGedraengt(orte, 58*sk);
+  pflanzenIm(r.id).forEach(p=>{
+    const o = orte[p.id];
     const u = platzUrteil(r, o.x, o.y, pMonat);
     const gift = istGiftig(p, 'katze') !== false;
     const warn = gift && u.katze;
@@ -17969,7 +17985,7 @@ function grundrissSVG(){
         transform="translate(${o.x*MASS},${o.y*MASS})">
       <circle r="${13*sk}" style="fill:var(--z-marke);stroke:${gift?'var(--z-gift)':'var(--z-ok)'}" stroke-width="${2.4*sk}"/>
       <g transform="scale(${0.48*sk})">${form}</g>
-      <text y="${24*sk}" class="p-lab" font-size="${10*sk}">${esc(kurz(p)).slice(0,10)}</text>
+      ${(!eng[p.id] || gew) ? `<text y="${24*sk}" class="p-lab" font-size="${10*sk}">${esc(kurz(p)).slice(0,10)}</text>` : ''}
       ${warn?`<circle cx="${10*sk}" cy="${-10*sk}" r="${5*sk}" style="fill:var(--z-gift)"/><text x="${11*sk}" y="${-8*sk}" class="p-warn" font-size="${9*sk}">!</text>`:''}
     </g>`;
   });
@@ -17993,6 +18009,66 @@ function grundrissSVG(){
 
    Die Spaltenzahl folgt dem Seitenverhaeltnis des Moebels: ein langes
    schmales Regal bekommt eine Reihe, ein quadratischer Tisch ein Karo. */
+/* ── Wenn die Marken einander verdecken ───────────────────────
+   Auf einem Fensterbrett stehen schnell vier Pflanzen nebeneinander.
+   Die Kreise ueberlappen, die Namen ueberlagern sich zu einem Brei,
+   und man sieht weder, was wo steht, noch wie hell es dort ist.
+
+   Zwei Mittel, und sie greifen an verschiedenen Stellen:
+
+   `markenEntzerren` schiebt Marken, die fast aufeinander liegen, in
+   wenigen Durchgaengen auseinander. Das darf nur in der Ansicht
+   passieren — im Editor ist die Marke da, wo der Finger sie
+   hingezogen hat, und duerfte nicht von selbst wegrutschen.
+
+   `markenGedraengt` sagt fuer jede Marke, ob eine Nachbarin so nah
+   ist, dass die Beschriftung im Weg waere. Das gilt in beiden
+   Ansichten: Namen verschwinden, Kreise bleiben. Die ausgewaehlte
+   Pflanze behaelt ihren Namen immer — sonst waere gerade die nicht
+   mehr zu erkennen, um die es geht. */
+function markenEntzerren(stellung, mindest){
+  const ids = Object.keys(stellung);
+  if(ids.length < 2) return stellung;
+  for(let runde = 0; runde < 6; runde++){
+    let ruhig = true;
+    for(let i = 0; i < ids.length; i++){
+      for(let j = i + 1; j < ids.length; j++){
+        const a = stellung[ids[i]], b = stellung[ids[j]];
+        let ax = b.x - a.x, ay = b.y - a.y;
+        let d = Math.hypot(ax, ay);
+        if(d >= mindest) continue;
+        /* Genau uebereinander gibt es keine Richtung — dann eine
+           ausdenken, sonst teilt man durch null. */
+        if(d < 0.001){
+          const w = (i * 2.399963) % (Math.PI * 2);
+          ax = Math.cos(w); ay = Math.sin(w); d = 1;
+        }
+        const schub = (mindest - d) / 2;
+        const ex = ax / d * schub, ey = ay / d * schub;
+        stellung[ids[i]] = {...a, x: a.x - ex, y: a.y - ey};
+        stellung[ids[j]] = {...b, x: b.x + ex, y: b.y + ey};
+        ruhig = false;
+      }
+    }
+    if(ruhig) break;
+  }
+  return stellung;
+}
+
+function markenGedraengt(orte, mindest){
+  const ids = Object.keys(orte);
+  const eng = {};
+  for(let i = 0; i < ids.length; i++){
+    for(let j = i + 1; j < ids.length; j++){
+      const a = orte[ids[i]], b = orte[ids[j]];
+      if(Math.hypot(b.x - a.x, b.y - a.y) < mindest){
+        eng[ids[i]] = true; eng[ids[j]] = true;
+      }
+    }
+  }
+  return eng;
+}
+
 function markenPositionen(r){
   if(!r) return {};
   const raus = {};
@@ -18366,8 +18442,17 @@ function planZeiger(ev){
     return;
   }
   if(pModus === 'pflanzen' && marke){
+    /* Der Griffpunkt wird gemerkt. Ohne ihn sprang die Marke beim
+       ersten Millimeter Bewegung mit ihrem Mittelpunkt unter den
+       Finger — wer den Rand oder die Beschriftung erwischt hatte,
+       verlor die Pflanze um eine halbe Markenbreite. Zusammen mit der
+       Schwelle, ab der ein Zug als Zug gilt, fuehlte sich das an, als
+       muesse man erst ein Stueck ziehen, bevor etwas passiert. */
+    const o0 = pflanzenOrt(marke.dataset.pfl);
     zieht = {typ:'pflanze', id:marke.dataset.pfl, bewegt:false, sx:ev.clientX, sy:ev.clientY,
-             el:marke, ox:0, oy:0};
+             el:marke,
+             dx: (p && o0) ? p.x - o0.x : 0,
+             dy: (p && o0) ? p.y - o0.y : 0};
     try{ ev.target.setPointerCapture(ev.pointerId); }catch(e){}
     ev.preventDefault();
   } else if(pModus === 'moebel' && moeb){
@@ -18390,13 +18475,15 @@ function planZug(ev){
     return;
   }
   if(!zieht) return;
-  if(!zieht.bewegt && Math.hypot(ev.clientX-zieht.sx, ev.clientY-zieht.sy) < 6) return;
+  /* Die Schwelle trennt Tippen von Ziehen. Sie darf klein sein, seit
+     die Marke beim Losfahren nicht mehr springt. */
+  if(!zieht.bewegt && Math.hypot(ev.clientX-zieht.sx, ev.clientY-zieht.sy) < 3) return;
   zieht.bewegt = true;
   const r = raum(), p = planPunkt(ev); if(!p) return;
   ev.preventDefault();
   if(zieht.typ === 'pflanze'){
-    const x = Math.max(0, Math.min(r.sp*KACHEL, p.x));
-    const y = Math.max(0, Math.min(r.re*KACHEL, p.y));
+    const x = Math.max(0, Math.min(r.sp*KACHEL, p.x - zieht.dx));
+    const y = Math.max(0, Math.min(r.re*KACHEL, p.y - zieht.dy));
     zieht.zx = x; zieht.zy = y;
     if(zieht.el) zieht.el.setAttribute('transform', `translate(${x*MASS},${y*MASS})`);
   } else {

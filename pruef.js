@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.4.1', w.__T('FASSUNG') === '3.4.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.4.2', w.__T('FASSUNG') === '3.4.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2192,6 +2192,116 @@ setTimeout(async () => {
         w.__T('pPanX') === 0, String(w.__T('pPanX')));
       w.__T('pZoom = 1; pPanX = 0; pPanY = 0');
       stellen(800, 400);
+    }
+
+    /* ── Wenn Marken einander verdecken ────────────────
+       Vier Pflanzen auf einem Fensterbrett ergaben einen Klumpen aus
+       Kreisen und einen Brei aus Namen. */
+    {
+      /* Auseinanderschieben ─ auch aus dem Sonderfall heraus, dass
+         alle auf demselben Punkt liegen. */
+      const eng = w.__T(`(function(){
+        const st = {a:{x:100,y:100}, b:{x:100,y:100}, c:{x:104,y:100}, d:{x:400,y:400}};
+        markenEntzerren(st, 30);
+        return JSON.stringify(st);
+      })()`);
+      const st = JSON.parse(eng);
+      const abst = (u, v) => Math.hypot(st[u].x - st[v].x, st[u].y - st[v].y);
+      pruef('Zwei Marken auf demselben Punkt werden getrennt',
+        abst('a', 'b') > 29, abst('a', 'b').toFixed(1));
+      pruef('Auch die dritte daneben bekommt Platz',
+        abst('a', 'c') > 29 && abst('b', 'c') > 29,
+        abst('a', 'c').toFixed(1) + ' / ' + abst('b', 'c').toFixed(1));
+      pruef('Wer schon weit weg steht, bleibt stehen',
+        st.d.x === 400 && st.d.y === 400);
+
+      /* Und die Beschriftung: eng ist eng. */
+      const gedraengt = JSON.parse(w.__T(`JSON.stringify(markenGedraengt(
+        {a:{x:0,y:0}, b:{x:20,y:0}, c:{x:500,y:500}}, 58))`));
+      pruef('Nahe Nachbarn gelten als gedr\u00e4ngt',
+        gedraengt.a === true && gedraengt.b === true, JSON.stringify(gedraengt));
+      pruef('Wer allein steht, nicht',
+        !gedraengt.c, JSON.stringify(gedraengt));
+
+      /* Im Bild: der Name fällt weg, der Kreis bleibt. */
+      const rid = w.__T('raum().id');
+      const zwei = w.__T('allePflanzen().slice(0,2).map(function(p){ return p.id; })');
+      w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 100, 100)`);
+      w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 104, 100)`);
+      /* Gepr\u00fcft wird die Zeichnung selbst. Der Umweg \u00fcber das
+         Dokument taugt hier nicht: ob der Grundriss gerade im
+         Dokument steht, h\u00e4ngt davon ab, welches Werkzeugfenster
+         offen ist \u2014 und jsdom findet SVG-Elemente ohnehin nicht \u00fcber
+         Klassenselektoren. */
+      w.__T("grStufe = 'editor'; pGewaehlt = null");
+      const bild = w.__T('grundrissSVG()');
+      const zaehl = (t, m) => (t.split(m).length - 1);
+      pruef('Beide Marken werden gezeichnet',
+        zaehl(bild, 'data-pfl=') >= 2, String(zaehl(bild, 'data-pfl=')));
+      pruef('Ihre Namen nicht \u2014 sie l\u00e4gen \u00fcbereinander',
+        zaehl(bild, 'class="p-lab"') < zaehl(bild, 'data-pfl='),
+        zaehl(bild, 'class="p-lab"') + ' Namen bei '
+        + zaehl(bild, 'data-pfl=') + ' Marken');
+
+      /* Eine Pflanze weit ab beh\u00e4lt ihren Namen. */
+      w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 250, 100)`);
+      const weit = w.__T('grundrissSVG()');
+      pruef('Wer allein steht, wird beschriftet',
+        zaehl(weit, 'class="p-lab"') > zaehl(bild, 'class="p-lab"'),
+        zaehl(weit, 'class="p-lab"') + ' gegen ' + zaehl(bild, 'class="p-lab"'));
+
+      /* In der Ansicht werden Marken auch dann getrennt, wenn sie auf
+         keinem M\u00f6bel stehen \u2014 dort verteilt `markenPositionen` sie
+         nicht, und ohne Entzerren l\u00e4gen sie aufeinander. */
+      {
+        const stelleVon = (t, id) => {
+          const tr = new RegExp('data-pfl="' + id + '"[\\s\\S]{0,120}?translate\\(([-0-9.]+),([-0-9.]+)\\)');
+          const m = t.match(tr);
+          return m ? {x:+m[1], y:+m[2]} : null;
+        };
+        w.__T("raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = ''");
+        w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 120, 60)`);
+        w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 120, 60)`);
+        w.__T("grStufe = 'ansicht'; pGewaehlt = null");
+        const bildA = w.__T('grundrissSVG()');
+        const a = stelleVon(bildA, zwei[0]), b = stelleVon(bildA, zwei[1]);
+        pruef('Beide Marken sind in der Ansicht auffindbar', !!a && !!b);
+        pruef('Sie liegen nicht mehr aufeinander',
+          a && b && Math.hypot(a.x - b.x, a.y - b.y) > 20,
+          a && b ? Math.hypot(a.x - b.x, a.y - b.y).toFixed(1) : '—');
+
+        /* Im Editor bleibt die Marke da, wo der Finger sie hingezogen
+           hat \u2014 dort darf nichts von selbst wegrutschen. */
+        w.__T("grStufe = 'editor'");
+        const bildE = w.__T('grundrissSVG()');
+        const e0 = stelleVon(bildE, zwei[0]);
+        pruef('Im Editor bleibt sie an ihrem echten Ort',
+          e0 && Math.abs(e0.x - 120) < 0.5 && Math.abs(e0.y - 60) < 0.5,
+          e0 ? e0.x + ',' + e0.y : '—');
+        w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 104, 100)`);
+        w.__T(`pflanzeSetzen('${zwei[0]}', '${rid}', 100, 100)`);
+      }
+
+      /* Die ausgew\u00e4hlte beh\u00e4lt ihren Namen auch im Gedr\u00e4nge. */
+      w.__T(`pflanzeSetzen('${zwei[1]}', '${rid}', 104, 100)`);
+      w.__T(`pGewaehlt = {typ:'pflanze', id:'${zwei[0]}'}`);
+      const gewBild = w.__T('grundrissSVG()');
+      pruef('Die ausgew\u00e4hlte Pflanze beh\u00e4lt ihren Namen',
+        zaehl(gewBild, 'class="p-lab"') > zaehl(bild, 'class="p-lab"'),
+        zaehl(gewBild, 'class="p-lab"') + ' gegen ' + zaehl(bild, 'class="p-lab"'));
+      w.__T('pGewaehlt = null; planRender()');
+    }
+
+    /* ── Die Marke bleibt unter dem Finger ──────────────
+       Ohne gemerkten Griffpunkt sprang sie beim ersten Millimeter mit
+       ihrem Mittelpunkt unter den Finger. */
+    {
+      pruef('Der Griffpunkt wird beim Aufsetzen gemerkt',
+        html.indexOf('dx: (p && o0) ? p.x - o0.x : 0') !== -1);
+      pruef('und beim Ziehen abgezogen',
+        html.indexOf('Math.min(r.sp*KACHEL, p.x - zieht.dx)') !== -1);
+      pruef('Die Schwelle ist klein genug',
+        html.indexOf('zieht.sy) < 3) return;') !== -1);
     }
 
     /* ── Möbel drehen ──────────────────────────

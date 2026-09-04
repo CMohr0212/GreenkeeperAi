@@ -4,6 +4,16 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.4.2 — 4. September 2026
+**Unter dem Finger, nicht untereinander**
+
+### Besser
+- Eine Pflanze folgt dem Finger, statt beim ersten Millimeter unter ihn zu springen. Der Punkt, an dem du sie anfasst, bleibt der Punkt, an dem du sie hältst — auch wenn du sie am Rand erwischt hast.
+- Wo mehrere Pflanzen dicht beieinanderstehen, werden die Namen weggelassen. Die Kreise bleiben, und die ausgewählte Pflanze behält ihren Namen.
+- In der Ansicht rücken Marken, die aufeinanderliegen, auseinander — auch die, die auf keinem Möbel stehen. Im Editor bleibt jede da, wo du sie hingezogen hast.
+
+---
+
 ## 3.4.1 — 4. September 2026
 **Drehen, schieben, aufnehmen**
 
