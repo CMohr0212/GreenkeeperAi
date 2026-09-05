@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.5.0', w.__T('FASSUNG') === '3.5.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.6.0', w.__T('FASSUNG') === '3.6.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3854,19 +3854,104 @@ setTimeout(async () => {
     /* ── Saison greift wirklich in den Gießabstand ──
        Eine Einstellung, die nichts bewirkt, ist schlimmer als keine. */
     const pid2 = w.__T('allePflanzen()[0].id');
-    const winter = w.__T('!sommer()');
+    /* Das Datum wird gesetzt, statt sich auf den Tag des Laufs zu
+       verlassen — sonst pr\u00fcfte dieselbe Zeile im Juni etwas anderes
+       als im Dezember. */
+    const alsWaere = (j, m, t, ausdruck) =>
+      w.__T(`(function(){ const alt = HEUTE; HEUTE = new Date(${j}, ${m-1}, ${t});
+        try { return (${ausdruck}); } finally { HEUTE = alt; } })()`);
+    const ivAm = (m, t) => alsWaere(2026, m, t,
+      `intervallVon(allePflanzen().find(function(x){ return x.id === '${pid2}'; }))`);
+
     w.__T("S.giess.saison = false; sichern()");
     const ohne = w.__T(`intervallVon(allePflanzen().find(x=>x.id==='${pid2}'))`);
     w.__T("S.giess.saison = true; S.giess.saisonStaerke = 'stark'; sichern()");
     const mit = w.__T(`intervallVon(allePflanzen().find(x=>x.id==='${pid2}'))`);
-    pruef('Saisonfaktor ist im Sommer neutral',
-      winter || w.__T('saisonFaktor()') === 1);
-    if(winter){
-      pruef('Stark streckt den Winterabstand', mit > ohne, ohne + ' → ' + mit);
-    } else {
-      pruef('Im Sommer bleibt der Abstand gleich', mit === ohne, ohne + ' → ' + mit);
-    }
+    pruef('Im Hochsommer ist der Saisonfaktor neutral',
+      Math.abs(alsWaere(2026, 6, 21, 'saisonFaktor()') - 1) < 0.01,
+      String(alsWaere(2026, 6, 21, 'saisonFaktor()')));
+    pruef('Im tiefsten Winter gilt er ganz',
+      Math.abs(alsWaere(2026, 12, 21, 'saisonFaktor()') - 1.9) < 0.01,
+      String(alsWaere(2026, 12, 21, 'saisonFaktor()')));
+    pruef('Dazwischen liegt er dazwischen',
+      alsWaere(2026, 10, 1, 'saisonFaktor()') > 1.2
+      && alsWaere(2026, 10, 1, 'saisonFaktor()') < 1.9,
+      String(alsWaere(2026, 10, 1, 'saisonFaktor()')));
+    pruef('Und er streckt den Abstand im Winter',
+      alsWaere(2026, 12, 21, `intervallVon(allePflanzen().find(function(x){ return x.id === '${pid2}'; }))`)
+      > alsWaere(2026, 6, 21, `intervallVon(allePflanzen().find(function(x){ return x.id === '${pid2}'; }))`),
+      ohne + ' heute ohne, ' + mit + ' heute mit');
     w.__T("S.giess.saisonStaerke = 'normal'");
+
+    /* ── Kein Sprung mehr am Monatsende ────────
+       Bis 3.5.0 lief `sommer()` von April bis September. Am 30.
+       September sprang jedes Intervall auf den Winterwert — bei [8,12]
+       über Nacht um vier Tage. */
+    {
+      pruef('Zwischen 30. September und 1. Oktober springt nichts',
+        Math.abs(ivAm(10, 1) - ivAm(9, 30)) <= 1,
+        ivAm(9, 30) + ' → ' + ivAm(10, 1));
+      pruef('Zwischen 31. März und 1. April auch nicht',
+        Math.abs(ivAm(4, 1) - ivAm(3, 31)) <= 1,
+        ivAm(3, 31) + ' → ' + ivAm(4, 1));
+      /* Über das halbe Jahr darf es sich sehr wohl ändern — sonst
+         wäre die Kurve flach und die Rechnung ohne Wirkung. */
+      pruef('Über das Jahr ändert es sich deutlich',
+        ivAm(12, 21) > ivAm(6, 21), ivAm(6, 21) + ' → ' + ivAm(12, 21));
+    }
+
+    /* ── Die Jahreskurve selbst ────────────────
+       Eine Zahl, wo im Jahr wir stehen: 0 im tiefsten Winter, 1 im
+       Hochsommer. Sie ersetzt drei Monatslisten, die sich
+       widersprachen. */
+    {
+      const lageAm = (m, t) => alsWaere(2026, m, t, 'jahresLage()');
+      pruef('Am 21. Dezember steht sie auf null',
+        lageAm(12, 21) < 0.01, String(lageAm(12, 21)));
+      pruef('Am 21. Juni auf eins', lageAm(6, 21) > 0.99, String(lageAm(6, 21)));
+      pruef('Sie bleibt immer zwischen null und eins',
+        [1,3,5,7,9,11].every(m=>{ const l = lageAm(m, 15); return l >= 0 && l <= 1; }));
+      pruef('Sie steigt von Januar bis Juni',
+        lageAm(1, 15) < lageAm(3, 15) && lageAm(3, 15) < lageAm(5, 15));
+      pruef('und fällt von Juli bis Dezember',
+        lageAm(7, 15) > lageAm(9, 15) && lageAm(9, 15) > lageAm(11, 15));
+      /* Von Tag zu Tag darf sie sich kaum bewegen — das ist der ganze
+         Punkt gegenüber einem Schalter. */
+      const spruenge = [];
+      for(let m = 1; m <= 12; m++) spruenge.push(Math.abs(lageAm(m, 2) - lageAm(m, 1)));
+      pruef('Von Tag zu Tag bewegt sie sich kaum',
+        Math.max.apply(null, spruenge) < 0.01,
+        Math.max.apply(null, spruenge).toFixed(4));
+
+      /* Und die Mischung folgt ihr. */
+      pruef('Im Hochsommer gilt der Sommerwert',
+        Math.abs(w.__T('jahresMischung(8, 12, 1)') - 8) < 0.01);
+      pruef('Im tiefen Winter der Winterwert',
+        Math.abs(w.__T('jahresMischung(8, 12, 0)') - 12) < 0.01);
+      pruef('In der Mitte die Mitte',
+        Math.abs(w.__T('jahresMischung(8, 12, 0.5)') - 10) < 0.01);
+
+      /* Die Düngepause hängt an derselben Kurve. Geprüft wird an
+         `duengSperre()`, nicht an der Kurve selbst — sonst bliebe
+         unbemerkt, wenn die Sperre wieder eine eigene Monatsliste
+         bekäme. */
+      w.__T(`(function(){
+        const p = allePflanzen().find(function(x){ return x.id === '${pid2}'; });
+        p.duenger = 'normal';
+        if(S.zustand[p.id]) delete S.zustand[p.id].umgetopft;
+      })()`);
+      const pauseAm = (m, t) => alsWaere(2026, m, t,
+        `(duengSperre(allePflanzen().find(function(x){ return x.id === '${pid2}'; })) || {}).code`);
+      pruef('Im Januar ruht das Düngen', pauseAm(1, 15) === 'winter', String(pauseAm(1, 15)));
+      pruef('Im Juni nicht', pauseAm(6, 15) !== 'winter', String(pauseAm(6, 15)));
+      pruef('Im November ruht es', pauseAm(11, 15) === 'winter', String(pauseAm(11, 15)));
+      pruef('Im September noch nicht', pauseAm(9, 15) !== 'winter', String(pauseAm(9, 15)));
+      /* Und der Übergang ist keiner mit Kante: der 30. September und
+         der 1. Oktober sagen dasselbe. */
+      pruef('Am Monatswechsel Sept./Okt. ändert sich nichts',
+        pauseAm(9, 30) === pauseAm(10, 1),
+        pauseAm(9, 30) + ' → ' + pauseAm(10, 1));
+    }
     pruef('Faktor liegt in sinnvollen Grenzen', w.__T('saisonFaktor()') >= 1
       && w.__T('saisonFaktor()') <= 2, String(w.__T('saisonFaktor()')));
 

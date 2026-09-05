@@ -4,6 +4,17 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.6.0 — 4. September 2026
+**Ein Jahr ohne Sprünge**
+
+### Besser
+- Gießabstände folgen einem weichen Jahresverlauf statt einem Schalter. Bis eben sprang am 30. September jedes Intervall auf den Winterwert — bei „alle 8 bis 12 Tage" über Nacht um vier Tage. Pflanzen folgen dem Licht, und das nimmt allmählich ab.
+- Es gab drei verschiedene Jahresgrenzen: Sommer lief April bis September, die Saisonanpassung griff November bis Februar, die Düngepause Oktober bis Februar. Im Oktober galt schon der Winterabstand, aber noch keine Anpassung — gedüngt werden durfte trotzdem nicht mehr. Jetzt gilt überall dieselbe Kurve, mit Tiefpunkt am 21. Dezember und Höhepunkt am 21. Juni.
+- Die Saisonanpassung aus dem Gießcenter wächst mit dem Winter herein, statt an einem Stichtag ganz einzusetzen.
+- Die Düngepause hängt an derselben Kurve und läuft damit etwa von Mitte Oktober bis Anfang März.
+
+---
+
 ## 3.5.0 — 4. September 2026
 **Der Raum bleibt im Blick**
 

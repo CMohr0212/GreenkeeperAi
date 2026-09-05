@@ -10289,8 +10289,16 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.5.0';
+const FASSUNG = '3.6.0';
 const PATCHNOTES = [
+  {
+    nr: '3.6.0', datum: '2026-09-04', titel: 'Ein Jahr ohne Sprünge',
+    besser: [
+      'Gießabstände folgen jetzt einem weichen Jahresverlauf statt einem Schalter. Bis eben sprang am 30. September jedes Intervall auf den Winterwert — bei „alle 8 bis 12 Tage" über Nacht um vier Tage. Pflanzen folgen dem Licht, und das nimmt allmählich ab.',
+      'Es gab drei verschiedene Jahresgrenzen: Sommer lief April bis September, die Saisonanpassung griff November bis Februar, die Düngepause Oktober bis Februar. Im Oktober galt damit schon der Winterabstand, aber noch keine Anpassung — gedüngt werden durfte trotzdem nicht mehr. Jetzt gilt überall dieselbe Kurve.',
+      'Die Saisonanpassung aus dem Gießcenter wächst mit dem Winter herein, statt an einem Stichtag ganz einzusetzen.'
+    ]
+  },
   {
     nr: '3.5.0', datum: '2026-09-04', titel: 'Der Raum bleibt im Blick',
     besser: [
@@ -11839,7 +11847,33 @@ let HEUTE = new Date();
    Uhrzeit: vormittags galt „gestern gegossen“ noch als null Tage her. */
 const tageSeit = s => Math.round(
   (mitternacht(HEUTE) - mitternacht(new Date(s+'T12:00:00'))) / 86400000);
-const sommer = () => { const m = HEUTE.getMonth()+1; return m>=4 && m<=9; };
+/* ── Wo im Jahr wir stehen ─────────────────────────────────
+   Bis 3.5.0 gab es drei Jahresgrenzen, und keine zwei waren gleich:
+   `sommer()` lief von April bis September, `saisonFaktor()` griff nur
+   von November bis Februar, die Düngepause von Oktober bis Februar.
+   Im Oktober galt damit schon der Winterabstand, aber noch keine
+   Saisonanpassung — und gedüngt werden durfte trotzdem nicht mehr.
+
+   Jetzt sagt eine Zahl, wo im Jahr wir stehen: 0 im tiefsten Winter,
+   1 im Hochsommer, dazwischen ein weicher Übergang. Der Sprung am
+   30. September, der jedes Intervall über Nacht um ein Drittel
+   verschob, fällt damit weg — Pflanzen folgen dem Licht, und das
+   nimmt allmählich ab.
+
+   Die Kurve hat ihren Tiefpunkt am 21. Dezember und ihren Höhepunkt
+   am 21. Juni, wie die Tageslänge. */
+const JAHRES_TIEF = 355;          // 21. Dezember als Tag im Jahr
+function jahresTag(datum){
+  const d = datum || HEUTE;
+  return Math.round((d - new Date(d.getFullYear(), 0, 1)) / 86400000);
+}
+function jahresLage(datum){
+  const t = jahresTag(datum);
+  return (1 - Math.cos(2 * Math.PI * (t - JAHRES_TIEF) / 365)) / 2;
+}
+/* Bleibt als grobe Auskunft für alles, was nur „Sommer oder Winter"
+   wissen will. Gerechnet wird mit der Lage, nicht hiermit. */
+const sommer = () => jahresLage() >= 0.5;
 /* Als Startbildschirm-App bleibt die Seite tagelang offen. Ohne diese
    Prüfung bliebe „heute“ für immer der Tag des letzten Ladens. */
 function tagPruefen(){
@@ -11875,19 +11909,28 @@ function intervallBasis(p){
              && p.intervall.every(x=>typeof x === 'number' && x > 0) ? p.intervall : null;
   return eigen || ausKlasse || [8,12];
 }
+/* Zwischen dem Sommer- und dem Winterwert einer Art wird nach der
+   Jahreslage gemischt: im Hochsommer der erste, im tiefen Winter der
+   zweite, dazwischen alles dazwischen. */
+function jahresMischung(sommerWert, winterWert, lage){
+  const l = lage != null ? lage : jahresLage();
+  return sommerWert + (winterWert - sommerWert) * (1 - l);
+}
 function intervallVon(p){
+  const lage = jahresLage();
   const w = wechselIntervall(p);
-  if(w) return sommer() ? w[0] : w[1];
+  if(w) return Math.max(1, Math.round(jahresMischung(w[0], w[1], lage)));
   const iv = intervallBasis(p);
-  let basis = sommer() ? iv[0] : iv[1];
+  let basis = jahresMischung(iv[0], iv[1], lage);
   /* Saison-Anpassung aus dem Gießcenter. Die Winterwerte der Arten
      sind Mittelwerte für eine normale Wohnung — wer kühl oder dunkel
-     hält, braucht deutlich längere Abstände. Greift nur im Winter,
-     weil saisonFaktor() zwischen März und Oktober 1 zurückgibt. */
-  if(!sommer() && typeof saisonFaktor === 'function'){
+     hält, braucht deutlich längere Abstände. Der Faktor wächst mit
+     dem Winter hinein, statt am 1. November ganz einzusetzen. */
+  if(typeof saisonFaktor === 'function'){
     const f = saisonFaktor();
-    if(f !== 1) basis = Math.max(1, Math.round(basis * f));
+    if(f !== 1) basis = basis * f;
   }
+  basis = Math.max(1, Math.round(basis));
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
   if(z && z.def && z.def.f && z.def.f !== 1) basis = Math.max(1, Math.round(basis * z.def.f));
   else if(p.uebergang && p.uebergangBis && HEUTE < new Date(p.uebergangBis+'T23:59:59')) basis = p.uebergang;
@@ -11935,6 +11978,8 @@ function giessLog(id){ return giessTermine(id).slice().sort().reverse(); }
    verbrennt Wurzeln. Lieber gar nicht düngen als zur falschen Zeit.
    ═════════════════════════════════════════════ */
 const DUENG_ABSTAND = {nie:0, sparsam:90, normal:21, viel:7};
+/* Unterhalb dieser Jahreslage ruht das Düngen. */
+const DUENG_PAUSE_AB = 0.35;
 
 /* Wie lange eine Gabe vorhält, hängt an der Form. Flüssigdünger im
    Gießwasser ist der Maßstab; Stäbchen geben ueber Wochen ab,
@@ -11964,8 +12009,12 @@ function duengSperre(p){
     return {code:'nie', text:'Diese Art wird nie gedüngt — Dünger schadet ihr.'};
 
   const g = (typeof giessEinst === 'function') ? giessEinst() : {};
-  const m = new Date(HEUTE).getMonth() + 1;
-  if(g.winterpause !== false && (m >= 10 || m <= 2))
+  /* Die Pause hängt an derselben Jahreskurve wie das Gießen. Die
+     Schwelle 0,35 liegt dort, wo vorher der 1. Oktober und der
+     1. März standen — etwa Mitte Oktober bis Anfang März. Eine
+     Ja/Nein-Frage braucht eine Grenze; sie soll aber dieselbe Kurve
+     benutzen wie alles andere, nicht eine eigene Monatsliste. */
+  if(g.winterpause !== false && jahresLage() < DUENG_PAUSE_AB)
     return {code:'winter', text:'Winterpause bis März. Wer jetzt düngt, reichert Salz im Topf an — die Pflanze wächst nicht und nimmt nichts auf.'};
 
   const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
@@ -20466,12 +20515,15 @@ function giessEinst(){
    zwischen November und Februar — dazwischen liegt die Uebergangszeit,
    in der die vorhandenen Sommer- und Winterwerte ohnehin schon
    auseinanderlaufen. */
-function saisonFaktor(){
+/* Der volle Faktor gilt im tiefsten Winter, im Hochsommer gar keiner,
+   dazwischen anteilig. Vorher sprang er am 1. November von 1 auf 1,35
+   und am 1. März zurück. */
+function saisonFaktor(datum){
   const g = giessEinst();
   if(!g.saison) return 1;
-  const m = new Date(HEUTE).getMonth() + 1;
-  if(m >= 3 && m <= 10) return 1;
-  return {sanft:1.2, normal:1.35, stark:1.9}[g.saisonStaerke] || 1.35;
+  const voll = {sanft:1.2, normal:1.35, stark:1.9}[g.saisonStaerke] || 1.35;
+  const lage = jahresLage(datum);
+  return 1 + (voll - 1) * (1 - lage);
 }
 
 function giessCenterZeichnen(){
