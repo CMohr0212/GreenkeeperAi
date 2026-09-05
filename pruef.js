@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.7.2', w.__T('FASSUNG') === '3.7.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.8.0', w.__T('FASSUNG') === '3.8.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -4951,11 +4951,23 @@ setTimeout(async () => {
     !w.__T('MOEBEL_ARTEN.deckenlampe.sperrt') && !w.__T('MOEBEL_ARTEN.panel.sperrt'));
   pruef('Die Lampen stehen in einem eigenen Fach der Wahl',
     w.__T('moebelWahlHTML()').indexOf('data-mneu="deckenlampe"') !== -1
-    && w.__T('moebelWahlHTML()').indexOf('>Licht</p>') !== -1);
+    && w.__T('moebelWahlHTML()').indexOf('data-mgruppe="licht"') !== -1);
 
-  /* Der Weg des Fingers: Knopf in der Moebelleiste antippen. */
+  /* Der Weg des Fingers: erst das Fach aufklappen, dann den Knopf.
+     Ohne den ersten Tipp läge der zweite auf etwas Verdecktem — und
+     die Prüfung wäre grün, obwohl der Finger nicht hinkäme. */
+  const lampFach = d.querySelector('#moebel-leiste [data-mgruppe="licht"]');
+  pruef('Das Fach „Licht" steht in der Leiste', !!lampFach);
+  /* Gefragt ist das Fach, nicht irgendein verdeckter Vorfahr: im
+     Prüfstand steht die ganze Werkzeugseite auf hidden. */
+  const imFach = el => el && el.closest('.mgruppe-inhalt');
+  pruef('Zugeklappt ist die Deckenlampe nicht zu treffen',
+    !!imFach(d.querySelector('#moebel-leiste [data-mneu="deckenlampe"]'))
+    && imFach(d.querySelector('#moebel-leiste [data-mneu="deckenlampe"]')).hidden === true);
+  if(lampFach) lampFach.click();
   const lampKnopf = d.querySelector('#moebel-leiste [data-mneu="deckenlampe"]');
-  pruef('Die Deckenlampe steht in der Leiste', !!lampKnopf);
+  pruef('Aufgeklappt liegt sie frei',
+    !!imFach(lampKnopf) && imFach(lampKnopf).hidden === false);
   if(lampKnopf) lampKnopf.click();
   w.__T("(function(){ const m = raum().moebel[0]; if(m){ m.x = 100; m.y = 50; } sichern(); planRender(); })()");
   pruef('Angetippt steht die Lampe im Raum',
@@ -5203,6 +5215,101 @@ setTimeout(async () => {
     })()`) === w.__T(`Math.max(1, Math.round(9
       * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`));
   w.__T("(function(){ const a = " + karSicher + "; S.eigene = a.e; S.zustand = a.z; sichern(); })()");
+
+
+  /* ══════════ Akkordeon, Lampenstand, Pflanzenschalter ══════════ */
+  w.__T("(function(){ raum().moebel = []; pModus = 'moebel'; pMWahl = null; pMarken = true; "
+    + "sichern(); planAufbau(); planRender(); })()");
+
+  pruef('Beim Laden ist jedes Fach zu',
+    w.__T("moebelWahlHTML().indexOf('<div class=\"mgruppe-inhalt\" hidden>')") !== -1
+    && w.__T("moebelWahlHTML().indexOf('<div class=\"mgruppe-inhalt\">')") === -1);
+  const fachSitzen = d.querySelector('#moebel-leiste [data-mgruppe="sitzen"]');
+  pruef('Ein Fach lässt sich aufklappen',
+    !!fachSitzen && (fachSitzen.click(), w.__T('pMWahl')) === 'sitzen');
+  pruef('Und es steht dann wirklich offen',
+    imFach(d.querySelector('#moebel-leiste [data-mneu="sofa"]')).hidden === false);
+  /* Immer nur eins: das zweite Fach macht das erste zu. */
+  d.querySelector('#moebel-leiste [data-mgruppe="licht"]').click();
+  pruef('Ein zweites Fach schließt das erste',
+    w.__T('pMWahl') === 'licht'
+    && imFach(d.querySelector('#moebel-leiste [data-mneu="sofa"]')).hidden === true);
+  d.querySelector('#moebel-leiste [data-mgruppe="licht"]').click();
+  pruef('Noch einmal getippt ist es wieder zu', w.__T('pMWahl') === null);
+
+  /* Erst fragen, ob es sie gibt: sonst bricht der ganze Prüfstand mit
+     einem Fehler ab, statt eine Prüfung fallen zu lassen. */
+  pruef('Die Schreibtischlampe steht im Fach Licht',
+    w.__T("JSON.stringify(MOEBEL_ARTEN.tischlampe || null)") !== 'null'
+    && w.__T("(MOEBEL_ARTEN.tischlampe || {}).gruppe") === 'licht'
+    && w.__T("istLampe({typ:'tischlampe'})") === true
+    && w.__T("(MOEBEL_ARTEN.tischlampe || {}).h") === 45);
+
+  /* Eine niedrige Lampe auf einem hohen Möbel. Nach der Höhe sortiert
+     läge sie darunter — unsichtbar und nicht anzutippen. */
+  w.__T(`(function(){
+    const r = raum();
+    r.moebel = [
+      {id:'MTISCH', typ:'schreibtisch', name:'Prüftisch', b:120, t:60, h:75,
+        etagen: etagenVerteilen(75, 1), x:0, y:0},
+      {id:'MLAMP', typ:'tischlampe', name:'Prüflampe', b:20, t:20, h:45,
+        etagen: etagenVerteilen(45, 1), x:20, y:20, reich:60, an:true}
+    ];
+    sichern(); planRender();
+  })()`);
+  const lampStapel = w.__T('grundrissSVG()');
+  pruef('Die Lampe liegt über dem Möbel, auf dem sie steht',
+    lampStapel.indexOf('data-moebel="MLAMP"') > lampStapel.indexOf('data-moebel="MTISCH"'),
+    lampStapel.indexOf('data-moebel="MLAMP"') + ' gegen ' + lampStapel.indexOf('data-moebel="MTISCH"'));
+
+  /* ── Der Pflanzenschalter ── */
+  /* An einem Raum ohne Pflanzen gefragt, nicht am Prüfraum: der trägt
+     aus früheren Prüfungen noch welche. */
+  pruef('Ohne Pflanze im Raum gibt es keinen Pflanzenschalter',
+    w.__T("markenSchalterSVG({id:'raum-den-es-nicht-gibt'}, 1)") === '');
+  w.__T(`(function(){
+    S.eigene.push({id:'MPFL', name:'Prüfmarke', art:'Monstera deliciosa', klasse:'B'});
+    pflanzeSetzen('MPFL', raum().id, 100, 40);
+    sichern(); planRender();
+  })()`);
+  const mitMarke = w.__T('grundrissSVG()');
+  pruef('Mit Pflanze steht der Schalter da',
+    mitMarke.indexOf('data-marken="1"') !== -1);
+  pruef('Und die Marke ist zu sehen',
+    mitMarke.indexOf('data-pfl="MPFL"') !== -1);
+  const schalterM = d.querySelector('#plan-flaeche [data-marken]');
+  pruef('Der Pflanzenschalter liegt im Bild', !!schalterM);
+  if(schalterM) schalterM.dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  const ohneMarke = w.__T('grundrissSVG()');
+  pruef('Ausgeschaltet sind die Marken weg',
+    w.__T('pMarken') === false && ohneMarke.indexOf('data-pfl="MPFL"') === -1);
+  pruef('Die Möbel bleiben stehen',
+    ohneMarke.indexOf('data-moebel="MTISCH"') !== -1);
+  pruef('Und die Pflanze steht weiter im Raum',
+    w.__T("pflanzenIm(raum().id).some(function(p){ return p.id === 'MPFL'; })") === true);
+  const schalterM2 = d.querySelector('#plan-flaeche [data-marken]');
+  if(schalterM2) schalterM2.dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  pruef('Wieder eingeschaltet sind sie zurück',
+    w.__T('pMarken') === true
+    && w.__T('grundrissSVG()').indexOf('data-pfl="MPFL"') !== -1);
+  /* Gefragt sind die beiden Umhüllenden, nicht jedes translate im
+     Blattwerk der Marke. */
+  /* Ohne Schrägstriche gefragt: `__T` reicht den Text durch `eval`,
+     und ein Muster mit Maskierungen käme dort anders an, als es hier
+     steht. Zerlegen sagt dasselbe und überlebt den Weg. */
+  pruef('Beide Schalter stehen übereinander, nicht ineinander',
+    w.__T(`(function(){
+      const teile = planSchalterSVG(raum(), 1).split('<g transform="translate(');
+      return teile.length === 3
+        && teile[1].split(')')[0] !== teile[2].split(')')[0];
+    })()`) === true);
+
+  w.__T(`(function(){
+    S.eigene = S.eigene.filter(function(x){ return x.id !== 'MPFL'; });
+    if(S.orte) delete S.orte['MPFL'];
+    raum().moebel = []; pMWahl = null; pMarken = true;
+    sichern(); planAufbau(); planRender();
+  })()`);
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

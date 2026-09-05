@@ -1760,6 +1760,15 @@ html[data-design="klartext"] .kz-feld em{font-size:var(--t-md)}
 .fgrid label.check .lab{margin:0}
 .raumgrid input[type=range]{width:100%;accent-color:var(--terra);margin-top:5px}
 .pleiste{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.mgruppe-titel{display:flex;width:100%;align-items:center;justify-content:space-between;
+  gap:10px;font:inherit;font-size:var(--t-mono);font-family:var(--f-data);
+  letter-spacing:.1em;text-transform:uppercase;color:var(--peat);text-align:left;
+  padding:9px 4px;border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;
+  min-height:var(--tap)}
+.mgruppe-titel .leiste-pfeil{transition:transform .15s}
+.mgruppe-titel.auf .leiste-pfeil{transform:rotate(180deg)}
+.mgruppe-inhalt{display:flex;flex-wrap:wrap;gap:6px;padding:8px 0 4px}
+.mgruppe-inhalt[hidden]{display:none}
 .pleiste button{font:inherit;font-size:var(--t-s);padding:7px 11px;border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink);cursor:pointer}
 .pleiste button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .mchip{font-size:var(--t-xs)!important}
@@ -1818,7 +1827,7 @@ body.vollbild #plan-flaeche{touch-action:none}
    Der Schalter dagegen muss in jedem Werkzeug erreichbar sein, auch
    dort, wo Kacheln und Moebel abgeschaltet sind. */
 .plan-svg .lampenkegel{pointer-events:none}
-.plan-svg .lampenschalter{cursor:pointer;pointer-events:all}
+.plan-svg .lampenschalter,.plan-svg .markenschalter{cursor:pointer;pointer-events:all}
 .plan-svg .moebel.gewaehlt rect,.plan-svg .moebel.gewaehlt ellipse,.plan-svg .moebel.gewaehlt circle{stroke:var(--water);stroke-width:2.6}
 #p-karte{margin-top:12px}
 .pk{position:relative;border:1px solid var(--ink-2);border-radius:4px;padding:13px 15px;background:var(--paper)}
@@ -6142,6 +6151,7 @@ const MOEBEL_ARTEN = {
   deckenlampe:{name:'Deckenlampe', b:40,  t:40,  h:240, form:'lampe',    katze:false, gruppe:'licht', lampe:true, kegel:'rund', reich:150},
   stehlampe: {name:'Stehlampe',    b:40,  t:40,  h:170, form:'lampe',    katze:false, gruppe:'licht', lampe:true, kegel:'rund', reich:110},
   strahler:  {name:'Klemmstrahler',b:25,  t:25,  h:150, form:'strahler', katze:false, gruppe:'licht', lampe:true, kegel:'keil', reich:120},
+  tischlampe:{name:'Schreibtischlampe',b:20,t:20,h:45,  form:'strahler', katze:false, gruppe:'licht', lampe:true, kegel:'keil', reich:60},
   panel:     {name:'Pflanzenpanel',b:60,  t:30,  h:160, form:'panel',    katze:false, gruppe:'licht', lampe:true, kegel:'keil', reich:90}
 };
 
@@ -10365,8 +10375,19 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.7.2';
+const FASSUNG = '3.8.0';
 const PATCHNOTES = [
+  {
+    nr: '3.8.0', datum: '2026-09-05', titel: 'Weniger auf einmal',
+    neu: [
+      'Die Schreibtischlampe steht im Fach „Licht\u201c — 20 × 20 cm, 45 hoch, gerichtet wie der Strahler.',
+      'Ein zweiter Schalter im Grundriss blendet die Pflanzenmarken aus. Beim Lichtstellen sieht man dann die Möbel, auf die die Lampe soll. Die Pflanzen bleiben, wo sie sind.'
+    ],
+    besser: [
+      'Die Möbelwahl klappt auf. Beim Öffnen ist jedes Fach zu, aufgeklappt ist immer nur eins — dreißig Knöpfe am Stück waren ein langer Weg zu allem, was darunter steht.',
+      'Lampen liegen jetzt über den Möbeln, auf denen sie stehen. Nach der Höhe sortiert lag eine Schreibtischlampe unter dem Schreibtisch: unsichtbar und nicht anzutippen.'
+    ]
+  },
   {
     nr: '3.7.2', datum: '2026-09-05', titel: 'Drei, die im Weg standen',
     besser: [
@@ -17991,6 +18012,16 @@ let pLicht = 'stunden';    // stunden | moment | hell
    was am Raum gespeichert ist, ist der Schalter der einzelnen Lampe
    (`m.an`). Aus heisst aus, egal was die einzelne Lampe sagt. */
 let pLampen = true;
+/* Beim Lichtstellen stehen die Pflanzenmarken im Weg — man sieht die
+   Möbel nicht mehr, auf die man die Lampe stellen will. Anzeige, kein
+   Bestand: die Pflanzen bleiben, wo sie sind. */
+let pMarken = true;
+/* Welche Gruppe der Möbelwahl offen steht. `null` heißt: alle zu.
+   Beim Laden ist das so — dreißig Knöpfe am Stück waren ein langer
+   Weg zu allem, was darunter steht. Offen bleibt, was du aufklappst,
+   bis du eine andere Gruppe öffnest; sonst müsstest du nach jedem
+   gesetzten Möbel neu suchen. Anzeige, kein Bestand. */
+let pMWahl = null;
 let pKanteArt = 'fenster';
 let pGewaehlt = null;      // {typ:'pflanze'|'moebel', id}
 let pKarte = null;         // Pflanze, deren Karte offen ist
@@ -18057,14 +18088,22 @@ function moebelWahlHTML(){
   return MOEBEL_GRUPPEN.concat([['rest', 'Sonstiges']]).map(([g, name])=>{
     const liste = faecher[g];
     if(!liste || !liste.length) return '';
-    return `<div class="mgruppe"><p class="mgruppe-titel">${esc(name)}</p>`
+    const auf = pMWahl === g;
+    /* Die Knöpfe bleiben in der Zeichnung und werden nur verdeckt —
+       damit behalten sie ihren Platz und ihre Beschriftung, und was
+       zugeklappt ist, ist auch für den Finger nicht da. */
+    return `<div class="mgruppe${auf ? ' auf' : ''}">`
+      + `<button class="mgruppe-titel${auf ? ' auf' : ''}" data-mgruppe="${esc(g)}"`
+      + ` aria-expanded="${auf ? 'true' : 'false'}">`
+      + `<span>${esc(name)}</span><span class="leiste-pfeil">▾</span></button>`
+      + `<div class="mgruppe-inhalt"${auf ? '' : ' hidden'}>`
       + liste.map(k=>{
           const a = MOEBEL_ARTEN[k];
           return `<button class="mchip${a.sperrt ? ' sperrt' : ''}" data-mneu="${k}"`
             + `${a.sperrt ? ' title="Nimmt Licht weg, trägt aber nichts"' : ''}>`
             + `${esc(a.name)}</button>`;
         }).join('')
-      + '</div>';
+      + '</div></div>';
   }).join('');
 }
 
@@ -18281,11 +18320,33 @@ function lampenSchalterSVG(r, sk){
       x2="${(Math.sin(a)*12*sk).toFixed(1)}" y2="${(-Math.cos(a)*12*sk).toFixed(1)}"
       style="stroke:var(--z-lampe)" stroke-width="${1.6*sk}"/>`;
   }).join('');
-  return `<g class="lampenschalter" data-lampen="1" transform="translate(${-14*sk},${-16*sk})">
+  return `<g class="lampenschalter" data-lampen="1">
     <circle r="${14*sk}" style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
     <circle r="${7*sk}" style="fill:${an ? 'var(--z-lampe)' : 'var(--z-marke)'};stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
     ${an ? strahl : ''}
     <title>${an ? 'Lampen aus' : 'Lampen an'}</title></g>`;
+}
+/* Derselbe Griff für die Pflanzen. Durchgestrichen heißt ausgeblendet
+   — die Marken sind weg, die Pflanzen nicht. */
+function markenSchalterSVG(r, sk){
+  if(!pflanzenIm(r.id).length) return '';
+  const an = !!pMarken;
+  return `<g class="markenschalter" data-marken="1">
+    <circle r="${14*sk}" style="fill:var(--z-marke);stroke:${an ? 'var(--z-ok)' : 'var(--z-marke-rand)'}" stroke-width="${2*sk}"/>
+    <g transform="scale(${0.36*sk})" style="opacity:${an ? 1 : .3}">${FORMEN.kraut()}</g>
+    ${an ? '' : `<line x1="${-10*sk}" y1="${10*sk}" x2="${10*sk}" y2="${-10*sk}"
+      style="stroke:var(--z-marke-rand)" stroke-width="${2*sk}"/>`}
+    <title>${an ? 'Pflanzen ausblenden' : 'Pflanzen einblenden'}</title></g>`;
+}
+/* Die Schalter stehen übereinander in der Ecke, dem Kompass gegenüber.
+   Welche es gibt, hängt vom Raum ab — ohne Lampe kein Lampenschalter,
+   ohne Pflanze kein Pflanzenschalter. Wer wegfällt, hinterlässt keine
+   Lücke: gestapelt wird, was da ist. */
+function planSchalterSVG(r, sk){
+  return [lampenSchalterSVG(r, sk), markenSchalterSVG(r, sk)]
+    .filter(Boolean)
+    .map((g, i)=>`<g transform="translate(${-14*sk},${(-16 + i*33)*sk})">${g}</g>`)
+    .join('');
 }
 
 function grundrissSVG(){
@@ -18352,8 +18413,13 @@ function grundrissSVG(){
      oben, was zu `hoeheAn()` passt: dort gewinnt ebenfalls das
      hoechste Moebel. Sortiert wird eine Kopie; die Reihenfolge in
      `r.moebel` ist die Reihenfolge des Eintragens und bleibt. */
+  /* Lampen zuletzt, ungeachtet ihrer Höhe: eine Schreibtischlampe mit
+     45 cm läge sonst unter dem 75er Schreibtisch, auf dem sie steht —
+     unsichtbar und nicht anzutippen, denn der Tisch fängt den Finger.
+     Für alles andere gilt weiter: wer höher steht, liegt oben. */
   (r.moebel||[]).map((m, i)=>({m, i}))
-    .sort((a, b)=> (a.m.h - b.m.h) || (a.i - b.i))
+    .sort((a, b)=> ((istLampe(a.m)?1:0) - (istLampe(b.m)?1:0))
+      || (a.m.h - b.m.h) || (a.i - b.i))
     .map(e=>e.m)
     .forEach(m=>{
     const cx = m.x + m.b/2, cy = m.y + m.t/2;
@@ -18377,7 +18443,7 @@ function grundrissSVG(){
      Moebel, im Editor an ihrem echten Ort — sonst zoege man eine Marke
      und sie spraenge zurueck. */
   const stellung = grStufe === 'ansicht' ? markenPositionen(r) : null;
-  const pfl = pflanzenIm(r.id);
+  const pfl = pMarken ? pflanzenIm(r.id) : [];
   const orte = {};
   pfl.forEach(p=>{
     orte[p.id] = (stellung && stellung[p.id]) || pflanzenOrt(p.id) || {x:0, y:0};
@@ -18409,7 +18475,7 @@ function grundrissSVG(){
     <circle r="${14*sk}" style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
     <line x1="${(-Math.sin(a)*9*sk).toFixed(1)}" y1="${(Math.cos(a)*9*sk).toFixed(1)}" x2="${(Math.sin(a)*10*sk).toFixed(1)}" y2="${(-Math.cos(a)*10*sk).toFixed(1)}" style="stroke:var(--z-gift)" stroke-width="${2.6*sk}"/>
     <text x="${(Math.sin(a)*20*sk).toFixed(1)}" y="${(-Math.cos(a)*20*sk+3.5*sk).toFixed(1)}" class="k-lab" font-size="${10*sk}">N</text></g>`;
-  s += lampenSchalterSVG(r, sk);
+  s += planSchalterSVG(r, sk);
   return s + '</svg>';
 }
 
@@ -19693,11 +19759,23 @@ flaeche.addEventListener('click', planTipp);
    und die Ansicht hat eigene Handgriffe. In der Auffangphase, damit
    der Tipp nicht vorher als „irgendwohin getippt" gilt und die
    offene Karte zuklappt. */
+/* Eine Gruppe der Möbelwahl auf- oder zuklappen. Dieselbe Wahl steht
+   im Rumpf und in der Schublade des Vollbilds — beide werden neu
+   gefüllt, sonst zeigt die eine auf, was die andere zuklappt. */
 document.addEventListener('click', e=>{
-  const el = e.target && e.target.closest ? e.target.closest('[data-lampen]') : null;
+  const kopf = e.target && e.target.closest ? e.target.closest('[data-mgruppe]') : null;
+  if(!kopf) return;
+  pMWahl = (pMWahl === kopf.dataset.mgruppe) ? null : kopf.dataset.mgruppe;
+  if(typeof planAufbau === 'function') planAufbau();
+  if(typeof schubladeFuellen === 'function') schubladeFuellen();
+});
+
+document.addEventListener('click', e=>{
+  const el = e.target && e.target.closest ? e.target.closest('[data-lampen],[data-marken]') : null;
   if(!el) return;
   e.stopPropagation();
-  pLampen = !pLampen;
+  if(el.hasAttribute('data-marken')) pMarken = !pMarken;
+  else pLampen = !pLampen;
   if(typeof grStufe !== 'undefined' && grStufe === 'ansicht') grAnsichtZeichnen();
   else planRender();
 }, true);

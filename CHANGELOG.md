@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.8.0 — 5. September 2026
+**Weniger auf einmal**
+
+### Neu
+- Die Schreibtischlampe steht im Fach „Licht": 20 × 20 cm, 45 cm hoch, gerichtet wie der Klemmstrahler.
+- Ein zweiter Schalter im Grundriss blendet die Pflanzenmarken aus. Beim Lichtstellen standen sie im Weg — man sah die Möbel nicht mehr, auf die die Lampe soll. Er liegt unter dem Lampenschalter im Bild und gilt damit in jedem Werkzeug, in der Ansicht und im Vollbild. Ausgeblendet heißt ausgeblendet: die Pflanzen bleiben, wo sie sind.
+
+### Besser
+- Die Möbelwahl klappt auf. Beim Öffnen ist jedes Fach zu, und aufgeklappt ist immer nur eins; offen bleibt, was du aufklappst, bis du ein anderes Fach öffnest. Dreißig Knöpfe am Stück waren ein langer Weg zu allem, was darunter steht.
+- Lampen werden über den Möbeln gezeichnet, auf denen sie stehen. Nach der Höhe sortiert lag eine Schreibtischlampe mit 45 cm unter dem Schreibtisch mit 75 — unsichtbar, und nicht anzutippen, weil der Tisch den Finger fing. Für alles andere gilt weiter: wer höher steht, liegt oben.
+
+---
+
 ## 3.7.2 — 5. September 2026
 **Drei, die im Weg standen**
 
