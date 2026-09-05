@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.7.2 — 5. September 2026
+**Drei, die im Weg standen**
+
+### Besser
+- Im Vollbild lässt sich wieder jedes Möbelstück bearbeiten und löschen. Das Formular stand außerhalb der Bühne, die im Vollbild fest über dem ganzen Bild liegt — die Regel für den Vollbildstand gab es, sie konnte nur nie greifen. Jetzt liegt es darin, und im normalen Stand steht es dadurch direkt unter der Zeichnung statt ganz unten hinter allen Werkzeugleisten.
+- Über dem Grundriss kann man wieder scrollen. Bisher nahm die Zeichnung jede Wischbewegung für sich; wer an ihr vorbei wollte, musste daneben ansetzen oder in mehreren Zügen stückeln. Möbel und Marken behalten den Finger an ihrem eigenen Element, im Kachelmodus und im Vollbild bleibt es wie es war.
+- Karnivoren werden wieder täglich angesehen. Anstau und Winterruhe sind zwei Zustände und keine zwei Enden einer Kurve — dazwischen zu mitteln ergab im September sechs Tage für eine Pflanze, deren Wasserstand täglich zu prüfen ist. Umgeschaltet wird über den Zustand „Winterruhe der Karnivore" auf der Pflanzenkarte, nicht über den Kalender: ob eine Pflanze kühl genug steht, weiß der Mensch und nicht die App. In der Ruhe gilt der Winterwert der Klasse, und der Faktor des Zustands zählt dort nicht ein zweites Mal.
+
+### Gut zu wissen
+- Ein Abstand von einem Tag heißt jetzt überall „täglich" statt „alle 1 Tage".
+
+---
+
 ## 3.7.1 — 5. September 2026
 **Die letzte Reihe**
 

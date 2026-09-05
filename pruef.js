@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.7.1', w.__T('FASSUNG') === '3.7.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.7.2', w.__T('FASSUNG') === '3.7.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5128,6 +5128,81 @@ setTimeout(async () => {
   pruef('Die Lampen stehen am Ende der Wahl',
     w.__T('moebelWahlHTML()').indexOf('data-mneu="panel"')
       > w.__T('moebelWahlHTML()').indexOf('data-mneu="saeule"'));
+
+
+  /* ══════════ Das Möbelfenster steht in der Bühne ══════════
+     Im Vollbild legt sich `#plan-buehne` fest über das ganze Bild.
+     Was draußen liegt, ist dort nicht zu sehen und nicht zu treffen —
+     kein Möbel war zu bearbeiten und keins zu löschen. */
+  pruef('Das Möbelfenster liegt in der Bühne',
+    !!d.getElementById('plan-buehne')
+    && d.getElementById('plan-buehne').contains(d.getElementById('moebel-bearb')));
+  pruef('Seine Knöpfe sind mitgekommen',
+    !!d.getElementById('btn-mb-save') && !!d.getElementById('btn-mb-weg')
+    && !!d.getElementById('btn-mb-dreh') && !!d.getElementById('mb-reich'));
+
+  /* ══════════ Senkrecht wischen gehört der Seite ══════════ */
+  pruef('Die Fläche lässt die Seite scrollen',
+    html.indexOf('#plan-flaeche{border:1px solid var(--line);border-radius:4px;'
+      + 'background:var(--paper);padding:10px;overflow:hidden;touch-action:pan-y}') !== -1);
+  pruef('Was gezogen wird, behält den Finger',
+    html.indexOf('.plan-svg .moebel,.plan-svg .marke,.plan-svg .buendel{touch-action:none}') !== -1);
+  pruef('Im Vollbild führt die App selbst',
+    html.indexOf('body.vollbild #plan-flaeche{touch-action:none}') !== -1);
+  w.__T("(function(){ pModus = 'kacheln'; planRender(); })()");
+  pruef('Im Kachelmodus wird gemalt, nicht gescrollt',
+    d.getElementById('plan-flaeche').classList.contains('malt'));
+  w.__T("(function(){ pModus = 'moebel'; planRender(); })()");
+  pruef('In den anderen Werkzeugen nicht',
+    !d.getElementById('plan-flaeche').classList.contains('malt'));
+
+  /* ══════════ Anstau ist kein Rhythmus ══════════
+     Klasse S kennt zwei Zustände, nicht zwei Enden einer Kurve.
+     Geprüft wird an einer echten Karnivore aus der Bibliothek. */
+  const karSicher = w.__T("JSON.stringify({e: S.eigene, z: S.zustand})");
+  const KLASSE_S_WINTER = w.__T('KLASSE_IV.S[1]');
+  w.__T(`(function(){
+    S.eigene.push({id:'KARN1', name:'Prüfvenus', art:'Dionaea muscipula',
+      klasse:'S', spez:'karnivore-ruhe|karnivore-fallen'});
+    sichern();
+  })()`);
+  pruef('Die Prüfpflanze ist eine Anstaupflanze',
+    w.__T("(function(){ const p = allePflanzen().find(x=>x.id==='KARN1'); return p ? p.klasse : null; })()") === 'S');
+  pruef('Ohne Winterruhe wird täglich nachgesehen',
+    w.__T("intervallVon(allePflanzen().find(x=>x.id==='KARN1'))") === 1,
+    String(w.__T("intervallVon(allePflanzen().find(x=>x.id==='KARN1'))")));
+  pruef('Und das heißt im Text auch täglich',
+    w.__T('ivWort(1)') === 'täglich' && w.__T('ivWort(6)') === 'alle 6 Tage');
+  /* Der Zustand kommt vom Menschen, nicht vom Kalender. */
+  w.__T("zustandSetzen('KARN1', 'karnivore-ruhe')");
+  const ruheIv = w.__T("intervallVon(allePflanzen().find(x=>x.id==='KARN1'))");
+  pruef('In der Winterruhe gilt der Winterwert der Klasse',
+    ruheIv === KLASSE_S_WINTER, ruheIv + ' statt ' + KLASSE_S_WINTER);
+  pruef('Der Faktor des Zustands zählt nicht ein zweites Mal',
+    ruheIv < Math.round(KLASSE_S_WINTER * w.__T("SPEZIAL['karnivore-ruhe'].f")),
+    'Faktor ' + w.__T("SPEZIAL['karnivore-ruhe'].f"));
+  w.__T("zustandSetzen('KARN1', 'gesund')");
+  pruef('Zurück aus der Ruhe wieder täglich',
+    w.__T("intervallVon(allePflanzen().find(x=>x.id==='KARN1'))") === 1);
+  /* Kein anderer Rhythmus wird davon angefasst. */
+  pruef('Eine normale Pflanze mischt weiter nach der Jahreslage',
+    w.__T(`(function(){
+      S.eigene.push({id:'KARN2', name:'Prüfmonstera', art:'Monstera deliciosa', klasse:'B'});
+      const v = intervallVon(allePflanzen().find(x=>x.id==='KARN2'));
+      S.eigene = S.eigene.filter(function(x){ return x.id !== 'KARN2'; });
+      return v;
+    })()`) === w.__T(`Math.max(1, Math.round(jahresMischung(KLASSE_IV.B[0], KLASSE_IV.B[1], jahresLage())
+      * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`));
+  pruef('Ein eigener Rhythmus geht vor',
+    w.__T(`(function(){
+      const p = allePflanzen().find(x=>x.id==='KARN1');
+      p.intervall = [9, 9]; p.intervallEigen = true;
+      const v = intervallVon(p);
+      delete p.intervall; delete p.intervallEigen;
+      return v;
+    })()`) === w.__T(`Math.max(1, Math.round(9
+      * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`));
+  w.__T("(function(){ const a = " + karSicher + "; S.eigene = a.e; S.zustand = a.z; sichern(); })()");
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

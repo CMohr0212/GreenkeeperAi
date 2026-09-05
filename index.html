@@ -1781,7 +1781,17 @@ body.vollbild #vollbild-zeile{display:none}
 .hinweis-kopf .leiste-pfeil{transition:transform .15s}
 .hinweis-kopf.auf .leiste-pfeil{transform:rotate(180deg)}
 body.vollbild .hinweis-kopf{display:none}
-#plan-flaeche{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:10px;overflow:hidden;touch-action:none}
+/* Senkrecht wischen gehört der Seite, nicht der Zeichnung. Mit
+   `touch-action:none` bekam die App jede Bewegung über dem Plan, und
+   wer daran vorbeiscrollen wollte, musste neben dem Bild ansetzen
+   oder in mehreren Zügen stückeln. Was wirklich gezogen wird — Möbel
+   und Marken — nimmt sich den Finger an seinem eigenen Element
+   zurück. Im Kachelmodus wird auf der leeren Fläche gemalt, dort
+   gilt weiter `none`; im Vollbild ebenso, da führt die App selbst. */
+#plan-flaeche{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:10px;overflow:hidden;touch-action:pan-y}
+#plan-flaeche.malt{touch-action:none}
+body.vollbild #plan-flaeche{touch-action:none}
+.plan-svg .moebel,.plan-svg .marke,.plan-svg .buendel{touch-action:none}
 .plan-svg{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
 .plan-svg .kachel{cursor:pointer}
 .plan-svg .kante-griff{cursor:pointer}
@@ -9207,6 +9217,45 @@ function papierkorbRender(){
       </div>
       <p class="vb-quer" hidden>Quer halten gibt deutlich mehr Platz.</p>
       <div id="p-karte" hidden></div>
+      <!-- Das Formular gehört in die Bühne. Draußen lag es im Vollbild
+           hinter der Bühne, die fest über dem ganzen Bild liegt: die
+           Regel für den Vollbildstand gab es, sie konnte nur nie
+           greifen, weil `absolute` sich seinen Anker außerhalb suchte.
+           Kein Möbel war dort zu bearbeiten oder zu löschen. Drinnen
+           steht es außerdem im normalen Stand direkt unter der
+           Zeichnung statt ganz unten hinter allen Werkzeugleisten. -->
+<div class="formwrap" id="moebel-bearb">
+      <!-- Oben, nicht nur unten: im Vollbild liegt das Formular am
+           unteren Rand, und der Knopf ganz am Ende war nicht mehr zu
+           erreichen — man kam aus der Möbelbearbeitung nicht heraus. -->
+      <button class="mb-zu-oben" id="btn-mb-zu-oben" aria-label="Möbelbearbeitung schließen">✕</button>
+      <div class="fgrid">
+        <label><span class="lab">Name</span><input id="mb-name"></label>
+        <label><span class="lab">Höhe in cm</span><input id="mb-hoehe" type="number" min="0" step="5"></label>
+        <label id="mb-boeden-feld"><span class="lab">Böden</span><input id="mb-boeden" type="number" min="1" max="8" step="1"></label>
+        <p class="hint" id="mb-raster-hinweis" hidden></p>
+        <p class="hint fspan" id="mb-boeden-hinweis"></p>
+        <label id="mb-zone-feld"><span class="lab">Für Tiere erreichbar</span>
+          <select id="mb-zone">
+            <option value="boden">Auf dem Boden — für alle erreichbar</option>
+            <option value="niedrig">Niedrig, bis 60 cm — Hunde und Nager</option>
+            <option value="mittel">Mittelhoch, bis 1,5 m — Katzen springen hinauf</option>
+            <option value="hoch">Hoch oder hängend — nur Katzen mit Anlauf</option>
+            <option value="sicher">Gesichert oder geschlossen — kein Tier kommt ran</option>
+          </select></label>
+        <label><span class="lab">Breite in cm</span><input id="mb-breite" type="number" min="15" step="5"></label>
+        <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
+        <label class="fspan check" id="mb-katze-feld"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
+        <!-- Nur für Lampen. Beides wirkt sofort, wie das Drehen: ein
+             Regler, dessen Wirkung erst nach dem Speichern zu sehen
+             wäre, ließe sich nicht einstellen. -->
+        <label class="fspan" id="mb-reich-feld" hidden><span class="lab">Wie weit das Licht reicht</span>
+          <input type="range" id="mb-reich" min="30" max="400" step="10">
+          <span class="fhint" id="mb-reich-wert"></span></label>
+        <label class="fspan check" id="mb-an-feld" hidden><input type="checkbox" id="mb-an"> <span class="lab" style="display:inline">Licht an</span></label>
+      </div>
+      <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-dreh">Drehen</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
+    </div>
     </div>
     <div class="tools" id="vollbild-zeile"><button id="btn-vollbild">Vollbild öffnen</button></div>
     <button class="hinweis-kopf" id="btn-gr-hinweise" aria-expanded="false">
@@ -9254,38 +9303,6 @@ function papierkorbRender(){
     </div>
 
 
-<div class="formwrap" id="moebel-bearb">
-      <!-- Oben, nicht nur unten: im Vollbild liegt das Formular am
-           unteren Rand, und der Knopf ganz am Ende war nicht mehr zu
-           erreichen — man kam aus der Möbelbearbeitung nicht heraus. -->
-      <button class="mb-zu-oben" id="btn-mb-zu-oben" aria-label="Möbelbearbeitung schließen">✕</button>
-      <div class="fgrid">
-        <label><span class="lab">Name</span><input id="mb-name"></label>
-        <label><span class="lab">Höhe in cm</span><input id="mb-hoehe" type="number" min="0" step="5"></label>
-        <label id="mb-boeden-feld"><span class="lab">Böden</span><input id="mb-boeden" type="number" min="1" max="8" step="1"></label>
-        <p class="hint" id="mb-raster-hinweis" hidden></p>
-        <p class="hint fspan" id="mb-boeden-hinweis"></p>
-        <label id="mb-zone-feld"><span class="lab">Für Tiere erreichbar</span>
-          <select id="mb-zone">
-            <option value="boden">Auf dem Boden — für alle erreichbar</option>
-            <option value="niedrig">Niedrig, bis 60 cm — Hunde und Nager</option>
-            <option value="mittel">Mittelhoch, bis 1,5 m — Katzen springen hinauf</option>
-            <option value="hoch">Hoch oder hängend — nur Katzen mit Anlauf</option>
-            <option value="sicher">Gesichert oder geschlossen — kein Tier kommt ran</option>
-          </select></label>
-        <label><span class="lab">Breite in cm</span><input id="mb-breite" type="number" min="15" step="5"></label>
-        <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
-        <label class="fspan check" id="mb-katze-feld"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
-        <!-- Nur für Lampen. Beides wirkt sofort, wie das Drehen: ein
-             Regler, dessen Wirkung erst nach dem Speichern zu sehen
-             wäre, ließe sich nicht einstellen. -->
-        <label class="fspan" id="mb-reich-feld" hidden><span class="lab">Wie weit das Licht reicht</span>
-          <input type="range" id="mb-reich" min="30" max="400" step="10">
-          <span class="fhint" id="mb-reich-wert"></span></label>
-        <label class="fspan check" id="mb-an-feld" hidden><input type="checkbox" id="mb-an"> <span class="lab" style="display:inline">Licht an</span></label>
-      </div>
-      <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-dreh">Drehen</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
-    </div>
 
     
     </div>
@@ -10348,8 +10365,17 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.7.1';
+const FASSUNG = '3.7.2';
 const PATCHNOTES = [
+  {
+    nr: '3.7.2', datum: '2026-09-05', titel: 'Drei, die im Weg standen',
+    besser: [
+      'Im Vollbild lässt sich wieder jedes Möbelstück bearbeiten und löschen. Das Fenster lag hinter dem Vollbild statt darin — sichtbar war es nie.',
+      'Über dem Grundriss kann man wieder scrollen. Bisher nahm die Zeichnung jede Wischbewegung für sich, und man kam nur daneben oder in mehreren Zügen an ihr vorbei. Möbel und Marken lassen sich weiter ziehen wie bisher.',
+      'Karnivoren werden wieder täglich angesehen statt alle paar Tage gegossen. Anstau und Winterruhe sind zwei Zustände, kein Rhythmus dazwischen — umgeschaltet wird über „Winterruhe der Karnivore\u201c auf der Pflanzenkarte.'
+    ],
+    hinweis: 'Ein Abstand von einem Tag heißt jetzt überall „täglich\u201c statt „alle 1 Tage\u201c.'
+  },
   {
     nr: '3.7.1', datum: '2026-09-05', titel: 'Die letzte Reihe',
     besser: [
@@ -11993,10 +12019,41 @@ function jahresMischung(sommerWert, winterWert, lage){
   const l = lage != null ? lage : jahresLage();
   return sommerWert + (winterWert - sommerWert) * (1 - l);
 }
+/* Klasse S ist kein Rhythmus, sondern zwei Zustände: Anstau oder
+   Winterruhe. Entweder steht Wasser im Untersetzer oder er ist leer —
+   dazwischen gibt es nichts, und der gemittelte Wert ist in beiden
+   falsch. Im September kamen so sechs Tage heraus für eine Pflanze,
+   deren Wasserstand täglich anzusehen ist.
+
+   Umgeschaltet wird über den Zustand „Winterruhe der Karnivore", den
+   der Mensch auf der Karte setzt. Eine Schwelle im Jahreslauf wäre
+   wieder der Datumssprung, den die weiche Jahreskurve gerade
+   abgeschafft hat — und ob eine Pflanze kühl genug steht, weiß die
+   App nicht, der Mensch schon. Ohne gesetzten Zustand bleibt es beim
+   täglichen Blick; der schadet nie, das Übersehen schon.
+
+   Ein eigener Rhythmus von Hand geht vor: wer selbst etwas einträgt,
+   hat einen Grund. */
+function anstauLage(p){
+  if(!p || p.klasse !== 'S' || p.intervallEigen === true) return null;
+  if(wechselIntervall(p)) return null;
+  const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
+  return (z && z.code === 'karnivore-ruhe') ? 'ruhe' : 'anstau';
+}
 function intervallVon(p){
   const lage = jahresLage();
   const w = wechselIntervall(p);
   if(w) return Math.max(1, Math.round(jahresMischung(w[0], w[1], lage)));
+  const anstau = anstauLage(p);
+  if(anstau){
+    /* In der Ruhe zählt der Winterwert der Klasse für sich. Der Faktor
+       des Zustands träte hier zum zweiten Mal an: der Winterwert ist
+       bereits der Ruherhythmus, nicht der Sommerwert mit Zuschlag. */
+    const iv = intervallBasis(p);
+    const basis = anstau === 'ruhe' ? Math.max(1, Math.round(iv[1])) : 1;
+    const schub = (S.zustand[p.id] && S.zustand[p.id].giessSchub) || 0;
+    return basis + Math.min(4, Math.max(0, schub));
+  }
   const iv = intervallBasis(p);
   let basis = jahresMischung(iv[0], iv[1], lage);
   /* Saison-Anpassung aus dem Gießcenter. Die Winterwerte der Arten
@@ -12015,6 +12072,10 @@ function intervallVon(p){
   const schub = (S.zustand[p.id] && S.zustand[p.id].giessSchub) || 0;
   return basis + Math.min(4, Math.max(0, schub));
 }
+/* „alle 1 Tage" sagt niemand. Bei einem Tag heißt der Rhythmus
+   täglich — und bei einer Karnivore im Anstau ist das kein Gießen,
+   sondern ein Blick auf den Wasserstand. */
+function ivWort(iv){ return iv === 1 ? 'täglich' : 'alle ' + iv + ' Tage'; }
 /* Für die Rückfrage: der Wert ohne Verschiebung. */
 function giessIntervall(p){
   const schub = (S.zustand[p.id] && S.zustand[p.id].giessSchub) || 0;
@@ -12257,8 +12318,8 @@ function trackerHTML(p){
   const txt = st.stand==='stopp'
     ? `<b>Gießpause.</b> Noch ${stoppRest(p)} ${stoppRest(p)===1?'Tag':'Tage'} trocken stehen lassen.`
     : st.stand==='unbekannt'
-    ? `Noch nichts eingetragen. Intervall aktuell <b>alle ${st.iv} Tage</b>.`
-    : `Zuletzt vor <b>${st.tage} ${st.tage===1?'Tag':'Tagen'}</b> · Intervall alle ${st.iv} Tage · ${
+    ? `Noch nichts eingetragen. Intervall aktuell <b>${ivWort(st.iv)}</b>.`
+    : `Zuletzt vor <b>${st.tage} ${st.tage===1?'Tag':'Tagen'}</b> · Intervall ${ivWort(st.iv)} · ${
         st.rest<0 ? `<b>${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig</b>` :
         st.rest===0 ? '<b>heute dran</b>' : `wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`}`;
   const hist = log.length ? `<p class="water-hist">Verlauf: ${log.slice(0,8).map(d=>new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})).join(' · ')}${log.length>8?' …':''}</p>` : '';
@@ -13026,7 +13087,7 @@ function duengAbschnittHTML(p){
   return `<div class="dg-block">
     <p class="dg-lage${st.stand==='over'?' warn':''}">${esc(lage)}${
       st.letzte ? ` · zuletzt am ${new Date(st.letzte+'T12:00:00').toLocaleDateString('de-DE')}` : ''}</p>
-    <p class="dg-fuss">${esc(stufe.text)} · alle ${st.iv} Tage · ${esc(stufe.lang)}</p>
+    <p class="dg-fuss">${esc(stufe.text)} · ${ivWort(st.iv)} · ${esc(stufe.lang)}</p>
     <button class="dg-knopf${heute?' erledigt':''}" data-do="${heute?'dueng-weg':'duengen'}" data-p="${p.id}">${
       heute ? 'Heute gedüngt ✓' : 'Gedüngt eintragen'}</button>
   </div>`;
@@ -18684,6 +18745,8 @@ function planRender(){
      Seit er auf- und zuklappt, muss er bei jedem Zeichnen mitkommen. */
   modusHinweisZeichnen();
   $('#plan-flaeche').innerHTML = grundrissSVG();
+  /* Nur beim Malen darf die Fläche den senkrechten Wisch behalten. */
+  $('#plan-flaeche').classList.toggle('malt', pModus === 'kacheln');
   $('#raum-wahl').innerHTML = raeume().map(x=>
     `<option value="${x.id}"${x.id===S.raumAktiv?' selected':''}>${esc(x.name)}</option>`).join('');
   document.querySelectorAll('[data-pmodus]').forEach(b=>b.classList.toggle('on', b.dataset.pmodus===pModus));
@@ -20131,8 +20194,8 @@ function schubFragen(p){
   const iv = giessIntervall(p);
   const frage = `${nice(p)} war jetzt zweimal noch feucht, obwohl sie dran gewesen wäre.\n\n`
     + `Soll sie künftig einen Tag später fällig werden?\n\n`
-    + `Bisher: alle ${iv} Tage${jetzt ? ' (bereits um ' + jetzt + ' verschoben)' : ''}\n`
-    + `Neu: alle ${iv + 1} Tage`;
+    + `Bisher: ${ivWort(iv)}${jetzt ? ' (bereits um ' + jetzt + ' verschoben)' : ''}\n`
+    + `Neu: ${ivWort(iv + 1)}`;
   if(confirm(frage)){
     schubSetzen(id, neu);
     S.feuchtRueck[id] = {zahl:0, zuletzt:iso(HEUTE)};
@@ -22250,7 +22313,7 @@ function dokPromptBauen(){
       zeilen.push('An diesem Platz misst die App im ' + sl.monat + ' etwa '
         + (sl.text || sl.stunden) + ' Stunden direkte Sonne pro Tag.');
     const st = giessStatus(p);
-    if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + st.iv + ' Tage.');
+    if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + ivWort(st.iv) + '.');
     zeilen.push('');
   }
   /* Die eigene Frage steht vor allem anderen — sie ist der Anlass. */
