@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.7.0 — 5. September 2026
+**Wo die Lampe hinleuchtet**
+
+### Neu
+- Lampen im Grundriss. In der Möbelwahl steht ein neues Fach „Licht" mit Deckenlampe, Stehlampe, Klemmstrahler und Pflanzenpanel. Eingetragen, gezogen, gedreht und gelöscht werden sie wie jedes andere Möbelstück.
+- Jede Lampe zeigt, wohin sie leuchtet: Decken- und Stehlampe rundum, Strahler und Panel in die Richtung, in die sie gedreht sind. Wie weit der Kegel reicht, stellt ein Regler im Lampenfenster ein.
+- Ein Lichtschalter in der Ecke des Grundrisses macht alle Kegel auf einmal an und aus. Er liegt im Bild und gilt damit in jedem Werkzeug, in der Ansicht und im Vollbild. Wo keine Lampe steht, gibt es ihn nicht.
+- Jede Lampe hat zusätzlich ihren eigenen Schalter im Lampenfenster. Ausgeschaltet bleibt sie sichtbar, nur ihr Kegel verschwindet.
+
+### Besser
+- Der Kegel hört an der Wand auf. Licht fällt nicht durch Mauern, und eine Zeichnung, die über den Raum hinausläuft, behauptet etwas, was dort nicht ist.
+
+### Gut zu wissen
+- Die Lampe ist eine Zeichnung und sonst nichts. Sonnenstunden, Grundhelligkeit, Warnungen und Gießabstände rechnen weiter allein mit dem Tageslicht — was die Lampe beiträgt, steht in keiner Zahl. Sie nimmt auch keiner Pflanze Sonne weg und ist kein Stellplatz: unter der Deckenlampe steht eine Pflanze auf dem Boden, nicht auf 2,40 m.
+
+---
+
 ## 3.6.0 — 4. September 2026
 **Ein Jahr ohne Sprünge**
 

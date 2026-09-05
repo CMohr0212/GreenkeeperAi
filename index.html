@@ -147,6 +147,7 @@
   --z-tuer:#b08a56;
   --z-moebel:#8a8272;
   --z-moebel-2:#d8d2c2;
+  --z-lampe:#e0a44a;       /* Lampe und ihr Kegel */
 
   /* Wirkung */
   --glanz:none;
@@ -1802,6 +1803,12 @@ body.vollbild .hinweis-kopf{display:none}
 .plan-svg:not(.modus-kanten) .kante-griff{pointer-events:none}
 .plan-svg .marke.gewaehlt circle:first-child{stroke-width:4}
 .plan-svg .moebel{cursor:move}
+/* Der Kegel ist Zeichnung und faengt keinen Finger — sonst laege er
+   ueber Marken und Moebeln und nichts darunter waere mehr zu fassen.
+   Der Schalter dagegen muss in jedem Werkzeug erreichbar sein, auch
+   dort, wo Kacheln und Moebel abgeschaltet sind. */
+.plan-svg .lampenkegel{pointer-events:none}
+.plan-svg .lampenschalter{cursor:pointer;pointer-events:all}
 .plan-svg .moebel.gewaehlt rect,.plan-svg .moebel.gewaehlt ellipse,.plan-svg .moebel.gewaehlt circle{stroke:var(--water);stroke-width:2.6}
 #p-karte{margin-top:12px}
 .pk{position:relative;border:1px solid var(--ink-2);border-radius:4px;padding:13px 15px;background:var(--paper)}
@@ -6063,7 +6070,8 @@ const MOEBEL_GRUPPEN = [
   ['ablegen', 'Ablegen'],
   ['pflanzen','Für Pflanzen'],
   ['garten',  'Garten'],
-  ['bau',     'Bauliches']
+  ['bau',     'Bauliches'],
+  ['licht',   'Licht']
 ];
 const MOEBEL_ARTEN = {
   /* ── Sitzen ── */
@@ -6103,8 +6111,34 @@ const MOEBEL_ARTEN = {
   /* ── Bauliches ── */
   mauer:     {name:'Mauer',        b:300, t:25,  h:200, form:'rect',  katze:false, gruppe:'bau', sperrt:true},
   schrank:   {name:'Schrank',      b:120, t:60,  h:200, form:'rect',  katze:false, gruppe:'bau', sperrt:true},
-  saeule:    {name:'Säule',        b:40,  t:40,  h:250, form:'kreis', katze:false, gruppe:'bau', sperrt:true}
+  saeule:    {name:'Säule',        b:40,  t:40,  h:250, form:'kreis', katze:false, gruppe:'bau', sperrt:true},
+
+  /* ── Licht ──
+     Eine Lampe ist ein Moebel wie jedes andere: sie wird eingetragen,
+     gezogen, gedreht und geloescht ueber denselben Weg. Fuer die
+     Rechnung ist sie stumm — `sperrt` ist falsch, und mit einem
+     einzigen Boden wirft sie auch keinen Brettschatten. Was sie
+     mitbringt, ist eine Zeichnung: `kegel` sagt, ob das Licht rundum
+     faellt oder in eine Richtung, `reich` wie weit. Beides ist Bild
+     und geht in keine Zahl ein. */
+  deckenlampe:{name:'Deckenlampe', b:40,  t:40,  h:240, form:'lampe',    katze:false, gruppe:'licht', lampe:true, kegel:'rund', reich:150},
+  stehlampe: {name:'Stehlampe',    b:40,  t:40,  h:170, form:'lampe',    katze:false, gruppe:'licht', lampe:true, kegel:'rund', reich:110},
+  strahler:  {name:'Klemmstrahler',b:25,  t:25,  h:150, form:'strahler', katze:false, gruppe:'licht', lampe:true, kegel:'keil', reich:120},
+  panel:     {name:'Pflanzenpanel',b:60,  t:30,  h:160, form:'panel',    katze:false, gruppe:'licht', lampe:true, kegel:'keil', reich:90}
 };
+
+/* Ist dieses Moebel eine Lampe? An dieser einen Frage haengen alle
+   Stellen, an denen eine Lampe kein Moebel sein darf. */
+function istLampe(m){
+  return !!(m && (MOEBEL_ARTEN[m.typ] || {}).lampe);
+}
+/* Wie weit der Kegel reicht, in Zentimetern. Eigene Angabe vor
+   Katalogwert; unter 30 cm waere er nicht mehr zu sehen. */
+function lampenReich(m){
+  const art = MOEBEL_ARTEN[m.typ] || {};
+  const w = (m && m.reich != null) ? m.reich : art.reich;
+  return Math.max(30, Math.min(400, w || 100));
+}
 
 function raeume(){
   if(!S.raeume || !S.raeume.length){
@@ -6475,7 +6509,9 @@ function raumSignatur(r){
        nicht zaehlten. Seit Boeden Schatten werfen, tun sie es: ohne
        diese Zeile liefert der Cache nach dem Ziehen eines Bretts
        weiter die alten Sonnenstunden. */
-    + '|' + (r.moebel||[]).map(m=>
+    /* Lampen bleiben draussen: sie aendern an der Sonne nichts, und
+       jedes Verschieben wuerfe sonst den ganzen Cache weg. */
+    + '|' + (r.moebel||[]).filter(m=>!istLampe(m)).map(m=>
         m.id+':'+m.x+','+m.y+','+m.b+','+m.t+','+etagenVon(m).join('/')).join(';');
 }
 function cachePruefen(r){
@@ -6584,6 +6620,11 @@ function hoeheAn(r, x, y){
        Pflanze. Sonst saesse sie in einer Baumkrone auf 4,50 m und
        bekaeme dort Sonne im Ueberfluss zugerechnet. */
     if((MOEBEL_ARTEN[m.typ] || {}).sperrt) return;
+    /* Auf einer Lampe steht ebenfalls nichts. Ohne diese Zeile saesse
+       eine Pflanze, die unter die Deckenlampe gezogen wird, auf
+       2,40 m — und mit ihr haengen `markenPositionen` und die
+       Tierzonen an derselben Luege, denn beide fragen hier. */
+    if(istLampe(m)) return;
     if(x >= m.x && x <= m.x+m.b && y >= m.y && y <= m.y+m.t){
       if(!best || m.h > best.h) best = m;
     }
@@ -6747,7 +6788,10 @@ function stellplaetzeFuer(raumId){
   const r = raumListe().find(x=>x.id === raumId);
   const aus = STELLPLATZ_STD.slice();
   if(r){
-    (r.moebel || []).forEach(m=>{ if(m.name && !aus.includes(m.name)) aus.push(m.name); });
+    (r.moebel || []).forEach(m=>{
+      if(istLampe(m)) return;          /* „Stehlampe" ist kein Platz */
+      if(m.name && !aus.includes(m.name)) aus.push(m.name);
+    });
     (r.plaetze || []).forEach(n=>{ if(n && !aus.includes(n)) aus.push(n); });
   }
   return aus;
@@ -9210,7 +9254,7 @@ function papierkorbRender(){
       <div class="fgrid">
         <label><span class="lab">Name</span><input id="mb-name"></label>
         <label><span class="lab">Höhe in cm</span><input id="mb-hoehe" type="number" min="0" step="5"></label>
-        <label><span class="lab">Böden</span><input id="mb-boeden" type="number" min="1" max="8" step="1"></label>
+        <label id="mb-boeden-feld"><span class="lab">Böden</span><input id="mb-boeden" type="number" min="1" max="8" step="1"></label>
         <p class="hint" id="mb-raster-hinweis" hidden></p>
         <p class="hint fspan" id="mb-boeden-hinweis"></p>
         <label id="mb-zone-feld"><span class="lab">Für Tiere erreichbar</span>
@@ -9223,7 +9267,14 @@ function papierkorbRender(){
           </select></label>
         <label><span class="lab">Breite in cm</span><input id="mb-breite" type="number" min="15" step="5"></label>
         <label><span class="lab">Tiefe in cm</span><input id="mb-tiefe" type="number" min="15" step="5"></label>
-        <label class="fspan check"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
+        <label class="fspan check" id="mb-katze-feld"><input type="checkbox" id="mb-katze"> <span class="lab" style="display:inline">Katzen kommen hier ran</span></label>
+        <!-- Nur für Lampen. Beides wirkt sofort, wie das Drehen: ein
+             Regler, dessen Wirkung erst nach dem Speichern zu sehen
+             wäre, ließe sich nicht einstellen. -->
+        <label class="fspan" id="mb-reich-feld" hidden><span class="lab">Wie weit das Licht reicht</span>
+          <input type="range" id="mb-reich" min="30" max="400" step="10">
+          <span class="fhint" id="mb-reich-wert"></span></label>
+        <label class="fspan check" id="mb-an-feld" hidden><input type="checkbox" id="mb-an"> <span class="lab" style="display:inline">Licht an</span></label>
       </div>
       <div class="tools"><button id="btn-mb-save" class="haupt">Speichern</button><button id="btn-mb-dreh">Drehen</button><button id="btn-mb-weg" class="loeschen">Möbel löschen</button><button id="btn-mb-zu">Schließen</button></div>
     </div>
@@ -10289,8 +10340,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.6.0';
+const FASSUNG = '3.7.0';
 const PATCHNOTES = [
+  {
+    nr: '3.7.0', datum: '2026-09-05', titel: 'Wo die Lampe hinleuchtet',
+    neu: [
+      'Lampen im Grundriss: Deckenlampe, Stehlampe, Klemmstrahler und Pflanzenpanel stehen in der Möbelwahl unter „Licht". Sie werden eingetragen, gezogen, gedreht und gelöscht wie jedes andere Möbelstück.',
+      'Jede Lampe zeigt, wohin sie leuchtet. Decken- und Stehlampe rundum, Strahler und Panel in die Richtung, in die sie gedreht sind. Wie weit, sagt ein Regler im Lampenfenster.',
+      'Ein Lichtschalter in der Ecke des Grundrisses macht alle Kegel auf einmal an und aus — aus jedem Werkzeug, in der Ansicht und im Vollbild. Einzeln lässt sich jede Lampe im Lampenfenster schalten.'
+    ],
+    besser: [
+      'Der Kegel hört an der Wand auf. Licht fällt nicht durch Mauern, und eine Zeichnung, die über den Raum hinausläuft, behauptet etwas, was nicht stimmt.'
+    ],
+    hinweis: 'Die Lampe ist eine Zeichnung und sonst nichts. Sonnenstunden, Helligkeit, Warnungen und Gießabstände rechnen weiter allein mit dem Tageslicht — was die Lampe beiträgt, steht in keiner Zahl. Auf einer Lampe steht auch keine Pflanze: sie ist kein Stellplatz.'
+  },
   {
     nr: '3.6.0', datum: '2026-09-04', titel: 'Ein Jahr ohne Sprünge',
     besser: [
@@ -17849,6 +17912,10 @@ let pModus = 'pflanzen';   // pflanzen | moebel | kacheln | kanten
 let pMonat = new Date().getMonth()+1;
 let pZeit = 12*60;
 let pLicht = 'stunden';    // stunden | moment | hell
+/* Der Hauptschalter fuer alle Lampenkegel. Anzeige, kein Bestand:
+   was am Raum gespeichert ist, ist der Schalter der einzelnen Lampe
+   (`m.an`). Aus heisst aus, egal was die einzelne Lampe sagt. */
+let pLampen = true;
 let pKanteArt = 'fenster';
 let pGewaehlt = null;      // {typ:'pflanze'|'moebel', id}
 let pKarte = null;         // Pflanze, deren Karte offen ist
@@ -18004,6 +18071,14 @@ function moebelForm(m, fuell){
       pf += `<circle cx="${x + b*i/n}" cy="${y+t/2}" r="${Math.max(1.5, t*0.5)}" style="fill:var(--z-kontur)"/>`;
     return `<rect x="${x}" y="${y}" width="${b}" height="${t}" ${stil}/>` + pf;
   }
+  /* Lampen. Der Kegel wird woanders gezeichnet — hier steht nur das
+     Geraet selbst, und zwar auch dann, wenn das Licht aus ist. */
+  if(art.form === 'lampe') return `<circle cx="${x+b/2}" cy="${y+t/2}" r="${Math.min(b,t)/2}" ${stil}/>
+    <circle cx="${x+b/2}" cy="${y+t/2}" r="${Math.min(b,t)*0.2}" style="fill:var(--z-lampe)"/>`;
+  if(art.form === 'strahler') return `<circle cx="${x+b/2}" cy="${y+t/2}" r="${Math.min(b,t)/2}" ${stil}/>
+    <path d="M${x+b*0.28} ${y+t*0.86} L${x+b/2} ${y+t*1.3} L${x+b*0.72} ${y+t*0.86} Z" style="fill:var(--z-lampe)"/>`;
+  if(art.form === 'panel') return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="2" ${stil}/>
+    <rect x="${x+b*0.1}" y="${y+t*0.62}" width="${b*0.8}" height="${t*0.22}" style="fill:var(--z-lampe)"/>`;
   return `<rect x="${x}" y="${y}" width="${b}" height="${t}" rx="3" ${stil}/>`;
 }
 
@@ -18053,6 +18128,89 @@ function planMasse(){
   return {r, ring, R, sk, rand, W, H, vW, vH,
           x0: -rand - R - Math.max(0, (vW - W)/2),
           y0: -rand - R - Math.max(0, (vH - H)/2)};
+}
+
+/* ── Der Lichtkegel ───────────────────────────────────────────
+   Bild und nichts sonst. Keine Zahl daraus geht in `lichtWert`,
+   `helligkeit`, die Sonnenstunden, die Warnungen oder ein
+   Giessintervall ein — eine Lampe ist fuer die Rechnung nicht
+   vorhanden. Wer sehen will, ob eine Pflanze genug bekommt, liest
+   weiter die Sonne; der Kegel sagt nur, wohin die Lampe leuchtet.
+
+   In der Draufsicht ist ein Kegel ein Kreis oder ein Keil: rund bei
+   Decken- und Stehlampe, gerichtet bei Strahler und Panel. Die
+   Richtung ist die Drehung des Moebels, `dreh = 0` leuchtet nach
+   unten ins Bild.
+
+   Beschnitten wird auf die begangene Flaeche. Licht faellt nicht
+   durch die Wand, und ein Kegel, der ueber den Raum hinauslaeuft,
+   waere dasselbe wie eine Marke, die neben dem Raum steht: eine
+   Zeichnung, die etwas behauptet, was nicht stimmt. */
+const LAMPEN_WINKEL = 35;            // halber Oeffnungswinkel des Keils
+function kegelSVG(m, nr, sk){
+  const art = MOEBEL_ARTEN[m.typ] || {};
+  const cx = (m.x + m.b/2)*MASS, cy = (m.y + m.t/2)*MASS;
+  const rad = lampenReich(m)*MASS;
+  const stil = `fill="url(#${nr}-schein)" stroke="var(--z-lampe)"`
+    + ` stroke-width="${sk}" stroke-dasharray="${5*sk} ${4*sk}"`;
+  if(art.kegel !== 'keil')
+    return `<circle class="kegel" data-kegel="${m.id}" cx="${cx}" cy="${cy}" r="${rad}" ${stil}/>`;
+  /* Der Punkt auf dem Kegelrand unter dem Winkel a. Bei a = 0 zeigt
+     er nach unten; wachsendes a dreht im Uhrzeigersinn, wie die
+     Drehung des Moebels auch. */
+  const rand = a => [(cx - Math.sin(a)*rad).toFixed(1), (cy + Math.cos(a)*rad).toFixed(1)];
+  const mitte = (m.dreh || 0) * GRAD, halb = LAMPEN_WINKEL * GRAD;
+  const a1 = rand(mitte - halb), a2 = rand(mitte + halb);
+  return `<path class="kegel" data-kegel="${m.id}" d="M${cx} ${cy} L${a1[0]} ${a1[1]}`
+    + ` A${rad} ${rad} 0 0 1 ${a2[0]} ${a2[1]} Z" ${stil}/>`;
+}
+/* Jede Zeichnung bekommt eigene Namen fuer Beschnitt und Verlauf.
+   `#gra-flaeche` und `#plan-flaeche` stehen beide im Dokument und
+   behalten ihren letzten Inhalt; bei festen Namen greift `url(#…)`
+   immer auf den ersten Treffer im Dokument — also auf den Beschnitt
+   der Ansicht, auch wenn der Editor gerade einen anderen Grundriss
+   zeigt. Dasselbe Muster wie bei den Marken: dieselbe Sache an zwei
+   Stellen, und eine davon veraltet. */
+let LAMPEN_NR = 0;
+function lampenKegelSVG(r, sk){
+  if(!pLampen) return '';
+  const an = (r.moebel || []).filter(m=>istLampe(m) && m.an !== false);
+  if(!an.length) return '';
+  const nr = 'lampen-' + (++LAMPEN_NR);
+  let flaeche = '';
+  Object.keys(r.kacheln || {}).forEach(k=>{
+    if(!r.kacheln[k]) return;
+    const t = k.split(','), kx = +t[0], ky = +t[1];
+    flaeche += `<rect x="${kx*KACHEL*MASS}" y="${ky*KACHEL*MASS}"`
+      + ` width="${KACHEL*MASS}" height="${KACHEL*MASS}"/>`;
+  });
+  return `<defs><clipPath id="${nr}-clip">${flaeche}</clipPath>
+    <radialGradient id="${nr}-schein">
+      <stop offset="0" stop-color="var(--z-lampe)" stop-opacity=".45"/>
+      <stop offset="1" stop-color="var(--z-lampe)" stop-opacity="0"/>
+    </radialGradient></defs>
+    <g class="lampenkegel" clip-path="url(#${nr}-clip)">`
+    + an.map(m=>kegelSVG(m, nr, sk)).join('') + '</g>';
+}
+/* Der Hauptschalter sitzt in der Zeichnung, dem Kompass gegenueber.
+   Damit gilt er sofort im Editor, in der Ansicht und im Vollbild und
+   in jedem Werkzeug — eine Stelle statt drei Leisten, von denen zwei
+   erst aufgeklappt werden muessen. Wo keine Lampe steht, gibt es auch
+   keinen Schalter. */
+function lampenSchalterSVG(r, sk){
+  if(!(r.moebel || []).some(istLampe)) return '';
+  const an = !!pLampen;
+  const strahl = [0, 45, 90, 135, 180, 225, 270, 315].map(g=>{
+    const a = g * GRAD;
+    return `<line x1="${(Math.sin(a)*8*sk).toFixed(1)}" y1="${(-Math.cos(a)*8*sk).toFixed(1)}"
+      x2="${(Math.sin(a)*12*sk).toFixed(1)}" y2="${(-Math.cos(a)*12*sk).toFixed(1)}"
+      style="stroke:var(--z-lampe)" stroke-width="${1.6*sk}"/>`;
+  }).join('');
+  return `<g class="lampenschalter" data-lampen="1" transform="translate(${-14*sk},${-16*sk})">
+    <circle r="${14*sk}" style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
+    <circle r="${7*sk}" style="fill:${an ? 'var(--z-lampe)' : 'var(--z-marke)'};stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
+    ${an ? strahl : ''}
+    <title>${an ? 'Lampen aus' : 'Lampen an'}</title></g>`;
 }
 
 function grundrissSVG(){
@@ -18108,6 +18266,10 @@ function grundrissSVG(){
     }
   });
 
+  /* Der Kegel liegt unter den Möbeln und über den Kacheln: er ist
+     Licht auf dem Boden, kein Schleier über dem Zimmer. */
+  s += lampenKegelSVG(r, sk);
+
   /* Möbel, jedes in seiner eigenen Lichtfarbe. Gezeichnet wird von
      niedrig nach hoch: sonst lag ein Wandbrett auf 1,80 m unter einem
      Sideboard auf 50 cm, nur weil es frueher eingetragen wurde. Wer
@@ -18120,10 +18282,18 @@ function grundrissSVG(){
     .map(e=>e.m)
     .forEach(m=>{
     const cx = m.x + m.b/2, cy = m.y + m.t/2;
-    const wert = lichtWert(r, cx, cy, m.h);
     const gew = pGewaehlt && pGewaehlt.typ==='moebel' && pGewaehlt.id===m.id;
+    /* Eine Lampe in der Farbe des Sonnenlichts auf 2,40 m waere eine
+       Aussage ueber einen Platz, auf dem nichts steht. Sie bekommt
+       ihre eigene Farbe. */
+    let fuell;
+    if(istLampe(m)) fuell = 'var(--z-marke)';
+    else {
+      const wert = lichtWert(r, cx, cy, m.h);
+      fuell = farbeFuer(wert, stufeFuer(r,cx,cy,m.h,wert));
+    }
     s += `<g class="moebel${gew?' gewaehlt':''}" data-moebel="${m.id}">
-      ${moebelForm(m, farbeFuer(wert, stufeFuer(r,cx,cy,m.h,wert)))}
+      ${moebelForm(m, fuell)}
       ${moebelLabel(m, sk)}
     </g>`;
   });
@@ -18164,6 +18334,7 @@ function grundrissSVG(){
     <circle r="${14*sk}" style="fill:var(--z-marke);stroke:var(--z-marke-rand)" stroke-width="${sk}"/>
     <line x1="${(-Math.sin(a)*9*sk).toFixed(1)}" y1="${(Math.cos(a)*9*sk).toFixed(1)}" x2="${(Math.sin(a)*10*sk).toFixed(1)}" y2="${(-Math.cos(a)*10*sk).toFixed(1)}" style="stroke:var(--z-gift)" stroke-width="${2.6*sk}"/>
     <text x="${(Math.sin(a)*20*sk).toFixed(1)}" y="${(-Math.cos(a)*20*sk+3.5*sk).toFixed(1)}" class="k-lab" font-size="${10*sk}">N</text></g>`;
+  s += lampenSchalterSVG(r, sk);
   return s + '</svg>';
 }
 
@@ -18861,7 +19032,21 @@ function moebelFormular(m){
     $('#mb-zone').value = m.tierZone
       || (m.h >= 150 ? 'hoch' : m.h >= 60 ? 'mittel' : m.h >= 20 ? 'niedrig' : 'boden');
   }
-  if($('#mb-zone-feld')) $('#mb-zone-feld').hidden = meineTiere().length === 0;
+  /* Eine Lampe hat keine Böden, trägt keine Katze und steht in
+     keiner Tierzone — dafür Reichweite und Schalter. */
+  const lamp = istLampe(m);
+  const zeig = (id, an)=>{ const el = $('#'+id); if(el) el.hidden = !an; };
+  zeig('mb-boeden-feld', !lamp);
+  zeig('mb-boeden-hinweis', !lamp);
+  zeig('mb-katze-feld', !lamp);
+  zeig('mb-reich-feld', lamp);
+  zeig('mb-an-feld', lamp);
+  if(lamp){
+    if($('#mb-reich')) $('#mb-reich').value = lampenReich(m);
+    if($('#mb-an')) $('#mb-an').checked = m.an !== false;
+    reichWertZeigen(m);
+  }
+  if($('#mb-zone-feld')) $('#mb-zone-feld').hidden = lamp || meineTiere().length === 0;
   $('#mb-breite').value = m.b; $('#mb-tiefe').value = m.t;
   const rh = $('#mb-raster-hinweis');
   if(rh){
@@ -19102,6 +19287,7 @@ document.addEventListener('click', e=>{
     if(r.roh) delete r.roh;
     r.moebel.push({id:'m'+Date.now().toString(36), typ:mn.dataset.mneu, name:art.name,
       b:art.b, t:art.t, h:art.h, katze:art.katze,
+      ...(art.lampe ? {reich:art.reich, an:true} : {}),
       etagen: etagenVerteilen(art.h, art.boeden || 1),
       x:Math.max(0, r.sp*KACHEL/2 - art.b/2), y:Math.max(0, r.re*KACHEL/2 - art.t/2)});
     sichern(); planRender(); return;
@@ -19141,14 +19327,26 @@ $('#btn-mb-save').onclick = ()=>{
   if($('#mb-zone')) m.tierZone = $('#mb-zone').value;
   m.b = Math.max(15, parseInt($('#mb-breite').value,10)||m.b);
   m.t = Math.max(15, parseInt($('#mb-tiefe').value,10)||m.t);
-  m.katze = $('#mb-katze').checked;
-  /* Neu verteilt wird nur, wenn sich die Zahl aendert oder das Moebel
-     hoeher wird — sonst waeren von Hand gezogene Boeden nach jedem
-     Speichern wieder gleichmaessig verteilt. */
-  const willB = Math.max(1, Math.min(8, parseInt($('#mb-boeden').value,10)||1));
-  const alt = etagenVon(m);
-  if(willB !== alt.length || alt[alt.length-1] > m.h)
-    m.etagen = etagenVerteilen(m.h, willB);
+  /* Bei einer Lampe steht das Böden-Feld auf dem Wert des zuletzt
+     bearbeiteten Möbels — es ist ja ausgeblendet. Wer das durchreicht,
+     gibt der Deckenlampe vier Böden, und damit wirft sie Schatten:
+     `brettImWeg` fragt nicht, ob es eine Lampe ist, sondern nur, ob
+     mehr als ein Boden da ist. Eine Lampe behält deshalb ihren einen. */
+  if(istLampe(m)){
+    m.katze = false;
+    m.etagen = etagenVerteilen(m.h, 1);
+    m.reich = lampenReich({typ:m.typ, reich: parseInt($('#mb-reich').value,10)});
+    m.an = $('#mb-an') ? $('#mb-an').checked : true;
+  } else {
+    m.katze = $('#mb-katze').checked;
+    /* Neu verteilt wird nur, wenn sich die Zahl aendert oder das Moebel
+       hoeher wird — sonst waeren von Hand gezogene Boeden nach jedem
+       Speichern wieder gleichmaessig verteilt. */
+    const willB = Math.max(1, Math.min(8, parseInt($('#mb-boeden').value,10)||1));
+    const alt = etagenVon(m);
+    if(willB !== alt.length || alt[alt.length-1] > m.h)
+      m.etagen = etagenVerteilen(m.h, willB);
+  }
   moebelEtagenPruefen(r, m);
   sichern(); $('#moebel-bearb').classList.remove('on'); pGewaehlt = null; planRender();
 };
@@ -19163,6 +19361,35 @@ function moebelEtagenPruefen(r, m){
       o.etage = Math.min(o.etage, n-1);
   });
 }
+/* Was gerade eingestellt ist, in Worten unter dem Regler. */
+function reichWertZeigen(m){
+  const el = $('#mb-reich-wert');
+  if(!el) return;
+  const cm = m ? lampenReich(m) : 0;
+  el.textContent = cm >= 100
+    ? (cm/100).toFixed(2).replace('.', ',').replace(/,?0+$/, '') + ' m im Umkreis'
+    : cm + ' cm im Umkreis';
+}
+function lampeAusFormular(){
+  const r = raum(), id = $('#moebel-bearb').dataset.id;
+  const m = (r.moebel||[]).find(x=>x.id===id);
+  return (m && istLampe(m)) ? m : null;
+}
+/* Beides wirkt sofort und bleibt sofort stehen — dieselbe Überlegung
+   wie beim Drehen. Ein Kegel, der erst nach dem Speichern die neue
+   Reichweite hätte, ließe sich nicht einstellen. */
+if($('#mb-reich')) $('#mb-reich').addEventListener('input', ()=>{
+  const m = lampeAusFormular(); if(!m) return;
+  m.reich = lampenReich({typ:m.typ, reich: parseInt($('#mb-reich').value,10)});
+  reichWertZeigen(m);
+  sichern(); planRender();
+});
+if($('#mb-an')) $('#mb-an').addEventListener('change', ()=>{
+  const m = lampeAusFormular(); if(!m) return;
+  m.an = $('#mb-an').checked;
+  sichern(); planRender();
+});
+
 $('#btn-mb-weg').onclick = ()=>{
   const r = raum(), id = $('#moebel-bearb').dataset.id;
   r.moebel = (r.moebel||[]).filter(x=>x.id!==id);
@@ -19377,6 +19604,20 @@ flaeche.addEventListener('pointermove', planZug);
 flaeche.addEventListener('pointerup', planLos);
 flaeche.addEventListener('pointercancel', planLos);
 flaeche.addEventListener('click', planTipp);
+
+/* Der Hauptschalter haengt am Dokument, nicht an der Plaenflaeche:
+   dasselbe Zeichen steht im Editor, im Vollbild und in der Ansicht,
+   und die Ansicht hat eigene Handgriffe. In der Auffangphase, damit
+   der Tipp nicht vorher als „irgendwohin getippt" gilt und die
+   offene Karte zuklappt. */
+document.addEventListener('click', e=>{
+  const el = e.target && e.target.closest ? e.target.closest('[data-lampen]') : null;
+  if(!el) return;
+  e.stopPropagation();
+  pLampen = !pLampen;
+  if(typeof grStufe !== 'undefined' && grStufe === 'ansicht') grAnsichtZeichnen();
+  else planRender();
+}, true);
 
 planAufbau();
 planRender();

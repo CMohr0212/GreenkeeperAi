@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.6.0', w.__T('FASSUNG') === '3.6.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.7.0', w.__T('FASSUNG') === '3.7.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -4934,6 +4934,173 @@ setTimeout(async () => {
   pruef('Lage steht auch als Wort', wz.indexOf('Regen') !== -1);
   pruef('Leiste hat Rahmen und Fläche',
     /\.wt-leiste\{[^}]*border:1px solid var\(--linie\)/.test(stil5));
+
+
+  /* ══════════════ Lampen im Grundriss ══════════════
+     Eine Lampe ist ein Moebel, das fuer die Rechnung nicht da ist.
+     Geprueft wird beides: dass sie sich wie ein Moebel eintragen und
+     ziehen laesst, und dass keine einzige Zahl sich aendert, wenn sie
+     dasteht. Der Kegel ist Zeichnung. */
+  const lampSicher = w.__T("JSON.stringify({m: raum().moebel, mod: pModus, an: pLampen})");
+  w.__T("(function(){ raum().moebel = []; pModus = 'moebel'; pLampen = true; sichern(); planAufbau(); planRender(); })()");
+
+  pruef('Eine Lampe ist als Lampe gekennzeichnet',
+    w.__T('istLampe({typ:"deckenlampe"})') === true
+    && w.__T('istLampe({typ:"regal"})') === false);
+  pruef('Eine Lampe sperrt kein Licht',
+    !w.__T('MOEBEL_ARTEN.deckenlampe.sperrt') && !w.__T('MOEBEL_ARTEN.panel.sperrt'));
+  pruef('Die Lampen stehen in einem eigenen Fach der Wahl',
+    w.__T('moebelWahlHTML()').indexOf('data-mneu="deckenlampe"') !== -1
+    && w.__T('moebelWahlHTML()').indexOf('>Licht</p>') !== -1);
+
+  /* Der Weg des Fingers: Knopf in der Moebelleiste antippen. */
+  const lampKnopf = d.querySelector('#moebel-leiste [data-mneu="deckenlampe"]');
+  pruef('Die Deckenlampe steht in der Leiste', !!lampKnopf);
+  if(lampKnopf) lampKnopf.click();
+  w.__T("(function(){ const m = raum().moebel[0]; if(m){ m.x = 100; m.y = 50; } sichern(); planRender(); })()");
+  pruef('Angetippt steht die Lampe im Raum',
+    w.__T('raum().moebel.length') === 1 && w.__T('raum().moebel[0].typ') === 'deckenlampe');
+  pruef('Sie bringt Reichweite und Schalter mit',
+    w.__T('raum().moebel[0].reich') === 150 && w.__T('raum().moebel[0].an') === true);
+  pruef('Sie hat genau einen Boden',
+    w.__T('etagenVon(raum().moebel[0]).length') === 1,
+    String(w.__T('etagenVon(raum().moebel[0]).length')));
+
+  /* ── Die fuenf Stellen, an denen sie kein Moebel sein darf ── */
+  pruef('Auf einer Lampe steht keine Pflanze',
+    w.__T('hoeheAn(raum(), 110, 60)') === null,
+    JSON.stringify(w.__T('JSON.stringify(hoeheAn(raum(), 110, 60))')));
+  pruef('Die Lampe wird nicht als Stellplatz angeboten',
+    w.__T('stellplaetzeFuer(raum().id).indexOf("Deckenlampe")') === -1);
+  pruef('Ein Regal wird weiter angeboten',
+    w.__T(`(function(){
+      const r = raum();
+      r.moebel.push({id:'mreg', typ:'regal', name:'Prüfregal', b:80, t:35, h:150,
+        etagen: etagenVerteilen(150, 4), x:0, y:0});
+      const ja = stellplaetzeFuer(r.id).indexOf('Prüfregal') !== -1;
+      r.moebel = r.moebel.filter(function(x){ return x.id !== 'mreg'; });
+      return ja;
+    })()`) === true);
+
+  /* Die Sonne darf die Lampe nicht bemerken. Gemessen an einem Punkt
+     unter ihr, einmal mit und einmal ohne. */
+  const sonneMitLampe = w.__T(`(function(){
+    SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+    return sonnenstundenRaum(raum(), 110, 60, 20, 6);
+  })()`);
+  const sonneOhneLampe = w.__T(`(function(){
+    const r = raum(), weg = r.moebel;
+    r.moebel = [];
+    SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+    const v = sonnenstundenRaum(r, 110, 60, 20, 6);
+    r.moebel = weg;
+    SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+    return v;
+  })()`);
+  pruef('Eine Lampe nimmt der Sonne nichts weg',
+    sonneMitLampe === sonneOhneLampe, sonneMitLampe + ' gegen ' + sonneOhneLampe);
+  const lsig1 = w.__T('raumSignatur(raum())');
+  w.__T("(function(){ const m = raum().moebel[0]; m.x = 200; m.reich = 300; })()");
+  const lsig2 = w.__T('raumSignatur(raum())');
+  w.__T("(function(){ const m = raum().moebel[0]; m.x = 100; m.reich = 150; })()");
+  pruef('Eine wandernde Lampe wirft den Sonnen-Cache nicht weg',
+    lsig1 === lsig2, 'Signatur hat sich geändert');
+
+  /* ── Der Kegel ── */
+  const lsvg = w.__T('grundrissSVG()');
+  pruef('Der Kegel wird gezeichnet', lsvg.indexOf('lampenkegel') !== -1);
+  /* Die Reihenfolge allein reicht als Frage nicht: fehlt der Kegel
+     ganz, ist sein Platz -1 und liegt damit vor allem. Er muss also
+     erst da sein und dann vorn stehen. */
+  pruef('Er liegt unter den Möbeln',
+    lsvg.indexOf('lampenkegel') !== -1
+    && lsvg.indexOf('lampenkegel') < lsvg.indexOf('class="moebel'),
+    lsvg.indexOf('lampenkegel') + ' gegen ' + lsvg.indexOf('class="moebel'));
+  /* Beschnitt und Verlauf tragen in jeder Zeichnung eigene Namen —
+     sonst greift der Editor auf den Beschnitt der Ansicht zu, die mit
+     ihrem letzten Inhalt im Dokument stehen bleibt. */
+  const clipName = (lsvg.match(/<clipPath id="(lampen-\d+)-clip">/) || [])[1];
+  pruef('Er wird auf die Fläche beschnitten',
+    !!clipName && lsvg.indexOf('clip-path="url(#' + clipName + '-clip)"') !== -1,
+    String(clipName));
+  pruef('Der Verlauf trägt denselben Namen wie der Beschnitt',
+    !!clipName && lsvg.indexOf('<radialGradient id="' + clipName + '-schein">') !== -1
+    && lsvg.indexOf('fill="url(#' + clipName + '-schein)"') !== -1);
+  pruef('Zwei Zeichnungen teilen sich keinen Namen',
+    (w.__T('grundrissSVG()').match(/<clipPath id="(lampen-\d+)-clip">/) || [])[1] !== clipName);
+  pruef('Eine runde Lampe leuchtet rundum',
+    /<circle class="kegel"/.test(lsvg));
+  const keil0 = w.__T(`kegelSVG({id:'k', typ:'strahler', x:100, y:100, b:25, t:25, dreh:0, reich:100}, 'l', 1)`);
+  const keil180 = w.__T(`kegelSVG({id:'k', typ:'strahler', x:100, y:100, b:25, t:25, dreh:180, reich:100}, 'l', 1)`);
+  pruef('Ein Strahler leuchtet in seine Richtung',
+    keil0.indexOf('194.4') !== -1 && keil180.indexOf('30.6') !== -1,
+    keil0 + ' | ' + keil180);
+  pruef('Gedreht leuchtet er woanders hin', keil0 !== keil180);
+
+  /* ── Die beiden Schalter ── */
+  pruef('Der Hauptschalter steht in der Zeichnung',
+    lsvg.indexOf('data-lampen="1"') !== -1);
+  const lsvgAus = w.__T("(function(){ pLampen = false; const v = grundrissSVG(); pLampen = true; return v; })()");
+  pruef('Hauptschalter aus: kein Kegel',
+    lsvgAus.indexOf('lampenkegel') === -1);
+  pruef('Hauptschalter aus: die Lampe steht trotzdem da',
+    lsvgAus.indexOf('data-moebel="' + w.__T('raum().moebel[0].id') + '"') !== -1
+    && lsvgAus.indexOf('data-lampen="1"') !== -1);
+  const lsvgEinzeln = w.__T(`(function(){
+    const m = raum().moebel[0];
+    m.an = false;
+    const v = grundrissSVG();
+    m.an = true;
+    return v;
+  })()`);
+  pruef('Einzelne Lampe aus: kein Kegel, aber die Lampe bleibt',
+    lsvgEinzeln.indexOf('lampenkegel') === -1
+    && lsvgEinzeln.indexOf('data-moebel="' + w.__T('raum().moebel[0].id') + '"') !== -1);
+
+  /* Ein Tipp auf den Schalter schaltet um, auch im Flächenmodus, und
+     malt dort keine Kachel. */
+  w.__T("(function(){ pModus = 'kacheln'; planRender(); })()");
+  const schalter = d.querySelector('#plan-flaeche [data-lampen]');
+  pruef('Der Schalter liegt im Bild und ist zu treffen', !!schalter);
+  const kachelnVorher = w.__T('Object.keys(raum().kacheln).length');
+  if(schalter) schalter.dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  pruef('Der Tipp auf den Schalter macht die Lampen aus',
+    w.__T('pLampen') === false);
+  pruef('und malt dabei keine Kachel',
+    w.__T('Object.keys(raum().kacheln).length') === kachelnVorher);
+  const schalter2 = d.querySelector('#plan-flaeche [data-lampen]');
+  if(schalter2) schalter2.dispatchEvent(new w.MouseEvent('click', {bubbles:true}));
+  pruef('Noch einmal getippt sind sie wieder an', w.__T('pLampen') === true);
+  pruef('Ohne Lampe im Raum gibt es keinen Schalter',
+    w.__T("(function(){ const r = raum(), weg = r.moebel; r.moebel = []; "
+      + "const v = lampenSchalterSVG(r, 1); r.moebel = weg; return v; })()") === '');
+
+  /* ── Das Formular ── */
+  w.__T("(function(){ pModus = 'moebel'; moebelFormular(raum().moebel[0]); })()");
+  pruef('Beim Antippen einer Lampe stehen Reichweite und Schalter da',
+    d.getElementById('mb-reich-feld').hidden === false
+    && d.getElementById('mb-an-feld').hidden === false);
+  pruef('Böden und Katze verschwinden dort',
+    d.getElementById('mb-boeden-feld').hidden === true
+    && d.getElementById('mb-katze-feld').hidden === true);
+  pruef('Der Regler steht auf der Reichweite der Lampe',
+    d.getElementById('mb-reich').value === '150', d.getElementById('mb-reich').value);
+  /* Das Böden-Feld traegt noch den Wert des zuletzt bearbeiteten
+     Moebels. Beim Speichern darf er nicht in die Lampe laufen: mit
+     vier Boeden wuerfe sie Schatten. */
+  d.getElementById('mb-boeden').value = '4';
+  d.getElementById('mb-reich').value = '220';
+  d.getElementById('btn-mb-save').click();
+  pruef('Gespeichert behält die Lampe ihren einen Boden',
+    w.__T('etagenVon(raum().moebel[0]).length') === 1,
+    String(w.__T('etagenVon(raum().moebel[0]).length')));
+  pruef('Die neue Reichweite steht am Möbel',
+    w.__T('raum().moebel[0].reich') === 220, String(w.__T('raum().moebel[0].reich')));
+
+  /* Was hier verändert wurde, wird zurückgesetzt: die Prüfungen
+     danach erben sonst den Zustand. */
+  w.__T("(function(){ const a = " + lampSicher + "; raum().moebel = a.m; pModus = a.mod; pLampen = a.an; "
+    + "SONNE_CACHE = {}; SONNE_CACHE_SIG = ''; sichern(); planAufbau(); planRender(); })()");
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }
