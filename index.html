@@ -3115,6 +3115,14 @@ body.vollbild .plan-svg{width:100%;height:100%;display:block}
   display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;overflow-y:auto}
 .vb-schublade[hidden]{display:none}
 body:not(.vollbild) .vb-schublade{display:none}
+/* Die Schublade reicht bis an den unteren Rand, die Fußleiste liegt
+   darüber. Ohne Platz am Ende verschwindet die letzte Reihe der
+   Möbelwahl unter „Sonnenstunden“ — und zwar auch dann, wenn man bis
+   ganz nach unten schiebt, denn die Leiste deckt zu und nicht ab.
+   Wie hoch sie gerade ist, misst `vbFussStellen`: auf- und
+   zugeklappt ist sie verschieden hoch, ein fester Wert wäre in
+   einem der beiden Fälle falsch. */
+.vb-schublade{padding-bottom:calc(var(--vb-fuss-h, 104px) + var(--a-2))}
 .vb-fuss{position:absolute;left:52px;right:0;bottom:0;z-index:3;background:var(--sand);
   border-top:1px solid var(--line);padding:var(--a-2) var(--a-3);display:flex;flex-wrap:wrap;
   align-items:center;gap:var(--a-2) var(--a-3)}
@@ -10340,8 +10348,14 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.7.0';
+const FASSUNG = '3.7.1';
 const PATCHNOTES = [
+  {
+    nr: '3.7.1', datum: '2026-09-05', titel: 'Die letzte Reihe',
+    besser: [
+      'Im Vollbild lag die letzte Reihe der Möbelwahl unter der Leiste am unteren Rand — seit die Lampen dazugekommen sind, traf das Klemmstrahler und Pflanzenpanel. Die Wahl hält sich den Platz jetzt frei, auch bei aufgeklappter Leiste.'
+    ]
+  },
   {
     nr: '3.7.0', datum: '2026-09-05', titel: 'Wo die Lampe hinleuchtet',
     neu: [
@@ -18705,6 +18719,12 @@ function vbFussStellen(){
   }
   const stand = document.getElementById('vb-fuss-stand');
   if(stand) stand.textContent = lichtStand();
+  /* Wie viel Platz die Schublade am Ende braucht, damit ihre letzte
+     Reihe nicht unter der Leiste liegt. Gemessen nach dem Umstellen,
+     sonst stünde hier noch die Höhe von vorhin. */
+  const fuss = document.querySelector('#plan-buehne .vb-fuss');
+  const hoch = (fuss && !fuss.hidden) ? fuss.offsetHeight : 0;
+  document.documentElement.style.setProperty('--vb-fuss-h', hoch + 'px');
 }
 
 /* Was gerade gezeigt wird, in einer Zeile. Steht im Kopf der

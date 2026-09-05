@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.7.0', w.__T('FASSUNG') === '3.7.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.7.1', w.__T('FASSUNG') === '3.7.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5101,6 +5101,33 @@ setTimeout(async () => {
      danach erben sonst den Zustand. */
   w.__T("(function(){ const a = " + lampSicher + "; raum().moebel = a.m; pModus = a.mod; pLampen = a.an; "
     + "SONNE_CACHE = {}; SONNE_CACHE_SIG = ''; sichern(); planAufbau(); planRender(); })()");
+
+
+  /* ── Die letzte Reihe der Möbelwahl ──
+     Die Schublade im Vollbild endet am unteren Rand, die Fußleiste
+     liegt darüber. Beides zusammen heißt: was ganz unten steht, ist
+     verdeckt. Geprüft wird beides — dass die Höhe gemessen wird und
+     dass die Schublade sie auch benutzt. */
+  pruef('Die Schublade hält sich die Fußleiste frei',
+    html.indexOf('.vb-schublade{padding-bottom:calc(var(--vb-fuss-h') !== -1);
+  w.__T('vbFussStellen()');
+  pruef('Die Höhe der Fußleiste steht als Maß bereit',
+    /^\d+px$/.test(w.__T("document.documentElement.style.getPropertyValue('--vb-fuss-h')")),
+    w.__T("document.documentElement.style.getPropertyValue('--vb-fuss-h')"));
+  pruef('Zugeklappt wird kein Platz verschenkt',
+    w.__T(`(function(){
+      const f = document.querySelector('#plan-buehne .vb-fuss');
+      const merk = f ? f.hidden : null;
+      if(f) f.hidden = true;
+      vbFussStellen();
+      const v = document.documentElement.style.getPropertyValue('--vb-fuss-h');
+      if(f) f.hidden = merk;
+      vbFussStellen();
+      return v;
+    })()`) === '0px');
+  pruef('Die Lampen stehen am Ende der Wahl',
+    w.__T('moebelWahlHTML()').indexOf('data-mneu="panel"')
+      > w.__T('moebelWahlHTML()').indexOf('data-mneu="saeule"'));
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

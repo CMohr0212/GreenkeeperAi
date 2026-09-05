@@ -4,6 +4,14 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.7.1 — 5. September 2026
+**Die letzte Reihe**
+
+### Besser
+- Im Vollbild lag die letzte Reihe der Möbelwahl unter der Leiste am unteren Rand. Solange die Wahl mit „Bauliches" endete, fiel es nicht auf; mit dem neuen Fach „Licht" waren Klemmstrahler und Pflanzenpanel nicht mehr zu erreichen, auch nicht durch Schieben — die Leiste deckt zu, sie schneidet nicht ab. Die Wahl hält sich den Platz jetzt frei und misst dafür, wie hoch die Leiste gerade wirklich ist: auf- und zugeklappt ist sie verschieden hoch.
+
+---
+
 ## 3.7.0 — 5. September 2026
 **Wo die Lampe hinleuchtet**
 
