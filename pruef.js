@@ -43,6 +43,19 @@ const dom = new JSDOM(html, {
       return {x:20, y:120, width:280, height:60, top:120, left:20,
               right:300, bottom:180, toJSON(){ return this; }};
     };
+    /* jsdom kennt `createSVGPoint` und `getScreenCTM` nicht. Ohne
+       Attrappe wirft jede Beruehrung der Zeichnung in `planPunkt`,
+       und der Weg des Fingers laesst sich nicht nachlaufen. Die
+       Rechnung selbst wird anderswo geprueft; hier zaehlt nur, dass
+       kein Fehler fliegt. */
+    w.SVGSVGElement.prototype.createSVGPoint = function(){
+      const p = {x:0, y:0};
+      p.matrixTransform = () => ({x:p.x, y:p.y});
+      return p;
+    };
+    w.SVGSVGElement.prototype.getScreenCTM = function(){
+      return { inverse(){ return {}; } };
+    };
     w.requestAnimationFrame = cb => setTimeout(() => cb(Date.now()), 0);
     w.cancelAnimationFrame = id => clearTimeout(id);
     w.indexedDB = undefined;
@@ -112,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.8.3', w.__T('FASSUNG') === '3.8.3', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.8.4', w.__T('FASSUNG') === '3.8.4', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5447,6 +5460,92 @@ setTimeout(async () => {
     })()`) === true);
   pruef('Der Finger wird für den Schub festgehalten',
     html.indexOf('flaeche2.setPointerCapture(ev.pointerId);') !== -1);
+
+  /* ══════════ Der Weg des Fingers ══════════
+     Die Prüfungen oben fragen die inneren Funktionen. Am Gerät ging
+     trotzdem nichts: geprüft wurde nie die Geste, sondern nur, was
+     eine Geste ausrechnet. Hier läuft der Finger selbst. */
+  {
+    const feld = d.getElementById('plan-flaeche');
+    Object.defineProperty(feld, 'clientWidth',  {value:360, configurable:true});
+    Object.defineProperty(feld, 'clientHeight', {value:480, configurable:true});
+    /* Auf die Fläche selbst, nicht auf `#plan-svg`: die Zeichnung steht
+       je nach offenem Werkzeugfenster auch anderswo im Dokument, und
+       ein Ereignis dort erreicht die Fläche nie. */
+    const ziel = () => feld.querySelector('svg') || feld;
+    const finger = (typ, x, y, id, erster) => {
+      const ev = new w.Event(typ, {bubbles:true, cancelable:true});
+      ev.pointerId = id; ev.clientX = x; ev.clientY = y;
+      ev.isPrimary = erster !== false; ev.pointerType = 'touch';
+      ziel().dispatchEvent(ev);
+    };
+    const anfang = () => w.__T(`(function(){
+      zeiger.clear(); schiebt = null; kneifStart = null; zieht = null; malt = null;
+      pModus = 'moebel'; pZoom = 1; pPanX = 0; pPanY = 0; planRender();
+    })()`);
+
+    /* Der übliche Griff: kneifen, einen Finger heben, mit dem anderen
+       weiterziehen. Ein zweites `pointerdown` kommt dabei nie — wer
+       den Schub nur beim Aufsetzen beginnen lässt, beginnt ihn nie. */
+    anfang();
+    finger('pointerdown', 150, 200, 1, true);
+    finger('pointerdown', 250, 300, 2, false);
+    finger('pointermove', 120, 170, 1, true);
+    finger('pointermove', 280, 330, 2, false);
+    const gezoomt = w.__T('pZoom');
+    pruef('Zwei Finger vergrößern die Zeichnung', gezoomt > 1, String(gezoomt));
+    finger('pointerup', 280, 330, 2, false);
+    const vorher = w.__T('pPanX');
+    finger('pointermove', 60, 170, 1, true);
+    finger('pointermove', 20, 170, 1, true);
+    pruef('Der liegengebliebene Finger schiebt weiter',
+      w.__T('pPanX') !== vorher,
+      'pPanX ' + vorher + ' → ' + w.__T('pPanX'));
+    finger('pointerup', 20, 170, 1, true);
+    pruef('Und lässt beim Hochgehen nichts zurück',
+      w.__T('schiebt') === null && w.__T('zeiger.size') === 0);
+
+    /* Ein `pointerup`, das die Fläche nie erreicht — neben der
+       Zeichnung losgelassen, oder am Fang eines Elements hängen
+       geblieben, das inzwischen neu gezeichnet wurde. Der Eintrag
+       blieb liegen, die nächste einzelne Berührung galt als zweiter
+       Finger, und geschoben wurde nie wieder. */
+    anfang();
+    w.__T("pZoom = 2; planRender();");
+    finger('pointerdown', 150, 200, 5, true);
+    w.__T("schiebt = null;");   /* Finger weg, ohne dass die Fläche es sieht */
+    pruef('Der verwaiste Eintrag liegt noch',
+      w.__T('zeiger.size') === 1, String(w.__T('zeiger.size')));
+    finger('pointerdown', 150, 200, 6, true);
+    const v2 = w.__T('pPanX');
+    finger('pointermove', 100, 200, 6, true);
+    pruef('Ein neuer erster Finger räumt den verwaisten Eintrag weg',
+      w.__T('zeiger.size') === 1 && w.__T('pPanX') !== v2,
+      'zeiger ' + w.__T('zeiger.size') + ', pPanX ' + v2 + ' → ' + w.__T('pPanX'));
+    finger('pointerup', 100, 200, 6, true);
+
+    /* Loslassen neben der Zeichnung muss ankommen. */
+    anfang();
+    w.__T("pZoom = 2; planRender();");
+    finger('pointerdown', 150, 200, 8, true);
+    const auf = new w.Event('pointerup', {bubbles:true, cancelable:true});
+    auf.pointerId = 8; auf.clientX = 0; auf.clientY = 0; auf.isPrimary = true;
+    d.body.dispatchEvent(auf);
+    pruef('Ein Loslassen neben der Fläche beendet den Zug',
+      w.__T('zeiger.size') === 0 && w.__T('schiebt') === null,
+      'zeiger ' + w.__T('zeiger.size') + ', schiebt ' + JSON.stringify(w.__T('schiebt')));
+
+    /* Bei Zoom 1 gehört der Wisch weiter der Seite — auch auf dem
+       Weg über die Bewegung. */
+    anfang();
+    finger('pointerdown', 150, 200, 9, true);
+    finger('pointermove', 100, 200, 9, true);
+    pruef('Bei Zoom 1 beginnt auch die Bewegung keinen Schub',
+      w.__T('schiebt') === null && w.__T('pPanX') === 0);
+    finger('pointerup', 100, 200, 9, true);
+    anfang();
+  }
+
   w.__T("(function(){ pZoom = 1; pPanX = 0; pPanY = 0; planRender(); })()");
 
   console.log('\n── Ergebnis ──');

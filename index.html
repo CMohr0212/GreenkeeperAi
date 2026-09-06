@@ -10375,13 +10375,14 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.8.3';
+const FASSUNG = '3.8.4';
 const PATCHNOTES = [
   {
-    nr: '3.8.3', datum: '2026-09-06', titel: 'Am Finger bleiben',
+    nr: '3.8.4', datum: '2026-09-06', titel: 'Am Finger bleiben',
     besser: [
-      'Nach dem Vergrößern lässt sich der Grundriss wieder schieben. Der Zug war bisher nach der ersten Bewegung zu Ende, weil unter dem Finger neu gezeichnet wird.',
-      'Geschoben wird jetzt auch außerhalb des Vollbilds. Wer im Rumpf mit zwei Fingern vergrößerte, kam an den Rest des Grundrisses nicht mehr heran. Bei Zoom 1 gehört der Wisch weiter der Seite.'
+      'Nach dem Vergrößern lässt sich der Grundriss wieder schieben — mit zwei Fingern kneifen, einen heben, mit dem anderen weiterziehen. Bisher zählte nur, ob beim Aufsetzen des Fingers schon etwas zu schieben war.',
+      'Geschoben wird jetzt auch außerhalb des Vollbilds. Wer im Rumpf mit zwei Fingern vergrößerte, kam an den Rest des Grundrisses nicht mehr heran. Bei Zoom 1 gehört der Wisch weiter der Seite.',
+      'Ein Finger, der neben der Zeichnung hochgeht, blockiert das Schieben nicht mehr dauerhaft.'
     ]
   },
   {
@@ -20044,21 +20045,35 @@ const zeiger = new Map();
 let kneifStart = null, schiebt = null;
 const flaeche2 = document.getElementById('plan-flaeche');
 
+/* Einen Schub hier und jetzt beginnen — am Punkt, an dem der Finger
+   gerade steht, damit nichts springt.
+
+   Der Finger muss dabei an der Flaeche bleiben. Beim Schieben wird bei
+   jeder Bewegung neu gezeichnet, und dabei verschwindet das SVG unter
+   dem Finger: der Browser meldet dann `pointerleave` fuer das Element,
+   das es nicht mehr gibt. Mit dem Fang laufen alle weiteren Meldungen
+   an die Flaeche, gleich was darin ausgetauscht wird. */
+function schubBeginnen(ev){
+  schiebt = {x:ev.clientX, y:ev.clientY, px:pPanX, py:pPanY};
+  try{ flaeche2.setPointerCapture(ev.pointerId); }catch(e){}
+}
+
 flaeche2.addEventListener('pointerdown', ev=>{
+  /* Der erste Finger einer Geste raeumt auf. Ein `pointerup`, das die
+     Flaeche nie erreicht — der Finger geht neben der Zeichnung hoch,
+     oder er haengt beim Fang an einem Element, das inzwischen neu
+     gezeichnet wurde —, hinterliess sonst einen Eintrag, der nie
+     wieder verschwindet: die naechste einzelne Beruehrung galt als
+     zweiter Finger, und geschoben wurde nie mehr. `isPrimary` ist
+     genau dann wahr, wenn sonst kein Finger liegt. */
+  if(ev.isPrimary){ zeiger.clear(); kneifStart = null; schiebt = null; }
   zeiger.set(ev.pointerId, {x:ev.clientX, y:ev.clientY});
   if(zeiger.size === 2){
     zieht = null; malt = null;
     const [a, b] = [...zeiger.values()];
     kneifStart = {dist: Math.hypot(a.x-b.x, a.y-b.y), zoom: pZoom};
   } else if(darfSchieben()){
-    schiebt = {x:ev.clientX, y:ev.clientY, px:pPanX, py:pPanY};
-    /* Der Finger muss an der Flaeche bleiben. Beim Schieben wird bei
-       jeder Bewegung neu gezeichnet, und dabei verschwindet das SVG
-       unter dem Finger: der Browser meldet dann `pointerleave` fuer
-       das Element, das es nicht mehr gibt, und der Zug war nach einer
-       einzigen Meldung zu Ende. Mit dem Fang laufen alle weiteren
-       Meldungen an die Flaeche, gleich was darin ausgetauscht wird. */
-    try{ flaeche2.setPointerCapture(ev.pointerId); }catch(e){}
+    schubBeginnen(ev);
   }
 }, true);
 
@@ -20071,6 +20086,14 @@ flaeche2.addEventListener('pointermove', ev=>{
     ev.preventDefault();
     return;
   }
+  /* Wer mit zwei Fingern vergroessert und dann einen liegen laesst,
+     hat seinen Zug begonnen, als es noch nichts zu schieben gab —
+     `darfSchieben()` war beim Aufsetzen falsch, und ein zweites
+     `pointerdown` kommt nie. Genau das ist der uebliche Griff: kneifen,
+     einen Finger heben, mit dem anderen weiterziehen. Sobald nur noch
+     ein Finger liegt und etwas ausserhalb des Ausschnitts steht,
+     faengt der Schub darum hier an. */
+  if(!schiebt && zeiger.size === 1 && darfSchieben()) schubBeginnen(ev);
   if(schiebt && !zieht){
     const svg = document.getElementById('plan-svg'); if(!svg) return;
     const M = planMasse(); if(!M) return;
@@ -20102,6 +20125,12 @@ function zeigerWeg(ev){
 flaeche2.addEventListener('pointerup', zeigerWeg);
 flaeche2.addEventListener('pointercancel', zeigerWeg);
 flaeche2.addEventListener('pointerleave', zeigerWeg);
+/* Losgelassen wird ueberall: geht der Finger neben der Zeichnung hoch,
+   sieht die Flaeche das Ereignis nie — am Fenster kommt es in jedem
+   Fall an. Doppelt gemeldet schadet nicht, der Aufraeumer ist
+   wiederholbar. */
+window.addEventListener('pointerup', zeigerWeg);
+window.addEventListener('pointercancel', zeigerWeg);
 
 /* Regler im Vollbild an die vorhandenen koppeln */
 ['monat','zeit'].forEach(k=>{
