@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.8.4', w.__T('FASSUNG') === '3.8.4', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.9.0', w.__T('FASSUNG') === '3.9.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -838,7 +838,7 @@ setTimeout(async () => {
     /keine Bestimmungsaufgabe/.test(dokP));
   /* Die Zahl im Prompt zaehlt die Feldzeilen — sie muss die zwei
      neuen mitzaehlen, sonst zaehlt die KI selbst nach und stolpert. */
-  pruef('Die Zahl im Prompt stimmt', /achtzehn Schlüsselwörter/.test(dokP),
+  pruef('Die Zahl im Prompt stimmt', /neunzehn Schlüsselwörter/.test(dokP),
     (dokP.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
   const gel = JSON.parse(w.__T(
     "JSON.stringify(geminiLesen('ANTWORT: Sonnenbrand.\\nSTELLE: Blattmitte, trocken.\\nZUSTAND: gesund'))"));
@@ -5547,6 +5547,289 @@ setTimeout(async () => {
   }
 
   w.__T("(function(){ pZoom = 1; pPanX = 0; pPanY = 0; planRender(); })()");
+
+  /* ══════════ Gießgruppen ══════════
+     Die Klasse sagt, wie oft gegossen wird. Die Gruppe sagt, wohin es
+     kippt: wie schnell aus einer Rückmeldung gelernt werden darf, wie
+     die Probe aussieht und was ein dauerndes Anschlagen bedeutet. */
+  {
+    const g = (bot, kl) => JSON.parse(w.__T(
+      "JSON.stringify(gruppeVon({id:'x', botanisch:" + JSON.stringify(bot||'')
+      + ", klasse:" + JSON.stringify(kl||'B') + "}))"));
+
+    pruef('Dieselbe Familie, zwei Gruppen',
+      g('Zamioculcas zamiifolia').id === 'knollenspeicher'
+      && g('Anthurium andraeanum').id === 'epiphyt',
+      g('Zamioculcas zamiifolia').id + ' / ' + g('Anthurium andraeanum').id);
+    pruef('Anstau und Kannenpflanze sind nicht dieselbe Gruppe',
+      g('Sarracenia purpurea').id === 'moorbeet'
+      && g('Nepenthes ventricosa').id === 'nepenthes',
+      g('Sarracenia purpurea').id + ' / ' + g('Nepenthes ventricosa').id);
+    pruef('Sansevieria zählt zu den Speichern',
+      g('Sansevieria trifasciata').id === 'knollenspeicher'
+      && g('Dracaena trifasciata').id === 'knollenspeicher');
+    pruef('Lithops hat ein umgekehrtes Jahr',
+      g('Lithops karasmontana').id === 'sommerruhe'
+      && g('Lithops karasmontana').umgekehrtesJahr === true);
+    pruef('Orchideen sind Rindenepiphyten',
+      g('Phalaenopsis amabilis').id === 'epiphyt'
+      && g('Paphiopedilum insigne').id === 'epiphyt');
+    pruef('Rosmarin ist Hartlaub, Begonie dünnblättrig',
+      g('Rosmarinus officinalis').id === 'hartlaub'
+      && g('Begonia maculata').id === 'duennblatt');
+    /* Ohne Gattung bleibt die Klasse — und das wird kenntlich gemacht. */
+    pruef('Ohne Gattung rät die Klasse, und sagt es',
+      g('', 'C').id === 'blattsukkulent' && g('', 'C').geraten === true
+      && g('Monstera deliciosa').geraten === false,
+      g('', 'C').id + ' geraten=' + g('', 'C').geraten);
+    pruef('Die Meldung der KI fängt auf, was die Gattung nicht kennt',
+      w.__T("gruppeVon({id:'x', botanisch:'Unbekanntia seltsamis', klasse:'B', speicher:'dickfleischige Blätter'}).id")
+        === 'blattsukkulent');
+    pruef('Die bekannte Gattung schlägt die Meldung der KI',
+      w.__T("gruppeVon({id:'x', botanisch:'Monstera deliciosa', klasse:'B', speicher:'dickfleischige Blätter'}).id")
+        === 'laub');
+
+    /* Die Asymmetrie ist der Kern: „zu selten" ist bei einem Speicher
+       kaum ein Fehler, bei einer Begonie der gefährliche Weg. */
+    const sp = JSON.parse(w.__T("JSON.stringify(GRUPPEN.knollenspeicher)"));
+    const du = JSON.parse(w.__T("JSON.stringify(GRUPPEN.duennblatt)"));
+    pruef('Speicher dürfen zügiger nach oben als Dünnblättrige',
+      sp.hoch > du.hoch, sp.hoch + ' / ' + du.hoch);
+    pruef('Dünnblättrige dürfen zügiger nach unten als Speicher',
+      du.runter < sp.runter, du.runter + ' / ' + sp.runter);
+    pruef('Im Anstau wird nicht gelernt',
+      w.__T("gruppeLernt({id:'x', botanisch:'Dionaea muscipula', klasse:'S'})") === false
+      && w.__T("gruppeLernt({id:'x', botanisch:'Monstera deliciosa', klasse:'B'})") === true);
+
+    /* Der Probesatz kam vorher aus der Klasse und stand auf jeder
+       Karte gleich. Eine Pflanze im Anstau hat keine Fingerprobe. */
+    const hin = (bot, kl) => w.__T("giessHinweisFuer({id:'x', botanisch:" + JSON.stringify(bot)
+      + ", klasse:" + JSON.stringify(kl || 'B') + ", sonne:'indirekt'}).text");
+    pruef('Der Anstau bekommt keine Fingerprobe',
+      hin('Sarracenia purpurea', 'S').indexOf('Wasserstand') !== -1
+      && hin('Sarracenia purpurea', 'S').indexOf('Zentimeter tief') === -1,
+      hin('Sarracenia purpurea', 'S').slice(0, 60));
+    pruef('Die Bromelie wird im Trichter gegossen',
+      hin('Guzmania lingulata').indexOf('Trichter') !== -1);
+    pruef('Der Kaktus wird gewogen',
+      hin('Mammillaria elongata').indexOf('anheben') !== -1);
+    pruef('Zwei Gruppen bekommen zwei verschiedene Sätze',
+      hin('Sarracenia purpurea', 'S') !== hin('Monstera deliciosa'));
+  }
+
+  /* ══════════ Der Lernfaktor ══════════ */
+  {
+    w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'LRN'; });
+      S.eigene.push({id:'LRN1', eigen:true, name:'Lernbegonie', art:'Lernbegonie',
+        botanisch:'Begonia maculata', klasse:'B'});
+      S.eigene.push({id:'LRN2', eigen:true, name:'Lernfalle', art:'Lernfalle',
+        botanisch:'Dionaea muscipula', klasse:'S'});
+      if(S.zustand){ delete S.zustand.LRN1; delete S.zustand.LRN2; }
+      if(S.water){ delete S.water.LRN1; delete S.water.LRN2; }
+      sichern();
+    })()`);
+    const pf = id => w.__T("allePflanzen().find(function(x){return x.id==='" + id + "';})");
+    const iv = id => w.__T("intervallVon(allePflanzen().find(function(x){return x.id==='" + id + "';}))");
+
+    const roh = iv('LRN1');
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'hoch')");
+    pruef('„Noch feucht“ verlängert den Abstand',
+      w.__T("lernFaktorVon('LRN1')") > 1,
+      String(w.__T("lernFaktorVon('LRN1')")));
+    /* Ein einzelner Schritt kann in der Rundung verschwinden — dass er
+       im Abstand wirklich ankommt, zeigt sich am gesetzten Faktor. */
+    w.__T("S.zustand.LRN1 = {lernFaktor: 1.3};");
+    pruef('Der Faktor kommt im Abstand an', iv('LRN1') > roh,
+      roh + ' → ' + iv('LRN1'));
+    w.__T("S.zustand.LRN1 = {};");
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'hoch')");
+
+    /* Dieselbe Wartezeit ist eine Beobachtung, nicht zehn. */
+    const f1 = w.__T("lernFaktorVon('LRN1')");
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'hoch')");
+    pruef('Zweimal dieselbe Meldung im selben Zyklus lernt einmal',
+      w.__T("lernFaktorVon('LRN1')") === f1,
+      f1 + ' → ' + w.__T("lernFaktorVon('LRN1')"));
+
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'runter')");
+    pruef('„War staubtrocken“ verkürzt den Abstand',
+      w.__T("lernFaktorVon('LRN1')") < f1,
+      f1 + ' → ' + w.__T("lernFaktorVon('LRN1')"));
+
+    /* Der Deckel der Gruppe hält. */
+    w.__T(`(function(){
+      S.zustand.LRN1 = {lernFaktor: 1};
+      for(var i = 0; i < 40; i++){
+        S.zustand.LRN1.lernMarke = 'r' + i;
+        lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'runter');
+      }
+    })()`);
+    const unten = w.__T("lernFaktorVon('LRN1')");
+    pruef('Der Deckel der Gruppe hält nach unten',
+      Math.abs(unten - w.__T("GRUPPEN.duennblatt.min")) < 0.001, String(unten));
+
+    /* Am Anschlag und mit zwei Trockenmeldungen wird der Verdacht
+       ausgesprochen — bei Dünnblättrigen auf den Wurzelbund. */
+    const v = JSON.parse(w.__T(`(function(){
+      S.zustand.LRN1.trockenZahl = 2;
+      return JSON.stringify(umtopfVerdacht(allePflanzen().find(function(x){return x.id==='LRN1';})) || null);
+    })()`));
+    pruef('Der Umtopfverdacht wird ausgesprochen', v && v.art === 'wurzelbund',
+      JSON.stringify(v));
+    pruef('Ein Anschlag allein reicht nicht',
+      w.__T(`(function(){
+        S.zustand.LRN1.trockenZahl = 0;
+        return umtopfVerdacht(allePflanzen().find(function(x){return x.id==='LRN1';})) === null;
+      })()`) === true);
+
+    /* Neue Erde ist eine neue Pflanze. */
+    w.__T("S.zustand.LRN1.trockenZahl = 2; lernZuruecksetzen('LRN1');");
+    pruef('Umgetopft setzt das Gelernte zurück',
+      w.__T("lernFaktorVon('LRN1')") === 1
+      && w.__T("umtopfVerdacht(allePflanzen().find(function(x){return x.id==='LRN1';})) === null") === true);
+
+    /* Im Anstau ändert eine Rückmeldung den Abstand nicht. */
+    const ivS = iv('LRN2');
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN2';}), 'hoch')");
+    pruef('Im Anstau bleibt der Abstand, was er ist',
+      iv('LRN2') === ivS && w.__T("lernFaktorVon('LRN2')") === 1,
+      ivS + ' → ' + iv('LRN2'));
+
+    /* Ein eigener Rhythmus gewinnt weiter. */
+    w.__T(`(function(){
+      var p = S.eigene.find(function(x){return x.id==='LRN1';});
+      p.intervallEigen = true; p.intervall = [9, 12];
+      S.zustand.LRN1 = {};
+    })()`);
+    w.__T("lernSchritt(allePflanzen().find(function(x){return x.id==='LRN1';}), 'hoch')");
+    pruef('Ein eigener Rhythmus wird nicht überschrieben',
+      w.__T("lernFaktorVon('LRN1')") === 1);
+
+    w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'LRN'; });
+      if(S.zustand){ delete S.zustand.LRN1; delete S.zustand.LRN2; }
+      sichern();
+    })()`);
+  }
+
+  /* ══════════ Die Karte im Gießmodus ══════════
+     Der Satz zur Probe stand auf jeder Karte gleich. Er gehört in den
+     Streifen, nicht in den Text — und der Text zeigt nur, was an
+     dieser Pflanze gerade anders ist. */
+  {
+    w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'GMT'; });
+      S.eigene.push({id:'GMT1', eigen:true, name:'Kartenpflanze', art:'Kartenpflanze',
+        botanisch:'Monstera deliciosa', klasse:'B', sonne:'indirekt'});
+      S.eigene.push({id:'GMT2', eigen:true, name:'Kartenfalle', art:'Kartenfalle',
+        botanisch:'Dionaea muscipula', klasse:'S', sonne:'indirekt'});
+      if(S.zustand){ delete S.zustand.GMT1; delete S.zustand.GMT2; }
+      gmListe = allePflanzen().filter(function(p){ return String(p.id).slice(0,3) === 'GMT'; });
+      gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0; gmBefunde = [];
+      gmZeichnen();
+    })()`);
+    const inhalt = () => d.getElementById('gm-inhalt').innerHTML;
+    const knoepfe = () => d.getElementById('gm-knoepfe').innerHTML;
+
+    pruef('Der Streifen nennt Klasse und Gruppe',
+      inhalt().indexOf('gm-chip') !== -1 && inhalt().indexOf('Normales Laub') !== -1,
+      inhalt().slice(0, 120));
+    pruef('Die Probe steht zugeklappt daneben',
+      inhalt().indexOf('gm-probe') !== -1 && /class="gm-probe" hidden/.test(inhalt()));
+    /* Eine gesunde Pflanze ohne Abweichung bekommt keinen Kasten. */
+    pruef('Ohne Abweichung bleibt die Karte still',
+      inhalt().indexOf('gm-hinweis') === -1, inhalt().slice(-160));
+    pruef('Das Bild ist klein und der Ort steht oben',
+      inhalt().indexOf('gm-bild klein') !== -1 && inhalt().indexOf('gm-kopf-text') !== -1);
+    pruef('Es gibt drei Wege und den leisen vierten',
+      knoepfe().indexOf('data-gm="trocken"') !== -1
+      && knoepfe().indexOf('data-gm="nein"') !== -1
+      && knoepfe().indexOf('data-gm="ja"') !== -1
+      && knoepfe().indexOf('data-gm="spaeter"') !== -1);
+
+    /* Gelerntes wird auf der Karte begründet. */
+    w.__T("S.zustand.GMT1 = {lernFaktor: 1.5}; gmZeichnen();");
+    pruef('Der gelernte Abstand steht auf der Karte',
+      inhalt().indexOf('Aus deinen Rückmeldungen') !== -1, inhalt().slice(-200));
+    w.__T("S.zustand.GMT1 = {}; gmZeichnen();");
+
+    /* Im Anstau gibt es nichts zu lernen, also auch keinen Knopf. */
+    w.__T("gmIndex = 1; gmZeichnen();");
+    pruef('Im Anstau fehlt der Trockenknopf',
+      knoepfe().indexOf('data-gm="trocken"') === -1
+      && knoepfe().indexOf('data-gm="nein"') !== -1);
+    pruef('Und der Streifen sagt Anstau',
+      inhalt().indexOf('Moorbeet im Anstau') !== -1);
+
+    /* Der Weg des Fingers: die Knoepfe selbst muessen lernen. Die
+       Pruefung darauf, dass lernSchritt funktioniert, sagt nichts
+       darueber, ob ihn jemand aufruft. */
+    w.__T(`(function(){
+      gmIndex = 0; S.zustand.GMT1 = {}; if(S.water) delete S.water.GMT1;
+      gmZeichnen();
+    })()`);
+    const druecken = wert => {
+      const b = d.querySelector('#gm-knoepfe [data-gm="' + wert + '"]');
+      if(b) b.dispatchEvent(new w.Event('click', {bubbles:true}));
+      return !!b;
+    };
+    const daGewesen = druecken('nein');
+    await tick();
+    pruef('„Noch feucht“ lernt am Knopf', daGewesen && w.__T("lernFaktorVon('GMT1')") > 1,
+      String(w.__T("lernFaktorVon('GMT1')")));
+
+    w.__T("(function(){ gmIndex = 0; S.zustand.GMT1 = {}; if(S.water) delete S.water.GMT1; gmZeichnen(); })()");
+    const daTrocken = druecken('trocken');
+    await tick();
+    pruef('„War staubtrocken“ lernt am Knopf', daTrocken && w.__T("lernFaktorVon('GMT1')") < 1,
+      String(w.__T("lernFaktorVon('GMT1')")));
+    pruef('Und gießt dabei auch wirklich',
+      w.__T("giessLog('GMT1')[0]") === w.__T('iso(HEUTE)'),
+      String(w.__T("giessLog('GMT1')[0]")));
+
+    w.__T("(function(){ gmIndex = 0; S.zustand.GMT1 = {}; if(S.water) delete S.water.GMT1; gmZeichnen(); })()");
+
+    /* Die Abschlusskarte sammelt, was unterwegs auffiel. */
+    w.__T(`(function(){
+      gmBefunde = [{id:'GMT1', name:'Kartenpflanze', text:'Trocknet schneller aus, als der Topf hergibt.'}];
+      S.zustand.GMT1 = {lernFaktor: 0.6, trockenZahl: 2};
+      gmZeichnenEnde();
+    })()`);
+    pruef('Die Abschlusskarte nennt den Befund',
+      inhalt().indexOf('Kartenpflanze') !== -1
+      && inhalt().indexOf('data-gm="umgetopft"') !== -1,
+      inhalt().slice(-220));
+    /* Der Knopf dort setzt das Gelernte zurück — der Weg des Fingers. */
+    const k = d.querySelector('[data-gm="umgetopft"]');
+    if(k) k.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('Umgetopft auf der Abschlusskarte räumt das Gelernte weg',
+      w.__T("lernFaktorVon('GMT1')") === 1 && w.__T("gmBefunde.length") === 0,
+      w.__T("lernFaktorVon('GMT1')") + ' / ' + w.__T("gmBefunde.length"));
+
+    w.__T(`(function(){
+      gmListe = []; gmIndex = 0; gmBefunde = [];
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'GMT'; });
+      if(S.zustand){ delete S.zustand.GMT1; delete S.zustand.GMT2; }
+      sichern();
+    })()`);
+  }
+
+  /* Die KI nennt die Gattung, die App entscheidet die Gruppe — der
+     Prompt fragt deshalb nach dem Speicher, nicht nach der Gruppe. */
+  {
+    const anl = w.__T('anlegenPromptBauen()');
+    pruef('Der Prompt fragt nach dem Wasserspeicher',
+      /\nSPEICHER: /.test(anl) && anl.indexOf('dickfleischige Blätter') !== -1);
+    pruef('Der Prompt fragt nicht nach der Gruppe',
+      anl.indexOf('GRUPPE:') === -1);
+    pruef('Das Beispiel zeigt die neue Zeile',
+      anl.indexOf('SPEICHER: kein Speicher') !== -1);
+    pruef('Der Leser kennt SPEICHER',
+      JSON.parse(w.__T("JSON.stringify(geminiLesen('SPEICHER: dicker Stamm oder Caudex'))")).speicher
+        === 'dicker Stamm oder Caudex');
+  }
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

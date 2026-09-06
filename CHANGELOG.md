@@ -4,6 +4,22 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.9.0 — 6. September 2026
+**Gießen lernt mit**
+
+### Neu
+- Die App lernt aus deinen Rückmeldungen. „Noch feucht" verlängert den Gießabstand, „War staubtrocken" verkürzt ihn. Bisher gab es nur die eine Richtung, und der Abstand konnte deshalb nur wachsen. Gelernt wird höchstens einmal je Gießzyklus — zehnmal dieselbe Meldung in derselben Wartezeit ist eine Beobachtung, nicht zehn. Ein von Hand gesetzter Rhythmus gewinnt weiterhin.
+- Dreizehn Gießgruppen unter den Klassen. Die Klasse bleibt, was sie war: die verständliche Ansage, wie oft gegossen wird. Die Gruppe sagt, wohin es kippt — bei einem Speicher ist „zu selten" kaum ein Fehler und „zu oft" tödlich, bei einer dünnblättrigen Pflanze ist es umgekehrt. Danach richtet sich, wie weit und wie schnell gelernt wird. Zugeordnet wird über die Gattung; ohne bekannte Gattung wird über die Klasse geschätzt und das auf der Karte gesagt.
+- Am Ende des Rundgangs steht eine Karte mit dem, was unterwegs aufgefallen ist. Wer dauerhaft am unteren Anschlag steht und zweimal staubtrocken gemeldet wurde, bekommt den Verdacht ausgesprochen: bei Laub- und dünnblättrigen Pflanzen Wurzelbund oder Erde, die kein Wasser mehr annimmt, bei Speicherpflanzen ein zu kleiner Topf, bei Rindenepiphyten zersetztes Substrat. „Umgetopft" setzt das Gelernte zurück — neue Erde ist eine neue Pflanze. Unterwegs wird damit nicht unterbrochen.
+
+### Besser
+- Die Karte im Gießmodus zeigt nur noch, was an dieser Pflanze gerade anders ist. Der Satz zur Fingerprobe stand auf jeder Karte gleich — nach der zweiten Pflanze liest ihn niemand mehr, er nahm aber die Stelle ein, an der das Besondere stehen müsste. Er sitzt jetzt im Streifen unter dem Namen und lässt sich antippen.
+- Der Probesatz passt zur Pflanze statt zur Klasse. Eine Fingerprobe bei dauernass stehendem Substrat konnte nie etwas messen: im Anstau wird der Wasserstand angesehen, eine Bromelie im Trichter gegossen, ein Kaktus gewogen, eine Kannenpflanze bleibt klamm und steht trotzdem nicht im Wasser.
+- Kleineres Foto, Ort direkt beim Namen: die Karte passt ohne Scrollen auf ein Handy. „Später" bleibt leise.
+- Beim Anlegen fragt der Prompt zusätzlich nach dem Wasserspeicher — eine Beschreibung dessen, was am Foto zu sehen ist. Die Gruppe bestimmt weiterhin die App aus der Gattung; die Angabe fängt nur auf, was die Gattungstabelle nicht kennt. Bestandspflanzen brauchen nichts: ihre Gruppe folgt aus dem botanischen Namen.
+
+---
+
 ## 3.8.4 — 6. September 2026
 **Am Finger bleiben**
 

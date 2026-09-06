@@ -1799,6 +1799,21 @@ body.vollbild .hinweis-kopf{display:none}
    gilt weiter `none`; im Vollbild ebenso, da führt die App selbst. */
 #plan-flaeche{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:10px;overflow:hidden;touch-action:pan-y}
 #plan-flaeche.malt,#plan-flaeche.geschoben{touch-action:none}
+.gm-kopf{display:flex;gap:12px;align-items:center;margin:0 0 10px}
+.gm-bild.klein{width:56px;height:56px;flex:0 0 56px;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.gm-bild.klein img{width:100%;height:100%;object-fit:cover}
+.gm-kopf-text{min-width:0;text-align:left}
+.gm-kopf-text h3{margin:0}
+.gm-kopf-text .gm-art{margin:2px 0 0}
+.gm-chip{font-size:.8rem;padding:3px 10px;border-radius:20px;border:1px solid var(--line);background:transparent;color:inherit;opacity:.75;margin:2px 0 8px;cursor:pointer}
+.gm-chip i{font-style:italic;opacity:.8}
+.gm-probe{font-size:.85rem;opacity:.85;margin:0 0 8px}
+.gm-zwei{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gm-zwei .gm-nein{width:100%}
+.gm-befund{border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0;text-align:left}
+.gm-befund-name{font-weight:600;margin:0 0 4px}
+.gm-befund-text{font-size:.9rem;margin:0 0 8px}
+.gm-klein{font-size:.85rem;padding:6px 12px}
 body.vollbild #plan-flaeche{touch-action:none}
 .plan-svg .moebel,.plan-svg .marke,.plan-svg .buendel{touch-action:none}
 .plan-svg{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
@@ -4198,6 +4213,137 @@ const KLASSEN = {
      probeWinter:"In der Ruhezeit fast gar nicht. Nur gießen, wenn Blätter schrumpelig und ledrig werden."}
 };
 
+/* ══════════════════ Gießgruppen ══════════════════
+   Die Klasse S/A/B/C sagt, WIE OFT gegossen wird — sie bleibt, sie
+   ist die verständliche Ansage. Die Gruppe sagt, WOHIN es kippt: in
+   welche Richtung ein Fehler gefährlich ist, wie schnell aus einer
+   Rückmeldung gelernt werden darf, wonach die Probe aussieht und was
+   ein dauerndes Abweichen bedeutet.
+
+   Warum nicht nach Familie: die Aronstabgewächse führen Zamioculcas
+   (Knollenspeicher) und Anthurium (darf nie abtrocknen) in derselben
+   Familie. Die Giftregeln arbeiten zu Recht auf Familienebene, das
+   Gießen muss auf Wasserspeicher und Blattbau arbeiten.
+
+   `hoch` und `runter` sind bewusst ungleich. Bei einem Kaktus ist
+   „zu selten" kaum je ein Fehler und „zu oft" tödlich — er darf
+   zügig nach oben und nur zaghaft nach unten. Bei einer Begonie ist
+   es umgekehrt: jede Welke kostet Blätter.
+
+   `verdacht` ist das, was ein dauerndes Anschlagen am unteren Ende
+   bedeutet — nicht bei jeder Gruppe dasselbe, und bei manchen gar
+   nichts. */
+const GRUPPEN = {
+  wuestenkaktus: {name:'Wüstenkaktus', hoch:1.15, runter:0.95, min:0.7, max:2.0,
+    probe:'Topf anheben — spürbar leicht heißt gießen.',
+    verdacht:'topf'},
+  blattsukkulent: {name:'Blattsukkulente', hoch:1.15, runter:0.95, min:0.7, max:1.8,
+    probe:'Blätter und Topfgewicht ansehen. Erst gießen, wenn der Ballen bis unten trocken ist.',
+    verdacht:'topf'},
+  sommerruhe: {name:'Sukkulente mit Sommerruhe', hoch:1.15, runter:0.95, min:0.7, max:2.0,
+    probe:'Im Sommer ruht sie — jetzt fast gar nicht gießen.',
+    verdacht:'', umgekehrtesJahr:true},
+  knollenspeicher: {name:'Rhizom- oder Knollenspeicher', hoch:1.2, runter:0.95, min:0.7, max:2.0,
+    probe:'Topf anheben. Der Speicher trägt sie lange — im Zweifel warten.',
+    verdacht:'topf'},
+  trockenruhe: {name:'Knolle mit Trockenruhe', hoch:1.1, runter:0.95, min:0.7, max:1.8,
+    probe:'Treibt sie, wird gegossen. Ist sie eingezogen, gar nicht.',
+    verdacht:''},
+  hartlaub: {name:'Hartlaub', hoch:1.08, runter:0.85, min:0.6, max:1.5,
+    probe:'Nicht die Oberfläche, den Ballen prüfen — einmal ganz durchgetrocknet treibt kein Holz nach.',
+    verdacht:'wurzelbund'},
+  laub: {name:'Normales Laub', hoch:1.08, runter:0.88, min:0.6, max:1.6,
+    probe:'Finger zwei bis drei Zentimeter tief ins Substrat.',
+    verdacht:'wurzelbund'},
+  duennblatt: {name:'Dünnblättrige', hoch:1.05, runter:0.8, min:0.6, max:1.4,
+    probe:'Oberfläche antippen — klamm heißt schon gießen.',
+    verdacht:'wurzelbund'},
+  epiphyt: {name:'Rindenepiphyt', hoch:1.1, runter:0.9, min:0.6, max:1.6,
+    probe:'Wurzeln ansehen und den Topf anheben. Silbrig und leicht heißt gießen.',
+    verdacht:'substrat'},
+  bromelie: {name:'Trichterbromelie', hoch:1.1, runter:0.9, min:0.7, max:1.6,
+    probe:'Der Trichter wird gefüllt, nicht die Erde.',
+    verdacht:''},
+  sumpf: {name:'Sumpfpflanze', hoch:1.05, runter:0.9, min:0.8, max:1.3,
+    probe:'Untersetzer nachfüllen — er darf nicht leerlaufen.',
+    verdacht:''},
+  moorbeet: {name:'Moorbeet im Anstau', hoch:1, runter:1, min:1, max:1,
+    probe:'Keine Fingerprobe. Wasserstand im Untersetzer ansehen.',
+    verdacht:'', lernt:false},
+  nepenthes: {name:'Kannenpflanze', hoch:1.05, runter:0.88, min:0.7, max:1.4,
+    probe:'Oberfläche muss klamm bleiben — aber kein Wasser im Untersetzer.',
+    verdacht:'substrat'}
+};
+
+/* Die Gruppe hängt an der Gattung. Die erste passende Zeile gewinnt,
+   Sonderfälle stehen deshalb über ihrer Gattung. */
+const GRUPPEN_GATTUNG = [
+  [/^Kalanchoe|^Echeveria|^Crassula|^Sedum|^Graptopetalum|^Pachyphytum|^Sempervivum|^Aeonium(?!\s)/i, 'blattsukkulent'],
+  [/^Lithops|^Conophytum|^Fenestraria|^Argyroderma|^Aeonium/i, 'sommerruhe'],
+  [/^Aloe|^Haworthia|^Haworthiopsis|^Gasteria|^Agave|^Cotyledon|^Portulacaria|^Peperomia|^Senecio|^Curio|^Delosperma|^Faucaria|^Titanopsis/i, 'blattsukkulent'],
+  [/^Adenium|^Pachypodium|^Beaucarnea|^Dioscorea|^Stephania|^Jatropha|^Fockea|^Cyphostemma/i, 'knollenspeicher'],
+  [/^Cactus|^Mammillaria|^Echinopsis|^Echinocactus|^Gymnocalycium|^Opuntia|^Ferocactus|^Astrophytum|^Parodia|^Rebutia|^Cereus|^Espostoa|^Cleistocactus|^Melocactus|^Turbinicarpus|^Ariocarpus/i, 'wuestenkaktus'],
+  [/^Rhipsalis|^Schlumbergera|^Epiphyllum|^Hatiora|^Lepismium|^Selenicereus|^Disocactus/i, 'epiphyt'],
+  [/^Dracaena\s+trifasciata|^Sansevieria|^Zamioculcas|^Bowiea|^Ledebouria|^Eucomis/i, 'knollenspeicher'],
+  [/^Caladium|^Zantedeschia|^Amorphophallus|^Sauromatum|^Typhonium|^Arisaema|^Hippeastrum|^Cyclamen|^Oxalis|^Gloriosa|^Sinningia|^Achimenes/i, 'trockenruhe'],
+  [/^Alocasia/i, 'trockenruhe'],
+  [/^Anubias|^Cryptocoryne|^Cyperus|^Acorus|^Equisetum|^Colocasia|^Xanthosoma/i, 'sumpf'],
+  [/^Sarracenia|^Dionaea|^Drosera|^Darlingtonia|^Heliamphora|^Pinguicula|^Utricularia/i, 'moorbeet'],
+  [/^Nepenthes|^Cephalotus/i, 'nepenthes'],
+  [/^Tillandsia|^Vriesea|^Guzmania|^Neoregelia|^Aechmea|^Billbergia|^Cryptanthus/i, 'bromelie'],
+  [/^Phalaenopsis|^Cattleya|^Dendrobium|^Oncidium|^Miltonia|^Miltoniopsis|^Paphiopedilum|^Vanda|^Bulbophyllum|^Masdevallia|^Zygopetalum|^Brassia|^Cymbidium|^Ludisia|^Coelogyne|^Maxillaria|^Encyclia|^Laelia|^Phragmipedium|^Orchis/i, 'epiphyt'],
+  [/^Hoya|^Dischidia|^Platycerium|^Asplenium\s+nidus|^Anthurium|^Aeschynanthus|^Columnea|^Rhaphidophora\s+hayi/i, 'epiphyt'],
+  [/^Rosmarinus|^Salvia\s+rosmarinus|^Thymus|^Lavandula|^Origanum|^Satureja|^Olea|^Laurus|^Myrtus|^Nerium|^Cistus|^Helichrysum|^Santolina|^Artemisia|^Salvia\s+officinalis/i, 'hartlaub'],
+  [/^Begonia|^Fittonia|^Goeppertia|^Calathea|^Ctenanthe|^Stromanthe|^Maranta|^Adiantum|^Nephrolepis|^Pteris|^Blechnum|^Davallia|^Selaginella|^Soleirolia|^Pilea\s+depressa|^Hypoestes|^Impatiens|^Solenostemon|^Plectranthus\s+scutellarioides|^Saintpaulia|^Streptocarpus|^Primula|^Hydrangea|^Cyperus\s+alternifolius/i, 'duennblatt'],
+  [/^Ocimum|^Petroselinum|^Coriandrum|^Anethum|^Mentha|^Melissa|^Nasturtium/i, 'duennblatt'],
+  [/^Spathiphyllum|^Colocasia\s+esculenta/i, 'duennblatt'],
+  [/^Monstera|^Philodendron|^Epipremnum|^Scindapsus|^Rhaphidophora|^Syngonium|^Amydrium|^Homalomena|^Aglaonema|^Dieffenbachia|^Chlorophytum|^Dracaena|^Yucca|^Cordyline|^Ficus|^Schefflera|^Fatsia|^Hedera|^Pilea|^Tradescantia|^Callisia|^Cissus|^Rhoicissus|^Aspidistra|^Zamia|^Cycas|^Howea|^Chamaedorea|^Dypsis|^Rhapis|^Livistona|^Beaucarnea\s+recurvata|^Musa|^Strelitzia|^Alpinia|^Hibiscus|^Citrus|^Coffea|^Polyscias|^Radermachera|^Pachira|^Crassula\s+ovata|^Clusia|^Peperomia\s+obtusifolia/i, 'laub']
+];
+
+/* Wenn die Gattung nichts hergibt: die Klasse ist die grobe Ansage,
+   und aus ihr lässt sich die wahrscheinlichste Gruppe raten. Das
+   Raten wird auf der Karte kenntlich gemacht. */
+const KLASSE_GRUPPE = {S:'moorbeet', A:'duennblatt', B:'laub', C:'blattsukkulent'};
+
+/* Was die KI beim Anlegen über den Wasserspeicher gemeldet hat.
+   Nur ein Auffangnetz für Gattungen, die die Tabelle nicht kennt —
+   eine Beschreibung dessen, was am Foto zu sehen ist, keine
+   Taxonomie-Auskunft. */
+const SPEICHER_GRUPPE = {
+  'kein speicher':'laub',
+  'dickfleischige blätter':'blattsukkulent',
+  'dicker stamm oder caudex':'knollenspeicher',
+  'unterirdische knolle oder rhizom':'knollenspeicher',
+  'luftwurzeln am baum':'epiphyt',
+  'sumpf- oder moorpflanze':'sumpf'
+};
+
+/* Die Gruppe einer Pflanze. Reihenfolge: von Hand gesetzt, Gattung,
+   Meldung der KI, Rückfall über die Klasse. `geraten` sagt, ob das
+   letzte Glied gezogen hat. */
+function gruppeVon(p){
+  const leer = {id:'laub', geraten:true};
+  if(!p) return Object.assign({}, GRUPPEN.laub, leer);
+  if(p.gruppe && GRUPPEN[p.gruppe])
+    return Object.assign({}, GRUPPEN[p.gruppe], {id:p.gruppe, geraten:false});
+  const bot = String(p.botanisch || p.bib || p.art || '').trim();
+  if(bot){
+    for(const [muster, id] of GRUPPEN_GATTUNG){
+      if(muster.test(bot)) return Object.assign({}, GRUPPEN[id], {id, geraten:false});
+    }
+  }
+  const sp = SPEICHER_GRUPPE[String(p.speicher || '').toLowerCase().trim()];
+  if(sp) return Object.assign({}, GRUPPEN[sp], {id:sp, geraten:false});
+  const kl = KLASSE_GRUPPE[p.klasse] || 'laub';
+  return Object.assign({}, GRUPPEN[kl], {id:kl, geraten:true});
+}
+/* Ob aus Rückmeldungen überhaupt gelernt werden darf. Im Anstau nicht:
+   dort ist nicht der Abstand die Frage, sondern der Wasserstand. */
+function gruppeLernt(p){
+  const g = gruppeVon(p);
+  return g.lernt !== false;
+}
+
 const PFLANZEN = [];
 
 const ALARME = [
@@ -5388,6 +5534,7 @@ DIE ZEILEN
 
 ART: gebräuchlicher deutscher Name. Gibt es keinen, der botanische Name.
 BOTANISCH: Gattung und Art. Erkennst du sicher eine Sorte, hänge sie in einfachen Anführungszeichen an, etwa: Monstera deliciosa 'Thai Constellation'. Erkennst du die Sorte nicht sicher, lass sie weg. Erfinde keinen Sortennamen — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
+SPEICHER: Wie speichert die Pflanze Wasser? Nur genau eine dieser Angaben: kein Speicher, dickfleischige Blätter, dicker Stamm oder Caudex, unterirdische Knolle oder Rhizom, Luftwurzeln am Baum, Sumpf- oder Moorpflanze. Beurteile das an dem, was auf dem Foto zu sehen ist.
 TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rankpflanze, Rosettenpflanze, Kaktus, Sukkulente, Kraut, Strauch, Palme, Farn, Orchidee, Bromelie, Karnivore. Ist die Pflanze panaschiert, hänge das Wort panaschiert mit Komma an.
 SICHERHEIT: Nur genau eines dieser Wörter: hoch, mittel, niedrig
 FEHLT: Was du auf diesem Foto nicht beurteilen kannst — als kurze Aufzählung, mit Komma getrennt, keine ganzen Sätze. Beantworte dabei zwei Fragen: Waren Blattunterseiten und Blattachseln erkennbar? Waren Topf, Topfrand und Untersetzer ganz im Bild? Was nicht erkennbar war, schreibst du hin. Du darfst dann nirgends behaupten, die Pflanze sei schädlingsfrei, und nichts über den Topf behaupten, was du nicht siehst. Nenne außerdem, welche zusätzliche Aufnahme die Bestimmung sicher machen würde. Ist das Foto unscharf, zu dunkel, überbelichtet oder zeigt nur einen Ausschnitt, schreib das hier hin. War wirklich alles beurteilbar, schreib genau: keine
@@ -5413,6 +5560,7 @@ SO SIEHT EINE RICHTIGE ANTWORT AUS
 \`\`\`
 ART: Efeutute
 BOTANISCH: Epipremnum aureum
+SPEICHER: kein Speicher
 TYP: Kletterpflanze
 SICHERHEIT: mittel
 FEHLT: Blattunterseite, Blattachseln; Nahaufnahme des Stängelansatzes würde die Bestimmung sichern
@@ -5557,6 +5705,7 @@ const ANTWORT_SCHLUESSEL = [
   ['sicher',  ['sicherheit','sicherheit der bestimmung','confidence','gewissheit']],
   ['fehlt',   ['fehlt','fehlende angaben','was fehlt','unklar','zusatzfoto','weiteres foto','missing']],
   ['typ',     ['typ','wuchsform','wuchs','form','habitus','growth form','type']],
+  ['speicher',['speicher','wasserspeicher','speicherorgan','storage']],
   ['klasse',  ['giessklasse','gießklasse','wasserbedarf klasse','klasse','bedarf','watering class']],
   ['frost',   ['frost','frosthaerte','frosthärte','winterhart','kaelte','kälte','minimaltemperatur','hardiness']],
   ['verw',    ['verwechslung','verwechslungsgefahr','ähnliche arten','aehnliche arten','similar']],
@@ -10375,8 +10524,22 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.8.4';
+const FASSUNG = '3.9.0';
 const PATCHNOTES = [
+  {
+    nr: '3.9.0', datum: '2026-09-06', titel: 'Gießen lernt mit',
+    neu: [
+      'Die App lernt aus deinen Rückmeldungen. „Noch feucht“ verlängert den Gießabstand, „War staubtrocken“ verkürzt ihn — beides wirkt sofort, aber höchstens einmal je Gießzyklus.',
+      'Dreizehn Gießgruppen unter den Klassen S, A, B und C. Sie ändern nichts an der Klasse, sondern bestimmen, wie schnell in welche Richtung gelernt wird: eine Sansevieria darf zügig seltener gegossen werden, bei einer Begonie ist genau das der gefährliche Weg.',
+      'Am Ende des Rundgangs steht eine Karte mit dem, was aufgefallen ist. Trocknet eine Pflanze dauerhaft schneller aus, als der Topf hergibt, steht dort der Verdacht — Wurzelbund, Erde, die kein Wasser mehr annimmt, oder ein zu kleiner Topf. „Umgetopft“ setzt das Gelernte zurück: neue Erde ist eine neue Pflanze.'
+    ],
+    besser: [
+      'Die Karte im Gießmodus zeigt nur noch, was an dieser Pflanze gerade anders ist. Der Satz zur Fingerprobe stand auf jeder Karte gleich; er sitzt jetzt im Streifen unter dem Namen und lässt sich antippen.',
+      'Der Probesatz passt zur Pflanze: im Anstau wird der Wasserstand angesehen, eine Bromelie wird im Trichter gegossen, ein Kaktus wird gewogen. Eine Fingerprobe bei dauernass stehendem Substrat konnte nie etwas messen.',
+      'Kleineres Foto, Ort direkt beim Namen — die ganze Karte passt jetzt ohne Scrollen auf ein Handy.',
+      'Beim Anlegen fragt der Prompt nach dem Wasserspeicher. Die Gruppe bestimmt weiterhin die App aus der Gattung; die Angabe fängt nur auf, was die Gattungstabelle nicht kennt.'
+    ]
+  },
   {
     nr: '3.8.4', datum: '2026-09-06', titel: 'Am Finger bleiben',
     besser: [
@@ -12106,6 +12269,11 @@ function intervallVon(p){
     const f = saisonFaktor();
     if(f !== 1) basis = basis * f;
   }
+  /* Gelerntes aus den Rueckmeldungen. Es sitzt vor dem Zustand: ein
+     kranker oder frisch umgetopfter Stand ist voruebergehend, der
+     gelernte Rhythmus gilt darunter weiter. */
+  if(typeof lernFaktorVon === 'function' && (typeof gruppeLernt !== 'function' || gruppeLernt(p)))
+    basis = basis * lernFaktorVon(p.id);
   basis = Math.max(1, Math.round(basis));
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
   if(z && z.def && z.def.f && z.def.f !== 1) basis = Math.max(1, Math.round(basis * z.def.f));
@@ -17813,7 +17981,11 @@ async function alSpeichern(){
     eltern:null, linie:null, seit:'selbst angelegt',
     notiz: $('#f-notiz').value.trim(), todo:[], log:[],
     giessart: $('#f-giessart').value || '',
-    wichtig: $('#f-wichtig').value.trim()
+    wichtig: $('#f-wichtig').value.trim(),
+    /* Auffangnetz fuer Gattungen, die die Tabelle nicht kennt.
+       Ausgewertet wird es nur dann — steht die Gattung in
+       GRUPPEN_GATTUNG, gewinnt sie. */
+    speicher: (letzteKiAntwort && letzteKiAntwort.speicher) || ''
   };
   /* Der Giftwert wird genau hier festgelegt und danach nur noch gelesen.
      Steht die Art in der Tabelle, gilt sie als geprüft; sonst ist der
@@ -20188,9 +20360,10 @@ let gmListe = [], gmIndex = 0, gmErledigt = 0, gmUebersprungen = 0;
 function gmStarten(){
   gmListe = giessListe();
   if(!gmListe.length){ alert('Gerade ist nichts fällig. Schön.'); return; }
-  gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0;
+  gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0; gmBefunde = [];
   modalAuf('giessmodus');
 }
+let gmBefunde = [];
 function gmBeenden(){ modalZu('giessmodus'); }
 function gmWeiter(){
   gmIndex++;
@@ -20210,26 +20383,52 @@ function gmZeichnen(){
     : st.rest < 0 ? `${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig`
     : st.rest === 0 ? 'Heute dran' : `In ${st.rest} ${st.rest===1?'Tag':'Tagen'} dran`;
 
+  /* Die Karte zeigt, was an dieser Pflanze gerade anders ist. Der
+     Satz zur Probe stand frueher auf jeder Karte gleich — nach der
+     zweiten Pflanze liest ihn niemand mehr, er nahm aber die Stelle
+     ein, an der das Besondere haette stehen muessen. Er sitzt jetzt
+     im Streifen unter dem Namen und laesst sich antippen. */
+  const gr = gruppeVon(p);
+  const ln = lernStand(p);
+  const kasten = [];
+  if(stopp > 0) kasten.push({warn:true, text:'Nicht gießen. Wegen „' + z.def.name + '“ noch ' + stopp + (stopp===1?' Tag':' Tage') + ' trocken lassen.'});
+  else {
+    if(z.code !== 'gesund') kasten.push({warn:false, text: z.def.name + (z.def.kurz ? ' — ' + z.def.kurz : '')});
+    if(Math.abs(ln.faktor - 1) > 0.02){
+      const roh = giessIntervall(p), ohne = Math.max(1, Math.round(roh / ln.faktor));
+      if(ohne !== roh) kasten.push({warn:false, text:'Aus deinen Rückmeldungen: ' + roh + ' statt ' + ohne + ' Tage.'});
+    }
+    const v = umtopfVerdacht(p);
+    if(v) kasten.push({warn:true, text:v.text});
+    if(p.sonne === 'voll' && typeof sommer === 'function' && sommer() && p.klasse !== 'S')
+      kasten.push({warn:false, text:'Voller Sonne — trocknet an heißen Tagen schneller als der Rhythmus.'});
+  }
+
   $('#gm-inhalt').innerHTML = `
     <p class="gm-zaehler">${gmIndex+1} von ${gmListe.length}</p>
-    <div class="gm-bild">${foto?`<img src="${foto}" alt="">`:'<span class="gm-kein">kein Foto</span>'}</div>
-    <h3>${esc(nice(p))}</h3>
-    <p class="gm-art">${esc(p.art)}</p>
+    <div class="gm-kopf">
+      <div class="gm-bild klein">${foto?`<img src="${foto}" alt="">`:'<span class="gm-kein">kein Foto</span>'}</div>
+      <div class="gm-kopf-text">
+        <h3>${esc(nice(p))}</h3>
+        <p class="gm-art">${esc(p.art)}${gmStandort(p)?' · '+esc(gmStandort(p)):''}</p>
+      </div>
+    </div>
     <p class="gm-lage ${st.stand==='over'||st.stand==='stopp'?'warn':''}">${esc(lage)}${st.letzte?` · zuletzt vor ${st.tage} ${st.tage===1?'Tag':'Tagen'}`:''}</p>
-    ${stopp>0
-      ? `<p class="gm-hinweis warn"><b>Nicht gießen.</b> Wegen „${esc(z.def.name)}“ noch ${stopp} ${stopp===1?'Tag':'Tage'} trocken lassen.</p>`
-      : `<p class="gm-hinweis">${esc(giessHinweisFuer(p).text)}</p>`}
-    ${z.code!=='gesund' && stopp<=0 ? `<p class="gm-zustand">${esc(z.def.name)} — ${esc(z.def.kurz||'')}</p>` : ''}
-    <p class="gm-wo">${esc(gmStandort(p))}</p>`;
+    <button type="button" class="gm-chip" data-gm-probe="1" aria-expanded="false">${esc(p.klasse + ' · ' + gr.name)}${gr.geraten?' <i>geschätzt</i>':''}</button>
+    <p class="gm-probe" hidden>${esc(giessHinweisFuer(p).text)}</p>
+    ${kasten.map(k=>`<p class="gm-hinweis${k.warn?' warn':''}">${esc(k.text)}</p>`).join('')}`;
 
   $('#gm-knoepfe').innerHTML = stopp > 0
     ? `<button class="gm-nein" data-gm="nein">Verstanden, nicht gegossen</button>`
     : `${(duengImGiesswasser() && duengStatus(p).stand === 'over')
         ? `<label class="gm-dueng"><input type="checkbox" id="gm-mit-duenger"> Mit Dünger gießen</label>` : ''}
        <button class="gm-ja" data-gm="ja">${giessTat(p)}</button>
-       <button class="gm-nein" data-gm="nein">Noch feucht${
+       ${gruppeLernt(p) ? `<div class="gm-zwei">
+         <button class="gm-nein" data-gm="trocken">War staubtrocken</button>
+         <button class="gm-nein" data-gm="nein">Noch feucht</button>
+       </div>` : `<button class="gm-nein" data-gm="nein">Noch feucht${
          (typeof feuchtFrist === 'function' && feuchtFrist(p) > 1)
-           ? ` <i>· ${feuchtFrist(p)} Tage Ruhe</i>` : ''}</button>
+           ? ` <i>· ${feuchtFrist(p)} Tage Ruhe</i>` : ''}</button>`}
        <button class="gm-spaeter" data-gm="spaeter">Später</button>`;
   $('#gm-fort').style.width = ((gmIndex)/gmListe.length*100).toFixed(1)+'%';
 }
@@ -20257,7 +20456,13 @@ function giessHinweisFuer(p){
   const med = (typeof mediumVon === 'function') ? mediumVon(p) : null;
   if(med) return { warn:false, text: med.text };
 
-  const probe = winter ? (kl.probeWinter || kl.probe) : kl.probe;
+  /* Der Satz kommt aus der Gruppe, nicht aus der Klasse: eine
+     Karnivore im Anstau hat keine Fingerprobe, eine Bromelie wird im
+     Trichter gegossen, ein Kaktus wird gewogen. Im Winter behaelt die
+     Klasse ihren eigenen Satz, wo sie einen hat. */
+  const g = (typeof gruppeVon === 'function') ? gruppeVon(p) : null;
+  const probe = winter ? (kl.probeWinter || (g && g.probe) || kl.probe)
+                       : ((g && g.probe) || kl.probe);
   if(probe) teile.push(probe);
 
   /* Anstau-Text nur, wenn die Pflanze auch wirklich Klasse S ist.
@@ -20293,22 +20498,50 @@ function gmStandort(p){
 
 function gmZeichnenEnde(){
   const rest = gmUebersprungen;
+  /* Was unterwegs aufgefallen ist, steht hier — mit Begruendung und
+     mit dem Knopf, der das Gelernte zuruecksetzt. Neue Erde ist eine
+     neue Pflanze. */
+  const befunde = (gmBefunde || []).map(b=>`
+    <div class="gm-befund">
+      <p class="gm-befund-name">${esc(b.name)}</p>
+      <p class="gm-befund-text">${esc(b.text)}</p>
+      <button type="button" class="gm-klein" data-gm="umgetopft" data-id="${esc(b.id)}">Umgetopft</button>
+    </div>`).join('');
   $('#gm-inhalt').innerHTML = `
     <p class="gm-zaehler">Fertig</p>
     <div class="gm-fertig">✓</div>
     <h3>Durch</h3>
     <p class="gm-art">${gmErledigt} ${gmErledigt===1?'Pflanze':'Pflanzen'} gegossen${rest?`, ${rest} übersprungen`:''}.</p>
+    ${befunde ? `<p class="gm-hinweis">${gmBefunde.length===1?'Eine Pflanze ist aufgefallen':gmBefunde.length + ' Pflanzen sind aufgefallen'}:</p>${befunde}` : ''}
     <p class="gm-hinweis">Übersprungene bleiben in der Liste und tauchen morgen wieder auf.</p>`;
   $('#gm-knoepfe').innerHTML = `<button class="gm-ja" data-gm="zu">Schließen</button>`;
   $('#gm-fort').style.width = '100%';
 }
 
 document.addEventListener('click', e=>{
+  const c = e.target.closest('[data-gm-probe]');
+  if(c){
+    const t = c.parentElement && c.parentElement.querySelector('.gm-probe');
+    if(t){ t.hidden = !t.hidden; c.setAttribute('aria-expanded', t.hidden ? 'false' : 'true'); }
+    return;
+  }
   const b = e.target.closest('[data-gm]'); if(!b) return;
   const a = b.dataset.gm;
   if(a === 'zu'){ gmBeenden(); return; }
+  if(a === 'umgetopft'){
+    const id = b.dataset.id;
+    if(id && typeof lernZuruecksetzen === 'function') lernZuruecksetzen(id);
+    gmBefunde = (gmBefunde || []).filter(x=>x.id !== id);
+    gmZeichnenEnde();
+    return;
+  }
+  if(a === 'probe'){ return; }
   const p = gmListe[gmIndex];
-  if(a === 'ja'){
+  /* „War staubtrocken" ist auch gegossen — nur mit der Meldung, dass
+     der Abstand zu lang war. Deshalb derselbe Weg wie „Gegossen",
+     davor der Lernschritt nach unten. */
+  if(a === 'trocken' && p) lernSchritt(p, 'runter');
+  if(a === 'ja' || a === 'trocken'){
     if(giessLog(p.id)[0] !== iso(HEUTE)) giessen(p.id);
     /* Ein Antippen, zwei Einträge: wer mit Dünger giesst, hat beides
        getan. Der Haken erscheint nur, wenn die Pflanze auch fällig war
@@ -20318,6 +20551,14 @@ document.addEventListener('click', e=>{
     gmErledigt++;
   }
   if(a === 'nein' || a === 'spaeter') gmUebersprungen++;
+  if(a === 'nein' && p) lernSchritt(p, 'hoch');
+  /* Was am Ende auf der Karte steht, wird hier gesammelt: unterwegs
+     unterbricht eine Umtopfmeldung genau die Bewegung, die der
+     Rundgang herstellen soll. */
+  if(p && (a === 'ja' || a === 'trocken' || a === 'nein')){
+    const v = (typeof umtopfVerdacht === 'function') ? umtopfVerdacht(p) : null;
+    if(v && !gmBefunde.some(b=>b.id === p.id)) gmBefunde.push({id:p.id, name:nice(p), text:v.text});
+  }
   /* „Noch feucht" ist eine echte Rückmeldung über die Pflanze und wird
      gespeichert. „Später" sagt nur etwas über den Moment aus und zählt
      deshalb nicht mit. */
@@ -20367,6 +20608,72 @@ gmKnopfAktualisieren();
    passt der hinterlegte Rhythmus nicht zu ihrem Standort. Die App
    verschiebt dann nichts von selbst, sondern fragt nach — und höchstens
    bis vier Tage über den ursprünglichen Wert hinaus. */
+/* ══════════════════ Der Lernfaktor ══════════════════
+   `giessSchub` verschiebt einen einzelnen Termin und ändert nichts am
+   Rhythmus — das war der alte Weg und bleibt, wofür er gut ist. Der
+   Lernfaktor ist das andere: er ändert den Abstand selbst.
+
+   Zwei Rückmeldungen bewegen ihn. „Noch feucht" heißt: der Abstand
+   ist zu kurz. „War staubtrocken" heißt: er ist zu lang. Um wie viel,
+   entscheidet die Gruppe — und zwar ungleich in beide Richtungen.
+
+   Gelernt wird höchstens einmal je Gießzyklus. Zehnmal „noch feucht"
+   in derselben Wartezeit ist eine Beobachtung, nicht zehn. */
+function lernFaktorVon(id){
+  const e = S.zustand && S.zustand[id];
+  const f = e && e.lernFaktor;
+  return (typeof f === 'number' && f > 0) ? f : 1;
+}
+function lernStand(p){
+  const g = gruppeVon(p);
+  const f = lernFaktorVon(p.id);
+  return {faktor:f, unten: f <= g.min + 0.001, oben: f >= g.max - 0.001};
+}
+/* Richtung 'hoch' verlängert den Abstand, 'runter' verkürzt ihn. */
+function lernSchritt(p, richtung){
+  if(!p || !gruppeLernt(p)) return false;
+  if(p.intervallEigen === true) return false;
+  const g = gruppeVon(p);
+  const e = S.zustand[p.id] || (S.zustand[p.id] = {});
+  /* Ein Zyklus ist die Zeit bis zum nächsten Gießen. Solange kein
+     neuer Termin dazugekommen ist, zählt dieselbe Beobachtung weiter
+     als eine. */
+  const marke = (typeof giessLog === 'function' ? (giessLog(p.id)[0] || '') : '') + '|' + richtung;
+  if(e.lernMarke === marke) return false;
+  const alt = lernFaktorVon(p.id);
+  const neu = Math.max(g.min, Math.min(g.max, alt * (richtung === 'hoch' ? g.hoch : g.runter)));
+  e.lernMarke = marke;
+  e.lernFaktor = neu;
+  if(richtung === 'runter') e.trockenZahl = (e.trockenZahl || 0) + 1;
+  else e.trockenZahl = 0;
+  sichern();
+  return Math.abs(neu - alt) > 0.001;
+}
+/* Neue Erde ist eine neue Pflanze: was über den alten Ballen gelernt
+   wurde, gilt für den neuen nicht. */
+function lernZuruecksetzen(id){
+  const e = S.zustand[id];
+  if(!e) return;
+  delete e.lernFaktor; delete e.lernMarke; delete e.trockenZahl;
+  sichern();
+}
+/* Was ein dauerndes Anschlagen bedeutet — je Gruppe verschieden.
+   Ohne Anschlag gibt es keinen Verdacht. */
+function umtopfVerdacht(p){
+  const g = gruppeVon(p);
+  const st = lernStand(p);
+  const e = (S.zustand && S.zustand[p.id]) || {};
+  if(st.unten && (e.trockenZahl || 0) >= 2){
+    if(g.verdacht === 'wurzelbund')
+      return {art:'wurzelbund', text:'Trocknet schneller aus, als der Topf hergibt. Meist Wurzelbund oder Erde, die kein Wasser mehr annimmt.'};
+    if(g.verdacht === 'topf')
+      return {art:'topf', text:'Trocknet ungewöhnlich schnell für ihre Art. Bei Speicherpflanzen heißt das fast immer: der Topf ist zu klein.'};
+  }
+  if(st.oben && g.verdacht === 'substrat')
+    return {art:'substrat', text:'Bleibt dauerhaft zu lange nass. Bei Rinde und lockerem Substrat heißt das: es ist zersetzt und muss erneuert werden.'};
+  return null;
+}
+
 const FEUCHT_SCHWELLE = 2;
 const SCHUB_DECKEL = 4;
 
