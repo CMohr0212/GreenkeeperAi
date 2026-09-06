@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.8.2 — 6. September 2026
+**Dem Finger folgen**
+
+### Besser
+- Der Grundriss lässt sich im Vollbild stufenlos schieben. Der Umrechnungswert für einen Wisch kam aus der Raumbreite in Zentimetern und der Kastenbreite — ohne den Zuschnitt des Ausschnitts auf das Verhältnis der Fläche, und für die Senkrechte wurde derselbe Wert genommen wie für die Waagerechte. Beides zusammen machte einen Wisch um ein Vielfaches zu groß: der Grundriss sprang ans Ende seines Spielraums, statt dem Finger zu folgen, und ließ sich nur zwischen zwei Ansichten hin- und herschieben.
+- Was dasselbe sagt, steht in einem Kasten. Unter „Was nicht zusammenpasst" standen drei Meldungen untereinander, alle mit derselben Überschrift „für Katzen giftig", nur weil die Begründungen verschieden lauteten. Gruppiert wird jetzt nach Tier und Stufe; die Begründungen stehen zusammen hinter dem Aufklappen, jede mit den Pflanzen, die sie betrifft. „Stark giftig" und „giftig" bleiben getrennt — das sind zwei verschiedene Aussagen.
+
+---
+
 ## 3.8.1 — 5. September 2026
 **Wieder im richtigen Verhältnis**
 

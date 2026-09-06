@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.8.1', w.__T('FASSUNG') === '3.8.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.8.2', w.__T('FASSUNG') === '3.8.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5328,6 +5328,92 @@ setTimeout(async () => {
     html.indexOf('planMessBald = setTimeout(planNeuMessen, 150);') !== -1);
   pruef('Und am Verlassen des Vollbilds',
     html.indexOf('    planNeuMessen();\n    if(typeof zoomMinimum ===') !== -1);
+
+
+  /* ══════════ Schieben im Vollbild ══════════
+     Ein Wisch soll dem Finger folgen. Der Umrechnungswert kam vorher
+     aus der Raumbreite in Zentimetern und der Kastenbreite — ohne den
+     Zuschnitt des Ausschnitts und ohne eigenen Wert für die
+     Senkrechte; ein Wisch sprang damit ans Ende des Spielraums. */
+  pruef('Ein Bildpunkt ist so viel wert, wie der Ausschnitt hergibt',
+    w.__T("schubProPunkt({width:800, height:600}, {vW:400, vH:300})") === 0.5,
+    String(w.__T("schubProPunkt({width:800, height:600}, {vW:400, vH:300})")));
+  /* Passt der Ausschnitt nicht genau, gewinnt die kleinere Skala —
+     sonst liefe die Zeichnung in einer Richtung aus dem Bild. */
+  pruef('Bei ungleichem Zuschnitt gewinnt die kleinere Skala',
+    w.__T("schubProPunkt({width:800, height:600}, {vW:400, vH:600})") === 1);
+  pruef('Quer und hoch gilt derselbe Wert',
+    w.__T(`(function(){
+      const M = {vW:400, vH:600}, k = {width:800, height:600};
+      return schubProPunkt(k, M) === schubProPunkt(k, M);
+    })()`) === true);
+  pruef('Ohne Maße wird nicht geschoben',
+    w.__T("schubProPunkt(null, {vW:400, vH:300})") === 0
+    && w.__T("schubProPunkt({width:0, height:0}, {vW:400, vH:300})") === 0);
+  pruef('Der Schub hängt am neuen Wert',
+    html.indexOf('const proPunkt = schubProPunkt(svg.getBoundingClientRect(), M);') !== -1
+    && html.indexOf('pPanY = schiebt.py - (ev.clientY - schiebt.y) * proPunkt;') !== -1);
+
+  /* ══════════ Eine Karte je Tier und Stufe ══════════
+     Drei Kästen untereinander, alle mit „giftig für Katzen“, nur weil
+     die Begründungen verschieden lauteten. */
+  {
+    /* Eigene Pflanzen anlegen statt vorhandene umbiegen: `allePflanzen()`
+       gibt bei jedem Aufruf frische Objekte zurück, ein daran gesetztes
+       Feld wäre beim nächsten Aufruf wieder fort — die Prüfung liefe
+       dann gegen lauter „ungeprüft“ und hielte jeden Fehler für richtig. */
+    w.__T(`(function(){
+      raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      const g = ['Grund A der Prüfung.', 'Grund B der Prüfung.', 'Grund A der Prüfung.'];
+      ['PG1', 'PG2', 'PG3'].forEach(function(id, i){
+        S.eigene.push({id:id, name:'Prüfgift ' + id, art:'Pruefgewaechs pruefensis',
+          klasse:'B', gift:{status:'fest', quelle:'pruefstand', beleg:'-',
+            grund:g[i], tiere:{katze:'mittel'}}});
+      });
+      S.eigene.push({id:'PG4', name:'Prüfgift PG4', art:'Pruefgewaechs pruefensis',
+        klasse:'B', gift:{status:'fest', quelle:'pruefstand', beleg:'-',
+          grund:'Grund C der Prüfung.', tiere:{katze:'schwer'}}});
+      ['PG1', 'PG2', 'PG3', 'PG4'].forEach(function(id, i){
+        pflanzeSetzen(id, raum().id, 60 + i*60, 120);
+      });
+      S.tiere = {aktiv:true, arten:['katze']};
+      sichern();
+    })()`);
+    const grp = JSON.parse(w.__T('JSON.stringify(giftGruppen(raum()))'));
+    const katzeGiftig = grp.filter(g=>g.stufe === 'mittel');
+    pruef('Die Prüfpflanzen stehen giftig im Raum',
+      katzeGiftig.length === 1,
+      JSON.stringify(grp.map(g=>g.stufe + ':' + g.wer.length)));
+    /* Gefragt ist, dass alle drei in einem Kasten landen — nicht, dass
+       sonst niemand darin steht: im Prüfraum stehen aus früheren
+       Blöcken noch andere Pflanzen. */
+    const drin = katzeGiftig.length === 1
+      ? katzeGiftig[0].wer.map(x=>x.name).join('|') : '';
+    pruef('Verschiedene Gründe stehen in einem Kasten',
+      katzeGiftig.length === 1
+      && ['PG1', 'PG2', 'PG3'].every(id=>drin.indexOf('Prüfgift ' + id) !== -1),
+      JSON.stringify(grp.map(g=>g.stufe + ':' + g.wer.length + ':' + (g.gruende||[]).length)));
+    pruef('Eine andere Stufe behält ihren eigenen Kasten',
+      grp.filter(g=>g.stufe === 'schwer').length === 1);
+    pruef('Beide Gründe sind aufgehoben',
+      katzeGiftig.length === 1
+      && katzeGiftig[0].gruende.some(e=>e.grund === 'Grund A der Prüfung.')
+      && katzeGiftig[0].gruende.some(e=>e.grund === 'Grund B der Prüfung.'));
+    const warnHtml = w.__T('planWarnungen()');
+    pruef('Der Bericht zeigt einen Kasten je Stufe',
+      (warnHtml.match(/Pflanzen sind für Katzen giftig/g) || []).length === 1,
+      String((warnHtml.match(/für Katzen/g) || []).length) + ' mal „für Katzen“');
+    pruef('Und nennt hinter dem Aufklappen, wen welcher Grund betrifft',
+      warnHtml.indexOf('Grund A der Prüfung.') !== -1
+      && warnHtml.indexOf('Grund B der Prüfung.') !== -1
+      && warnHtml.indexOf('Prüfgift PG2') !== -1);
+    w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'PG'; });
+      ['PG1','PG2','PG3','PG4'].forEach(function(id){ if(S.orte) delete S.orte[id]; });
+      raum().moebel = []; SONNE_CACHE = {}; SONNE_CACHE_SIG = '';
+      sichern();
+    })()`);
+  }
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

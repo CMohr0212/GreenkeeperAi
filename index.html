@@ -10375,8 +10375,15 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.8.1';
+const FASSUNG = '3.8.2';
 const PATCHNOTES = [
+  {
+    nr: '3.8.2', datum: '2026-09-06', titel: 'Dem Finger folgen',
+    besser: [
+      'Der Grundriss lässt sich im Vollbild stufenlos schieben. Ein Wisch sprang bisher ans Ende des Spielraums — man kam nur zwischen zwei Ansichten hin und her.',
+      'Was dasselbe sagt, steht in einem Kasten: „giftig für Katzen“ stand dreimal untereinander, nur weil die Begründungen verschieden lauteten. Die Begründungen stehen jetzt zusammen hinter dem Aufklappen, jede mit den Pflanzen, die sie betrifft. Eine andere Stufe behält ihren eigenen Kasten.'
+    ]
+  },
   {
     nr: '3.8.1', datum: '2026-09-05', titel: 'Wieder im richtigen Verhältnis',
     besser: [
@@ -19028,10 +19035,23 @@ function giftGruppen(r){
       const g = giftFuer(p, tier);
       const st = GIFT_STUFEN[g.stufe];
       if(!st || st.rang === 0) return;
-      const schluessel = tier + '|' + g.stufe + '|' + g.grund;
+      /* Gruppiert wird nach Tier und Stufe, nicht nach dem Grundtext.
+         Sonst standen drei Kaesten untereinander, die alle dasselbe
+         sagten — „giftig fuer Katzen“ —, nur weil die Begruendungen
+         verschieden lauteten. Die Begruendung steckt hinter dem
+         Aufklappen; was oben steht, ist bei gleicher Stufe dasselbe,
+         und was dasselbe sagt, gehoert in einen Kasten. Eine andere
+         Stufe bekommt weiter ihren eigenen: „stark giftig“ und
+         „giftig“ duerfen nicht zu einer Zeile verschmelzen. */
+      const schluessel = tier + '|' + g.stufe;
       if(!gruppen.has(schluessel))
-        gruppen.set(schluessel, {tier:t, stufe:g.stufe, wort:st.wort, grund:g.grund, wer:[]});
-      gruppen.get(schluessel).wer.push({name:nice(p), wo});
+        gruppen.set(schluessel, {tier:t, stufe:g.stufe, wort:st.wort,
+          grund:g.grund, gruende:[], wer:[]});
+      const gru = gruppen.get(schluessel);
+      gru.wer.push({name:nice(p), wo});
+      let eintrag = gru.gruende.find(x=>x.grund === g.grund);
+      if(!eintrag){ eintrag = {grund:g.grund, wer:[]}; gru.gruende.push(eintrag); }
+      eintrag.wer.push(nice(p));
     });
   });
   return Array.from(gruppen.values());
@@ -19044,11 +19064,20 @@ function giftGruppeHTML(gr){
     ? `${n === 1 ? 'Eine Pflanze ist' : n + ' Pflanzen sind'} für ${esc(gr.tier.mehrzahl)} nicht geprüft und ${n === 1 ? 'steht' : 'stehen'} erreichbar.`
     : `${n === 1 ? 'Eine Pflanze ist' : n + ' Pflanzen sind'} für ${esc(gr.tier.mehrzahl)} ${esc(gr.wort)} und ${n === 1 ? 'steht' : 'stehen'} erreichbar.`;
   /* Der Grund steckt hinter dem Aufklappen. Wer ihn einmal gelesen
-     hat, braucht ihn nicht bei jedem Blick auf den Raum wieder. */
+     hat, braucht ihn nicht bei jedem Blick auf den Raum wieder.
+     Sind mehrere Gruende zusammengekommen, steht vor jedem, wen er
+     betrifft — sonst wuesste niemand, welcher Satz zu welcher
+     Pflanze gehoert. */
+  const gruende = (gr.gruende && gr.gruende.length ? gr.gruende
+    : [{grund: gr.grund, wer: []}]);
+  const warum = gruende.length === 1
+    ? `<span class="warn-grund">${esc(gruende[0].grund)}</span>`
+    : gruende.map(e=>`<span class="warn-grund"><b>${esc(e.wer.join(', '))}</b>: `
+        + `${esc(e.grund)}</span>`).join('');
   return `<div class="alert">${kopf}
     <span class="warn-wer">${namen}</span>
     <details class="warn-mehr"><summary>Warum</summary>
-      <span class="warn-grund">${esc(gr.grund)}</span></details></div>`;
+      ${warum}</details></div>`;
 }
 
 function planWarnungen(){
@@ -19823,6 +19852,24 @@ function zoomSetzen(f, mitte){
   grenzenPruefen();
   planRender();
 }
+/* Was ein Bildschirmpunkt in der Zeichnung wert ist.
+   `preserveAspectRatio="xMidYMid meet"` legt den Ausschnitt so ins
+   Bild, dass er ganz hineinpasst — es gewinnt die kleinere der beiden
+   Skalen, und quer wie hoch gilt dieselbe.
+
+   Vorher stand hier ein Wert aus der Raumbreite in Zentimetern und
+   der Kastenbreite: ohne den Zuschnitt des Ausschnitts auf das
+   Verhaeltnis der Flaeche, und fuer die Senkrechte wurde derselbe
+   Wert genommen wie fuer die Waagerechte. Beides zusammen machte
+   einen Wisch um ein Vielfaches zu gross — der Grundriss sprang ans
+   Ende seines Spielraums, statt dem Finger zu folgen, und liess sich
+   nur zwischen zwei Ansichten hin- und herschieben. */
+function schubProPunkt(kasten, M){
+  if(!kasten || !M || !(M.vW > 0) || !(M.vH > 0)) return 0;
+  const skala = Math.min(kasten.width / M.vW, kasten.height / M.vH);
+  return skala > 0 ? 1 / skala : 0;
+}
+
 function grenzenPruefen(){
   const M = planMasse(); if(!M) return;
   /* Verschoben wird von der linken oberen Ecke des Inhalts bis zu dem
@@ -20000,12 +20047,11 @@ flaeche2.addEventListener('pointermove', ev=>{
   }
   if(schiebt && !zieht){
     const svg = document.getElementById('plan-svg'); if(!svg) return;
-    const kasten = svg.getBoundingClientRect();
-    const r = raum();
-    const sk = planSkala()/pZoom, rand = 30*sk;
-    const proPixel = ((r.sp*KACHEL + rand*2)/pZoom) / kasten.width;
-    pPanX = schiebt.px - (ev.clientX - schiebt.x) * proPixel;
-    pPanY = schiebt.py - (ev.clientY - schiebt.y) * proPixel;
+    const M = planMasse(); if(!M) return;
+    const proPunkt = schubProPunkt(svg.getBoundingClientRect(), M);
+    if(!proPunkt) return;
+    pPanX = schiebt.px - (ev.clientX - schiebt.x) * proPunkt;
+    pPanY = schiebt.py - (ev.clientY - schiebt.y) * proPunkt;
     grenzenPruefen();
     planRender();
     ev.preventDefault();
