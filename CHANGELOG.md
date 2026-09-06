@@ -4,6 +4,14 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.8.1 — 5. September 2026
+**Wieder im richtigen Verhältnis**
+
+### Besser
+- Nach dem Verlassen des Vollbilds stand der Grundriss klein in einem viel zu hohen Kasten. Der Ausschnitt der Zeichnung trägt das Verhältnis der Fläche, auf der sie liegt — beim Verlassen wurde gezeichnet, während die Fläche noch die Größe des ganzen Bildschirms hatte, und danach maß niemand mehr nach. Jetzt wird gemessen, wenn die Größe steht. Dasselbe gilt fürs Drehen des Geräts: auch da behielt das Bild bisher das Verhältnis von vorher.
+
+---
+
 ## 3.8.0 — 5. September 2026
 **Weniger auf einmal**
 

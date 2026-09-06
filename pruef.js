@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.8.0', w.__T('FASSUNG') === '3.8.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.8.1', w.__T('FASSUNG') === '3.8.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5310,6 +5310,24 @@ setTimeout(async () => {
     raum().moebel = []; pMWahl = null; pMarken = true;
     sichern(); planAufbau(); planRender();
   })()`);
+
+
+  /* ══════════ Nach dem Größenwechsel neu messen ══════════
+     Der Ausschnitt trägt das Verhältnis der Fläche. Wer aus dem
+     Vollbild kommt, hat noch das Verhältnis des ganzen Bildschirms im
+     Bild — der Grundriss steht dann klein in einem zu hohen Kasten. */
+  w.__T("(function(){ pModus = 'moebel'; planRender(); })()");
+  pruef('Neu messen zeichnet den Grundriss noch einmal',
+    w.__T(`(function(){
+      const f = document.getElementById('plan-flaeche');
+      f.innerHTML = '';
+      planNeuMessen();
+      return f.innerHTML.indexOf('<svg') !== -1;
+    })()`) === true);
+  pruef('Die Fläche hängt am Größenwechsel',
+    html.indexOf('planMessBald = setTimeout(planNeuMessen, 150);') !== -1);
+  pruef('Und am Verlassen des Vollbilds',
+    html.indexOf('    planNeuMessen();\n    if(typeof zoomMinimum ===') !== -1);
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

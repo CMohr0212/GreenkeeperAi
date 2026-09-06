@@ -10375,8 +10375,14 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.8.0';
+const FASSUNG = '3.8.1';
 const PATCHNOTES = [
+  {
+    nr: '3.8.1', datum: '2026-09-05', titel: 'Wieder im richtigen Verhältnis',
+    besser: [
+      'Nach dem Verlassen des Vollbilds stand der Grundriss klein in einem viel zu hohen Kasten: das Bild trug noch das Verhältnis des ganzen Bildschirms. Es wird jetzt neu gemessen, wenn die Größe steht — auch nach dem Drehen des Geräts.'
+    ]
+  },
   {
     nr: '3.8.0', datum: '2026-09-05', titel: 'Weniger auf einmal',
     neu: [
@@ -19846,6 +19852,12 @@ function vollbildAn(an){
   /* Die Flaeche hat jetzt eine andere Groesse — und damit ein anderes
      Zoom-Minimum. Erst nach dem Zeichnen messbar. */
   requestAnimationFrame(()=>{
+    /* Und einen anderen Zuschnitt. Beim Verlassen des Vollbilds wird
+       oben schon einmal gezeichnet, da steht die Fläche aber noch in
+       der Größe von eben: das Bild behielt das Verhältnis des ganzen
+       Bildschirms und der Grundriss stand klein in einem viel zu
+       hohen Kasten. Gemessen wird, wenn die Größe steht. */
+    planNeuMessen();
     if(typeof zoomMinimum === 'function' && pZoom < zoomMinimum())
       zoomSetzen(zoomMinimum());
   });
@@ -19855,9 +19867,21 @@ $('#btn-vollbild-zu').onclick = ()=>vollbildAn(false);
 document.addEventListener('fullscreenchange', ()=>{
   if(!document.fullscreenElement && vollbild) vollbildAn(false);
 });
+/* Der Ausschnitt der Zeichnung trägt das Verhältnis der Fläche, auf
+   der sie liegt. Ändert sich diese Fläche — Gerät gedreht, Vollbild
+   verlassen, Tastatur aufgegangen —, ist das Verhältnis das von
+   vorhin, und niemand zeichnet von sich aus nach. Deshalb hier.
+   Gewartet wird, bis die Größe steht: beim Drehen kommen Dutzende
+   Meldungen, und jede einzeln zu zeichnen wäre Arbeit für nichts. */
+function planNeuMessen(){
+  if(typeof planRender === 'function') planRender();
+}
+let planMessBald = null;
 window.addEventListener('resize', ()=>{
   const quer = document.querySelector('.vb-quer');
   if(quer) quer.hidden = !(vollbild && window.innerHeight > window.innerWidth);
+  clearTimeout(planMessBald);
+  planMessBald = setTimeout(planNeuMessen, 150);
 });
 document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && vollbild) vollbildAn(false); });
 
