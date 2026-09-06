@@ -1798,7 +1798,7 @@ body.vollbild .hinweis-kopf{display:none}
    zurück. Im Kachelmodus wird auf der leeren Fläche gemalt, dort
    gilt weiter `none`; im Vollbild ebenso, da führt die App selbst. */
 #plan-flaeche{border:1px solid var(--line);border-radius:4px;background:var(--paper);padding:10px;overflow:hidden;touch-action:pan-y}
-#plan-flaeche.malt{touch-action:none}
+#plan-flaeche.malt,#plan-flaeche.geschoben{touch-action:none}
 body.vollbild #plan-flaeche{touch-action:none}
 .plan-svg .moebel,.plan-svg .marke,.plan-svg .buendel{touch-action:none}
 .plan-svg{width:100%;height:auto;display:block;user-select:none;-webkit-user-select:none}
@@ -10375,8 +10375,15 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.8.2';
+const FASSUNG = '3.8.3';
 const PATCHNOTES = [
+  {
+    nr: '3.8.3', datum: '2026-09-06', titel: 'Am Finger bleiben',
+    besser: [
+      'Nach dem Vergrößern lässt sich der Grundriss wieder schieben. Der Zug war bisher nach der ersten Bewegung zu Ende, weil unter dem Finger neu gezeichnet wird.',
+      'Geschoben wird jetzt auch außerhalb des Vollbilds. Wer im Rumpf mit zwei Fingern vergrößerte, kam an den Rest des Grundrisses nicht mehr heran. Bei Zoom 1 gehört der Wisch weiter der Seite.'
+    ]
+  },
   {
     nr: '3.8.2', datum: '2026-09-06', titel: 'Dem Finger folgen',
     besser: [
@@ -18826,6 +18833,8 @@ function planRender(){
   $('#plan-flaeche').innerHTML = grundrissSVG();
   /* Nur beim Malen darf die Fläche den senkrechten Wisch behalten. */
   $('#plan-flaeche').classList.toggle('malt', pModus === 'kacheln');
+  /* Ist etwas zu schieben, gehoert der Wisch der Zeichnung. */
+  $('#plan-flaeche').classList.toggle('geschoben', pZoom > 1);
   $('#raum-wahl').innerHTML = raeume().map(x=>
     `<option value="${x.id}"${x.id===S.raumAktiv?' selected':''}>${esc(x.name)}</option>`).join('');
   document.querySelectorAll('[data-pmodus]').forEach(b=>b.classList.toggle('on', b.dataset.pmodus===pModus));
@@ -19870,6 +19879,16 @@ function schubProPunkt(kasten, M){
   return skala > 0 ? 1 / skala : 0;
 }
 
+/* Geschoben wird, sobald etwas ausserhalb des Ausschnitts liegt —
+   also ab dem ersten Zoomschritt, im Vollbild wie im Rumpf. Der
+   Vollbildmodus war hier lange Bedingung; wer im Rumpf mit zwei
+   Fingern vergroesserte, kam an den Rest des Grundrisses nicht mehr
+   heran. Bei Zoom 1 passt alles ins Bild: dann gehoert der Wisch der
+   Seite, damit man an der Zeichnung vorbeikommt. */
+function darfSchieben(){
+  return !zieht && !malt && pZoom > 1;
+}
+
 function grenzenPruefen(){
   const M = planMasse(); if(!M) return;
   /* Verschoben wird von der linken oberen Ecke des Inhalts bis zu dem
@@ -20031,8 +20050,15 @@ flaeche2.addEventListener('pointerdown', ev=>{
     zieht = null; malt = null;
     const [a, b] = [...zeiger.values()];
     kneifStart = {dist: Math.hypot(a.x-b.x, a.y-b.y), zoom: pZoom};
-  } else if(vollbild && !zieht && !malt && pZoom > 1){
+  } else if(darfSchieben()){
     schiebt = {x:ev.clientX, y:ev.clientY, px:pPanX, py:pPanY};
+    /* Der Finger muss an der Flaeche bleiben. Beim Schieben wird bei
+       jeder Bewegung neu gezeichnet, und dabei verschwindet das SVG
+       unter dem Finger: der Browser meldet dann `pointerleave` fuer
+       das Element, das es nicht mehr gibt, und der Zug war nach einer
+       einzigen Meldung zu Ende. Mit dem Fang laufen alle weiteren
+       Meldungen an die Flaeche, gleich was darin ausgetauscht wird. */
+    try{ flaeche2.setPointerCapture(ev.pointerId); }catch(e){}
   }
 }, true);
 
@@ -20058,10 +20084,20 @@ flaeche2.addEventListener('pointermove', ev=>{
   }
 });
 
+/* Beendet wird ein Zug, wenn der Finger hochgeht oder der Browser
+   abbricht — nicht, wenn er den Rand eines Elements verlaesst. Genau
+   das passierte beim Schieben staendig, weil unter dem Finger neu
+   gezeichnet wird. `pointerleave` raeumt darum nur noch auf, was zum
+   Zeigen gehoert, und laesst den laufenden Schub in Ruhe. */
 function zeigerWeg(ev){
   zeiger.delete(ev.pointerId);
   if(zeiger.size < 2) kneifStart = null;
-  if(zeiger.size === 0) schiebt = null;
+  if(zeiger.size === 0 && (!ev || ev.type !== 'pointerleave')){
+    if(schiebt){
+      try{ flaeche2.releasePointerCapture(ev.pointerId); }catch(e){}
+    }
+    schiebt = null;
+  }
 }
 flaeche2.addEventListener('pointerup', zeigerWeg);
 flaeche2.addEventListener('pointercancel', zeigerWeg);

@@ -112,7 +112,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.8.2', w.__T('FASSUNG') === '3.8.2', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.8.3', w.__T('FASSUNG') === '3.8.3', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5414,6 +5414,40 @@ setTimeout(async () => {
       sichern();
     })()`);
   }
+
+
+  /* ══════════ Schieben nach dem Zoom ══════════
+     Beim Schieben wird bei jeder Bewegung neu gezeichnet. Das SVG
+     unter dem Finger verschwindet dabei, der Browser meldet
+     `pointerleave` — und der Zug war nach einer einzigen Meldung zu
+     Ende. Dazu hing das Schieben am Vollbild: wer im Rumpf mit zwei
+     Fingern vergrößerte, kam an den Rest des Grundrisses nicht mehr. */
+  pruef('Bei Zoom 1 gehört der Wisch der Seite',
+    w.__T("(function(){ pZoom = 1; zieht = null; malt = null; return darfSchieben(); })()") === false);
+  pruef('Vergrößert wird geschoben, auch außerhalb des Vollbilds',
+    w.__T("(function(){ vollbild = false; pZoom = 2; return darfSchieben(); })()") === true);
+  pruef('Wer etwas zieht, schiebt nicht nebenbei',
+    w.__T("(function(){ zieht = {typ:'moebel'}; const v = darfSchieben(); zieht = null; return v; })()") === false
+    && w.__T("(function(){ malt = {an:true}; const v = darfSchieben(); malt = null; return v; })()") === false);
+  pruef('Die Fläche nimmt den Wisch, sobald es etwas zu schieben gibt',
+    w.__T("(function(){ pZoom = 2; planRender(); return document.getElementById('plan-flaeche').classList.contains('geschoben'); })()") === true
+    && w.__T("(function(){ pZoom = 1; planRender(); return document.getElementById('plan-flaeche').classList.contains('geschoben'); })()") === false);
+  pruef('Und gibt den Wisch bei Zoom 1 wieder her',
+    html.indexOf('#plan-flaeche.malt,#plan-flaeche.geschoben{touch-action:none}') !== -1);
+  /* Ein verlassener Rand beendet den Schub nicht — sonst reicht ein
+     Neuzeichnen unter dem Finger, um den Zug abzuwürgen. */
+  pruef('Der Rand beendet den Schub nicht',
+    w.__T(`(function(){
+      zeiger.clear(); schiebt = {x:0, y:0, px:0, py:0};
+      zeigerWeg({pointerId:1, type:'pointerleave'});
+      const bleibt = !!schiebt;
+      zeigerWeg({pointerId:1, type:'pointerup'});
+      const weg = !schiebt;
+      return bleibt && weg;
+    })()`) === true);
+  pruef('Der Finger wird für den Schub festgehalten',
+    html.indexOf('flaeche2.setPointerCapture(ev.pointerId);') !== -1);
+  w.__T("(function(){ pZoom = 1; pPanX = 0; pPanY = 0; planRender(); })()");
 
   console.log('\n── Ergebnis ──');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }

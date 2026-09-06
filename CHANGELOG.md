@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.8.3 — 6. September 2026
+**Am Finger bleiben**
+
+### Besser
+- Nach dem Vergrößern lässt sich der Grundriss wieder schieben. Beim Schieben wird bei jeder Bewegung neu gezeichnet — dabei verschwindet die Zeichnung unter dem Finger, der Browser meldet für das verschwundene Element „Zeiger verlassen", und der Zug war nach einer einzigen Bewegung zu Ende. Der Finger wird jetzt an der Fläche festgehalten, und ein verlassener Rand beendet nichts mehr; beendet wird, wenn der Finger hochgeht.
+- Geschoben wird auch außerhalb des Vollbilds. Vergrößern mit zwei Fingern ging dort schon immer, schieben nicht — man sah einen Ausschnitt und kam an den Rest nicht heran. Bei Zoom 1 passt alles ins Bild, dann gehört der Wisch weiter der Seite.
+
+---
+
 ## 3.8.2 — 6. September 2026
 **Dem Finger folgen**
 
