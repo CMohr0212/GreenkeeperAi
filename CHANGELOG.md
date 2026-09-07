@@ -4,7 +4,20 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 3.9.0 — 6. September 2026
+## 3.10.0 — 7. September 2026
+**Gießen lernt mit, Düngen sammelt sich**
+
+### Neu — Düngen
+- **Düngetag statt Einzeltermine.** Für eine einzelne Pflanze rührt niemand drei Liter an. Die App sammelt deshalb: sobald genug Pflanzen zusammenkommen, steht vor der ersten Karte des Rundgangs eine Vorbereitungskarte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute voraussichtlich mitkommt. Zwei Knöpfe: „Kanne ist fertig" und „Heute ohne Dünger". Letzteres verschiebt den ganzen Düngetag; die Zähler laufen weiter, nachdosiert wird nie.
+- **Eine Kanne, eine schwache Dosis.** Der Unterschied zwischen den Pflanzen läuft über die Häufigkeit, nicht über die Konzentration — nur so bleibt es bei einem einzigen Anrühren. Halbe Herstellerdosis als Vorgabe.
+- **Gezählt werden Gießvorgänge, nicht Tage.** Damit folgt der Dünger von selbst der Jahreszeit, dem Wetter, dem Standort und dem gelernten Rhythmus: wer im August alle fünf Tage gießt, düngt öfter als im Oktober, ohne dass eine zweite Jahreskurve gepflegt werden muss.
+- **Grenzen je Gruppe, die immer gewinnen.** Die Reihenfolge ist Sperre, dann Grenze, dann Zähler — nichts weiter unten kann etwas weiter oben aushebeln. Frühestens alle 7 (Dünnblättrige, Epiphyten) bis 21 Tage (Kakteen, Speicher), höchstens 3 bis 16 Gaben je Saison. **Karnivoren nie:** Mineraldünger im Substrat tötet sie, deshalb hängt das an der Gruppe und nicht an einer Einstellung, die man versehentlich umstellt.
+- **Gebucht wird nur, was heute wirklich Wasser bekommen hat.** „Noch feucht" und „Später" bekommen keinen Dünger, und auf einen staubtrocken gemeldeten Ballen gehört keiner — der wartet bis zum nächsten Mal.
+- **Deine Kanne in den Einstellungen:** Größe, was auf der Flasche steht, halbe oder volle Dosis. Daraus rechnet die App die Menge und schlägt vor, ab wie vielen Pflanzen sich ein Düngetag lohnt — die kleinere Zahl aus „was in eine Kanne passt" und „ein Drittel der Sammlung". Beides sichtbar und änderbar.
+
+---
+
+## 3.9.1 — 7. September 2026
 **Gießen lernt mit**
 
 ### Neu
@@ -13,6 +26,8 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - Am Ende des Rundgangs steht eine Karte mit dem, was unterwegs aufgefallen ist. Wer dauerhaft am unteren Anschlag steht und zweimal staubtrocken gemeldet wurde, bekommt den Verdacht ausgesprochen: bei Laub- und dünnblättrigen Pflanzen Wurzelbund oder Erde, die kein Wasser mehr annimmt, bei Speicherpflanzen ein zu kleiner Topf, bei Rindenepiphyten zersetztes Substrat. „Umgetopft" setzt das Gelernte zurück — neue Erde ist eine neue Pflanze. Unterwegs wird damit nicht unterbrochen.
 
 ### Besser
+- Die Karte im Gießmodus steht in einem Rahmen, das Foto ist wieder groß, und die Zeilen haben einen ruhigen Abstand. Vorher schwammen fünf Zeilen frei in der Bildschirmmitte, oben und unten viel Leere, und nichts hielt sie zusammen.
+- Der Zustand wird im Rundgang abgefragt. Bisher stand die Nachfrage nur auf der Startseite unter „Nachfrage fällig" — und erst, wenn die volle Frist des Zustands abgelaufen war: bei „Ausgehungert" sechs Wochen. So lange rechnete die App mit einem Zustand, den es längst nicht mehr gab. Jetzt steht die Frage dort, wo du vor der Pflanze stehst, mit zwei Antworten: „Vorbei" beendet den Zustand, „Bleibt" verschiebt den Stichtag um zwei Wochen.
 - Die Karte im Gießmodus zeigt nur noch, was an dieser Pflanze gerade anders ist. Der Satz zur Fingerprobe stand auf jeder Karte gleich — nach der zweiten Pflanze liest ihn niemand mehr, er nahm aber die Stelle ein, an der das Besondere stehen müsste. Er sitzt jetzt im Streifen unter dem Namen und lässt sich antippen.
 - Der Probesatz passt zur Pflanze statt zur Klasse. Eine Fingerprobe bei dauernass stehendem Substrat konnte nie etwas messen: im Anstau wird der Wasserstand angesehen, eine Bromelie im Trichter gegossen, ein Kaktus gewogen, eine Kannenpflanze bleibt klamm und steht trotzdem nicht im Wasser.
 - Kleineres Foto, Ort direkt beim Namen: die Karte passt ohne Scrollen auf ein Handy. „Später" bleibt leise.

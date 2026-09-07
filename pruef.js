@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.9.0', w.__T('FASSUNG') === '3.9.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.0', w.__T('FASSUNG') === '3.10.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5762,6 +5762,43 @@ setTimeout(async () => {
     pruef('Und der Streifen sagt Anstau',
       inhalt().indexOf('Moorbeet im Anstau') !== -1);
 
+    /* Der Zustand wird dort gefragt, wo man vor der Pflanze steht. */
+    w.__T(`(function(){
+      gmIndex = 0; gmZugefragt = {}; zustandSetzen('GMT1', 'hunger'); gmZeichnen();
+    })()`);
+    pruef('Die Karte fragt den Zustand ab',
+      inhalt().indexOf('gm-zfrage') !== -1
+      && inhalt().indexOf('data-gm-z="vorbei"') !== -1,
+      inhalt().slice(-200));
+    pruef('Der Zustand steht dabei nicht zweimal',
+      (inhalt().match(/Ausgehungert/g) || []).length === 1,
+      String((inhalt().match(/Ausgehungert/g) || []).length));
+    const zv = d.querySelector('[data-gm-z="vorbei"]');
+    if(zv) zv.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Vorbei“ räumt den Zustand weg',
+      w.__T("zustandVon(allePflanzen().find(function(x){return x.id==='GMT1';})).code") === 'gesund',
+      String(w.__T("zustandVon(allePflanzen().find(function(x){return x.id==='GMT1';})).code")));
+    pruef('Und die Frage steht nicht noch einmal da',
+      d.getElementById('gm-inhalt').innerHTML.indexOf('gm-zfrage') === -1);
+    /* „Bleibt" verschiebt den Stichtag und fragt in diesem Durchgang
+       nicht weiter. */
+    w.__T(`(function(){
+      gmZugefragt = {}; zustandSetzen('GMT1', 'hunger'); gmZeichnen();
+    })()`);
+    const zb = d.querySelector('[data-gm-z="bleibt"]');
+    if(zb) zb.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Bleibt“ lässt den Zustand stehen',
+      w.__T("zustandVon(allePflanzen().find(function(x){return x.id==='GMT1';})).code") === 'hunger'
+      && d.getElementById('gm-inhalt').innerHTML.indexOf('gm-zfrage') === -1);
+    w.__T("zustandSetzen('GMT1', 'gesund'); gmZugefragt = {}; gmZeichnen();");
+
+    /* Das Bild traegt die Karte — zu klein wirkte sie verloren. */
+    pruef('Die Karte hat einen Rahmen und ein großes Bild',
+      inhalt().indexOf('gm-karte') !== -1
+      && html.indexOf('.gm-bild.klein{width:104px') !== -1);
+
     /* Der Weg des Fingers: die Knoepfe selbst muessen lernen. Die
        Pruefung darauf, dass lernSchritt funktioniert, sagt nichts
        darueber, ob ihn jemand aufruft. */
@@ -5829,6 +5866,192 @@ setTimeout(async () => {
     pruef('Der Leser kennt SPEICHER',
       JSON.parse(w.__T("JSON.stringify(geminiLesen('SPEICHER: dicker Stamm oder Caudex'))")).speicher
         === 'dicker Stamm oder Caudex');
+  }
+
+  /* ══════════ Düngen ══════════
+     Die Reihenfolge ist der Schutz: Sperre, dann Grenze, dann Zähler.
+     Nichts weiter unten darf etwas weiter oben aushebeln. */
+  {
+    const mk = (id, bot, kl) => w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return p.id !== ${JSON.stringify(id)}; });
+      S.eigene.push({id:${JSON.stringify(id)}, eigen:true, name:${JSON.stringify(id)},
+        art:${JSON.stringify(id)}, botanisch:${JSON.stringify(bot)},
+        klasse:${JSON.stringify(kl)}, sonne:'indirekt', duenger:'normal'});
+      if(S.dueng) delete S.dueng[${JSON.stringify(id)}];
+      if(S.water) delete S.water[${JSON.stringify(id)}];
+      if(S.zustand) delete S.zustand[${JSON.stringify(id)}];
+      sichern();
+      return allePflanzen().find(function(x){ return x.id === ${JSON.stringify(id)}; });
+    })()`);
+    const P = id => "allePflanzen().find(function(x){return x.id==='" + id + "';})";
+    /* Gießvorgänge unterschieben, ohne den ganzen Modus zu durchlaufen. */
+    const giessTage = (id, n) => w.__T(`(function(){
+      if(!S.water) S.water = {};
+      var l = S.water[${JSON.stringify(id)}] = [];
+      for(var i = ${n}; i > 0; i--) l.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      sichern();
+    })()`);
+
+    mk('DG1', 'Monstera deliciosa', 'B');        /* Normales Laub */
+    mk('DG2', 'Dionaea muscipula', 'S');         /* Karnivore */
+    mk('DG3', 'Mammillaria elongata', 'C');      /* Kaktus */
+
+    /* Karnivoren: harte Sperre über die Gruppe, nicht über eine
+       Einstellung, die man versehentlich umstellt. */
+    const gk = JSON.parse(w.__T("JSON.stringify(duengGrenze(" + P('DG2') + "))"));
+    pruef('Karnivoren werden nie gedüngt',
+      gk && gk.code === 'karnivore', JSON.stringify(gk));
+    giessTage('DG2', 30);
+    pruef('Auch nach vielen Gießvorgängen nicht',
+      w.__T("duengFaellig(" + P('DG2') + ") === null") === true);
+    pruef('Und duengen() selbst lässt sich nicht überreden',
+      w.__T("(function(){ duengen('DG2'); return duengLog('DG2').length; })()") === 0);
+
+    /* Der Zähler: jedes n-te Gießen. */
+    giessTage('DG1', 2);
+    pruef('Nach zwei Gießvorgängen ist Laub noch nicht dran',
+      w.__T("duengFaellig(" + P('DG1') + ") === null") === true);
+    giessTage('DG1', 3);
+    pruef('Nach drei Gießvorgängen schon',
+      !!w.__T("duengFaellig(" + P('DG1') + ")"));
+
+    /* Die Grenze schlägt den Zähler: frühestens alle zehn Tage. */
+    w.__T(`(function(){
+      S.dueng = S.dueng || {};
+      S.dueng.DG1 = [iso(new Date(HEUTE.getTime() - 3*86400000))];
+      if(!S.water) S.water = {};
+      S.water.DG1 = [];
+      for(var i = 3; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*3600000)));
+      sichern();
+    })()`);
+    const gz = JSON.parse(w.__T("JSON.stringify(duengGrenze(" + P('DG1') + "))"));
+    pruef('Zu kurz nach der letzten Gabe wird nicht gedüngt',
+      gz && gz.code === 'zufrueh', JSON.stringify(gz));
+    pruef('Und der Zähler kann das nicht überstimmen',
+      w.__T("duengFaellig(" + P('DG1') + ") === null") === true);
+
+    /* Die Höchstzahl je Saison — sie ist die eigentliche Bremse für
+       Pflanzen, die selten gegossen werden. */
+    w.__T(`(function(){
+      S.dueng.DG3 = [];
+      for(var i = 0; i < 4; i++)
+        S.dueng.DG3.push(iso(new Date(HEUTE.getTime() - (30 + i*30)*86400000)));
+      sichern();
+    })()`);
+    const gs = JSON.parse(w.__T("JSON.stringify(duengGrenze(" + P('DG3') + "))"));
+    pruef('Ein Kaktus bekommt nicht mehr als vier Gaben je Saison',
+      gs && (gs.code === 'saison' || gs.code === 'zufrueh'), JSON.stringify(gs));
+    pruef('Die Gruppen begrenzen verschieden',
+      w.__T("DUENG_GRUPPE.wuestenkaktus.proSaison") < w.__T("DUENG_GRUPPE.duennblatt.proSaison")
+      && w.__T("DUENG_GRUPPE.wuestenkaktus.fruehestens") > w.__T("DUENG_GRUPPE.duennblatt.fruehestens"));
+
+    /* Die Kanne: eine Zahl, abgeleitet, nicht verlangt. */
+    w.__T("(function(){ S.giess = S.giess || {}; S.giess.kanne = 3; S.giess.dosis = 5; S.giess.staerke = 'halb'; delete S.giess.dgSchwelle; sichern(); })()");
+    pruef('Die Kanne ergibt eine einzige Zahl', w.__T('duengMenge()') === 7.5,
+      String(w.__T('duengMenge()')));
+    w.__T("S.giess.staerke = 'voll';");
+    pruef('Volle Dosis verdoppelt sie', w.__T('duengMenge()') === 15);
+    w.__T("S.giess.staerke = 'halb';");
+    pruef('Die Kanne fasst etwa zwölf mittlere Pflanzen',
+      w.__T('kannenFassung()') === 12, String(w.__T('kannenFassung()')));
+    /* Die Schwelle wird vorgeschlagen: das Kleinere von Kanne und
+       einem Drittel der Sammlung — kleine Sammlungen warten sonst ewig. */
+    pruef('Die Schwelle bleibt bei kleinen Sammlungen klein',
+      w.__T('duengSchwelle()') <= w.__T('kannenFassung()')
+      && w.__T('duengSchwelle()') >= 2,
+      String(w.__T('duengSchwelle()')));
+    w.__T("S.giess.dgSchwelle = 10;");
+    pruef('Eine eigene Schwelle gewinnt', w.__T('duengSchwelle()') === 10);
+    w.__T("delete S.giess.dgSchwelle;");
+
+    /* Der Weg des Fingers durch die Vorbereitungskarte. */
+    w.__T(`(function(){
+      S.giess.dgArt = 'fluessig'; S.giess.dgSchwelle = 1; S.giess.winterpause = false;
+      if(S.dueng){ delete S.dueng.DG1; }
+      if(!S.water) S.water = {};
+      S.water.DG1 = [];
+      for(var i = 4; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      gmListe = [allePflanzen().find(function(x){return x.id==='DG1';}),
+                 allePflanzen().find(function(x){return x.id==='DG2';})];
+      gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0;
+      gmBefunde = []; gmZugefragt = {}; gmDuengetag = false;
+      gmZeichnen();
+    })()`);
+    const inh = () => d.getElementById('gm-inhalt').innerHTML;
+    pruef('Vor dem Gießen steht die Vorbereitungskarte',
+      inh().indexOf('Heute ist Düngetag') !== -1 && inh().indexOf('7,5 ml') !== -1,
+      inh().slice(0, 200));
+    pruef('Karnivoren stehen dort als Ausnahme, nicht als Kandidat',
+      inh().indexOf('Karnivoren holen sich') !== -1);
+    /* „Heute ohne Dünger" verschiebt den ganzen Tag. */
+    let kn = d.querySelector('[data-gm="dgnein"]');
+    if(kn) kn.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Heute ohne Dünger“ führt direkt zur ersten Pflanze',
+      inh().indexOf('Heute ist Düngetag') === -1 && inh().indexOf('gm-karte') !== -1);
+    const janein = d.querySelector('#gm-knoepfe [data-gm="ja"]');
+    if(janein) janein.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('Ohne Düngetag wird auch nichts gebucht',
+      w.__T("duengLog('DG1').length") === 0, String(w.__T("duengLog('DG1').length")));
+
+    /* Mit Kanne: gebucht wird nur, wer heute wirklich Wasser bekommt. */
+    w.__T(`(function(){
+      if(S.dueng){ delete S.dueng.DG1; }
+      S.water.DG1 = [];
+      for(var i = 4; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      gmIndex = 0; gmDuengetag = false; gmZeichnen();
+    })()`);
+    let kj = d.querySelector('[data-gm="dgja"]');
+    if(kj) kj.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('Die Karte vermerkt den Dünger',
+      inh().indexOf('Mit Dünger') !== -1, inh().slice(-200));
+    const nein = d.querySelector('#gm-knoepfe [data-gm="nein"]');
+    if(nein) nein.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Noch feucht“ bekommt keinen Dünger',
+      w.__T("duengLog('DG1').length") === 0, String(w.__T("duengLog('DG1').length")));
+
+    w.__T(`(function(){
+      if(S.dueng){ delete S.dueng.DG1; }
+      S.water.DG1 = [];
+      for(var i = 4; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      gmIndex = 0; gmDuengetag = 'ja'; gmZeichnen();
+    })()`);
+    const ja2 = d.querySelector('#gm-knoepfe [data-gm="ja"]');
+    if(ja2) ja2.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Gegossen“ am Düngetag bucht beides',
+      w.__T("duengLog('DG1')[0]") === w.__T('iso(HEUTE)')
+      && w.__T("giessLog('DG1')[0]") === w.__T('iso(HEUTE)'),
+      String(w.__T("duengLog('DG1')[0]")));
+
+    /* Auf einen staubtrockenen Ballen gehört kein Dünger. */
+    w.__T(`(function(){
+      if(S.dueng){ delete S.dueng.DG1; }
+      S.water.DG1 = [];
+      for(var i = 4; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      if(S.zustand) delete S.zustand.DG1;
+      gmIndex = 0; gmDuengetag = 'ja'; gmZeichnen();
+    })()`);
+    const tr = d.querySelector('#gm-knoepfe [data-gm="trocken"]');
+    if(tr) tr.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('Auf staubtrockenen Ballen wird nicht gedüngt',
+      w.__T("duengLog('DG1').length") === 0, String(w.__T("duengLog('DG1').length")));
+
+    w.__T(`(function(){
+      gmListe = []; gmIndex = 0; gmDuengetag = false;
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'DG'; });
+      ['DG1','DG2','DG3'].forEach(function(id){
+        if(S.dueng) delete S.dueng[id];
+        if(S.water) delete S.water[id];
+        if(S.zustand) delete S.zustand[id];
+      });
+      delete S.giess.dgSchwelle; S.giess.winterpause = true;
+      sichern();
+    })()`);
   }
 
   console.log('\n── Ergebnis ──');
