@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.0', w.__T('FASSUNG') === '3.10.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.3', w.__T('FASSUNG') === '3.10.3', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3375,8 +3375,22 @@ setTimeout(async () => {
       w.__T("giessTat({giessart:'wasser'})") === 'Wasser gewechselt');
     pruef('Hydrokultur wird aufgefuellt',
       w.__T("giessTat({giessart:'hydro'})") === 'Wasserstand aufgefüllt');
+    /* Sieben Tage sind die aeusserste Grenze, nicht der Normalfall:
+       Wasser kippt in der geheizten Wohnung im Winter genauso schnell
+       wie im Sommer. Vorher stand dort im Winter eine Zehn. */
     pruef('Wasserkultur hat einen eigenen Takt',
-      JSON.stringify(w.__T("GIESSARTEN['wasser'].wechsel")) === '[7,10]');
+      JSON.stringify(w.__T("GIESSARTEN['wasser'].wechsel")) === '[5,7]');
+    pruef('Und wird nie später als nach sieben Tagen gewechselt',
+      w.__T(`(function(){
+        var p = {id:'WKX', klasse:'B', giessart:'wasser'};
+        var werte = [];
+        for(var i = 0; i < 12; i++){
+          var d = new Date(HEUTE.getFullYear(), i, 15);
+          werte.push(Math.round(jahresMischung(GIESSARTEN['wasser'].wechsel[0],
+            GIESSARTEN['wasser'].wechsel[1], jahresLage(d))));
+        }
+        return Math.max.apply(null, werte);
+      })()`) <= 7);
 
     /* Die KI muss es sagen duerfen und die App es lesen koennen. */
     const format = w.__T('ANTWORT_FORMAT');
@@ -5868,6 +5882,51 @@ setTimeout(async () => {
         === 'dicker Stamm oder Caudex');
   }
 
+  /* ══════════ Scrollen in der Sammlung ══════════
+     Sortierung wählen, Gruppierung auf „keine“ — und ab einem
+     bestimmten Punkt prallte man zurück. Ursache: es klappten auch
+     die Karten unterhalb des Blicks zu. Das Dokument schrumpft dabei
+     unter dem Finger, der Browser klemmt den Scrollstand ans neue
+     Ende. */
+  {
+    const karte = (oben, hoehe) => {
+      const el = d.createElement('div');
+      el.className = 'card open';
+      el.getBoundingClientRect = () => ({top: oben, bottom: oben + hoehe,
+        left: 0, right: 100, width: 100, height: hoehe, x: 0, y: oben, toJSON(){return this;}});
+      let offenNoch = true;
+      const echtesRemove = el.classList.remove.bind(el.classList);
+      el.classList.remove = function(k){ if(k === 'open') offenNoch = false; echtesRemove(k); };
+      Object.defineProperty(el, 'offsetHeight', {get: () => offenNoch ? hoehe : 40});
+      return el;
+    };
+    let geschoben = 0;
+    const echtesScrollBy = w.scrollBy;
+    w.scrollBy = (x, y) => { geschoben += y; };
+
+    const oberhalb = karte(-500, 300);
+    const unterhalb = karte(1200, 300);
+    const diff = w.__T('kartenZuklappen')([
+      {isIntersecting:false, target: oberhalb},
+      {isIntersecting:false, target: unterhalb}
+    ]);
+    pruef('Karten oberhalb des Blicks klappen zu',
+      oberhalb.classList.contains('open') === false);
+    pruef('Karten unterhalb bleiben offen — sonst schrumpft der Boden weg',
+      unterhalb.classList.contains('open') === true);
+    pruef('Und der Scrollstand wird genau einmal nachgezogen',
+      diff === 260 && geschoben === -260, diff + ' / ' + geschoben);
+
+    /* Mehrere auf einmal: eine Korrektur, nicht drei. */
+    geschoben = 0;
+    let rufe = 0;
+    w.scrollBy = (x, y) => { rufe++; geschoben += y; };
+    w.__T('kartenZuklappen')([-900, -600, -300].map(o=>({isIntersecting:false, target: karte(o, 200)})));
+    pruef('Drei Karten ergeben eine einzige Korrektur',
+      rufe === 1 && geschoben === -480, rufe + ' / ' + geschoben);
+    w.scrollBy = echtesScrollBy;
+  }
+
   /* ══════════ Düngen ══════════
      Die Reihenfolge ist der Schutz: Sperre, dann Grenze, dann Zähler.
      Nichts weiter unten darf etwas weiter oben aushebeln. */
@@ -5963,6 +6022,95 @@ setTimeout(async () => {
     w.__T("S.giess.dgSchwelle = 10;");
     pruef('Eine eigene Schwelle gewinnt', w.__T('duengSchwelle()') === 10);
     w.__T("delete S.giess.dgSchwelle;");
+    pruef('Und sie lässt sich im Feld setzen',
+      html.indexOf('id="ein-schwelle"') !== -1
+      && html.indexOf('id="schwelle-zurueck"') !== -1);
+
+    /* Wer nie Dünger bekommt, darf die Schwelle nicht hochtreiben:
+       acht Venusfliegenfallen und zwei Efeututen ergäben sonst eine
+       Zahl, die nie zustande kommt. */
+    pruef('Karnivoren zählen bei der Schwelle nicht mit',
+      w.__T("duengbar(" + P('DG2') + ")") === false
+      && w.__T("duengbar(" + P('DG1') + ")") === true);
+    pruef('Und „nie“ an der Pflanze ebenso wenig',
+      w.__T(`(function(){
+        var p = S.eigene.find(function(x){return x.id==='DG1';});
+        var vorher = p.duenger; p.duenger = 'nie';
+        var r = duengbar(allePflanzen().find(function(x){return x.id==='DG1';}));
+        p.duenger = vorher; return r;
+      })()`) === false);
+    /* Die Erwartung gewichtet: ein Kaktus kommt seltener mit als
+       Dünnblättriges. */
+    const erw = w.__T(`(function(){
+      var vorher = S.eigene.slice();
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'ZZ'; });
+      for(var i = 0; i < 8; i++)
+        S.eigene.push({id:'ZZK'+i, eigen:true, name:'K'+i, art:'K'+i,
+          botanisch:'Mammillaria elongata', klasse:'C', duenger:'normal'});
+      var mitKakteen = duengErwartung();
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'ZZK'; });
+      for(var j = 0; j < 8; j++)
+        S.eigene.push({id:'ZZB'+j, eigen:true, name:'B'+j, art:'B'+j,
+          botanisch:'Begonia maculata', klasse:'B', duenger:'normal'});
+      var mitBegonien = duengErwartung();
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'ZZ'; });
+      sichern();
+      return [mitKakteen, mitBegonien];
+    })()`);
+    pruef('Kakteen wiegen weniger als Dünnblättrige',
+      erw[0] < erw[1], erw[0].toFixed(2) + ' / ' + erw[1].toFixed(2));
+
+    /* Die Notbremse: ein Einzelgänger wartet nicht ewig. */
+    w.__T(`(function(){
+      S.giess.dgArt = 'fluessig'; S.giess.winterpause = false;
+      delete S.giess.dgSchwelle; S.giess.dgSchwelle = 5;
+      if(S.dueng) delete S.dueng.DG1;
+      if(!S.water) S.water = {};
+      S.water.DG1 = [];
+      for(var i = 8; i > 0; i--) S.water.DG1.push(iso(new Date(HEUTE.getTime() - i*86400000)));
+      gmListe = [allePflanzen().find(function(x){return x.id==='DG1';})];
+      gmIndex = 0; gmDuengetag = false; gmBefunde = []; gmZugefragt = {};
+      gmZeichnen();
+    })()`);
+    pruef('Die Notbremse löst unter der Schwelle aus',
+      d.getElementById('gm-inhalt').innerHTML.indexOf('Heute ist Düngetag') !== -1,
+      d.getElementById('gm-inhalt').innerHTML.slice(0, 120));
+    /* Aber sie überstimmt keine Sperre. */
+    w.__T(`(function(){
+      S.zustand = S.zustand || {};
+      zustandSetzen('DG1', 'frisch');
+      gmIndex = 0; gmDuengetag = false; gmZeichnen();
+    })()`);
+    /* Der Zustand darf das Giessen nie anhalten — er streckt es nur
+       leicht. Ein Missverstaendnis an dieser Stelle kostet Pflanzen. */
+    pruef('Frisch umgetopft hält das Gießen nicht an',
+      w.__T('ZUSTAENDE.frisch.f') < 1.3 && w.__T('ZUSTAENDE.frisch.f') > 1
+      && w.__T('ZUSTAENDE.frisch.ton') === 'info'
+      && /nicht düngen/.test(w.__T('ZUSTAENDE.frisch.tasks.join("|")'))
+      && !/nicht gießen|kein Gießen/i.test(w.__T('ZUSTAENDE.frisch.tasks.join("|")')),
+      String(w.__T('ZUSTAENDE.frisch.f')));
+    pruef('Und ein Umtopf-Zustand verlängert das Intervall nur wenig',
+      w.__T(`(function(){
+        S.eigene.push({id:'FRX', eigen:true, name:'Frischling', art:'Frischling',
+          botanisch:'Begonia maculata', klasse:'B', sonne:'indirekt'});
+        var p = function(){ return allePflanzen().find(function(x){return x.id==='FRX';}); };
+        if(S.zustand) delete S.zustand.FRX;
+        var ohne = intervallVon(p());
+        zustandSetzen('FRX', 'frisch');
+        var mit = intervallVon(p());
+        zustandSetzen('FRX', 'gesund');
+        S.eigene = S.eigene.filter(function(x){ return x.id !== 'FRX'; });
+        if(S.zustand) delete S.zustand.FRX;
+        sichern();
+        return mit <= ohne + 3 && mit >= ohne;
+      })()`) === true);
+    pruef('Frisch umgetopft sperrt den Dünger sechs Wochen',
+      w.__T('DUENG_FRISCH_TAGE') === 42
+      && w.__T('ZUSTAENDE.frisch.tage') === 28,
+      String(w.__T('DUENG_FRISCH_TAGE')) + ' / ' + String(w.__T('ZUSTAENDE.frisch.tage')));
+    pruef('Die Notbremse überstimmt keine Sperre',
+      d.getElementById('gm-inhalt').innerHTML.indexOf('Heute ist Düngetag') === -1);
+    w.__T("zustandSetzen('DG1', 'gesund'); delete S.giess.dgSchwelle;");
 
     /* Der Weg des Fingers durch die Vorbereitungskarte. */
     w.__T(`(function(){

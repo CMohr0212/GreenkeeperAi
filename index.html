@@ -774,6 +774,13 @@ html[data-design="klartext"] .abstammung{border:2px solid var(--linie);
 .fgrid textarea{min-height:74px;resize:vertical}
 .fgrid input:focus,.fgrid select:focus,.fgrid textarea:focus{outline:2px solid var(--water);outline-offset:-1px}
 .fspan{grid-column:1/-1}
+/* Lange Beschriftungen und kurze Zahlenfelder verkeilen sich sonst
+   nebeneinander. Untereinander bleibt es auf jedem Handy lesbar. */
+.fspan.zeile{display:block}
+.fspan.zeile .lab{display:block;margin-bottom:4px}
+.fspan.zeile input{width:100%;max-width:9rem}
+.knopf-leise{background:none;border:none;color:var(--ink-2);text-decoration:underline;
+  font:inherit;font-size:var(--t-m);padding:4px 0;cursor:pointer}
 
 #lightbox{position:fixed;inset:0;background:var(--schleier-tief);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
 #lightbox.on{display:flex}
@@ -4681,9 +4688,9 @@ const ZUSTAENDE = {
     tasks:['Auf Schädlinge kontrollieren, besonders Blattunterseiten','Nicht düngen, nicht umtopfen in dieser Zeit']},
 
   frisch: {name:'Frisch umgetopft', kurz:'Wurzeln wachsen an', f:1.15, tage:28, ton:'info',
-    text:'Nach dem Umtopfen sind die Wurzeln verletzt und nehmen weniger Wasser auf. Frisches Substrat hält außerdem länger feucht. Also eher etwas trockener halten und vier Wochen keinen Dünger — der ist im neuen Substrat ohnehin drin.',
+    text:'Nach dem Umtopfen sind die Wurzeln verletzt und nehmen weniger Wasser auf. Frisches Substrat hält außerdem länger feucht. Also weiter gießen, nur eine Spur zurückhaltender — und sechs Wochen keinen Dünger, der ist im neuen Substrat ohnehin drin.',
     frage:'Wächst sie wieder — neuer Trieb oder neues Blatt sichtbar?',
-    tasks:['Vier Wochen nicht düngen','Erst wieder normal gießen, wenn neuer Zuwachs kommt']},
+    tasks:['Sechs Wochen nicht düngen','Weiter gießen, nur etwas zurückhaltender — normal wieder, wenn neuer Zuwachs kommt']},
 
   aquakultur: {name:'Umstellung Wasser → Erde', kurz:'Wasserwurzeln bauen um', f:0.55, tage:42, ton:'info',
     text:'Wasserwurzeln sind weich und können in Erde kaum Wasser aufnehmen. Die Pflanze muss erst Erdwurzeln bilden, das dauert vier bis sechs Wochen. Solange durchgehend leicht feucht halten, niemals durchtrocknen lassen, und nicht düngen.',
@@ -8418,7 +8425,11 @@ const GIESSARTEN = {
      Gießklasse, sondern daran, wie schnell Wasser abstirbt. */
   wasser:  {name:'Wasserkultur',
     kurz:'Wasser wechseln statt gießen: Gefäß ausspülen, Wurzeln abspülen, braune oder weiche Wurzeln entfernen, frisches zimmerwarmes Wasser bis knapp unter den Wurzelhals.',
-    wechsel:[7,10], tat:'Wasser gewechselt'},
+    /* Fuenf bis sieben Tage, nicht sieben bis zehn. Wasser kippt nicht
+       langsamer, weil draussen Winter ist — in der geheizten Wohnung
+       zehrt es genauso schnell. Sieben Tage sind die aeusserste
+       Grenze, nicht der Normalfall. */
+    wechsel:[5,7], tat:'Wasser gewechselt'},
   hydro:   {name:'Hydrokultur (Blähton)',
     kurz:'Blähton oder Pon: Wasserstand am Anzeiger auf „Optimal“ halten, erst nachfüllen, wenn er auf „Minimum“ steht. Alle paar Monate durchspülen, damit sich keine Salze anreichern.',
     wechsel:[10,16], tat:'Wasserstand aufgefüllt'}
@@ -9692,13 +9703,16 @@ function papierkorbRender(){
       <p class="fhint" id="dgart-text"></p>
 
       <p class="ein-abschnitt">Deine Kanne</p>
-      <label class="fspan"><span class="lab">Kannengröße in Litern</span>
+      <label class="fspan zeile"><span class="lab">Kannengröße in Litern</span>
         <input type="number" id="ein-kanne" min="0.2" max="20" step="0.5" inputmode="decimal"></label>
-      <label class="fspan"><span class="lab">Was auf der Flasche steht — ml je Liter</span>
+      <label class="fspan zeile"><span class="lab">Auf der Flasche: ml je Liter</span>
         <input type="number" id="ein-dosis" min="0.5" max="50" step="0.5" inputmode="decimal"></label>
       <label class="fspan check">
         <input type="checkbox" id="ck-vollstaerke"> <span class="lab" style="display:inline">Volle Dosis statt halber</span></label>
+      <label class="fspan zeile"><span class="lab">Düngetag ab wie vielen Pflanzen</span>
+        <input type="number" id="ein-schwelle" min="1" max="99" step="1" inputmode="numeric"></label>
       <p class="fhint" id="kanne-text"></p>
+      <button type="button" class="knopf-leise" id="schwelle-zurueck">Vorschlag wieder verwenden</button>
 
       <p class="ein-abschnitt">Winterpause</p>
       <label class="fspan check">
@@ -10555,19 +10569,22 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.0';
+const FASSUNG = '3.10.3';
 const PATCHNOTES = [
   {
-    nr: '3.10.0', datum: '2026-09-07', titel: 'Gießen lernt mit, Düngen sammelt sich',
+    nr: '3.10.3', datum: '2026-09-07', titel: 'Gießen lernt mit, Düngen sammelt sich',
     neu: [
       'Düngetag statt Einzeltermine. Statt für jede Pflanze eigene Termine zu führen, sammelt die App: sobald genug Pflanzen zusammenkommen, steht vor dem Gießen eine Karte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute mitkommt. Eine Kanne, eine schwache Dosis; der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt, nicht über die Konzentration.',
       'Gedüngt wird nach Gießvorgängen, nicht nach dem Kalender. Damit folgt der Dünger von selbst Jahreszeit, Wetter und deinem gelernten Rhythmus. Dazu Grenzen je Gruppe, die immer gewinnen: frühestens alle 7 bis 21 Tage, höchstens 3 bis 16 Gaben je Saison. Karnivoren nie — Mineraldünger im Substrat tötet sie.',
-      'Deine Kanne steht in den Einstellungen: Größe, was auf der Flasche steht, halbe oder volle Dosis. Daraus rechnet die App die Menge und ab wie vielen Pflanzen sich ein Düngetag lohnt. Beides ist sichtbar und änderbar.',
+      'Deine Kanne steht in den Einstellungen: Größe, was auf der Flasche steht, halbe oder volle Dosis, und ab wie vielen Pflanzen ein Düngetag zustande kommt. Die App schlägt diese Zahl vor und zählt dabei nur Pflanzen, die überhaupt Dünger bekommen — acht Venusfliegenfallen treiben sie nicht in die Höhe. Wartet eine Pflanze doppelt so lange wie vorgesehen, gibt es trotzdem einen Düngetag.',
       'Die App lernt aus deinen Rückmeldungen. „Noch feucht“ verlängert den Gießabstand, „War staubtrocken“ verkürzt ihn — beides wirkt sofort, aber höchstens einmal je Gießzyklus.',
       'Dreizehn Gießgruppen unter den Klassen S, A, B und C. Sie ändern nichts an der Klasse, sondern bestimmen, wie schnell in welche Richtung gelernt wird: eine Sansevieria darf zügig seltener gegossen werden, bei einer Begonie ist genau das der gefährliche Weg.',
       'Am Ende des Rundgangs steht eine Karte mit dem, was aufgefallen ist. Trocknet eine Pflanze dauerhaft schneller aus, als der Topf hergibt, steht dort der Verdacht — Wurzelbund, Erde, die kein Wasser mehr annimmt, oder ein zu kleiner Topf. „Umgetopft“ setzt das Gelernte zurück: neue Erde ist eine neue Pflanze.'
     ],
     besser: [
+      'Der Zustand „Frisch umgetopft“ sagt jetzt deutlich, was er meint: weiter gießen, nur eine Spur zurückhaltender, und sechs Wochen keinen Dünger. Die alte Aufgabe „Erst wieder normal gießen, wenn neuer Zuwachs kommt“ ließ sich als Gießpause lesen — gemeint war nie eine.',
+      'In der Sammlung lässt sich wieder bis zum Ende scrollen. Mit einer Sortierung und der Gruppierung „keine“ prallte man ab einem bestimmten Punkt zurück: es klappten auch die Karten unterhalb des Blicks zu, das Dokument schrumpfte unter dem Finger, und der Browser klemmte den Scrollstand ans neue Ende.',
+      'Wasser in der Wasserkultur wird alle fünf bis sieben Tage gewechselt statt alle sieben bis zehn. Im Winter stand dort eine Zehn — Wasser kippt aber in der geheizten Wohnung nicht langsamer, weil draußen Winter ist.',
       'Die Karte im Gießmodus steht in einem Rahmen, das Foto ist wieder groß, und die Zeilen haben einen ruhigen Abstand. Vorher schwammen sie frei in der Bildschirmmitte.',
       'Der Zustand wird im Rundgang abgefragt — dort, wo du vor der Pflanze stehst. Bisher stand die Nachfrage nur auf der Startseite und erst nach der vollen Frist: bei „Ausgehungert“ nach sechs Wochen, und bis dahin rechnete die App mit einem Zustand, den es längst nicht mehr gab.',
       'Die Karte im Gießmodus zeigt nur noch, was an dieser Pflanze gerade anders ist. Der Satz zur Fingerprobe stand auf jeder Karte gleich; er sitzt jetzt im Streifen unter dem Namen und lässt sich antippen.',
@@ -12364,6 +12381,8 @@ function giessLog(id){ return giessTermine(id).slice().sort().reverse(); }
 const DUENG_ABSTAND = {nie:0, sparsam:90, normal:21, viel:7};
 /* Unterhalb dieser Jahreslage ruht das Düngen. */
 const DUENG_PAUSE_AB = 0.35;
+/* Sechs Wochen: so lange traegt der Vorrat in vorgedueengtem Substrat. */
+const DUENG_FRISCH_TAGE = 42;
 
 /* Wie lange eine Gabe vorhält, hängt an der Form. Flüssigdünger im
    Gießwasser ist der Maßstab; Stäbchen geben ueber Wochen ab,
@@ -12403,9 +12422,15 @@ function duengSperre(p){
 
   const z = (typeof zustandVon === 'function') ? zustandVon(p) : null;
   if(z && z.code === 'frisch'){
-    const rest = (typeof stoppRest === 'function') ? stoppRest(p) : 0;
+    /* Vier Wochen gelten fuers Giessen — so lange wachsen die Wurzeln
+       an. Der Duenger braucht laenger: in vorgedueengter Erde reicht
+       der Vorrat sechs bis acht Wochen, und geduengt wird deshalb
+       erst nach sechs. Die Zahl steht hier und nicht am Zustand,
+       damit sie die Giessdauer nicht mitverschiebt. */
+    const seit = z.seit ? tageSeit(z.seit) : null;
+    const rest = (seit == null) ? null : Math.max(0, DUENG_FRISCH_TAGE - seit);
     return {code:'frisch', text:'Frisch umgetopft. Im neuen Substrat steckt genug — '
-      + (rest > 0 ? 'noch ' + rest + ' ' + (rest === 1 ? 'Tag' : 'Tage') : 'noch einige Tage') + ' warten.'};
+      + (rest ? 'noch ' + rest + ' ' + (rest === 1 ? 'Tag' : 'Tage') : 'noch einige Tage') + ' warten.'};
   }
   if(z && z.code !== 'gesund' && z.def && z.def.ton === 'alarm')
     return {code:'zustand', text:'Erst gesund werden lassen. „' + z.def.name
@@ -12506,11 +12531,40 @@ function kannenFassung(){
 /* Ab wie vielen Pflanzen sich ein Duengetag lohnt. Vorgeschlagen wird
    die kleinere von zwei Zahlen: was in eine Kanne passt, und ein
    Drittel der Sammlung. Wer eigene Vorstellungen hat, stellt sie ein. */
+/* Wer ueberhaupt jemals Duenger bekommt. Karnivoren und alles, was auf
+   „nie" steht, zaehlt nicht mit: wer acht Venusfliegenfallen und zwei
+   Efeututen hat, wartet sonst auf eine Schwelle, die nie zustande
+   kommt. */
+function duengbar(p){
+  if(!p) return false;
+  if((p.duenger || 'normal') === 'nie') return false;
+  const d = duengGruppe(p);
+  return !d.nie;
+}
+/* Wie viele im Schnitt bei einem Durchgang zusammenkaemen. Eine
+   Pflanze mit „jedes 3. Giessen" ist in einem Drittel der Faelle dran,
+   ein Kaktus mit „jedes 4." in einem Viertel — und der wird ohnehin
+   viel seltener gegossen. Die Summe ist die ehrliche Erwartung. */
+function duengErwartung(){
+  const alle = (typeof allePflanzen === 'function') ? allePflanzen() : [];
+  return alle.reduce((summe, p) => {
+    if(!duengbar(p)) return summe;
+    const d = duengGruppe(p);
+    return summe + (1 / (d.jedes || 3));
+  }, 0);
+}
 function duengSchwelle(){
   const e = duengEinst();
   if(e.schwelle) return e.schwelle;
-  const sammlung = (typeof allePflanzen === 'function') ? allePflanzen().length : 0;
-  return Math.max(2, Math.min(kannenFassung(), Math.ceil(sammlung / 3) || 2));
+  return duengSchwelleVorschlag();
+}
+/* Vorgeschlagen wird die kleinere von zwei Zahlen: was in eine Kanne
+   passt, und was im Schnitt zusammenkommt. Mindestens zwei — fuer eine
+   einzelne Pflanze ruehrt niemand eine Kanne an, und die Notbremse
+   holt sie spaeter trotzdem ab. */
+function duengSchwelleVorschlag(){
+  const erwartet = Math.ceil(duengErwartung());
+  return Math.max(2, Math.min(kannenFassung(), erwartet || 2));
 }
 /* Wie viel Duenger in die Kanne kommt — eine Zahl, mehr sieht niemand. */
 function duengMenge(){
@@ -13136,25 +13190,42 @@ const offen = new Set(), zu = new Set();
 /* Aus dem Blick gescrollte Karten klappen sich zu. Damit dabei nichts
    springt, wird die entstehende Höhendifferenz vom Scrollstand abgezogen. */
 let kartenWaechter = null;
+/* Zugeklappt wird nur, was oberhalb des Blicks liegt. Vorher klappten
+   auch die Karten unterhalb zu: dabei schrumpft das Dokument unter dem
+   Finger, der Browser klemmt den Scrollstand ans neue Ende — und man
+   prallt zurueck wie ein Ball von der Wand. Am staerksten in einer
+   langen, ungruppierten Liste, weil dort die meisten offenen Karten
+   untereinander stehen.
+
+   Die Hoehendifferenz wird gesammelt und einmal verrechnet. Einzeln
+   angewandt verschob jede Korrektur den Blick fuer die naechste — und
+   loeste die naechste gleich mit aus.
+
+   Steht als eigene Funktion, damit sich die Entscheidung pruefen
+   laesst, ohne einen echten Beobachter zu brauchen. */
+function kartenZuklappen(eintraege){
+  let diffGesamt = 0;
+  (eintraege || []).forEach(e=>{
+    if(e.isIntersecting) return;
+    const c = e.target;
+    if(!c || !c.classList || !c.classList.contains('open')) return;
+    const oben = c.getBoundingClientRect().top;
+    if(oben >= 0) return;
+    const vorher = c.offsetHeight;
+    c.classList.remove('open');
+    const btn = c.querySelector('.card-btn');
+    if(btn){ btn.setAttribute('aria-expanded','false'); offen.delete(btn.dataset.t); }
+    const diff = vorher - c.offsetHeight;
+    if(diff > 0) diffGesamt += diff;
+  });
+  if(diffGesamt > 0 && typeof window.scrollBy === 'function') window.scrollBy(0, -diffGesamt);
+  return diffGesamt;
+}
 function kartenBeobachten(){
   if(kartenWaechter) kartenWaechter.disconnect();
   if(S.einzeln === false || S.autoZu === false) return;
-  kartenWaechter = new IntersectionObserver(eintraege=>{
-    eintraege.forEach(e=>{
-      if(e.isIntersecting) return;
-      const c = e.target;
-      if(!c.classList.contains('open')) return;
-      const oben = c.getBoundingClientRect().top;
-      const vorher = c.offsetHeight;
-      c.classList.remove('open');
-      const btn = c.querySelector('.card-btn');
-      if(btn){ btn.setAttribute('aria-expanded','false'); offen.delete(btn.dataset.t); }
-      if(oben < 0){
-        const diff = vorher - c.offsetHeight;
-        if(diff > 0) window.scrollBy(0, -diff);
-      }
-    });
-  }, {rootMargin: '120px 0px 120px 0px', threshold: 0});
+  kartenWaechter = new IntersectionObserver(kartenZuklappen,
+    {rootMargin: '120px 0px 120px 0px', threshold: 0});
   document.querySelectorAll('#out .card.open').forEach(c=>kartenWaechter.observe(c));
 }
 /* Die Kopfzeile mit Pflanzenzahl und Datum ist weggefallen. Die Funktion
@@ -16014,7 +16085,7 @@ function alKulturSetzen(){
      danach ohnehin ignoriert. */
   if(pflege) pflege.hidden = (wert !== 'erde');
   if(hint) hint.textContent =
-      wert === 'wasser' ? 'Kein Gießen: alle 7 bis 10 Tage Wasser wechseln, Gefäß ausspülen, faule Wurzeln entfernen.'
+      wert === 'wasser' ? 'Kein Gießen: alle 5 bis 7 Tage Wasser wechseln, Gefäß ausspülen, faule Wurzeln entfernen.'
     : wert === 'hydro' ? 'Kein Gießen: Wasserstand am Anzeiger halten, alle 10 bis 16 Tage nachsehen.'
     : '';
   if(typeof alBibZsfZeichnen === 'function' && wert === 'erde') alBibZsfZeichnen();
@@ -20559,9 +20630,16 @@ function gmWeiter(){
 
 function gmZeichnen(){
   /* Vor der ersten Pflanze: lohnt sich heute eine Kanne? */
-  if(gmIndex === 0 && gmDuengetag === false && duengImGiesswasser()
-     && gmDuengKandidaten(gmListe).length >= duengSchwelle()){
-    gmZeichnenDueng(); return;
+  if(gmIndex === 0 && gmDuengetag === false && duengImGiesswasser()){
+    const kand = gmDuengKandidaten(gmListe);
+    /* Die Notbremse: wer das Doppelte seines Zaehlers ueberschritten
+       hat, loest einen Duengetag aus, auch wenn sich sonst niemand
+       dazugesellt. Sonst wartet ein Einzelgaenger ewig — gerade in
+       kleinen Sammlungen. Sperren und Grenzen ueberstimmt sie nicht,
+       die sind in duengFaellig schon geprueft. */
+    if(kand.length >= duengSchwelle() || kand.some(p => duengFaellig(p).dringend)){
+      gmZeichnenDueng(); return;
+    }
   }
   const p = gmListe[gmIndex];
   const st = giessStatus(p);
@@ -21655,10 +21733,17 @@ function giessCenterZeichnen(){
   if(kf && document.activeElement !== kf) kf.value = de.kanne;
   if(df && document.activeElement !== df) df.value = de.dosis;
   if(vf) vf.checked = de.staerke === 'voll';
+  const sf = document.getElementById('ein-schwelle');
+  if(sf && document.activeElement !== sf) sf.value = duengSchwelle();
+  const zk = document.getElementById('schwelle-zurueck');
+  if(zk) zk.hidden = !de.schwelle;
+  const duengbare = allePflanzen().filter(duengbar).length;
   txt('kanne-text', duengMenge().toString().replace('.', ',') + ' ml in die '
-    + String(de.kanne).replace('.', ',') + '-Liter-Kanne. Düngetag ab '
-    + duengSchwelle() + ' Pflanzen — das passt zu deiner Kanne und deiner Sammlung. '
-    + 'Eine Kanne, eine schwache Dosis: der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt.');
+    + String(de.kanne).replace('.', ',') + '-Liter-Kanne. '
+    + (de.schwelle ? 'Vorgeschlagen wären ' + duengSchwelleVorschlag() + '. ' : 'Vorgeschlagen aus deiner Sammlung. ')
+    + duengbare + ' deiner ' + allePflanzen().length + ' Pflanzen bekommen überhaupt Dünger; '
+    + 'Karnivoren und alles auf „nie“ zählen nicht mit. Wartet eine Pflanze doppelt so lange wie vorgesehen, '
+    + 'gibt es trotzdem einen Düngetag.');
   txt('winterpause-text', g.winterpause
     ? 'Zwischen Oktober und Februar schlägt die App kein Düngen vor.'
     : 'Es wird das ganze Jahr über gedüngt. Nur sinnvoll, wenn deine Pflanzen unter Lampen durchwachsen.');
@@ -21694,11 +21779,27 @@ function giessCenterZeichnen(){
 document.addEventListener('input', e=>{
   const t = e.target;
   if(!t || !t.id) return;
+  if(t.id === 'ein-schwelle'){
+    const wert = parseInt(String(t.value), 10);
+    if(!(wert > 0)) return;
+    if(!S.giess) S.giess = {};
+    S.giess.dgSchwelle = wert;
+    sichern();
+    if(typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
+    return;
+  }
   if(t.id === 'ein-kanne' || t.id === 'ein-dosis'){
     const wert = parseFloat(String(t.value).replace(',', '.'));
     if(!(wert > 0)) return;
     if(!S.giess) S.giess = {};
     S.giess[t.id === 'ein-kanne' ? 'kanne' : 'dosis'] = wert;
+    sichern();
+    if(typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
+  }
+});
+document.addEventListener('click', e=>{
+  if(e.target && e.target.id === 'schwelle-zurueck'){
+    if(S.giess) delete S.giess.dgSchwelle;
     sichern();
     if(typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
   }

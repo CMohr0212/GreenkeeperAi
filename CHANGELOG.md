@@ -4,7 +4,7 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 3.10.0 — 7. September 2026
+## 3.10.3 — 7. September 2026
 **Gießen lernt mit, Düngen sammelt sich**
 
 ### Neu — Düngen
@@ -13,7 +13,10 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - **Gezählt werden Gießvorgänge, nicht Tage.** Damit folgt der Dünger von selbst der Jahreszeit, dem Wetter, dem Standort und dem gelernten Rhythmus: wer im August alle fünf Tage gießt, düngt öfter als im Oktober, ohne dass eine zweite Jahreskurve gepflegt werden muss.
 - **Grenzen je Gruppe, die immer gewinnen.** Die Reihenfolge ist Sperre, dann Grenze, dann Zähler — nichts weiter unten kann etwas weiter oben aushebeln. Frühestens alle 7 (Dünnblättrige, Epiphyten) bis 21 Tage (Kakteen, Speicher), höchstens 3 bis 16 Gaben je Saison. **Karnivoren nie:** Mineraldünger im Substrat tötet sie, deshalb hängt das an der Gruppe und nicht an einer Einstellung, die man versehentlich umstellt.
 - **Gebucht wird nur, was heute wirklich Wasser bekommen hat.** „Noch feucht" und „Später" bekommen keinen Dünger, und auf einen staubtrocken gemeldeten Ballen gehört keiner — der wartet bis zum nächsten Mal.
-- **Deine Kanne in den Einstellungen:** Größe, was auf der Flasche steht, halbe oder volle Dosis. Daraus rechnet die App die Menge und schlägt vor, ab wie vielen Pflanzen sich ein Düngetag lohnt — die kleinere Zahl aus „was in eine Kanne passt" und „ein Drittel der Sammlung". Beides sichtbar und änderbar.
+- **Deine Kanne in den Einstellungen:** Größe, was auf der Flasche steht, halbe oder volle Dosis — und ab wie vielen Pflanzen ein Düngetag zustande kommt. Diese Zahl schlägt die App vor und lässt sich jederzeit überschreiben; „Vorschlag wieder verwenden" stellt sie zurück.
+- **Gezählt wird nur, wer überhaupt Dünger bekommt.** Karnivoren und alles, was auf „nie" steht, fließen nicht in den Vorschlag ein: wer acht Venusfliegenfallen und zwei Efeututen hat, wartete sonst auf eine Schwelle, die nie zustande kommt. Und die Gruppen wiegen verschieden — ein Kaktus kommt seltener mit als eine Begonie.
+- **Notbremse für Einzelgänger.** Wartet eine Pflanze doppelt so lange wie vorgesehen, gibt es einen Düngetag, auch wenn sich sonst niemand dazugesellt. Sperren und Grenzen überstimmt sie nicht.
+- **Frisch umgetopft sperrt den Dünger sechs Wochen** statt vier — so lange trägt der Vorrat in vorgedüngtem Substrat. Am Gießen ändert das nichts: der Zustand streckt das Gießintervall nur um 15 Prozent und läuft nach vier Wochen aus. Gegossen wird also weiter, nur etwas zurückhaltender.
 
 ---
 
@@ -25,7 +28,12 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - Dreizehn Gießgruppen unter den Klassen. Die Klasse bleibt, was sie war: die verständliche Ansage, wie oft gegossen wird. Die Gruppe sagt, wohin es kippt — bei einem Speicher ist „zu selten" kaum ein Fehler und „zu oft" tödlich, bei einer dünnblättrigen Pflanze ist es umgekehrt. Danach richtet sich, wie weit und wie schnell gelernt wird. Zugeordnet wird über die Gattung; ohne bekannte Gattung wird über die Klasse geschätzt und das auf der Karte gesagt.
 - Am Ende des Rundgangs steht eine Karte mit dem, was unterwegs aufgefallen ist. Wer dauerhaft am unteren Anschlag steht und zweimal staubtrocken gemeldet wurde, bekommt den Verdacht ausgesprochen: bei Laub- und dünnblättrigen Pflanzen Wurzelbund oder Erde, die kein Wasser mehr annimmt, bei Speicherpflanzen ein zu kleiner Topf, bei Rindenepiphyten zersetztes Substrat. „Umgetopft" setzt das Gelernte zurück — neue Erde ist eine neue Pflanze. Unterwegs wird damit nicht unterbrochen.
 
+### Behoben
+- **In der Sammlung ließ sich ab einem bestimmten Punkt nicht mehr scrollen** — man prallte zurück wie ein Ball von der Wand, besonders mit einer gewählten Sortierung und der Gruppierung „keine". Aus dem Blick gescrollte Karten klappen sich zu; das galt bisher auch für die Karten *unterhalb* des Sichtfensters. Damit schrumpfte das Dokument unter dem Finger, und der Browser klemmte den Scrollstand ans neue Ende. Jetzt klappt nur zu, was oberhalb liegt, und die Höhendifferenz wird gesammelt und einmal verrechnet statt für jede Karte einzeln.
+
 ### Besser
+- Der Zustand „Frisch umgetopft" sagt jetzt deutlich, was er meint: **weiter gießen**, nur eine Spur zurückhaltender, und sechs Wochen keinen Dünger. Die Aufgabe hieß bisher „Erst wieder normal gießen, wenn neuer Zuwachs kommt" — das ließ sich als Gießpause lesen. Gemeint war nie eine: der Zustand streckt das Intervall um 15 Prozent, aus acht Tagen werden neun.
+- Wasser in der Wasserkultur wird alle fünf bis sieben Tage gewechselt statt alle sieben bis zehn. Im Winter stand dort eine Zehn — Wasser kippt in der geheizten Wohnung aber nicht langsamer, weil draußen Winter ist. Sieben Tage sind jetzt die äußerste Grenze, nicht der Normalfall.
 - Die Karte im Gießmodus steht in einem Rahmen, das Foto ist wieder groß, und die Zeilen haben einen ruhigen Abstand. Vorher schwammen fünf Zeilen frei in der Bildschirmmitte, oben und unten viel Leere, und nichts hielt sie zusammen.
 - Der Zustand wird im Rundgang abgefragt. Bisher stand die Nachfrage nur auf der Startseite unter „Nachfrage fällig" — und erst, wenn die volle Frist des Zustands abgelaufen war: bei „Ausgehungert" sechs Wochen. So lange rechnete die App mit einem Zustand, den es längst nicht mehr gab. Jetzt steht die Frage dort, wo du vor der Pflanze stehst, mit zwei Antworten: „Vorbei" beendet den Zustand, „Bleibt" verschiebt den Stichtag um zwei Wochen.
 - Die Karte im Gießmodus zeigt nur noch, was an dieser Pflanze gerade anders ist. Der Satz zur Fingerprobe stand auf jeder Karte gleich — nach der zweiten Pflanze liest ihn niemand mehr, er nahm aber die Stelle ein, an der das Besondere stehen müsste. Er sitzt jetzt im Streifen unter dem Namen und lässt sich antippen.
