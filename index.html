@@ -468,7 +468,6 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
 .grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;padding:16px 0 4px}
 /* Der Ausgleich beim Zuklappen wird selbst gerechnet — sonst korrigiert
    Chrome zusätzlich, und Safari gar nicht. */
-#out{overflow-anchor:none}
 .card,.card-btn{min-width:0}
 .card-body{min-width:0;flex:1 1 auto}
 @media(min-width:720px){.grid{grid-template-columns:1fr 1fr}}
@@ -1958,6 +1957,11 @@ html[data-design="klartext"] .sich-stempel{align-self:flex-start;
   background:color-mix(in srgb, var(--moss) 7%, transparent);
   font-size:var(--t-m);line-height:1.6;color:var(--ink-2)}
 .wz-hilfe[hidden]{display:none}
+.sprot-hin{margin:0 0 var(--a-2);color:var(--ink-2);font-size:.92rem}
+.sprot-taten{display:flex;gap:14px;margin:0 0 var(--a-2)}
+.sprot-liste{margin:0;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-klein);
+  background:var(--fl-tief);color:var(--ink-2);font-size:.78rem;line-height:1.7;
+  white-space:pre-wrap;word-break:break-word;max-height:46vh;overflow:auto}
 .wz-in[hidden]{display:none}
 .wz-h2{display:none}
 
@@ -10133,6 +10137,24 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan mh" id="sprot-sec" data-mh="sprot">
+    <h2 class="wz-h2">Scrollprotokoll</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="sprot" aria-expanded="false" aria-controls="mh-in-sprot">
+        <span class="wz-t">Scrollprotokoll</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="sprot" aria-expanded="false" aria-label="Was steht hier?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-sprot" hidden>
+      <p class="wz-hilfe" hidden>Eine Messung, keine Funktion. Ändert sich die Höhe der Seite, während der Finger noch wischt, klemmt der Browser den Scrollstand ans neue Ende — und man prallt zurück. Hier steht, wann das passiert ist und um wie viel. Wer nichts sucht, braucht die Liste nicht.</p>
+      <p class="sprot-hin">Scrolle in der Sammlung, bis es prallt. Dann hier auf „Nachsehen“ tippen und die Zeilen weitergeben.</p>
+      <div class="sprot-taten">
+        <button class="linkbtn" data-do="sprot-lesen">Nachsehen</button>
+        <button class="linkbtn" data-do="sprot-leeren">Leeren</button>
+      </div>
+      <pre id="sprot-liste" class="sprot-liste">Noch nichts nachgesehen.</pre>
+    </div>
+  </section>
+
 
 
 </div>
@@ -10570,10 +10592,32 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.6';
+const FASSUNG = '3.10.7';
 const PATCHNOTES = [
   {
+    nr: '3.10.7', datum: '2026-09-08', titel: 'Kürzeres Update-Fenster, ehrliches Scrollen',
+    kurz: [
+      'Das Fenster nach einem Update zeigt nur noch die Kernpunkte. Die vollständige Liste steht weiterhin unter Mehr.',
+      'Aus der Sammlung ist eine Mechanik verschwunden, die seit dem Umbau auf das Kartenfenster wirkungslos war und trotzdem am Scrollstand zog.',
+      'Neu unter Mehr: ein Scrollprotokoll, das aufzeichnet, wann sich die Höhe der Seite während des Scrollens ändert.'
+    ],
+    besser: [
+      'Das Fenster nach einem Update war zuletzt neunzehn Absätze lang und las sich streckenweise wie alte Post. Es zeigt jetzt höchstens fünf Sätze — was diese Fassung ausmacht, sonst nichts. Wer mehr will, kommt mit einem Tippen zur vollen Liste.'
+    ],
+    behoben: [
+      'In der Sammlung stand noch die Mechanik, die aus dem Blick gescrollte Karten zuklappte und den Scrollstand um die entstandene Differenz nachzog. Seit die Kartendetails im eigenen Fenster stehen, trägt in der Liste keine Karte mehr die Klasse „offen“ — der Beobachter fand nie etwas. Die Prüfung rief die Funktionen direkt auf und blieb deshalb grün, während am Gerät nichts davon geschah. Sie ist ersatzlos entfernt, und mit ihr die Zeile, die die Verankerung des Browsers abschaltete: die hält jetzt wieder selbst dagegen, wenn sich oberhalb des Blicks etwas ändert.',
+      'Ob das Prallen damit weg ist, weiß ich nicht — deshalb das Scrollprotokoll. Es schreibt mit, wann sich die Seitenhöhe während einer Bewegung ändert und um wie viel. Steht unter Mehr, ganz unten.'
+    ]
+  },
+  {
     nr: '3.10.6', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
+    kurz: [
+      'Düngen läuft jetzt über Düngetage: die App sammelt, bis genug Pflanzen zusammenkommen, und nennt dann eine Zahl für deine Kanne.',
+      'Gedüngt wird nach Gießvorgängen statt nach dem Kalender — der Dünger folgt damit von selbst Jahreszeit, Wetter und deinem Rhythmus.',
+      'Die App lernt aus „Noch feucht“ und „War staubtrocken“ und passt den Gießabstand an.',
+      'Dreizehn Gießgruppen bestimmen, wie schnell in welche Richtung gelernt werden darf.',
+      'Am Ende des Rundgangs steht, was aufgefallen ist — etwa eine Pflanze, die schneller austrocknet, als der Topf hergibt.'
+    ],
     neu: [
       'Düngetag statt Einzeltermine. Statt für jede Pflanze eigene Termine zu führen, sammelt die App: sobald genug Pflanzen zusammenkommen, steht vor dem Gießen eine Karte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute mitkommt. Eine Kanne, eine schwache Dosis; der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt, nicht über die Konzentration.',
       'Gedüngt wird nach Gießvorgängen, nicht nach dem Kalender. Damit folgt der Dünger von selbst Jahreszeit, Wetter und deinem gelernten Rhythmus. Dazu Grenzen je Gruppe, die immer gewinnen: frühestens alle 7 bis 21 Tage, höchstens 3 bis 16 Gaben je Saison. Karnivoren nie — Mineraldünger im Substrat tötet sie.',
@@ -13246,68 +13290,18 @@ function gruppenSchluessel(p){
   }
 }
 
-const offen = new Set(), zu = new Set();
+const zu = new Set();
 
-/* Aus dem Blick gescrollte Karten klappen sich zu. Damit dabei nichts
-   springt, wird die entstehende Höhendifferenz vom Scrollstand abgezogen. */
-let kartenWaechter = null;
-/* Zugeklappt wird nur, was oberhalb des Blicks liegt. Vorher klappten
-   auch die Karten unterhalb zu: dabei schrumpft das Dokument unter dem
-   Finger, der Browser klemmt den Scrollstand ans neue Ende — und man
-   prallt zurueck wie ein Ball von der Wand. Am staerksten in einer
-   langen, ungruppierten Liste, weil dort die meisten offenen Karten
-   untereinander stehen.
+/* Bis 3.10.6 stand hier eine Mechanik, die aus dem Blick gescrollte
+   Karten zuklappte und den Scrollstand um die entstandene Differenz
+   nachzog. Seit die Kartendetails im eigenen Fenster stehen, traegt
+   in der Liste keine Karte mehr die Klasse `open` — der Beobachter
+   fand nie etwas, die Mechanik lief nie. Die Pruefung rief die
+   Funktionen direkt auf und blieb deshalb gruen, waehrend am Geraet
+   nichts davon geschah. Ersatzlos entfernt; mit ihr faellt die
+   abgeschaltete Verankerung auf `#out` weg, die nur ihre Stuetze
+   war — der Browser haelt jetzt wieder selbst dagegen. */
 
-   Die Hoehendifferenz wird gesammelt und einmal verrechnet. Einzeln
-   angewandt verschob jede Korrektur den Blick fuer die naechste — und
-   loeste die naechste gleich mit aus.
-
-   Steht als eigene Funktion, damit sich die Entscheidung pruefen
-   laesst, ohne einen echten Beobachter zu brauchen. */
-/* Zugeklappt wird erst, wenn das Scrollen zur Ruhe gekommen ist.
-   Waehrend eines Schwungs aendert sich sonst mitten in der Bewegung
-   die Hoehe des Dokuments: der Browser klemmt den Stand ans neue Ende,
-   die Korrektur zieht dagegen, und man prallt zurueck wie ein Ball von
-   der Wand. In einer langen, ungruppierten Liste am staerksten, weil
-   dort die meisten offenen Karten untereinander stehen. */
-let zuklappStau = [], zuklappUhr = null, letzteBewegung = 0;
-window.addEventListener('scroll', ()=>{ letzteBewegung = Date.now(); }, true);
-function kartenZuklappenSpaeter(eintraege){
-  (eintraege || []).forEach(e=>{ if(!e.isIntersecting) zuklappStau.push(e); });
-  if(zuklappUhr) clearTimeout(zuklappUhr);
-  zuklappUhr = setTimeout(function pruefen(){
-    if(Date.now() - letzteBewegung < 160){
-      zuklappUhr = setTimeout(pruefen, 120); return;
-    }
-    const stau = zuklappStau; zuklappStau = []; zuklappUhr = null;
-    kartenZuklappen(stau);
-  }, 180);
-}
-function kartenZuklappen(eintraege){
-  let diffGesamt = 0;
-  (eintraege || []).forEach(e=>{
-    if(e.isIntersecting) return;
-    const c = e.target;
-    if(!c || !c.classList || !c.classList.contains('open')) return;
-    const oben = c.getBoundingClientRect().top;
-    if(oben >= 0) return;
-    const vorher = c.offsetHeight;
-    c.classList.remove('open');
-    const btn = c.querySelector('.card-btn');
-    if(btn){ btn.setAttribute('aria-expanded','false'); offen.delete(btn.dataset.t); }
-    const diff = vorher - c.offsetHeight;
-    if(diff > 0) diffGesamt += diff;
-  });
-  if(diffGesamt > 0 && typeof window.scrollBy === 'function') window.scrollBy(0, -diffGesamt);
-  return diffGesamt;
-}
-function kartenBeobachten(){
-  if(kartenWaechter) kartenWaechter.disconnect();
-  if(S.einzeln === false || S.autoZu === false) return;
-  kartenWaechter = new IntersectionObserver(kartenZuklappenSpaeter,
-    {rootMargin: '120px 0px 120px 0px', threshold: 0});
-  document.querySelectorAll('#out .card.open').forEach(c=>kartenWaechter.observe(c));
-}
 /* Die Kopfzeile mit Pflanzenzahl und Datum ist weggefallen. Die Funktion
    bleibt stehen, weil sie an mehreren Stellen aufgerufen wird. */
 function zaehler(){
@@ -13863,7 +13857,6 @@ document.addEventListener('change', e=>{
    machte bei zweihundert Pflanzen den Löwenanteil der Last aus. */
 function kartenDetailHTML(p){
   const K = KLASSEN[p.klasse];
-  const fs = fotosVon(p.id);
   const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
   let detail;
 
@@ -14660,7 +14653,6 @@ function karteRumpfFuellen(){
     vor.disabled = i <= 0;
     zur.disabled = i >= _karteListe.length - 1;
   }
-  if(typeof kartenBeobachten === 'function') kartenBeobachten();
   return true;
 }
 
@@ -17808,6 +17800,17 @@ function patchEintragHTML(e, kopf){
   </div>`;
 }
 
+/* Das Fenster nach einem Update ist kein Changelog. Es beantwortet
+   eine einzige Frage: was ist jetzt anders? Fuenf Saetze reichen —
+   die vollstaendige Liste steht einen Knopf weiter unter Mehr. */
+function patchKurzHTML(e){
+  if(!e.kurz || !e.kurz.length) return patchEintragHTML(e, false);
+  return `<div class="pn-eintrag">
+    ${e.titel ? `<p class="pn-titel">${esc(e.titel)}</p>` : ''}
+    <ul class="pn-liste">${e.kurz.slice(0, 5).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>
+  </div>`;
+}
+
 function patchListe(){
   const ziel = document.getElementById('patch-liste');
   if(ziel) ziel.innerHTML = PATCHNOTES.map(e=>patchEintragHTML(e)).join('');
@@ -17821,7 +17824,7 @@ function neuFensterZeigen(eintrag){
   const modal = document.getElementById('neu-modal');
   if(!modal) return;
   document.getElementById('neu-titel').textContent = 'Neu in Fassung ' + eintrag.nr;
-  document.getElementById('neu-inhalt').innerHTML = patchEintragHTML(eintrag, false);
+  document.getElementById('neu-inhalt').innerHTML = patchKurzHTML(eintrag);
   modalAuf('neu-modal');
 }
 
@@ -21703,6 +21706,7 @@ const MH_IKON = {
   rhythmus:  '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 3.5V7h-3.5"/><path d="M12 8v4.4l2.8 1.6"/>',
   kidienst:  '<path d="M12 3.5 4.5 7v5.5c0 4.2 3.1 7.4 7.5 8.5 4.4-1.1 7.5-4.3 7.5-8.5V7z"/>'
     + '<path d="M12 11.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM12 14.8V17"/>',
+  sprot:     '<path d="M3 12h3l2.5-6 3 12 2.5-8 2 4h5"/>',
   einstell:  '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-.9a7.6 7.6 0 0 0 2.6 1.5l.5 2.5h4l.5-2.5a7.6 7.6 0 0 0 2.6-1.5l2.3.9 2-3.4z"/>'
 };
 
@@ -21750,6 +21754,11 @@ const MH_UNTER = {
   melde:     ()=>'Fehlende Art nachtragen',
   rueck:     ()=>'Fehler und Wünsche',
   patch:     ()=>'Fassung ' + FASSUNG,
+  sprot:     ()=>{
+    const n = (window.SCROLL_PROTOKOLL || []).length;
+    return n ? n + (n === 1 ? ' Höhenänderung' : ' Höhenänderungen') + ' notiert'
+             : 'Messung läuft, nichts Auffälliges';
+  },
   kidienst:  ()=>(typeof kiBereit === 'function' && kiBereit())
     ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel'
 };
@@ -21763,7 +21772,7 @@ const MH_GRUPPEN = [
   {titel:'Sammlung', punkte:['aufgaben','wunsch','weg']},
   {titel:'Pflege',   punkte:['giess','wetter','bibliothek']},
   {titel:'App',      punkte:['sicherung','einstell','tour','install']},
-  {titel:'Hilfe',    punkte:['patch','rueck','melde']}
+  {titel:'Hilfe',    punkte:['patch','rueck','melde','sprot']}
 ];
 
 function mehrMenueAusstatten(){
@@ -22803,12 +22812,63 @@ ansichtZeigen(S.ansicht || 'heute', false);
 })();
 
 
+/* ── Scrollprotokoll ─────────────────────────────────
+   Wer beim Scrollen zurueckprallt, hat ein Dokument, das seine Hoehe
+   mitten in der Bewegung aendert: der Browser klemmt den Scrollstand
+   ans neue Ende. Von aussen ist nicht zu sehen, wer die Hoehe
+   aendert — dreimal geraten, dreimal daneben. Also mitschreiben:
+   Zeitpunkt, Scrollstand, alte und neue Hoehe, und ob der Finger
+   dabei noch in Bewegung war. Kostet nichts und steht unter Mehr. */
+window.SCROLL_PROTOKOLL = [];
+function scrollProtokollText(){
+  const l = window.SCROLL_PROTOKOLL;
+  if(!l.length) return 'Keine Hoehenaenderung aufgezeichnet.';
+  return l.map(e=>
+    e.uhr + '  y=' + e.y + '  ' + e.alt + '→' + e.neu
+    + ' (' + (e.neu - e.alt > 0 ? '+' : '') + (e.neu - e.alt) + ')'
+    + (e.bewegt ? '  IN BEWEGUNG' : '')
+    + '  [' + e.ans + '/' + e.sicht + '/' + e.grp + ']'
+  ).join('\n');
+}
+(function(){
+  let letzteHoehe = 0, letzteBewegung = 0;
+  window.addEventListener('scroll', ()=>{ letzteBewegung = Date.now(); },
+    {passive:true, capture:true});
+  function nachsehen(){
+    const h = document.documentElement.scrollHeight;
+    if(letzteHoehe && h !== letzteHoehe){
+      const d = new Date();
+      window.SCROLL_PROTOKOLL.push({
+        uhr: d.toLocaleTimeString('de-DE') + '.' + String(d.getMilliseconds()).padStart(3,'0'),
+        y: Math.round(window.scrollY),
+        alt: letzteHoehe, neu: h,
+        bewegt: Date.now() - letzteBewegung < 400,
+        ans: (typeof S === 'object' && S.ansicht) || '?',
+        sicht: (typeof samAnsicht === 'function') ? samAnsicht() : '?',
+        grp: (typeof gruppierung !== 'undefined') ? gruppierung : '?'
+      });
+      /* Nur die juengsten Eintraege — der Fehler steht am Ende. */
+      if(window.SCROLL_PROTOKOLL.length > 80) window.SCROLL_PROTOKOLL.shift();
+    }
+    letzteHoehe = h;
+  }
+  if(typeof ResizeObserver === 'function')
+    new ResizeObserver(nachsehen).observe(document.documentElement);
+  setInterval(nachsehen, 200);
+})();
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do="sprot-lesen"],[data-do="sprot-leeren"]');
+  if(!b) return;
+  if(b.dataset.do === 'sprot-leeren') window.SCROLL_PROTOKOLL.length = 0;
+  const ziel = document.getElementById('sprot-liste');
+  if(ziel) ziel.textContent = scrollProtokollText();
+});
+
 /* Sprung zu einem Abschnitt, der die klebenden Leisten einrechnet.
    Weil sich die Höhe beim Zuklappen von Karten noch ändern kann,
    wird nach der Bewegung einmal nachkorrigiert. */
 function zuAbschnitt(id, ansicht){
   if(ansicht) ansichtZeigen(ansicht);
-  if(typeof offen !== 'undefined' && offen.size){ offen.clear(); render(); }
 
   function zielY(){
     const el = document.getElementById(id); if(!el) return null;

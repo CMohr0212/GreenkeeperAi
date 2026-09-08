@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.6', w.__T('FASSUNG') === '3.10.6', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.7', w.__T('FASSUNG') === '3.10.7', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3745,9 +3745,9 @@ setTimeout(async () => {
     pruef('Jeder Menüpunkt liegt in einer Gruppe',
       alle.length === gruppiert.length,
       alle.filter(x=>gruppiert.indexOf(x) === -1).join(','));
-    pruef('Dreizehn Punkte in der Liste', alle.length === 13, String(alle.length));
+    pruef('Vierzehn Punkte in der Liste', alle.length === 14, String(alle.length));
     pruef('Kein Punkt ist ersatzlos weg',
-      d.querySelectorAll('section[data-mh]').length === 24,
+      d.querySelectorAll('section[data-mh]').length === 25,
       String(d.querySelectorAll('section[data-mh]').length));
     /* Stillgelegt heisst nicht unerreichbar: der KI-Dienst steht
        nicht in der Liste, aber eine Zeile in den Einstellungen fuehrt
@@ -3757,7 +3757,7 @@ setTimeout(async () => {
     pruef('KI-Dienst ist aus den Einstellungen erreichbar',
       !!d.querySelector('#mh-in-einstell [data-mh-go="kidienst"]'));
     ['aufgaben','wunsch','weg','giess','wetter','bibliothek','sicherung','einstell',
-     'tour','install','patch','rueck','melde','ansicht','tiere','rundgang'].forEach(k=>{
+     'tour','install','patch','rueck','melde','sprot','ansicht','tiere','rundgang'].forEach(k=>{
       if(k === 'ansicht' || k === 'tiere' || k === 'rundgang') return;
       pruef('Punkt ' + k + ' vorhanden', alle.indexOf(k) !== -1);
     });
@@ -5904,65 +5904,95 @@ setTimeout(async () => {
   }
 
   /* ══════════ Scrollen in der Sammlung ══════════
-     Sortierung wählen, Gruppierung auf „keine“ — und ab einem
-     bestimmten Punkt prallte man zurück. Ursache: es klappten auch
-     die Karten unterhalb des Blicks zu. Das Dokument schrumpft dabei
-     unter dem Finger, der Browser klemmt den Scrollstand ans neue
-     Ende. */
+     Die Zuklapp-Mechanik ist entfernt. Sie konnte nie greifen: seit
+     die Kartendetails im eigenen Fenster stehen, traegt in der Liste
+     keine Karte mehr `open`. Die alte Pruefung rief `kartenZuklappen`
+     direkt mit erfundenen Eintraegen auf und blieb gruen, waehrend am
+     Geraet nichts geschah — genau der Fehler, den ein Test verstecken
+     kann. Geprueft wird jetzt die Abwesenheit. */
   {
-    const karte = (oben, hoehe) => {
-      const el = d.createElement('div');
-      el.className = 'card open';
-      el.getBoundingClientRect = () => ({top: oben, bottom: oben + hoehe,
-        left: 0, right: 100, width: 100, height: hoehe, x: 0, y: oben, toJSON(){return this;}});
-      let offenNoch = true;
-      const echtesRemove = el.classList.remove.bind(el.classList);
-      el.classList.remove = function(k){ if(k === 'open') offenNoch = false; echtesRemove(k); };
-      Object.defineProperty(el, 'offsetHeight', {get: () => offenNoch ? hoehe : 40});
-      return el;
-    };
-    let geschoben = 0;
-    const echtesScrollBy = w.scrollBy;
-    w.scrollBy = (x, y) => { geschoben += y; };
+    pruef('Die Zuklapp-Mechanik ist weg',
+      html.indexOf('kartenZuklappen') === -1
+      && html.indexOf('kartenBeobachten') === -1
+      && html.indexOf('zuklappStau') === -1);
+    pruef('Und die Verankerung des Browsers ist wieder an',
+      html.indexOf('overflow-anchor:none') === -1);
 
-    const oberhalb = karte(-500, 300);
-    const unterhalb = karte(1200, 300);
-    const diff = w.__T('kartenZuklappen')([
-      {isIntersecting:false, target: oberhalb},
-      {isIntersecting:false, target: unterhalb}
-    ]);
-    pruef('Karten oberhalb des Blicks klappen zu',
-      oberhalb.classList.contains('open') === false);
-    pruef('Karten unterhalb bleiben offen — sonst schrumpft der Boden weg',
-      unterhalb.classList.contains('open') === true);
-    pruef('Und der Scrollstand wird genau einmal nachgezogen',
-      diff === 260 && geschoben === -260, diff + ' / ' + geschoben);
+    /* Der Grund, warum die Mechanik nie lief: Listenkarten sind zu. */
+    d.querySelectorAll('.ans-go, [data-go]').forEach(()=>{});
+    w.__T("ansichtZeigen('sammlung'); render();");
+    pruef('Keine Karte in der Liste steht offen',
+      d.querySelectorAll('#out .card.open').length === 0,
+      d.querySelectorAll('#out .card.open').length);
 
-    /* Mehrere auf einmal: eine Korrektur, nicht drei. */
-    geschoben = 0;
-    let rufe = 0;
-    w.scrollBy = (x, y) => { rufe++; geschoben += y; };
-    w.__T('kartenZuklappen')([-900, -600, -300].map(o=>({isIntersecting:false, target: karte(o, 200)})));
-    pruef('Drei Karten ergeben eine einzige Korrektur',
-      rufe === 1 && geschoben === -480, rufe + ' / ' + geschoben);
+    /* Gruppierung „keine“ ergibt ein einziges Gitter ohne Abschnitte. */
+    w.__T("gruppierungSetzen('keine'); render();");
+    pruef('Gruppierung „keine“ zeichnet ein Gitter',
+      d.querySelectorAll('#out > .grid').length === 1
+      && d.querySelectorAll('#out .group').length === 0);
+    pruef('Und „keine“ steht weiterhin zur Wahl',
+      !!d.querySelector('#gruppen option[value="keine"]'));
+  }
 
-    /* Waehrend der Finger noch wischt, darf sich nichts an der Hoehe
-       aendern — sonst klemmt der Browser den Stand ans neue Ende und
-       man prallt zurueck. */
-    pruef('Beim Scrollen wird nicht sofort zugeklappt',
-      html.indexOf('kartenZuklappenSpaeter') !== -1
-      && html.indexOf('new IntersectionObserver(kartenZuklappenSpaeter') !== -1);
-    {
-      const spaet = karte(-400, 300);
-      w.__T('kartenZuklappenSpaeter')([{isIntersecting:false, target: spaet}]);
-      pruef('Die Karte bleibt zunächst offen',
-        spaet.classList.contains('open') === true);
-      await new Promise(r => setTimeout(r, 700));
-      pruef('Und klappt zu, sobald das Scrollen ruht',
-        spaet.classList.contains('open') === false);
-    }
+  /* ══════════ Scrollprotokoll ══════════
+     Die Messung, die beim naechsten Bericht die Ursache nennen soll. */
+  {
+    pruef('Das Protokoll steht bereit', Array.isArray(w.SCROLL_PROTOKOLL));
+    pruef('Der Abschnitt steht unter Mehr',
+      !!d.querySelector('#sprot-sec[data-ans="mehr"]')
+      && !!d.getElementById('sprot-liste'));
 
-    w.scrollBy = echtesScrollBy;
+    w.SCROLL_PROTOKOLL.length = 0;
+    pruef('Leer meldet die Messung das auch',
+      w.__T('scrollProtokollText()').indexOf('Keine') === 0);
+
+    w.SCROLL_PROTOKOLL.push({uhr:'12:00:00.000', y:1200, alt:9000, neu:8400,
+      bewegt:true, ans:'sammlung', sicht:'karten', grp:'keine'});
+    const t = w.__T('scrollProtokollText()');
+    pruef('Eine Schrumpfung steht mit Vorzeichen und Lage drin',
+      t.indexOf('9000→8400') !== -1 && t.indexOf('(-600)') !== -1
+      && t.indexOf('IN BEWEGUNG') !== -1 && t.indexOf('[sammlung/karten/keine]') !== -1, t);
+
+    d.querySelector('[data-do="sprot-lesen"]').click();
+    pruef('„Nachsehen“ schreibt die Zeilen in den Kasten',
+      d.getElementById('sprot-liste').textContent.indexOf('9000→8400') !== -1);
+    d.querySelector('[data-do="sprot-leeren"]').click();
+    pruef('„Leeren“ raeumt auf',
+      w.SCROLL_PROTOKOLL.length === 0
+      && d.getElementById('sprot-liste').textContent.indexOf('Keine') === 0);
+  }
+
+  /* ══════════ Das Fenster nach einem Update ══════════
+     Es war neunzehn Absaetze lang. Es zeigt jetzt hoechstens fuenf
+     Saetze — und faellt auf die lange Fassung zurueck, wenn ein alter
+     Eintrag keine Kurzfassung hat. */
+  {
+    const n = w.__T("JSON.stringify(PATCHNOTES[0])");
+    const e0 = JSON.parse(n);
+    pruef('Der oberste Eintrag ist 3.10.7', e0.nr === '3.10.7', e0.nr);
+    pruef('Und traegt eine Kurzfassung',
+      Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
+      e0.kurz && e0.kurz.length);
+
+    const kurz = w.__T("patchKurzHTML(PATCHNOTES[0])");
+    pruef('Das Fenster zeigt hoechstens fuenf Punkte',
+      (kurz.match(/<li>/g) || []).length <= 5,
+      (kurz.match(/<li>/g) || []).length);
+    pruef('Und nicht die lange Liste',
+      kurz.indexOf('Besser') === -1 && kurz.indexOf('Behoben') === -1);
+
+    /* Gegenprobe: ein Eintrag ohne Kurzfassung faellt auf die lange
+       Darstellung zurueck, sonst stuende dort nichts. */
+    const lang = w.__T("patchKurzHTML({nr:'0.0.1', titel:'Alt', besser:['Ein Satz.']})");
+    pruef('Ohne Kurzfassung kommt die lange Darstellung',
+      lang.indexOf('Besser') !== -1 && lang.indexOf('Ein Satz.') !== -1);
+
+    /* Die volle Liste unter Mehr bleibt vollstaendig. */
+    w.__T('patchListe()');
+    pruef('Unter Mehr stehen weiterhin alle Fassungen',
+      d.querySelectorAll('#patch-liste .pn-eintrag').length
+        === JSON.parse(w.__T('JSON.stringify(PATCHNOTES.length)')),
+      d.querySelectorAll('#patch-liste .pn-eintrag').length);
   }
 
   /* ══════════ Fotomenü ══════════
