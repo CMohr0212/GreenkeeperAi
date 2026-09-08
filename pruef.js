@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.4', w.__T('FASSUNG') === '3.10.4', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.5', w.__T('FASSUNG') === '3.10.5', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -6029,6 +6029,37 @@ setTimeout(async () => {
     pruef('Die Antwort führt von selbst auf die nächste Stufe',
       w.__T('alStufe') === 3, String(w.__T('alStufe')));
     w.__T("(function(){ alStufe = 1; neuWeg = null; formularLeeren(); })()");
+  }
+
+  /* ══════════ Bilder und Zeilenspannen ══════════
+     Jedes nachgeladene Foto hat das ganze Raster neu vermessen —
+     mitten in der Scrollbewegung, vierzig Mal hintereinander. */
+  {
+    let spannen = 0;
+    w.__T("(function(){ window.__spannenZaehler = 0; })()");
+    const karte = d.createElement('div');
+    karte.className = 'card';
+    karte.dataset.karte = 'ZBX';
+    const img = d.createElement('img');
+    img.setAttribute('data-mass', '');
+    karte.appendChild(img);
+    d.body.appendChild(karte);
+
+    const echt = w.__T('rasterSpannenBald');
+    w.__T("rasterSpannenBald = function(){ window.__spannenZaehler++; }");
+    w.__T('bildFormatMessen')(img);
+    const nach1 = w.__T('window.__spannenZaehler');
+    w.__T('bildFormatMessen')(img);
+    w.__T('bildFormatMessen')(img);
+    const nach3 = w.__T('window.__spannenZaehler');
+    pruef('Das erste Bild löst eine Vermessung aus', nach1 === 1, String(nach1));
+    pruef('Weitere Ladevorgänge derselben Karte nicht mehr',
+      nach3 === 1, String(nach3));
+    pruef('Und die Höhe steht danach fest',
+      karte.style.getPropertyValue('--bildhoehe') !== '');
+    w.__T("rasterSpannenBald = window.__rasterSpannenBaldEcht || rasterSpannenBald");
+    karte.remove();
+    spannen = nach3;
   }
 
   /* ══════════ Düngen ══════════

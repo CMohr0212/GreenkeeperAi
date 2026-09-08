@@ -4,7 +4,7 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 3.10.4 — 8. September 2026
+## 3.10.5 — 8. September 2026
 **Gießen lernt mit, Düngen sammelt sich**
 
 ### Neu — Düngen
@@ -29,6 +29,7 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - Am Ende des Rundgangs steht eine Karte mit dem, was unterwegs aufgefallen ist. Wer dauerhaft am unteren Anschlag steht und zweimal staubtrocken gemeldet wurde, bekommt den Verdacht ausgesprochen: bei Laub- und dünnblättrigen Pflanzen Wurzelbund oder Erde, die kein Wasser mehr annimmt, bei Speicherpflanzen ein zu kleiner Topf, bei Rindenepiphyten zersetztes Substrat. „Umgetopft" setzt das Gelernte zurück — neue Erde ist eine neue Pflanze. Unterwegs wird damit nicht unterbrochen.
 
 ### Behoben
+- **In der Rasteransicht sprang das Scrollen.** Jedes nachgeladene Foto hat das gesamte Raster neu vermessen und alle Zeilenspannen neu gesetzt — bei vierzig Kacheln vierzig volle Durchgänge, jeder mitten in der Scrollbewegung. Das Dokument änderte dabei ständig seine Höhe, und der Browser zog den Scrollstand nach. Die Höhe einer Kachel hängt gar nicht am Foto, sondern nur an ihrer Kennung; steht sie schon, wird jetzt nichts mehr gerechnet.
 - **Die Abkürzung „Vermehren" an der Karte führte in eine Sackgasse.** Die Pflanze war ausgewählt und wurde auch angezeigt, aber „Weiter" blieb grau — man musste sie in der Liste noch einmal anwählen. Der Knopf wird nur beim Stufenwechsel freigegeben, und der lief über die Abkürzung nie. Jetzt startet der Assistent direkt bei der Wahl des Weges, und Reste eines früheren Durchgangs werden vorher abgeräumt.
 - **In der Sammlung ließ sich ab einem bestimmten Punkt nicht mehr scrollen** — man prallte zurück wie ein Ball von der Wand, besonders mit einer gewählten Sortierung und der Gruppierung „keine". Aus dem Blick gescrollte Karten klappen sich zu; das galt bisher auch für die Karten *unterhalb* des Sichtfensters. Damit schrumpfte das Dokument unter dem Finger, und der Browser klemmte den Scrollstand ans neue Ende. Jetzt klappt nur zu, was oberhalb liegt, und die Höhendifferenz wird gesammelt und einmal verrechnet statt für jede Karte einzeln.
 

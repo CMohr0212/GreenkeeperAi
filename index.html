@@ -10570,10 +10570,10 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.4';
+const FASSUNG = '3.10.5';
 const PATCHNOTES = [
   {
-    nr: '3.10.4', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
+    nr: '3.10.5', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
     neu: [
       'Düngetag statt Einzeltermine. Statt für jede Pflanze eigene Termine zu führen, sammelt die App: sobald genug Pflanzen zusammenkommen, steht vor dem Gießen eine Karte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute mitkommt. Eine Kanne, eine schwache Dosis; der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt, nicht über die Konzentration.',
       'Gedüngt wird nach Gießvorgängen, nicht nach dem Kalender. Damit folgt der Dünger von selbst Jahreszeit, Wetter und deinem gelernten Rhythmus. Dazu Grenzen je Gruppe, die immer gewinnen: frühestens alle 7 bis 21 Tage, höchstens 3 bis 16 Gaben je Saison. Karnivoren nie — Mineraldünger im Substrat tötet sie.',
@@ -10583,6 +10583,7 @@ const PATCHNOTES = [
       'Am Ende des Rundgangs steht eine Karte mit dem, was aufgefallen ist. Trocknet eine Pflanze dauerhaft schneller aus, als der Topf hergibt, steht dort der Verdacht — Wurzelbund, Erde, die kein Wasser mehr annimmt, oder ein zu kleiner Topf. „Umgetopft“ setzt das Gelernte zurück: neue Erde ist eine neue Pflanze.'
     ],
     besser: [
+      'In der Rasteransicht der Sammlung ruckelt das Scrollen nicht mehr. Jedes nachgeladene Foto hat vorher das gesamte Raster neu vermessen — bei vierzig Kacheln vierzig volle Durchgänge, jeder mitten in der Bewegung.',
       'An der Pflanzenkarte steht jetzt „Umtopfen“ statt „Substrat“. Wer die Pflanze vor sich hat, will sie umtopfen; das Substrat-Werkzeug bleibt über den Werkzeugreiter erreichbar. Beide Abkürzungen springen gleich zur zweiten Stufe, weil die Pflanze ja schon feststeht.',
       'Die Abkürzung „Vermehren“ führte in eine Sackgasse: die Pflanze war ausgewählt und wurde angezeigt, aber „Weiter“ blieb grau — man musste sie in der Liste noch einmal anwählen. Jetzt geht es direkt weiter.',
       'Der Zustand „Frisch umgetopft“ sagt jetzt deutlich, was er meint: weiter gießen, nur eine Spur zurückhaltender, und sechs Wochen keinen Dünger. Die alte Aufgabe „Erst wieder normal gießen, wenn neuer Zuwachs kommt“ ließ sich als Gießpause lesen — gemeint war nie eine.',
@@ -14479,7 +14480,18 @@ function bildFormatMessen(img){
   const karte = img.closest('.card');
   if(!karte) return;
   const id = karte.dataset.karte || (karte.id || '').replace(/^c-/, '');
-  karte.style.setProperty('--bildhoehe', bildStufe(id).toFixed(3));
+  const wert = bildStufe(id).toFixed(3);
+  /* `bildStufe` haengt allein an der Kennung, nicht am Bild — der Wert
+     steht also lange fest, bevor das Foto ankommt. Trotzdem hat jedes
+     nachgeladene Bild das ganze Raster neu vermessen: bei vierzig
+     Kacheln also vierzig volle Durchgaenge, jeder mitten in der
+     Scrollbewegung, jeder mit leicht anderen Zeilenspannen. Das
+     Dokument aenderte dabei staendig seine Hoehe, der Browser klemmte
+     den Stand nach — und man prallte zurueck.
+
+     Steht der Wert schon, ist nichts neu zu rechnen. */
+  if(karte.style.getPropertyValue('--bildhoehe') === wert) return;
+  karte.style.setProperty('--bildhoehe', wert);
   rasterSpannenBald();
 }
 
