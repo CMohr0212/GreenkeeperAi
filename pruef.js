@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.5', w.__T('FASSUNG') === '3.10.5', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.6', w.__T('FASSUNG') === '3.10.6', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -6029,6 +6029,27 @@ setTimeout(async () => {
     pruef('Die Antwort führt von selbst auf die nächste Stufe',
       w.__T('alStufe') === 3, String(w.__T('alStufe')));
     w.__T("(function(){ alStufe = 1; neuWeg = null; formularLeeren(); })()");
+  }
+
+  /* ══════════ Gruppieren und Sortieren bleiben ══════════
+     Beides stand nur im Arbeitsspeicher. Wer neu lud — und beim
+     Aktualisieren der App passiert das ohnehin —, fand seine
+     Einstellung nicht wieder. */
+  {
+    w.__T("gruppierungSetzen('keine'); sortierungSetzen('neu');");
+    pruef('Gruppieren und Sortieren werden gespeichert',
+      w.__T('S.gruppierung') === 'keine' && w.__T('S.sortierung') === 'neu',
+      String(w.__T('S.gruppierung')) + ' / ' + String(w.__T('S.sortierung')));
+    /* Beim naechsten Start werden sie wieder eingelesen. */
+    w.__T("gruppierung = 'raum'; sortierung = 'faellig'; ansichtEinstellungenLaden();");
+    pruef('Und beim Start wieder eingelesen',
+      w.__T('gruppierung') === 'keine' && w.__T('sortierung') === 'neu',
+      String(w.__T('gruppierung')) + ' / ' + String(w.__T('sortierung')));
+    /* Was es nicht mehr gibt, wird nicht uebernommen. */
+    w.__T("S.gruppierung = 'gibtsnicht'; gruppierung = 'raum'; ansichtEinstellungenLaden();");
+    pruef('Ein unbekannter Wert wird verworfen',
+      w.__T('gruppierung') === 'raum', String(w.__T('gruppierung')));
+    w.__T("delete S.gruppierung; delete S.sortierung; gruppierung = 'raum'; sortierung = 'faellig'; sichern(); render();");
   }
 
   /* ══════════ Bilder und Zeilenspannen ══════════

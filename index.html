@@ -10570,10 +10570,10 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.5';
+const FASSUNG = '3.10.6';
 const PATCHNOTES = [
   {
-    nr: '3.10.5', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
+    nr: '3.10.6', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
     neu: [
       'Düngetag statt Einzeltermine. Statt für jede Pflanze eigene Termine zu führen, sammelt die App: sobald genug Pflanzen zusammenkommen, steht vor dem Gießen eine Karte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute mitkommt. Eine Kanne, eine schwache Dosis; der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt, nicht über die Konzentration.',
       'Gedüngt wird nach Gießvorgängen, nicht nach dem Kalender. Damit folgt der Dünger von selbst Jahreszeit, Wetter und deinem gelernten Rhythmus. Dazu Grenzen je Gruppe, die immer gewinnen: frühestens alle 7 bis 21 Tage, höchstens 3 bis 16 Gaben je Saison. Karnivoren nie — Mineraldünger im Substrat tötet sie.',
@@ -10583,6 +10583,7 @@ const PATCHNOTES = [
       'Am Ende des Rundgangs steht eine Karte mit dem, was aufgefallen ist. Trocknet eine Pflanze dauerhaft schneller aus, als der Topf hergibt, steht dort der Verdacht — Wurzelbund, Erde, die kein Wasser mehr annimmt, oder ein zu kleiner Topf. „Umgetopft“ setzt das Gelernte zurück: neue Erde ist eine neue Pflanze.'
     ],
     besser: [
+      'Gruppieren und Sortieren bleiben nach dem Neuladen erhalten. Bisher standen beide nur im Arbeitsspeicher — beim Aktualisieren der App war die Einstellung jedes Mal weg. Die Filter bleiben bewusst flüchtig: ein vergessener Filter versteckt die halbe Sammlung.',
       'In der Rasteransicht der Sammlung ruckelt das Scrollen nicht mehr. Jedes nachgeladene Foto hat vorher das gesamte Raster neu vermessen — bei vierzig Kacheln vierzig volle Durchgänge, jeder mitten in der Bewegung.',
       'An der Pflanzenkarte steht jetzt „Umtopfen“ statt „Substrat“. Wer die Pflanze vor sich hat, will sie umtopfen; das Substrat-Werkzeug bleibt über den Werkzeugreiter erreichbar. Beide Abkürzungen springen gleich zur zweiten Stufe, weil die Pflanze ja schon feststeht.',
       'Die Abkürzung „Vermehren“ führte in eine Sackgasse: die Pflanze war ausgewählt und wurde angezeigt, aber „Weiter“ blieb grau — man musste sie in der Liste noch einmal anwählen. Jetzt geht es direkt weiter.',
@@ -13113,6 +13114,11 @@ function taskBlockHTML(tasks, scope, mitPflanze, addPlant){
 }
 
 /* ══════════════════ Steuerung ══════════════════ */
+/* Gruppieren und Sortieren ueberleben das Neuladen. Vorher standen sie
+   nur im Arbeitsspeicher: wer die Seite neu lud — und beim
+   Aktualisieren der App passiert das ohnehin —, fand seine Einstellung
+   nicht wieder. Die Filter selbst bleiben bewusst fluechtig; ein
+   vergessener Filter versteckt die halbe Sammlung. */
 let gruppierung = 'raum', filterKlasse = null, filterKatze = null;
 /* Mehrfachwahl: „ueberfaellig“ und „in Quarantaene“ schliessen
    einander nicht aus, also darf man beides setzen. Zwei gesetzte
@@ -13120,6 +13126,19 @@ let gruppierung = 'raum', filterKlasse = null, filterKatze = null;
    jedem zweiten Klick leer. */
 const filterZustand = new Set();
 let sortierung = 'faellig';
+function ansichtEinstellungenLaden(){
+  if(typeof S !== 'object' || !S) return;
+  if(S.gruppierung && GRUPPIERUNGEN && GRUPPIERUNGEN[S.gruppierung]) gruppierung = S.gruppierung;
+  if(S.sortierung && SORTIERUNGEN && SORTIERUNGEN[S.sortierung]) sortierung = S.sortierung;
+}
+function gruppierungSetzen(k){
+  if(!GRUPPIERUNGEN || !GRUPPIERUNGEN[k]) return;
+  gruppierung = k; S.gruppierung = k; sichern();
+}
+function sortierungSetzen(k){
+  if(!SORTIERUNGEN || !SORTIERUNGEN[k]) return;
+  sortierung = k; S.sortierung = k; sichern();
+}
 /* Zeigt nur, was zum Düngen ansteht. Wird von der Zeile auf Heute
    gesetzt und beim Zurücksetzen der Filter wieder geleert. */
 let filterDueng = false;
@@ -13186,6 +13205,10 @@ const GRUPPIERUNGEN = {
   abstammung: 'Abstammung',
   licht:      'Lichtbedarf'
 };
+/* Direkt nach den beiden Tabellen: erst hier laesst sich pruefen, ob
+   der gespeicherte Wert ueberhaupt einer ist, den es noch gibt. */
+ansichtEinstellungenLaden();
+
 function gattungVonName(p){
   const bot = String(p.botanisch || '').trim();
   const g = bot.split(/\s+/)[0];
@@ -13302,7 +13325,7 @@ function zaehler(){
   const gsel = $('#gruppen');
   gsel.innerHTML = Object.keys(GRUPPIERUNGEN).map(k=>
     `<option value="${k}"${k===gruppierung?' selected':''}>${GRUPPIERUNGEN[k]}</option>`).join('');
-  gsel.onchange = ()=>{ gruppierung = gsel.value; zu.clear(); render(); };
+  gsel.onchange = ()=>{ gruppierungSetzen(gsel.value); zu.clear(); render(); };
 })();
 
 /* ── Das Filterblatt ──────────────────────────────────────────
@@ -13382,7 +13405,7 @@ document.addEventListener('click', e => {
     return;
   }
   const so = e.target.closest('[data-fsort]');
-  if(so){ sortierung = so.dataset.fsort; filterKnoepfeZeichnen(); render(); return; }
+  if(so){ sortierungSetzen(so.dataset.fsort); filterKnoepfeZeichnen(); render(); return; }
   const zs = e.target.closest('[data-fzustand]');
   if(zs){
     const k = zs.dataset.fzustand;
@@ -13404,7 +13427,7 @@ document.addEventListener('click', e => {
   }
   const gr = e.target.closest('[data-fgruppe]');
   if(gr){
-    gruppierung = gr.dataset.fgruppe;
+    gruppierungSetzen(gr.dataset.fgruppe);
     if(typeof zu !== 'undefined' && zu.clear) zu.clear();
     filterKnoepfeZeichnen(); render();
     return;
