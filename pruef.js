@@ -125,7 +125,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.3', w.__T('FASSUNG') === '3.10.3', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.4', w.__T('FASSUNG') === '3.10.4', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -623,7 +623,7 @@ setTimeout(async () => {
     !!d.querySelector('#karte-rumpf .km-haupt[data-do="giessen"]'));
   pruef('Vier Nebenknöpfe darunter',
     d.querySelectorAll('#karte-rumpf .km-neben button').length === 4);
-  ['doktor-fuer','substrat-fuer','vermehren-fuer','bearb-auf'].forEach(k=>{
+  ['doktor-fuer','umtopfen-fuer','vermehren-fuer','bearb-auf'].forEach(k=>{
     pruef('Nebenknopf ' + k + ' vorhanden',
       !!d.querySelector('#karte-rumpf .km-neben [data-do="' + k + '"]'));
   });
@@ -1073,9 +1073,30 @@ setTimeout(async () => {
     return w.__T('_sekOffen ? _sekOffen.key : null');
   };
   pruef('Karte › Doktor öffnet den Doktor', await kurz('doktor-fuer') === 'doktor');
-  pruef('Karte › Substrat öffnet Substrat', await kurz('substrat-fuer') === 'substrat');
+  /* An der Karte steht das Umtopfen, nicht die Substratsuche: wer die
+     Pflanze vor sich hat, will sie umtopfen. Das Substrat-Werkzeug
+     bleibt ueber den Werkzeugreiter erreichbar. */
+  pruef('Karte › Umtopfen öffnet das Umtopfen', await kurz('umtopfen-fuer') === 'umtopfen');
+  pruef('Die Pflanze ist dort schon gewählt und der Grund dran',
+    w.__T('UT.pflanze') === pid && w.__T('UT.stufe') === 2,
+    String(w.__T('UT.pflanze')) + ' / ' + String(w.__T('UT.stufe')));
   pruef('Karte › Vermehren öffnet Vermehren', await kurz('vermehren-fuer') === 'vermehren');
+  /* Der Weg endete in einer Sackgasse: die Pflanze stand da, „Weiter“
+     blieb grau, und man musste sie in der Liste noch einmal waehlen. */
+  pruef('Vermehren ist vorgewählt und lässt sich fortsetzen',
+    w.__T('verPflanze') === pid
+    && d.getElementById('ver-weiter').disabled === false,
+    String(w.__T('verPflanze')) + ' / ' + String(w.__T('verStufe')));
   pruef('Werkzeugfenster bleibt offen', w.__T("modalOffen('sek-modal')") === true);
+  /* Die Abkuerzungen springen jetzt in die zweite Stufe. Was danach
+     geprueft wird, faengt wieder bei eins an. */
+  w.__T(`(function(){
+    verErledigt = false; verPflanze = null; verMethode = null; VER_ABLEGER = [];
+    verStufeZeigen(1);
+    UT.erledigt = false; UT.pflanze = null; UT.stufe = 1;
+    UT.gruende = []; UT.stecklinge = false; UT.zahl = 1; UT.langzeit = false;
+    if(typeof utZeichnen === 'function') utZeichnen();
+  })()`);
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
 
@@ -5924,7 +5945,90 @@ setTimeout(async () => {
     w.__T('kartenZuklappen')([-900, -600, -300].map(o=>({isIntersecting:false, target: karte(o, 200)})));
     pruef('Drei Karten ergeben eine einzige Korrektur',
       rufe === 1 && geschoben === -480, rufe + ' / ' + geschoben);
+
+    /* Waehrend der Finger noch wischt, darf sich nichts an der Hoehe
+       aendern — sonst klemmt der Browser den Stand ans neue Ende und
+       man prallt zurueck. */
+    pruef('Beim Scrollen wird nicht sofort zugeklappt',
+      html.indexOf('kartenZuklappenSpaeter') !== -1
+      && html.indexOf('new IntersectionObserver(kartenZuklappenSpaeter') !== -1);
+    {
+      const spaet = karte(-400, 300);
+      w.__T('kartenZuklappenSpaeter')([{isIntersecting:false, target: spaet}]);
+      pruef('Die Karte bleibt zunächst offen',
+        spaet.classList.contains('open') === true);
+      await new Promise(r => setTimeout(r, 700));
+      pruef('Und klappt zu, sobald das Scrollen ruht',
+        spaet.classList.contains('open') === false);
+    }
+
     w.scrollBy = echtesScrollBy;
+  }
+
+  /* ══════════ Fotomenü ══════════
+     Ein Antippen zeichnete die ganze Sammlung neu: das dauerte, und
+     solange nahm nichts anderes einen Griff an. Und das Menü lag als
+     Kind der waagerecht scrollenden Bilderzeile — am linken Rand
+     wurde es abgeschnitten. */
+  {
+    pruef('Das Fotomenü zeichnet nicht die ganze Sammlung neu',
+      /if\(a==='foto-menu'\)\{[\s\S]{0,700}?\n  \}/.test(html)
+      && !/if\(a==='foto-menu'\)\{[\s\S]{0,700}?render\(\); return;/.test(html));
+    pruef('Es hängt am Dokument, nicht in der Bilderzeile',
+      html.indexOf('.foto-menu.schwebend{position:fixed') !== -1
+      && html.indexOf("document.body.appendChild(box)") !== -1);
+    /* Der Weg des Fingers: aufmachen, zumachen. */
+    const pid = w.__T("allePflanzen()[0].id");
+    const knopf = d.createElement('button');
+    knopf.className = 'foto-punkte';
+    knopf.setAttribute('data-do', 'foto-menu');
+    knopf.getBoundingClientRect = () => ({top:100, bottom:126, left:200, right:226,
+      width:26, height:26, x:200, y:100, toJSON(){return this;}});
+    d.body.appendChild(knopf);
+    w.__T('fotoMenuOeffnen')(knopf, pid, 'k1');
+    pruef('Das Menü geht auf und steht im Dokument',
+      !!d.getElementById('foto-menu-schwebend')
+      && knopf.getAttribute('aria-expanded') === 'true');
+    pruef('Und bleibt im Bildschirm, statt links abgeschnitten zu werden',
+      parseInt(d.getElementById('foto-menu-schwebend').style.left, 10) >= 8,
+      d.getElementById('foto-menu-schwebend').style.left);
+    w.__T('fotoMenuSchliessen')();
+    pruef('Ein Griff daneben räumt es wieder weg',
+      !d.getElementById('foto-menu-schwebend')
+      && w.__T('fotoMenuOffen') === null
+      && knopf.getAttribute('aria-expanded') === 'false');
+    knopf.remove();
+  }
+
+  /* ══════════ Anlegen ══════════ */
+  {
+    /* Die Bilder der KI blieben nach dem Anlegen liegen. */
+    w.__T(`(function(){
+      KI_BILDER.anlegen.length = 0;
+      KI_BILDER.anlegen.push({mime:'image/jpeg', daten:'x', vorschau:'data:image/jpeg;base64,x'});
+    })()`);
+    pruef('Vor dem Zurücksetzen liegt ein Bild da',
+      w.__T('KI_BILDER.anlegen.length') === 1);
+    w.__T('formularLeeren()');
+    pruef('Das Zurücksetzen räumt die KI-Bilder weg',
+      w.__T('KI_BILDER.anlegen.length') === 0,
+      String(w.__T('KI_BILDER.anlegen.length')));
+
+    /* Auf der KI-Stufe fragt der Hauptknopf, statt weiterzuschieben. */
+    w.__T("(function(){ neuWeg = 'ki'; alStufe = 2; alStufeZeigen(2); })()");
+    const hk = d.getElementById('al-weiter');
+    pruef('Auf der KI-Stufe heißt der Hauptknopf „Fragen“',
+      hk.textContent === 'Fragen' && hk.dataset.fragt === '1',
+      hk.textContent);
+    w.__T("(function(){ neuWeg = 'suche'; alStufeZeigen(2); })()");
+    pruef('Auf den anderen Wegen bleibt er „Weiter“',
+      hk.textContent === 'Weiter' && !hk.dataset.fragt, hk.textContent);
+    /* Und sobald die Antwort in den Feldern steht, geht es weiter. */
+    w.__T("(function(){ neuWeg = 'ki'; alStufeZeigen(2); })()");
+    w.__T("kiAntwortEinsetzen('anlegen', 'ART: Efeutute\\nBOTANISCH: Epipremnum aureum')");
+    pruef('Die Antwort führt von selbst auf die nächste Stufe',
+      w.__T('alStufe') === 3, String(w.__T('alStufe')));
+    w.__T("(function(){ alStufe = 1; neuWeg = null; formularLeeren(); })()");
   }
 
   /* ══════════ Düngen ══════════

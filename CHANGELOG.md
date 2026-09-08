@@ -4,7 +4,7 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
-## 3.10.3 — 7. September 2026
+## 3.10.4 — 8. September 2026
 **Gießen lernt mit, Düngen sammelt sich**
 
 ### Neu — Düngen
@@ -29,9 +29,11 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 - Am Ende des Rundgangs steht eine Karte mit dem, was unterwegs aufgefallen ist. Wer dauerhaft am unteren Anschlag steht und zweimal staubtrocken gemeldet wurde, bekommt den Verdacht ausgesprochen: bei Laub- und dünnblättrigen Pflanzen Wurzelbund oder Erde, die kein Wasser mehr annimmt, bei Speicherpflanzen ein zu kleiner Topf, bei Rindenepiphyten zersetztes Substrat. „Umgetopft" setzt das Gelernte zurück — neue Erde ist eine neue Pflanze. Unterwegs wird damit nicht unterbrochen.
 
 ### Behoben
+- **Die Abkürzung „Vermehren" an der Karte führte in eine Sackgasse.** Die Pflanze war ausgewählt und wurde auch angezeigt, aber „Weiter" blieb grau — man musste sie in der Liste noch einmal anwählen. Der Knopf wird nur beim Stufenwechsel freigegeben, und der lief über die Abkürzung nie. Jetzt startet der Assistent direkt bei der Wahl des Weges, und Reste eines früheren Durchgangs werden vorher abgeräumt.
 - **In der Sammlung ließ sich ab einem bestimmten Punkt nicht mehr scrollen** — man prallte zurück wie ein Ball von der Wand, besonders mit einer gewählten Sortierung und der Gruppierung „keine". Aus dem Blick gescrollte Karten klappen sich zu; das galt bisher auch für die Karten *unterhalb* des Sichtfensters. Damit schrumpfte das Dokument unter dem Finger, und der Browser klemmte den Scrollstand ans neue Ende. Jetzt klappt nur zu, was oberhalb liegt, und die Höhendifferenz wird gesammelt und einmal verrechnet statt für jede Karte einzeln.
 
 ### Besser
+- An der Pflanzenkarte steht **„Umtopfen" statt „Substrat"**. Wer die Karte offen hat, steht vor der Pflanze und will sie umtopfen; ein Substrat für eine Gruppe oder eine bestimmte Art sucht man in Ruhe im Werkzeugreiter, dafür braucht es keine Abkürzung. Beide Abkürzungen springen gleich zur zweiten Stufe, weil die Pflanze schon feststeht.
 - Der Zustand „Frisch umgetopft" sagt jetzt deutlich, was er meint: **weiter gießen**, nur eine Spur zurückhaltender, und sechs Wochen keinen Dünger. Die Aufgabe hieß bisher „Erst wieder normal gießen, wenn neuer Zuwachs kommt" — das ließ sich als Gießpause lesen. Gemeint war nie eine: der Zustand streckt das Intervall um 15 Prozent, aus acht Tagen werden neun.
 - Wasser in der Wasserkultur wird alle fünf bis sieben Tage gewechselt statt alle sieben bis zehn. Im Winter stand dort eine Zehn — Wasser kippt in der geheizten Wohnung aber nicht langsamer, weil draußen Winter ist. Sieben Tage sind jetzt die äußerste Grenze, nicht der Normalfall.
 - Die Karte im Gießmodus steht in einem Rahmen, das Foto ist wieder groß, und die Zeilen haben einen ruhigen Abstand. Vorher schwammen fünf Zeilen frei in der Bildschirmmitte, oben und unten viel Leere, und nichts hielt sie zusammen.

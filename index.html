@@ -2048,6 +2048,7 @@ body.gm-offen #fab-neu{display:none}
 .foto-punkte{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;
   border:0;background:var(--schleier-punkte);color:var(--schrift-invers);font-size:14px;line-height:1;
   cursor:pointer;padding:0;letter-spacing:1px}
+.foto-menu.schwebend{position:fixed;top:0;left:0;z-index:120}
 .foto-menu{position:absolute;top:34px;right:5px;z-index:5;min-width:170px;
   background:var(--paper);border:1px solid var(--ink);border-radius:var(--r-mittel);
   box-shadow:var(--sch-menue);overflow:hidden}
@@ -10569,10 +10570,10 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.3';
+const FASSUNG = '3.10.4';
 const PATCHNOTES = [
   {
-    nr: '3.10.3', datum: '2026-09-07', titel: 'Gießen lernt mit, Düngen sammelt sich',
+    nr: '3.10.4', datum: '2026-09-08', titel: 'Gießen lernt mit, Düngen sammelt sich',
     neu: [
       'Düngetag statt Einzeltermine. Statt für jede Pflanze eigene Termine zu führen, sammelt die App: sobald genug Pflanzen zusammenkommen, steht vor dem Gießen eine Karte mit einer einzigen Zahl — wie viel Dünger in deine Kanne kommt — und der Liste, wer heute mitkommt. Eine Kanne, eine schwache Dosis; der Unterschied zwischen den Pflanzen läuft darüber, wer mitkommt, nicht über die Konzentration.',
       'Gedüngt wird nach Gießvorgängen, nicht nach dem Kalender. Damit folgt der Dünger von selbst Jahreszeit, Wetter und deinem gelernten Rhythmus. Dazu Grenzen je Gruppe, die immer gewinnen: frühestens alle 7 bis 21 Tage, höchstens 3 bis 16 Gaben je Saison. Karnivoren nie — Mineraldünger im Substrat tötet sie.',
@@ -10582,6 +10583,8 @@ const PATCHNOTES = [
       'Am Ende des Rundgangs steht eine Karte mit dem, was aufgefallen ist. Trocknet eine Pflanze dauerhaft schneller aus, als der Topf hergibt, steht dort der Verdacht — Wurzelbund, Erde, die kein Wasser mehr annimmt, oder ein zu kleiner Topf. „Umgetopft“ setzt das Gelernte zurück: neue Erde ist eine neue Pflanze.'
     ],
     besser: [
+      'An der Pflanzenkarte steht jetzt „Umtopfen“ statt „Substrat“. Wer die Pflanze vor sich hat, will sie umtopfen; das Substrat-Werkzeug bleibt über den Werkzeugreiter erreichbar. Beide Abkürzungen springen gleich zur zweiten Stufe, weil die Pflanze ja schon feststeht.',
+      'Die Abkürzung „Vermehren“ führte in eine Sackgasse: die Pflanze war ausgewählt und wurde angezeigt, aber „Weiter“ blieb grau — man musste sie in der Liste noch einmal anwählen. Jetzt geht es direkt weiter.',
       'Der Zustand „Frisch umgetopft“ sagt jetzt deutlich, was er meint: weiter gießen, nur eine Spur zurückhaltender, und sechs Wochen keinen Dünger. Die alte Aufgabe „Erst wieder normal gießen, wenn neuer Zuwachs kommt“ ließ sich als Gießpause lesen — gemeint war nie eine.',
       'In der Sammlung lässt sich wieder bis zum Ende scrollen. Mit einer Sortierung und der Gruppierung „keine“ prallte man ab einem bestimmten Punkt zurück: es klappten auch die Karten unterhalb des Blicks zu, das Dokument schrumpfte unter dem Finger, und der Browser klemmte den Scrollstand ans neue Ende.',
       'Wasser in der Wasserkultur wird alle fünf bis sieben Tage gewechselt statt alle sieben bis zehn. Im Winter stand dort eine Zehn — Wasser kippt aber in der geheizten Wohnung nicht langsamer, weil draußen Winter ist.',
@@ -12845,22 +12848,56 @@ async function fotosHinzu(id, files, quelle){
   render();
 }
 let fotoMenuOffen = null;   /* "pflanzenId|fotoKey" des offenen Menüs */
+/* Das Menue haengt am Dokument statt in der Bilderzeile: dort wuerde es
+   vom waagerechten Ueberlauf beschnitten. Feste Koordinaten, damit es
+   nicht mitscrollt, und ein Rand von 8 Pixeln zum Bildschirm. */
+function fotoMenuSchliessen(){
+  fotoMenuOffen = null;
+  const alt = document.getElementById('foto-menu-schwebend');
+  if(alt) alt.remove();
+  document.querySelectorAll('.foto-punkte[aria-expanded="true"]')
+    .forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+function fotoMenuOeffnen(knopf, pid, key){
+  fotoMenuSchliessen();
+  fotoMenuOffen = pid + '|' + key;
+  knopf.setAttribute('aria-expanded', 'true');
+  const ist = (typeof istProfil === 'function') ? istProfil(pid, key) : false;
+  const box = document.createElement('div');
+  box.id = 'foto-menu-schwebend';
+  box.className = 'foto-menu schwebend';
+  box.innerHTML =
+    '<button data-do="foto-profil" data-p="' + esc(pid) + '" data-k="' + esc(key) + '">'
+    + '<span class="foto-kaest">' + (ist ? '✓' : '') + '</span> Profilbild</button>'
+    + '<button data-do="fotoweg" data-p="' + esc(pid) + '" data-k="' + esc(key) + '">Löschen</button>';
+  document.body.appendChild(box);
+  const r = knopf.getBoundingClientRect();
+  const breite = box.offsetWidth || 170;
+  let links = Math.min(r.right - breite, window.innerWidth - breite - 8);
+  box.style.left = Math.max(8, links) + 'px';
+  let oben = r.bottom + 6;
+  if(oben + box.offsetHeight > window.innerHeight - 8)
+    oben = Math.max(8, r.top - box.offsetHeight - 6);
+  box.style.top = oben + 'px';
+}
+/* Ein Griff daneben, ein Scrollen oder ein Neuzeichnen schliesst es. */
+document.addEventListener('click', e=>{
+  if(!fotoMenuOffen) return;
+  if(e.target.closest('#foto-menu-schwebend')) return;
+  if(e.target.closest('[data-do="foto-menu"]')) return;
+  fotoMenuSchliessen();
+}, true);
+window.addEventListener('scroll', ()=>{ if(fotoMenuOffen) fotoMenuSchliessen(); }, true);
 function galerieHTML(p){
   const fs = fotosVon(p.id);
   const bilder = fs.map(f=>{
     const ist = istProfil(p.id, f.key);
-    const marke = fotoMenuOffen === p.id + '|' + f.key;
     return `<figure class="${ist?'ist-profil':''}">
       <img src="${f.src}" alt="${esc(nice(p))}">
       ${f.datum?`<figcaption>${new Date(f.datum+'T12:00:00').toLocaleDateString('de-DE')}</figcaption>`:'<figcaption>08.08.2026</figcaption>'}
       ${ist?'<span class="foto-profil-marke">Profil</span>':''}
       <button class="foto-punkte" data-do="foto-menu" data-p="${p.id}" data-k="${f.key}"
-        aria-label="Was mit diesem Foto tun?" aria-expanded="${marke}">•••</button>
-      ${marke?`<div class="foto-menu">
-        <button data-do="foto-profil" data-p="${p.id}" data-k="${f.key}">
-          <span class="foto-kaest">${ist?'✓':''}</span> Profilbild</button>
-        <button data-do="fotoweg" data-p="${p.id}" data-k="${f.key}">Löschen</button>
-      </div>`:''}
+        aria-label="Was mit diesem Foto tun?" aria-expanded="false">•••</button>
     </figure>`;
   }).join('');
   const add = `<button type="button" class="foto-add" data-p="${p.id}"
@@ -13203,6 +13240,25 @@ let kartenWaechter = null;
 
    Steht als eigene Funktion, damit sich die Entscheidung pruefen
    laesst, ohne einen echten Beobachter zu brauchen. */
+/* Zugeklappt wird erst, wenn das Scrollen zur Ruhe gekommen ist.
+   Waehrend eines Schwungs aendert sich sonst mitten in der Bewegung
+   die Hoehe des Dokuments: der Browser klemmt den Stand ans neue Ende,
+   die Korrektur zieht dagegen, und man prallt zurueck wie ein Ball von
+   der Wand. In einer langen, ungruppierten Liste am staerksten, weil
+   dort die meisten offenen Karten untereinander stehen. */
+let zuklappStau = [], zuklappUhr = null, letzteBewegung = 0;
+window.addEventListener('scroll', ()=>{ letzteBewegung = Date.now(); }, true);
+function kartenZuklappenSpaeter(eintraege){
+  (eintraege || []).forEach(e=>{ if(!e.isIntersecting) zuklappStau.push(e); });
+  if(zuklappUhr) clearTimeout(zuklappUhr);
+  zuklappUhr = setTimeout(function pruefen(){
+    if(Date.now() - letzteBewegung < 160){
+      zuklappUhr = setTimeout(pruefen, 120); return;
+    }
+    const stau = zuklappStau; zuklappStau = []; zuklappUhr = null;
+    kartenZuklappen(stau);
+  }, 180);
+}
 function kartenZuklappen(eintraege){
   let diffGesamt = 0;
   (eintraege || []).forEach(e=>{
@@ -13224,7 +13280,7 @@ function kartenZuklappen(eintraege){
 function kartenBeobachten(){
   if(kartenWaechter) kartenWaechter.disconnect();
   if(S.einzeln === false || S.autoZu === false) return;
-  kartenWaechter = new IntersectionObserver(kartenZuklappen,
+  kartenWaechter = new IntersectionObserver(kartenZuklappenSpaeter,
     {rootMargin: '120px 0px 120px 0px', threshold: 0});
   document.querySelectorAll('#out .card.open').forEach(c=>kartenWaechter.observe(c));
 }
@@ -13510,7 +13566,7 @@ function kartenKopfHTML(p){
       <button class="km-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute erledigt ✓':giessTat(p)}</button>
       <div class="km-neben">
         <button data-do="doktor-fuer" data-p="${p.id}">Doktor</button>
-        <button data-do="substrat-fuer" data-p="${p.id}">Substrat</button>
+        <button data-do="umtopfen-fuer" data-p="${p.id}">Umtopfen</button>
         <button data-do="vermehren-fuer" data-p="${p.id}">Vermehren</button>
         <button data-do="bearb-auf" data-p="${p.id}">Bearbeiten</button>
       </div>
@@ -15170,9 +15226,17 @@ document.addEventListener('click', e=>{
 
   if(a==='foto-menu'){
     e.stopPropagation();
+    /* Frueher zeichnete ein Antippen die ganze Sammlung neu. Bei
+       vielen Karten dauerte das spuerbar, waehrenddessen nahm nichts
+       anderes mehr einen Griff an, und das Menue lag als Kind der
+       waagerecht scrollenden Bilderzeile — am linken Rand wurde es
+       abgeschnitten. Es haengt jetzt am Dokument, in festen
+       Bildschirmkoordinaten, und nur das Menue wird auf- und
+       zugemacht. */
     const marke = btn.dataset.p + '|' + btn.dataset.k;
-    fotoMenuOffen = (fotoMenuOffen === marke) ? null : marke;
-    render(); return;
+    if(fotoMenuOffen === marke) fotoMenuSchliessen();
+    else fotoMenuOeffnen(btn, btn.dataset.p, btn.dataset.k);
+    return;
   }
 
   if(a==='foto-profil'){
@@ -15332,6 +15396,12 @@ function formularLeeren(){
   if(kul) kul.value = 'erde';
   if(typeof alKulturSetzen === 'function') alKulturSetzen();
   if(typeof formLageZeichnen === 'function') formLageZeichnen();
+  /* Die Bilder der KI blieben nach dem Anlegen liegen und lagen beim
+     naechsten Mal noch in der Auswahl. */
+  if(typeof KI_BILDER !== 'undefined' && KI_BILDER.anlegen){
+    KI_BILDER.anlegen.length = 0;
+    if(typeof kiBilderZeichnen === 'function') kiBilderZeichnen('anlegen');
+  }
   gewaehlteArt = null; artManuell = false; letzteKiAntwort = null;
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
   $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
@@ -16238,7 +16308,14 @@ function alStufeZeigen(nr){
      an jedem Assistenten etwas anderes. */
   if(weiter){
     weiter.hidden = false;
-    weiter.textContent = letzte ? 'Pflanze anlegen' : 'Weiter';
+    /* Auf der KI-Stufe hiess der Hauptknopf „Weiter" — daneben stand
+       „Fragen", und wer gefragt hatte, musste trotzdem noch weiter
+       tippen, damit die Antwort ankommt. Zwei Knoepfe fuer einen
+       Schritt. Der Hauptknopf fragt jetzt selbst, und sobald die
+       Antwort da ist, geht es von allein weiter. */
+    const kiStufe = alStufe === 2 && typeof neuWeg !== 'undefined' && neuWeg === 'ki';
+    weiter.textContent = letzte ? 'Pflanze anlegen' : kiStufe ? 'Fragen' : 'Weiter';
+    weiter.dataset.fragt = kiStufe ? '1' : '';
   }
   const titel = document.getElementById('al-titel');
   if(titel) titel.textContent = 'Pflanze anlegen · ' + AL_STUFEN[alStufe - 1];
@@ -16272,6 +16349,13 @@ function alWeiterMoeglich(){
   return true;
 }
 function alWeiter(){
+  const w = document.getElementById('al-weiter');
+  if(w && w.dataset.fragt === '1'){
+    const knopf = document.getElementById('btn-gemini');
+    if(knopf && !knopf.disabled){ knopf.click(); return; }
+    /* Ohne Schluessel oder waehrend eines Laufs bleibt der gewohnte
+       Weg: durchklicken und von Hand ausfuellen. */
+  }
   if(alStufe === 1 && !alWeiterMoeglich()){
     const w = document.querySelector('#form-neu .al-wege');
     if(w) w.animate
@@ -17977,6 +18061,11 @@ $('#btn-paste-los').onclick = ()=>{
   /* Für den Anlegen-Knopf merken: die Maßnahmen sollen gleich als
      Aufgaben mitkommen, sobald die Pflanze eine ID hat. */
   letzteKiAntwort = d;
+  /* Die Antwort steht in den Feldern — dann gehoert der Blick auf die
+     naechste Stufe, nicht auf einen Knopf, der noch bestaetigt werden
+     will. */
+  if(typeof alStufe !== 'undefined' && alStufe === 2
+     && typeof alStufeZeigen === 'function') alStufeZeigen(3);
   const notiz = [];
   if(d.befund) notiz.push('Befund: ' + d.befund);
   if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
@@ -24863,6 +24952,24 @@ document.addEventListener('click', e=>{
     subErgebnis(); return;
   }
   const b = e.target.closest('[data-do]'); if(!b) return;
+  if(b.dataset.do === 'umtopfen-fuer'){
+    e.stopPropagation();
+    /* Von der Karte aus will man umtopfen, nicht ein Substrat suchen —
+       die Pflanze steht ja schon vor einem. Wer ein Substrat fuer eine
+       Gruppe oder eine bestimmte Art sucht, geht ins Werkzeug; dafuer
+       braucht es keine Abkuerzung an der Karte. Der Substratweg bleibt
+       als Handler bestehen, nur ohne Knopf an der Karte. */
+    UT.erledigt = false;
+    UT.stufe = 1; UT.gruende = []; UT.stecklinge = false;
+    UT.zahl = 1; UT.langzeit = false;
+    sektionOeffnen('umtopfen', b);
+    if(typeof utPflanzeSetzen === 'function') utPflanzeSetzen(b.dataset.p);
+    /* Die Pflanze steht fest — weiter beim Grund. */
+    UT.stufe = 2;
+    if(typeof utZeichnen === 'function') utZeichnen();
+    fensterHoch();
+    return;
+  }
   if(b.dataset.do === 'substrat-fuer'){
     e.stopPropagation();
     subPflanze = b.dataset.p;
@@ -25547,9 +25654,21 @@ document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
   if(b.dataset.do === 'vermehren-fuer'){
     e.stopPropagation();
+    /* Der Weg ueber die Karte endete in einer Sackgasse: die Pflanze
+       war gesetzt und wurde angezeigt, aber „Weiter“ blieb grau. Der
+       Knopf wird nur in verStufeZeigen freigegeben, und das lief hier
+       nie. Ausserdem konnten Reste eines frueheren Durchgangs stehen
+       bleiben. */
+    verErledigt = false;
+    VER_ABLEGER = [];
+    const meld = document.getElementById('ver-meldung');
+    if(meld){ meld.hidden = true; meld.innerHTML = ''; }
     verPflanze = b.dataset.p; verMethode = null;
     sektionOeffnen('vermehren', b);
     verRender();
+    /* Die Pflanze steht schon fest — dann faengt der Assistent beim
+       Weg an, so wie der Substrat-Assistent beim Topf. */
+    verStufeZeigen(2);
     fensterHoch();
     return;
   }
