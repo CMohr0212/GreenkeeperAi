@@ -32,7 +32,8 @@ const dom = new JSDOM(html, {
     w.matchMedia = q => ({ matches: false, media: q, addListener(){}, removeListener(){},
       addEventListener(){}, removeEventListener(){}, onchange: null });
     w.scrollTo = () => {};
-    w.HTMLElement.prototype.scrollIntoView = () => {};
+    if(!w.Element.prototype.scrollIntoView)
+      w.Element.prototype.scrollIntoView = () => {};
     w.IntersectionObserver = class { observe(){} unobserve(){} disconnect(){} };
     w.ResizeObserver = class { observe(){} unobserve(){} disconnect(){} };
     w.HTMLCanvasElement.prototype.getContext = () => null;
@@ -125,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.7', w.__T('FASSUNG') === '3.10.7', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.10.8', w.__T('FASSUNG') === '3.10.8', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -5934,6 +5935,131 @@ setTimeout(async () => {
       !!d.querySelector('#gruppen option[value="keine"]'));
   }
 
+
+  /* ══════════ Düngetag: Zähler, Notbremse, Wunschtag ══════════
+     Gemeldet: Düngetag ab 8 eingestellt, ausgelöst bei 2. Ursache war
+     `giessSeitDuenger`: fuer eine nie geduengte Pflanze zaehlte es die
+     gesamte Giesshistorie als Rueckstand. Jede Altpflanze war damit
+     dauerhaft „dringend“ und hob die Schwelle bei jedem Rundgang aus. */
+  {
+    const eigen = () => JSON.parse(w.__T('JSON.stringify(S.eigene)'));
+
+    /* Eine Pflanze mit langer Giesshistorie und nie geduengt. */
+    w.__T(`
+      S.eigene = S.eigene.filter(p => p.id !== 'DGP1');
+      S.eigene.push({id:'DGP1', name:'Zaehlprobe', art:'Efeutute',
+        botanisch:'Epipremnum aureum', klasse:'B'});
+      S.water['DGP1'] = [];
+      for(let i = 20; i >= 1; i--){
+        const d = new Date(HEUTE); d.setDate(d.getDate() - i * 2);
+        S.water['DGP1'].push(iso(d));
+      }
+      delete S.dueng['DGP1'];
+      S.giess.dgStart = iso(HEUTE);
+      sichern();
+    `);
+    pruef('Eine nie geduengte Pflanze zaehlt ab dem Stichtag',
+      w.__T("giessSeitDuenger('DGP1')") === 0,
+      w.__T("giessSeitDuenger('DGP1')"));
+    pruef('Und ist damit nicht dringend',
+      w.__T("duengFaellig(allePflanzen().find(p=>p.id==='DGP1'))") === null);
+
+    /* Gegenprobe zur Gegenprobe: liegt der Stichtag lange zurueck,
+       zaehlt wieder alles — dann ist es echter Rueckstand. */
+    w.__T("S.giess.dgStart = '2020-01-01'; sichern();");
+    pruef('Mit altem Stichtag zaehlt die volle Historie',
+      w.__T("giessSeitDuenger('DGP1')") === 20,
+      w.__T("giessSeitDuenger('DGP1')"));
+    pruef('Und dann greift die Notbremse',
+      w.__T("(duengFaellig(allePflanzen().find(p=>p.id==='DGP1'))||{}).dringend") === true);
+    w.__T("S.giess.dgStart = iso(HEUTE); sichern();");
+
+    /* Der Stichtag wird beim ersten Mal selbst gesetzt. */
+    w.__T("delete S.giess.dgStart; sichern();");
+    pruef('Der Stichtag setzt sich selbst',
+      w.__T('duengStichtag()') === w.__T('iso(HEUTE)'));
+
+    /* Die Notbremse hat eine Sperrfrist. */
+    w.__T("delete S.giess.dgNot; sichern();");
+    pruef('Ohne letzte Notbremse ist sie frei', w.__T('notbremseFrei()') === true);
+    w.__T("S.giess.dgNot = iso(HEUTE); sichern();");
+    pruef('Heute schon ausgeloest heisst gesperrt', w.__T('notbremseFrei()') === false);
+    w.__T("(function(){const d=new Date(HEUTE); d.setDate(d.getDate()-14); S.giess.dgNot=iso(d); sichern();})()");
+    pruef('Nach vierzehn Tagen wieder frei', w.__T('notbremseFrei()') === true);
+    w.__T("delete S.giess.dgNot; sichern();");
+  }
+
+  /* ══════════ Der Wunschtag ══════════ */
+  {
+    w.__T("S.giess.dgSchwelle = 8; delete S.giess.dgTag; delete S.giess.dgZuletzt; sichern();");
+    pruef('Ohne Wunschtag gilt die volle Schwelle',
+      w.__T('duengSchwelleHeute()') === 8, w.__T('duengSchwelleHeute()'));
+    pruef('Und jeder Tag ist offen', w.__T('duengTagOffen()') === true);
+
+    /* Heute ist der Wunschtag: halbierte Schwelle. */
+    w.__T("S.giess.dgTag = HEUTE.getDay(); sichern();");
+    pruef('Am Wunschtag reicht die Haelfte',
+      w.__T('duengSchwelleHeute()') === 4, w.__T('duengSchwelleHeute()'));
+
+    /* Ein anderer Tag, und der Wunschtag lag schon: gesperrt. */
+    w.__T("S.giess.dgTag = (HEUTE.getDay() + 1) % 7; S.giess.dgZuletzt = iso(HEUTE); sichern();");
+    pruef('An anderen Tagen kommt keiner zustande',
+      w.__T('duengSchwelleHeute()') === Infinity, String(w.__T('duengSchwelleHeute()')));
+
+    /* Verpasst: seit dem letzten Wunschtag kein Duengetag. */
+    w.__T("S.giess.dgTag = (HEUTE.getDay() + 6) % 7; delete S.giess.dgZuletzt; sichern();");
+    pruef('Ein verpasster Wunschtag wird nachgeholt',
+      w.__T('duengTagOffen()') === true && w.__T('duengSchwelleHeute()') === 4,
+      w.__T('duengSchwelleHeute()'));
+    w.__T("S.giess.dgZuletzt = iso(HEUTE); sichern();");
+    pruef('Nach dem Nachholen ist Ruhe',
+      w.__T('duengSchwelleHeute()') === Infinity);
+
+    pruef('Das Auswahlfeld steht in den Einstellungen',
+      !!d.getElementById('ein-dgtag')
+      && d.querySelectorAll('#ein-dgtag option').length === 8);
+
+    w.__T("delete S.giess.dgTag; delete S.giess.dgZuletzt; delete S.giess.dgSchwelle; sichern();");
+  }
+  /* Fuer alles Weitere laeuft das Duengen seit Langem — sonst zaehlt
+     keine der aufgebauten Giesshistorien. */
+  w.__T("S.giess.dgStart = '2000-01-01'; delete S.giess.dgNot; sichern();");
+
+  /* ══════════ Wie viel angeruehrt wird ══════════
+     Gemeldet: drei Liter fuer eine einzige Pflanze. Die Menge hing an
+     der Kannengroesse statt am Bedarf. */
+  {
+    w.__T("S.giess.kanne = 3; S.giess.dosis = 5; S.giess.staerke = 'halb'; sichern();");
+    const eine = w.__T("duengKanneLiter([{id:'X', topf:'14'}])");
+    pruef('Eine Pflanze bekommt keine drei Liter', eine < 3 && eine >= 0.5, eine);
+    pruef('Aufgerundet auf halbe Liter', (eine * 2) % 1 === 0, eine);
+    pruef('Und die Kanne bleibt die Obergrenze',
+      w.__T("duengKanneLiter(Array.from({length:60}, (_,i)=>({id:'X'+i, topf:'25'})))") === 3);
+    pruef('Mindestens ein halber Liter',
+      w.__T("duengKanneLiter([])") === 0.5);
+
+    /* Die Konzentration bleibt gleich — nur darauf kommt es an. */
+    const ml1 = w.__T("duengMengeFuer([{id:'X', topf:'14'}])");
+    pruef('Die Staerke haengt nur an der Menge, nicht an der Kanne',
+      Math.abs(ml1 - Math.round(eine * 5 * 0.5 * 10) / 10) < 0.001,
+      ml1 + ' / ' + eine);
+    /* Gegenprobe: eine groessere Kanne aendert die Menge fuer dieselbe
+       Pflanze nicht — frueher hing genau daran der Fehler. */
+    w.__T("S.giess.kanne = 10; sichern();");
+    pruef('Eine groessere Kanne aendert daran nichts',
+      w.__T("duengMengeFuer([{id:'X', topf:'14'}])") === ml1);
+    w.__T("S.giess.kanne = 3; sichern();");
+
+    pruef('Ohne Topfgroesse wird geschaetzt und das gesagt',
+      w.__T("topfBekannt({id:'X'})") === false
+      && w.__T("topfBekannt({id:'X', topf:'14'})") === true);
+    pruef('Die Karte nennt Liter und Milliliter',
+      html.indexOf('Liter</b> anrühren') !== -1
+      && html.indexOf('ml</b> Dünger hinein') !== -1);
+    pruef('Und weist auf geschaetzte Topfgroessen hin',
+      html.indexOf('ist die Topfgröße geschätzt') !== -1);
+  }
+
   /* ══════════ Scrollprotokoll ══════════
      Die Messung, die beim naechsten Bericht die Ursache nennen soll. */
   {
@@ -5946,7 +6072,7 @@ setTimeout(async () => {
     pruef('Leer meldet die Messung das auch',
       w.__T('scrollProtokollText()').indexOf('Keine') === 0);
 
-    w.SCROLL_PROTOKOLL.push({uhr:'12:00:00.000', y:1200, alt:9000, neu:8400,
+    w.SCROLL_PROTOKOLL.push({art:'hoehe', uhr:'12:00:00.000', y:1200, alt:9000, neu:8400,
       bewegt:true, ans:'sammlung', sicht:'karten', grp:'keine'});
     const t = w.__T('scrollProtokollText()');
     pruef('Eine Schrumpfung steht mit Vorzeichen und Lage drin',
@@ -5960,6 +6086,33 @@ setTimeout(async () => {
     pruef('„Leeren“ raeumt auf',
       w.SCROLL_PROTOKOLL.length === 0
       && d.getElementById('sprot-liste').textContent.indexOf('Keine') === 0);
+
+    /* Stufe 2: die Hoehe war unschuldig — das Protokoll aus 3.10.7
+       zeigte keine einzige Aenderung waehrend einer Bewegung. Also
+       muss jemand den Stand setzen. Die drei Wege sind umhuellt. */
+    w.SCROLL_PROTOKOLL.length = 0;
+    w.scrollTo({top: 500});
+    pruef('Ein Sprung per scrollTo steht im Protokoll',
+      w.SCROLL_PROTOKOLL.length === 1
+      && w.SCROLL_PROTOKOLL[0].art === 'scrollTo'
+      && String(w.SCROLL_PROTOKOLL[0].ziel).indexOf('500') !== -1,
+      JSON.stringify(w.SCROLL_PROTOKOLL[0]));
+    pruef('Mit der Stelle, die ihn ausgeloest hat',
+      typeof w.SCROLL_PROTOKOLL[0].woher === 'string');
+
+    w.SCROLL_PROTOKOLL.length = 0;
+    d.body.scrollIntoView({block:'nearest'});
+    pruef('Auch scrollIntoView wird notiert',
+      w.SCROLL_PROTOKOLL.length === 1
+      && w.SCROLL_PROTOKOLL[0].art === 'scrollIntoView',
+      JSON.stringify(w.SCROLL_PROTOKOLL[0]));
+
+    w.SCROLL_PROTOKOLL.length = 0;
+    w.__scrollNotiz({art:'ruecksprung', von:2400, y:1800});
+    pruef('Ein Ruecksprung steht als solcher drin',
+      w.__T('scrollProtokollText()').indexOf('RUECKSPRUNG 2400→1800 (-600)') !== -1,
+      w.__T('scrollProtokollText()'));
+
   }
 
   /* ══════════ Das Fenster nach einem Update ══════════
@@ -5969,7 +6122,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.10.7', e0.nr === '3.10.7', e0.nr);
+    pruef('Der oberste Eintrag ist 3.10.8', e0.nr === '3.10.8', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -6137,6 +6290,9 @@ setTimeout(async () => {
       sichern();
     })()`);
 
+    /* Das Duengen laeuft in dieser Sammlung seit Langem: sonst zaehlt
+       der Stichtag die aufgebauten Giesshistorien nicht mit. */
+    w.__T("S.giess.dgStart = '2000-01-01'; delete S.giess.dgNot; delete S.giess.dgTag; delete S.giess.dgZuletzt; sichern();");
     mk('DG1', 'Monstera deliciosa', 'B');        /* Normales Laub */
     mk('DG2', 'Dionaea muscipula', 'S');         /* Karnivore */
     mk('DG3', 'Mammillaria elongata', 'C');      /* Kaktus */
@@ -6250,6 +6406,7 @@ setTimeout(async () => {
     w.__T(`(function(){
       S.giess.dgArt = 'fluessig'; S.giess.winterpause = false;
       delete S.giess.dgSchwelle; S.giess.dgSchwelle = 5;
+      delete S.giess.dgNot; delete S.giess.dgZuletzt;
       if(S.dueng) delete S.dueng.DG1;
       if(!S.water) S.water = {};
       S.water.DG1 = [];
@@ -6313,8 +6470,12 @@ setTimeout(async () => {
     })()`);
     const inh = () => d.getElementById('gm-inhalt').innerHTML;
     pruef('Vor dem Gießen steht die Vorbereitungskarte',
-      inh().indexOf('Heute ist Düngetag') !== -1 && inh().indexOf('7,5 ml') !== -1,
-      inh().slice(0, 200));
+      inh().indexOf('Heute ist Düngetag') !== -1
+      && /Liter<\/b> anrühren/.test(inh()) && /ml<\/b> Dünger hinein/.test(inh()),
+      inh().slice(0, 260));
+    /* Und sie ruehrt keine volle Kanne fuer eine Handvoll Pflanzen an. */
+    pruef('Für zwei Pflanzen keine drei Liter',
+      inh().indexOf('3 Liter</b> anrühren') === -1, inh().slice(0, 260));
     pruef('Karnivoren stehen dort als Ausnahme, nicht als Kandidat',
       inh().indexOf('Karnivoren holen sich') !== -1);
     /* „Heute ohne Dünger" verschiebt den ganzen Tag. */

@@ -9716,6 +9716,17 @@ function papierkorbRender(){
         <input type="checkbox" id="ck-vollstaerke"> <span class="lab" style="display:inline">Volle Dosis statt halber</span></label>
       <label class="fspan zeile"><span class="lab">Düngetag ab wie vielen Pflanzen</span>
         <input type="number" id="ein-schwelle" min="1" max="99" step="1" inputmode="numeric"></label>
+      <label class="fspan zeile"><span class="lab">Am liebsten an diesem Wochentag</span>
+        <select id="ein-dgtag">
+          <option value="">Kein fester Tag</option>
+          <option value="1">Montag</option>
+          <option value="2">Dienstag</option>
+          <option value="3">Mittwoch</option>
+          <option value="4">Donnerstag</option>
+          <option value="5">Freitag</option>
+          <option value="6">Samstag</option>
+          <option value="0">Sonntag</option>
+        </select></label>
       <p class="fhint" id="kanne-text"></p>
       <button type="button" class="knopf-leise" id="schwelle-zurueck">Vorschlag wieder verwenden</button>
 
@@ -10592,8 +10603,29 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.7';
+const FASSUNG = '3.10.8';
 const PATCHNOTES = [
+  {
+    nr: '3.10.8', datum: '2026-09-08', titel: 'Der Düngetag hört auf zu drängeln',
+    kurz: [
+      'Der Düngetag kam bei jedem Rundgang, obwohl deine Schwelle viel höher stand. Schuld war der Zähler: eine nie gedüngte Pflanze rechnete ihre ganze Gießhistorie als Rückstand.',
+      'Die Notbremse meldet sich jetzt höchstens alle 14 Tage — sie soll einen Einzelgänger abholen, nicht die Regel sein.',
+      'Neu: ein Wunschtag in der Woche. An ihm reicht die halbe Schwelle, an anderen Tagen kommt kein Düngetag zustande; fällt der Rundgang aus, wird nachgeholt.',
+      'Angerührt wird nur noch, was gebraucht wird: „0,5 Liter anrühren · 1,3 ml hinein“ statt einer vollen Kanne für zwei Pflanzen.',
+      'Das Scrollprotokoll verfolgt jetzt die Position statt der Höhe — samt der Stelle im Code, die einen Sprung auslöst.'
+    ],
+    behoben: [
+      'Der Düngetag löste bei jeder Runde aus, auch bei zwei Pflanzen und eingestellter Schwelle acht. Die Notbremse hängt am Zähler „wie oft gegossen, seit zuletzt gedüngt“ — und der gab für eine nie gedüngte Pflanze die gesamte Gießhistorie zurück. Wer seit Wochen gießt und nie gedüngt hat, war damit sofort doppelt überfällig, und eine einzige solche Pflanze reichte, um die Schwelle zu überspringen. Gezählt wird jetzt ab dem Tag, an dem das Düngen in dieser Sammlung zu laufen begann. „Nie gedüngt“ ist bei einer Sammlung, die es vor der Düngefunktion schon gab, kein Rückstand.',
+      'Die Notbremse hat eine Sperrfrist von 14 Tagen bekommen. Ohne sie war sie die Regel und die eingestellte Schwelle die Ausnahme. Wenn sie greift, sagt die Karte es auch: heute wäre eigentlich kein Düngetag.',
+      'Für zwei Pflanzen wurde eine volle Drei-Liter-Kanne angesetzt. Die Menge hing an der Kannengröße statt am Bedarf. Die App rechnet jetzt aus den Topfgrößen der Kandidaten, rundet auf halbe Liter auf und begrenzt nach oben durch deine Kanne. An der Stärke ändert das nichts — die Konzentration bleibt gleich, es geht nur weniger Wasser und Dünger drauf. Wo die Topfgröße fehlt, wird geschätzt, und die Karte sagt bei wie vielen.'
+    ],
+    neu: [
+      'Ein Wunschtag für den Düngetag, einstellbar im Gießcenter unter Dünger. An diesem Tag reicht die halbe Schwelle, an allen anderen kommt keiner zustande. Und weil ein ausgefallener Rundgang sonst eine ganze Woche kostet, wird nachgeholt: liegt seit dem letzten Wunschtag kein Düngetag, gilt er weiter.'
+    ],
+    besser: [
+      'Das Scrollprotokoll verfolgt die zweite Spur. Die erste Messung hat gezeigt, dass sich die Höhe der Seite während des Scrollens gar nicht ändert — damit scheiden das Raster, die Bilder und die klebende Suchleiste aus. Also wird jetzt aufgezeichnet, wer den Scrollstand aktiv setzt: jeder Aufruf von scrollTo, scrollBy und scrollIntoView mit der auslösenden Stelle, dazu ein Wächter, der einen Rücksprung auch dann notiert, wenn ihn niemand angefordert hat.'
+    ]
+  },
   {
     nr: '3.10.7', datum: '2026-09-08', titel: 'Kürzeres Update-Fenster, ehrliches Scrollen',
     kurz: [
@@ -12615,7 +12647,70 @@ function duengSchwelleVorschlag(){
   const erwartet = Math.ceil(duengErwartung());
   return Math.max(2, Math.min(kannenFassung(), erwartet || 2));
 }
-/* Wie viel Duenger in die Kanne kommt — eine Zahl, mehr sieht niemand. */
+/* ── Der Wunschtag ─────────────────────────────────────────────
+   Wer immer sonntags duengt, will nicht am Mittwoch eine Kanne
+   anruehren. Ist ein Tag gesetzt, halbiert sich an ihm die Schwelle
+   — an allen anderen Tagen kommt kein Duengetag zustande. Damit ein
+   ausgefallener Rundgang nicht eine ganze Woche kostet, wird
+   nachgeholt: liegt seit dem letzten Wunschtag kein Duengetag, gilt
+   er weiter, bis einer stattgefunden hat. */
+function duengWunschtag(){
+  const g = giessEinst();
+  return (typeof g.dgTag === 'number' && g.dgTag >= 0 && g.dgTag <= 6) ? g.dgTag : null;
+}
+function letzterWunschtag(tag){
+  const d = new Date(HEUTE);
+  d.setDate(d.getDate() - ((d.getDay() - tag + 7) % 7));
+  return iso(d);
+}
+function duengTagOffen(){
+  const t = duengWunschtag();
+  if(t === null) return true;
+  if(HEUTE.getDay() === t) return true;
+  return (giessEinst().dgZuletzt || '') < letzterWunschtag(t);
+}
+/* Die Schwelle, die heute tatsaechlich gilt. */
+function duengSchwelleHeute(){
+  if(!duengTagOffen()) return Infinity;
+  const s = duengSchwelle();
+  return duengWunschtag() === null ? s : Math.max(2, Math.ceil(s / 2));
+}
+/* Die Notbremse holt einen Einzelgaenger ab, der sonst ewig wartet.
+   Sie darf das nicht bei jedem Rundgang tun — sonst ist sie die
+   Regel und die Schwelle die Ausnahme. */
+const NOTBREMSE_FRIST = 14;
+const WOCHENTAG_NAME = ['Sonntagen', 'Montagen', 'Dienstagen', 'Mittwochen',
+                        'Donnerstagen', 'Freitagen', 'Samstagen'];
+function notbremseFrei(){
+  const letzte = giessEinst().dgNot;
+  if(!letzte) return true;
+  const t = tageSeit(letzte);
+  return t == null || t >= NOTBREMSE_FRIST;
+}
+/* Ob die Topfgroesse bekannt ist — sonst wird geschaetzt, und das
+   sagt die App dazu. */
+function topfBekannt(p){
+  return !!Number(p.topf || ((S.edits && S.edits[p.id] && S.edits[p.id].topf) || 0));
+}
+/* Wie viel Wasser die Kandidaten zusammen brauchen, aufgerundet auf
+   halbe Liter und begrenzt durch deine Kanne. Fuer zwei Pflanzen
+   ruehrt niemand drei Liter an. */
+function duengKanneLiter(kand){
+  const e = duengEinst();
+  const roh = (kand || []).reduce((sum, p) => sum + wasserBedarf(p), 0);
+  const auf = Math.ceil(Math.max(0.5, roh) * 2) / 2;
+  return Math.min(e.kanne, auf);
+}
+/* Wie viel Duenger in genau diese Menge kommt. Die Konzentration
+   bleibt gleich — eine zu klein geschaetzte Kanne aendert nichts
+   daran, was eine Pflanze abbekommt, es geht nur frueher aus. */
+function duengMengeFuer(kand){
+  const e = duengEinst();
+  const ml = duengKanneLiter(kand) * e.dosis * (e.staerke === 'voll' ? 1 : 0.5);
+  return Math.round(ml * 10) / 10;
+}
+
+/* Wie viel Duenger in die volle Kanne kommt — fuer die Einstellungen. */
 function duengMenge(){
   const e = duengEinst();
   const ml = e.kanne * e.dosis * (e.staerke === 'voll' ? 1 : 0.5);
@@ -12669,11 +12764,24 @@ function duengSaisonZahl(id){
   const ab = saisonStart();
   return duengLog(id).filter(t => t >= ab).length;
 }
-/* Wie oft gegossen wurde, seit zuletzt gedüngt wurde. */
+/* Der Tag, an dem das Duengen fuer diese Sammlung zu laufen begann.
+   Ohne ihn zaehlte eine nie geduengte Pflanze ihre gesamte
+   Giesshistorie als Rueckstand: wer seit Wochen giesst und nie
+   geduengt hat, war sofort „doppelt ueberfaellig“ und loeste die
+   Notbremse bei jedem Rundgang aus — die eingestellte Schwelle kam
+   nie zum Tragen. „Nie geduengt“ ist bei einer Sammlung, die es vor
+   der Duengefunktion schon gab, kein Rueckstand. */
+function duengStichtag(){
+  const g = giessEinst();
+  if(!g.dgStart) { g.dgStart = iso(HEUTE); sichern(); }
+  return g.dgStart;
+}
+/* Wie oft gegossen wurde, seit zuletzt gedüngt wurde — und wer noch
+   nie Dünger bekam, zählt ab dem Stichtag. */
 function giessSeitDuenger(id){
-  const letzte = duengLog(id)[0];
+  const ab = duengLog(id)[0] || duengStichtag();
   const log = (typeof giessLog === 'function') ? giessLog(id) : [];
-  return letzte ? log.filter(t => t > letzte).length : log.length;
+  return log.filter(t => t > ab).length;
 }
 
 /* Warum eine Pflanze heute keinen Duenger bekommt — oder null.
@@ -20764,8 +20872,15 @@ function gmZeichnen(){
        dazugesellt. Sonst wartet ein Einzelgaenger ewig — gerade in
        kleinen Sammlungen. Sperren und Grenzen ueberstimmt sie nicht,
        die sind in duengFaellig schon geprueft. */
-    if(kand.length >= duengSchwelle() || kand.some(p => duengFaellig(p).dringend)){
-      gmZeichnenDueng(); return;
+    const durchSchwelle = kand.length >= duengSchwelleHeute();
+    const durchNotbremse = !durchSchwelle && notbremseFrei()
+      && kand.some(p => duengFaellig(p).dringend);
+    if(durchSchwelle || durchNotbremse){
+      const g = giessEinst();
+      g.dgZuletzt = iso(HEUTE);
+      if(durchNotbremse) g.dgNot = iso(HEUTE);
+      sichern();
+      gmZeichnenDueng(durchNotbremse); return;
     }
   }
   const p = gmListe[gmIndex];
@@ -20915,9 +21030,11 @@ function gmStandort(p){
 
 /* Die Vorbereitungskarte. Sie steht vor der ersten Pflanze und nur
    dann, wenn genug zusammenkommt: eine Zahl, eine Liste, zwei Knoepfe. */
-function gmZeichnenDueng(){
+function gmZeichnenDueng(perNotbremse){
   const kand = gmDuengKandidaten(gmListe);
   const e = duengEinst();
+  const liter = duengKanneLiter(kand);
+  const geschaetzt = kand.filter(p => !topfBekannt(p)).length;
   const gesperrt = gmListe.filter(p => {
     const g = duengGrenze(p);
     return g && g.code === 'karnivore';
@@ -20926,9 +21043,11 @@ function gmZeichnenDueng(){
     <p class="gm-zaehler">Vor dem Gießen</p>
     <div class="gm-karte">
       <h3>Heute ist Düngetag</h3>
-      <p class="gm-dosis"><b>${String(duengMenge()).replace('.', ',')} ml</b> in die ${String(e.kanne).replace('.', ',')}-Liter-Kanne</p>
+      <p class="gm-dosis"><b>${String(liter).replace('.', ',')} Liter</b> anrühren · <b>${String(duengMengeFuer(kand)).replace('.', ',')} ml</b> Dünger hinein</p>
       <p class="gm-art">Voraussichtlich ${kand.length} von ${gmListe.length} ${gmListe.length===1?'Pflanze':'Pflanzen'} — wer heute nicht gegossen wird, bekommt auch keinen Dünger.</p>
       <p class="gm-namen">${kand.map(p=>esc(nice(p))).join(' · ')}</p>
+      ${geschaetzt ? `<p class="gm-hinweis">Bei ${geschaetzt} von ${kand.length} ist die Topfgröße geschätzt — trag sie an der Pflanze nach, dann stimmt die Menge. An der Stärke ändert das nichts.</p>` : ''}
+      ${perNotbremse ? `<p class="gm-hinweis">Heute ist eigentlich kein Düngetag. Eine Pflanze wartet aber deutlich zu lange, deshalb doch.</p>` : ''}
       ${gesperrt.length ? `<p class="gm-hinweis">${gesperrt.map(p=>esc(nice(p))).join(', ')} ${gesperrt.length===1?'bekommt':'bekommen'} nie Dünger — Karnivoren holen sich ihre Nährstoffe aus Insekten.</p>` : ''}
     </div>`;
   $('#gm-knoepfe').innerHTML = `
@@ -21870,13 +21989,22 @@ function giessCenterZeichnen(){
   if(sf && document.activeElement !== sf) sf.value = duengSchwelle();
   const zk = document.getElementById('schwelle-zurueck');
   if(zk) zk.hidden = !de.schwelle;
+  const tf = document.getElementById('ein-dgtag');
+  if(tf && document.activeElement !== tf)
+    tf.value = duengWunschtag() === null ? '' : String(duengWunschtag());
   const duengbare = allePflanzen().filter(duengbar).length;
   txt('kanne-text', duengMenge().toString().replace('.', ',') + ' ml in die '
     + String(de.kanne).replace('.', ',') + '-Liter-Kanne. '
     + (de.schwelle ? 'Vorgeschlagen wären ' + duengSchwelleVorschlag() + '. ' : 'Vorgeschlagen aus deiner Sammlung. ')
     + duengbare + ' deiner ' + allePflanzen().length + ' Pflanzen bekommen überhaupt Dünger; '
-    + 'Karnivoren und alles auf „nie“ zählen nicht mit. Wartet eine Pflanze doppelt so lange wie vorgesehen, '
-    + 'gibt es trotzdem einen Düngetag.');
+    + 'Karnivoren und alles auf „nie“ zählen nicht mit.'
+    + (duengWunschtag() === null
+        ? ' Gedüngt wird an dem Rundgang, an dem die Schwelle zusammenkommt.'
+        : ' An ' + WOCHENTAG_NAME[duengWunschtag()] + ' reicht schon '
+          + duengSchwelleHeute() + ', an anderen Tagen kommt kein Düngetag zustande.'
+          + ' Fällt der Rundgang aus, wird er nachgeholt.')
+    + ' Wartet eine Pflanze mehr als doppelt so lange wie vorgesehen, gibt es höchstens alle '
+    + NOTBREMSE_FRIST + ' Tage trotzdem einen — sonst wäre die Notbremse die Regel.');
   txt('winterpause-text', g.winterpause
     ? 'Zwischen Oktober und Februar schlägt die App kein Düngen vor.'
     : 'Es wird das ganze Jahr über gedüngt. Nur sinnvoll, wenn deine Pflanzen unter Lampen durchwachsen.');
@@ -21897,6 +22025,7 @@ function giessCenterZeichnen(){
   u('gc-u-wasser', (WASSER_ART[g.art] || {}).name
     + (g.haerte ? ' · ' + {weich:'weich', mittel:'mittel', hart:'hart'}[g.haerte] : ''));
   u('gc-u-duenger', {fluessig:'Flüssig', stab:'Stäbchen', langzeit:'Langzeit', selbst:'Selbst angesetzt'}[g.dgArt]
+    + (duengWunschtag() === null ? '' : ' · ' + WOCHENTAG_NAME[duengWunschtag()].replace(/en$/, 's'))
     + (g.winterpause ? ' · Winterpause' : ''));
   u('gc-u-rhythmus', g.saison
     ? 'Saison-Anpassung: ' + {sanft:'sanft', normal:'normal', stark:'stark'}[g.saisonStaerke]
@@ -21938,6 +22067,14 @@ document.addEventListener('click', e=>{
   }
 });
 document.addEventListener('change', e=>{
+  if(e.target && e.target.id === 'ein-dgtag'){
+    const v = e.target.value;
+    if(!S.giess) S.giess = {};
+    if(v === '') delete S.giess.dgTag; else S.giess.dgTag = parseInt(v, 10);
+    sichern();
+    if(typeof giessCenterZeichnen === 'function') giessCenterZeichnen();
+    return;
+  }
   if(e.target && e.target.id === 'ck-vollstaerke'){
     if(!S.giess) S.giess = {};
     S.giess.staerke = e.target.checked ? 'voll' : 'halb';
@@ -22822,34 +22959,90 @@ ansichtZeigen(S.ansicht || 'heute', false);
 window.SCROLL_PROTOKOLL = [];
 function scrollProtokollText(){
   const l = window.SCROLL_PROTOKOLL;
-  if(!l.length) return 'Keine Hoehenaenderung aufgezeichnet.';
-  return l.map(e=>
-    e.uhr + '  y=' + e.y + '  ' + e.alt + '→' + e.neu
-    + ' (' + (e.neu - e.alt > 0 ? '+' : '') + (e.neu - e.alt) + ')'
-    + (e.bewegt ? '  IN BEWEGUNG' : '')
-    + '  [' + e.ans + '/' + e.sicht + '/' + e.grp + ']'
-  ).join('\n');
+  if(!l.length) return 'Keine Auffaelligkeit aufgezeichnet.';
+  return l.map(e=>{
+    const kopf = e.uhr + '  y=' + e.y;
+    const lage = '  [' + e.ans + '/' + e.sicht + '/' + e.grp + ']';
+    if(e.art === 'hoehe')
+      return kopf + '  ' + e.alt + '→' + e.neu
+        + ' (' + (e.neu - e.alt > 0 ? '+' : '') + (e.neu - e.alt) + ')'
+        + (e.bewegt ? '  IN BEWEGUNG' : '') + lage;
+    if(e.art === 'ruecksprung')
+      return kopf + '  RUECKSPRUNG ' + e.von + '→' + e.y
+        + ' (' + (e.y - e.von) + ')' + lage;
+    return kopf + '  ' + e.art + ' → ' + e.ziel
+      + (e.bewegt ? '  IN BEWEGUNG' : '') + lage
+      + (e.woher ? '\n      ' + e.woher : '');
+  }).join('\n');
 }
 (function(){
   let letzteHoehe = 0, letzteBewegung = 0;
-  window.addEventListener('scroll', ()=>{ letzteBewegung = Date.now(); },
-    {passive:true, capture:true});
+  let letztesY = 0, richtung = 0;
+
+  function notieren(satz){
+    const d = new Date();
+    satz.uhr = d.toLocaleTimeString('de-DE') + '.' + String(d.getMilliseconds()).padStart(3,'0');
+    if(satz.y == null) satz.y = Math.round(window.scrollY);
+    satz.ans   = (typeof S === 'object' && S.ansicht) || '?';
+    satz.sicht = (typeof samAnsicht === 'function') ? samAnsicht() : '?';
+    satz.grp   = (typeof gruppierung !== 'undefined') ? gruppierung : '?';
+    window.SCROLL_PROTOKOLL.push(satz);
+    /* Nur die juengsten Eintraege — der Fehler steht am Ende. */
+    if(window.SCROLL_PROTOKOLL.length > 80) window.SCROLL_PROTOKOLL.shift();
+  }
+  window.__scrollNotiz = notieren;
+
+  /* Wer ruft. Die eigene Zeile und die des Umhuellers fallen weg;
+     uebrig bleibt die Stelle in dieser Datei, die es ausgeloest hat. */
+  function woher(){
+    try{
+      const zeilen = String(new Error().stack || '').split('\n').slice(1);
+      return zeilen
+        .filter(z => z.indexOf('woher') === -1 && z.indexOf('umhuellen') === -1)
+        .slice(1, 3)
+        .map(z => z.trim().replace(/^at\s+/, '').replace(/https?:\/\/[^\s)]*\//, ''))
+        .join(' ‹ ');
+    }catch(e){ return ''; }
+  }
+
+  /* Stufe 2: nicht die Hoehe, sondern die Position. Das Protokoll aus
+     3.10.7 hat gezeigt, dass sich die Hoehe waehrend des Scrollens
+     gar nicht aendert — es muss also jemand den Stand aktiv setzen.
+     Also die drei Wege umhuellen, auf denen das ueberhaupt geht. */
+  function umhuellen(halter, name, art, zielVon){
+    const alt = halter[name];
+    if(typeof alt !== 'function') return;
+    halter[name] = function(){
+      notieren({art: art, ziel: zielVon.apply(this, arguments),
+        bewegt: Date.now() - letzteBewegung < 400, woher: woher()});
+      return alt.apply(this, arguments);
+    };
+  }
+  umhuellen(window, 'scrollTo', 'scrollTo',
+    function(o, y){ return (o && typeof o === 'object') ? ('top=' + o.top) : ('y=' + y); });
+  umhuellen(window, 'scrollBy', 'scrollBy',
+    function(o, y){ return (o && typeof o === 'object') ? ('um ' + o.top) : ('um ' + y); });
+  umhuellen(Element.prototype, 'scrollIntoView', 'scrollIntoView',
+    function(){ return (this.id ? '#' + this.id : this.tagName)
+      + (this.className ? '.' + String(this.className).split(' ')[0] : ''); });
+
+  /* Und ein Waechter fuer den Ruecksprung selbst: geht es aufwaerts
+     und der Stand faellt ploetzlich deutlich zurueck, steht das hier
+     — auch wenn niemand eine der drei Funktionen gerufen hat. */
+  window.addEventListener('scroll', ()=>{
+    letzteBewegung = Date.now();
+    const y = Math.round(window.scrollY);
+    const d = y - letztesY;
+    if(richtung > 0 && d < -60) notieren({art:'ruecksprung', von: letztesY, y: y});
+    if(d !== 0) richtung = d > 0 ? 1 : -1;
+    letztesY = y;
+  }, {passive:true, capture:true});
+
   function nachsehen(){
     const h = document.documentElement.scrollHeight;
-    if(letzteHoehe && h !== letzteHoehe){
-      const d = new Date();
-      window.SCROLL_PROTOKOLL.push({
-        uhr: d.toLocaleTimeString('de-DE') + '.' + String(d.getMilliseconds()).padStart(3,'0'),
-        y: Math.round(window.scrollY),
-        alt: letzteHoehe, neu: h,
-        bewegt: Date.now() - letzteBewegung < 400,
-        ans: (typeof S === 'object' && S.ansicht) || '?',
-        sicht: (typeof samAnsicht === 'function') ? samAnsicht() : '?',
-        grp: (typeof gruppierung !== 'undefined') ? gruppierung : '?'
-      });
-      /* Nur die juengsten Eintraege — der Fehler steht am Ende. */
-      if(window.SCROLL_PROTOKOLL.length > 80) window.SCROLL_PROTOKOLL.shift();
-    }
+    if(letzteHoehe && h !== letzteHoehe)
+      notieren({art:'hoehe', alt: letzteHoehe, neu: h,
+        bewegt: Date.now() - letzteBewegung < 400});
     letzteHoehe = h;
   }
   if(typeof ResizeObserver === 'function')

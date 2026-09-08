@@ -4,6 +4,36 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.10.8 — 8. September 2026
+**Der Düngetag hört auf zu drängeln**
+
+### Behoben
+- **Der Düngetag löste bei jedem Rundgang aus, obwohl die Schwelle auf acht stand** — gestern bei einer Pflanze, heute bei zwei. Die Notbremse hängt am Zähler „wie oft gegossen, seit zuletzt gedüngt“, und der gab für eine nie gedüngte Pflanze die *gesamte* Gießhistorie zurück. Bei Gruppe Laub gilt „dringend“ ab dem sechsten Gießen — jede Pflanze, die seit Wochen gegossen und nie gedüngt wurde, war damit dauerhaft dringend, und eine einzige davon reichte, um die eingestellte Schwelle zu überspringen. Gezählt wird jetzt ab einem Stichtag: dem Tag, an dem das Düngen in dieser Sammlung zu laufen begann. „Nie gedüngt“ ist bei einer Sammlung, die es vor der Düngefunktion schon gab, kein Rückstand.
+- **Die Notbremse hat eine Sperrfrist von vierzehn Tagen bekommen.** Sie soll einen Einzelgänger abholen, der sonst ewig auf Gesellschaft wartet — ohne Frist war sie die Regel und die Schwelle die Ausnahme. Wenn sie greift, steht es jetzt auch auf der Karte: heute wäre eigentlich kein Düngetag, aber eine Pflanze wartet deutlich zu lange.
+- **Für zwei Pflanzen wurde eine volle Drei-Liter-Kanne angesetzt.** Die Menge hing an der Kannengröße statt am Bedarf. Die App rechnet jetzt aus den Topfgrößen der Kandidaten — etwa ein Fünftel des Topfvolumens je Gabe —, rundet auf halbe Liter auf und begrenzt nach oben durch deine Kanne. Auf der Karte steht deshalb „0,5 Liter anrühren · 1,3 ml Dünger hinein“ statt „7,5 ml in die 3-Liter-Kanne“. An der Stärke ändert das nichts: die Konzentration bleibt dieselbe, eine zu klein geschätzte Menge geht nur früher aus. Wo die Topfgröße fehlt, wird geschätzt, und die Karte sagt bei wie vielen — nachtragen lässt sie sich an der Pflanze.
+
+### Neu
+- **Ein Wunschtag für den Düngetag**, im Gießcenter unter Dünger. Wer immer sonntags düngt, will nicht am Mittwoch eine Kanne anrühren. Ist ein Tag gesetzt, reicht an ihm die halbe Schwelle; an allen anderen Tagen kommt kein Düngetag zustande. Weil ein ausgefallener Rundgang sonst eine ganze Woche kostet, wird nachgeholt: liegt seit dem letzten Wunschtag kein Düngetag, gilt er weiter, bis einer stattgefunden hat. Ohne gesetzten Tag bleibt alles wie bisher.
+
+### Besser
+- **Das Scrollprotokoll verfolgt jetzt die Position statt der Höhe.** Die erste Messung hat etwas Wichtiges gezeigt: während des Scrollens ändert sich die Höhe der Seite überhaupt nicht. Damit scheiden das Raster, die nachgeladenen Bilder und die klebende Suchleiste als Ursache aus — es muss jemand den Scrollstand aktiv setzen. Aufgezeichnet wird deshalb jeder Aufruf von `scrollTo`, `scrollBy` und `scrollIntoView` mitsamt der Stelle, die ihn ausgelöst hat, dazu ein Wächter, der einen Rücksprung auch dann notiert, wenn ihn niemand angefordert hat.
+
+---
+
+## 3.10.7 — 8. September 2026
+**Kürzeres Update-Fenster, ehrliches Scrollen**
+
+### Besser
+- **Das Fenster nach einem Update zeigt nur noch die Kernpunkte.** Zuletzt war es neunzehn Absätze lang und las sich streckenweise wie alte Post — weil eine Fassungsnummer die Arbeit mehrerer Zwischenstände bündelte. Jeder Eintrag trägt jetzt eine Kurzfassung von höchstens fünf Sätzen; die zeigt das Fenster. Die vollständige Liste steht unverändert unter Mehr › Was sich geändert hat, einen Knopf entfernt. Ältere Einträge ohne Kurzfassung werden weiterhin ganz gezeigt.
+
+### Behoben
+- **Die Mechanik, die aus dem Blick gescrollte Karten zuklappte, ist ersatzlos entfernt.** Sie konnte seit dem Umbau auf das Kartenfenster gar nicht mehr greifen: die Details einer Pflanze stehen seither in einem eigenen Fenster, in der Liste trägt keine Karte mehr die Klasse „offen“, und der Beobachter fand deshalb nie etwas. Die beiden Reparaturen in 3.9.1 und 3.10.6, die genau hier ansetzten, haben den gemeldeten Fehler folglich nie berührt — die Prüfung rief die Funktionen direkt auf und blieb grün, während am Gerät nichts davon geschah. Mit der Mechanik fällt auch die Zeile weg, die die Verankerung des Browsers abschaltete; die hält jetzt wieder selbst dagegen, wenn sich oberhalb des Blicks etwas ändert.
+
+### Neu
+- **Scrollprotokoll unter Mehr › Hilfe.** Eine Messung, keine Funktion. Sie schreibt mit, wann sich die Höhe der Seite ändert, um wie viel, bei welchem Scrollstand, ob der Finger dabei noch in Bewegung war und in welcher Ansicht und Gruppierung. Damit lässt sich der Scrollfehler beim nächsten Auftreten belegen statt vermuten — nach drei Anläufen war das fällig.
+
+---
+
 ## 3.10.6 — 8. September 2026
 **Gießen lernt mit, Düngen sammelt sich**
 
