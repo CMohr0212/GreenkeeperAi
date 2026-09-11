@@ -121,6 +121,35 @@ hat einen zweiten Parameter. `kGiftHTML` und `warnungenHTML` hängen jetzt an
 - Der Sprung „Im Substratrechner öffnen“ von der Karte aus ist nicht am
   Gerät getestet, nur die Verdrahtung.
 
+### Gleich im nächsten Schritt mitnehmen: Lernen über einem Handwert
+
+Klein, aber inhaltlich wichtig. In 3.12.0 sperrt ein eigener Rhythmus das
+Nachlernen komplett. Das ist zu streng: Wer einmal von Hand etwas eingestellt
+hat, soll trotzdem übernehmen können, was der Gießmodus später lernt — zweimal
+„noch feucht“ oder zweimal „staubtrocken“ sagen ja etwas.
+
+Verhindert werden sollte nur eines: dass auf der Karte „alle 7 Tage“ steht und
+die App in Wahrheit mit 9 rechnet.
+
+Entscheidung (Chris, 12.09.): **Der Handwert ersetzt die Gießklasse als
+Ausgangspunkt, mehr nicht — und das Lernen ändert ihn nie still, sondern
+schlägt vor.**
+
+- Nach zwei gleichgerichteten Rückmeldungen fragt die Karte:
+  „Zweimal noch feucht — Sommer auf 9 Tage setzen?“ Ein Tipp übernimmt, und
+  der neue Wert ist dann der Handwert.
+- Nichts verschiebt sich hinter dem Rücken; passt zum Düngetag, der auch fragt
+  statt einfach zu tun.
+- Verworfen: still lernen und beide Zahlen anzeigen (zwei Zahlen für eine
+  Sache), sowie still lernen und nur das Ergebnis zeigen (genau der
+  Widerspruch, der in 3.12.0 rausgeflogen ist).
+- **Wichtiges Detail:** Wird der Rhythmus von Hand geändert, muss der bis
+  dahin gelernte Faktor zurück auf 1. Sonst schlägt ein alter Faktor sofort
+  auf den frischen Wert durch, und man landet wieder bei der Zahl, die man
+  gerade wegkorrigiert hat.
+- Gegenprobe dazu: Ein Handwert plus zwei Rückmeldungen darf den gerechneten
+  Wert **nicht** verschieben, solange der Vorschlag nicht angenommen wurde.
+
 ## Backlog
 
 - Nach dem Hochladen: Chris an eine Pause von 1–3 Tagen erinnern, in der er
