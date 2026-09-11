@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.11.0', w.__T('FASSUNG') === '3.11.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.12.0', w.__T('FASSUNG') === '3.12.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -597,8 +597,16 @@ setTimeout(async () => {
     !d.querySelector('#karte-rumpf .schnell'));
 
   /* ── Der neue Kartenkopf ── */
-  pruef('Kopf trägt ein großes Bild',
-    !!d.querySelector('#karte-rumpf .km-held-bild'));
+  /* Seit 3.12.0 zeigt Botanisch ohne Foto keinen leeren Bildkasten mehr,
+     sondern eine Zeile „Foto hinzufügen“. Mit Foto steht das Bild wie
+     bisher oben; die anderen Designs haben immer einen Bildkasten. */
+  pruef('Kopf trägt ein großes Bild, sobald ein Foto da ist',
+    w.__T("(profilFoto(_karteId) || S.design !== 'botanisch')")
+      ? !!d.querySelector('#karte-rumpf .km-held-bild')
+      : !d.querySelector('#karte-rumpf .km-held-bild'));
+  pruef('Ohne Foto steht die breite Zeile statt eines Platzhalters',
+    w.__T("(profilFoto(_karteId) || S.design !== 'botanisch')")
+      ? true : !!d.querySelector('#karte-rumpf .km-held .foto-add.breit'));
   pruef('Name liegt im Kopf',
     !!d.querySelector('#karte-rumpf .km-held-titel'));
   pruef('Fotoband ist die bekannte Galerie',
@@ -638,18 +646,26 @@ setTimeout(async () => {
     pruef('Reiter heißen pflege, standort, verlauf, wissen',
       tabs.join(',') === 'pflege,standort,verlauf,wissen', tabs.join(','));
     pruef('Kein Reiter „Allgemein" mehr', tabs.indexOf('allgemein') === -1);
+    /* Seit 3.12.0 bleibt „Wissen" auch bei einer Pflanze ohne hinterlegte
+       Artangaben stehen — dann mit dem Hinweis, was zu tun waere. */
+    pruef('Wissen bleibt auch ohne Artangaben stehen',
+      !!d.querySelector('#karte-rumpf [data-kpane="wissen"]'));
     pruef('Fotos sind kein Akkordeon mehr',
       !d.querySelector('#karte-rumpf [data-acc="fotos"]'));
     pruef('Aufgaben stehen vor den Reitern',
-      !!d.querySelector('#karte-rumpf .detail > [data-acc="aufgaben"]'));
+      !!d.querySelector('#karte-rumpf .detail > [data-acc="aufgaben-zeile"]'));
     pruef('Steckbrief liegt im Wissen-Reiter',
       !!d.querySelector('#karte-rumpf [data-kpane="wissen"] [data-kblock="steckbrief"]')
       || !d.querySelector('#karte-rumpf [data-kblock="steckbrief"]'));
     pruef('Notizen liegen im Verlauf-Reiter',
       !!d.querySelector('#karte-rumpf [data-kpane="verlauf"] [data-kblock="notiz"]')
       || !d.querySelector('#karte-rumpf [data-kblock="notiz"]'));
-    pruef('Giftigkeit liegt im Wissen-Reiter',
-      !!d.querySelector('#karte-rumpf [data-kpane="wissen"] [data-kblock="gift"]'));
+    /* Seit 3.12.0 nur mit eingetragenen Tieren — ohne Tier interessiert
+       die Frage nicht, und der Abschnitt fällt ganz weg. */
+    pruef('Giftigkeit liegt im Wissen-Reiter, sobald Tiere eingetragen sind',
+      w.__T('meineTiere().length')
+        ? !!d.querySelector('#karte-rumpf [data-kpane="wissen"] [data-kblock="gift"]')
+        : !d.querySelector('#karte-rumpf [data-kblock="gift"]'));
     pruef('Standort trägt die Lagebox',
       !!d.querySelector('#karte-rumpf [data-kpane="standort"] .lagebox'));
   }
@@ -3740,6 +3756,8 @@ setTimeout(async () => {
       const pfl = kv.querySelector('[data-kpane="pflege"]');
       pruef('Zustand ist die erste Zeile im Reiter Pflege',
         !!pfl && !!pfl.firstElementChild && pfl.firstElementChild.classList.contains('zustand'));
+      pruef('Topf und Substrat steht im Reiter Pflege',
+        !!kv.querySelector('[data-kpane="pflege"] [data-kblock="topf"]'));
       pruef('Zustand steht nicht im Gießen-Block',
         !kv.querySelector('[data-kblock="giessen"] [data-zsel]'));
       pruef('Gießabstände stehen im Verlauf, nicht in Pflege',
@@ -3801,6 +3819,167 @@ setTimeout(async () => {
       w.__T(`S.eigene = (S.eigene||[]).filter(x=>['A1V','A1B','A1N'].indexOf(x.id) < 0); sichern();`);
       pruef('A1-Testpflanzen wieder entfernt',
         !w.__T(`allePflanzen().some(x=>['A1V','A1B','A1N'].indexOf(x.id) > -1)`));
+    }
+
+    /* ══ 3.12.0 · Pflanzenkarte A2 ══════════════════════════════
+       Rhythmus von Hand, Licht am Platz, Topf und Substrat,
+       Giftigkeit je Tier, Steckbrief aus der Bibliothek. Jede
+       Prüfung legt ihre Daten selbst an und räumt sie wieder weg —
+       ein Test, der auf Bestand hofft, läuft still ins Leere. */
+    {
+      const karteAus = id => {
+        const box = d.createElement('div');
+        box.innerHTML = w.__T(`kartenDetailHTML(allePflanzen().find(x=>x.id==='${id}'))`);
+        return box;
+      };
+      const tiereAlt = w.__T('JSON.stringify(S.tiere || null)');
+      w.__T(`(function(){
+        const p = {id:'A2P', name:'A2', art:'Efeutute', botanisch:'Epipremnum aureum',
+          klasse:'B', licht:'indirekt', sonne:'indirekt', seit:iso(HEUTE), eigen:true,
+          todo:[], log:[], notiz:'', topf:'14', frostMin:12, familie:'', typ:''};
+        S.eigene = (S.eigene||[]).filter(x=>x.id !== 'A2P');
+        S.eigene.push(p); sichern(); })()`);
+
+      /* ── Rhythmus von Hand ── */
+      const ivBasis = w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`);
+      pruef('Ohne eigenen Rhythmus steht die Marke „Gießklasse“',
+        w.__T(`rhythmusQuelle(allePflanzen().find(x=>x.id==='A2P')).wort`) === 'Gießklasse',
+        w.__T(`rhythmusQuelle(allePflanzen().find(x=>x.id==='A2P')).wort`));
+      pruef('Der Regler steht offen im Gießen-Block',
+        !!karteAus('A2P').querySelector('[data-kblock="giessen"] .iv-edit [data-do="iv-schritt"]'));
+      w.__T(`aenderungSetzen('A2P', {intervall:[5,5], intervallEigen:true})`);
+      const ivEigen = w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`);
+      pruef('Ein von Hand gesetzter Rhythmus wird übernommen',
+        ivEigen === w.__T(`Math.max(1, Math.round(5 * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`),
+        ivBasis + ' → ' + ivEigen);
+      pruef('Die Marke sagt jetzt „von Hand“',
+        w.__T(`rhythmusQuelle(allePflanzen().find(x=>x.id==='A2P')).wort`) === 'von Hand');
+      /* Gegenprobe: ohne das Merkmal greift der Wert nicht. */
+      const ohneMerkmal = w.__T(`(function(){
+        const p = Object.assign({}, allePflanzen().find(x=>x.id==='A2P'), {intervallEigen:false});
+        return intervallVon(p); })()`);
+      pruef('Gegenprobe: ohne intervallEigen zählt der Wert nicht',
+        ohneMerkmal !== ivEigen, ivEigen + ' / ' + ohneMerkmal);
+      /* Gelerntes darf den eigenen Rhythmus nicht verschieben. */
+      w.__T(`(function(){ S.zustand = S.zustand || {}; S.zustand.A2P = {lernFaktor:1.6}; })()`);
+      pruef('Gelerntes verschiebt den eigenen Rhythmus nicht',
+        w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`) === ivEigen,
+        String(w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`)));
+      /* Gegenprobe: ohne eigenen Rhythmus wirkt derselbe Faktor sehr wohl. */
+      const mitLern = w.__T(`(function(){
+        const p = Object.assign({}, allePflanzen().find(x=>x.id==='A2P'), {intervallEigen:false});
+        delete p.intervall; return intervallVon(p); })()`);
+      pruef('Gegenprobe: ohne eigenen Rhythmus wirkt der gelernte Faktor',
+        mitLern > ivBasis, ivBasis + ' → ' + mitLern);
+      w.__T(`(function(){ delete S.zustand.A2P; })()`);
+      w.__T(`aenderungSetzen('A2P', {intervallEigen:false})`);
+      pruef('„Zurück zur Gießklasse“ stellt den Ausgangswert her',
+        w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`) === ivBasis);
+
+      /* ── Topf und Substrat ── */
+      const topf = karteAus('A2P').querySelector('[data-kblock="topf"]');
+      pruef('Topf und Substrat nennt die Topfgröße',
+        !!topf && /14 cm/.test(topf.textContent), topf && topf.textContent.slice(0, 120));
+      pruef('Ohne Umtopf-Eintrag steht das ausdrücklich da',
+        !!topf && /noch nicht eingetragen/.test(topf.textContent));
+      pruef('Die empfohlene Mischung steht mit ihren Teilen da',
+        !!topf && /Mischung/.test(topf.textContent) && /×/.test(topf.textContent),
+        topf && topf.textContent.slice(0, 200));
+      pruef('Von dort geht es in den Substratrechner',
+        !!topf && !!topf.querySelector('[data-do="substrat-fuer"]'));
+      pruef('Die Topfgröße lässt sich auf der Karte nachtragen',
+        !!topf && !!topf.querySelector('[data-do="topf-eintragen"]'));
+      /* Gegenprobe: ohne Topfangabe steht kein erfundener Wert. */
+      const ohneTopf = w.__T(`(function(){
+        const p = Object.assign({}, allePflanzen().find(x=>x.id==='A2P')); delete p.topf;
+        return topfSubstratHTML(p); })()`);
+      pruef('Gegenprobe: ohne Topfangabe keine erfundene Größe',
+        !/14 cm/.test(ohneTopf) && /nicht eingetragen/.test(ohneTopf));
+
+      /* ── Licht am Platz ── */
+      pruef('Licht am Platz steht im Reiter Standort',
+        !!karteAus('A2P').querySelector('[data-kpane="standort"] [data-kblock="licht"]'));
+      const ohnePlan = w.__T(`lichtAmPlatzHTML(allePflanzen().find(x=>x.id==='A2P'))`);
+      pruef('Ohne Platz im Grundriss steht keine Lichtzahl',
+        !/licht-zahl/.test(ohnePlan) && /Grundriss/.test(ohnePlan), ohnePlan.slice(0, 160));
+      pruef('Stattdessen führt ein Knopf in den Grundriss',
+        /data-do="grundriss-fuer"/.test(ohnePlan));
+      /* Mit Platz: eine Zahl, ein Band, ein Urteil. */
+      const mitPlan = w.__T(`(function(){
+        const p = allePflanzen().find(x=>x.id==='A2P');
+        const alt = S.orte; S.orte = Object.assign({}, alt);
+        const raum = (S.raeume||[])[0];
+        if(!raum) return '';
+        S.orte[p.id] = {raum:raum.id, x:Math.round((raum.b||300)/2), y:Math.round((raum.h||300)/2)};
+        const h = lichtAmPlatzHTML(p); S.orte = alt; return h; })()`);
+      if(mitPlan){
+        pruef('Mit Platz steht die Sonnenzahl da', /licht-zahl/.test(mitPlan), mitPlan.slice(0, 200));
+        pruef('Und daneben ein Urteil zum Bedarf', /kb-marke (sicher|unklar|gift)/.test(mitPlan));
+      } else {
+        pruef('Mit Platz steht die Sonnenzahl da', true, 'kein Raum im Bestand — übersprungen');
+      }
+
+      /* ── Giftigkeit je Tier ── */
+      w.__T(`(function(){ S.tiere = {aktiv:true, arten:['katze','hund']}; })()`);
+      const kGift = karteAus('A2P');
+      const zeilen = [...kGift.querySelectorAll('[data-kblock="gift"] .gift-zeile')]
+        .map(x=>x.dataset.tier).join(',');
+      pruef('Je eingetragenem Tier eine Zeile', zeilen === 'katze,hund', zeilen);
+      pruef('Jede Zeile trägt eine Einstufung',
+        [...kGift.querySelectorAll('[data-kblock="gift"] .gift-zeile')]
+          .every(x=>!!x.querySelector('.kb-marke')));
+      /* Gegenprobe: ohne Tiere weder Abschnitt noch Warnung. */
+      w.__T(`(function(){ S.tiere = {aktiv:false, arten:[]}; })()`);
+      const ohneTier = karteAus('A2P');
+      pruef('Gegenprobe: ohne Tiere kein Giftabschnitt',
+        !ohneTier.querySelector('[data-kblock="gift"]'));
+      const warn = w.__T(`warnungenHTML(allePflanzen().find(x=>x.id==='A2P'))`);
+      pruef('Gegenprobe: ohne Tiere keine Katzenwarnung',
+        !/Giftig für/.test(warn), warn.slice(0, 160));
+      w.__T(`(function(){ S.tiere = {aktiv:true, arten:['katze']}; })()`);
+      pruef('Mit Katze steht die Warnung wieder da',
+        /Giftig für Katze/.test(w.__T(`warnungenHTML(allePflanzen().find(x=>x.id==='A2P'))`)),
+        w.__T(`warnungenHTML(allePflanzen().find(x=>x.id==='A2P'))`).slice(0, 160));
+      pruef('Im Kopf steht die Katze nicht noch einmal als Zeichen',
+        !/katze/i.test(w.__T(`kartenZeichen(allePflanzen().find(x=>x.id==='A2P'))`)),
+        w.__T(`kartenZeichen(allePflanzen().find(x=>x.id==='A2P'))`).slice(0, 120));
+
+      /* ── Steckbrief aus der Artenbibliothek ── */
+      const sb = w.__T(`JSON.stringify(steckbriefDaten(allePflanzen().find(x=>x.id==='A2P')))`);
+      const sbo = JSON.parse(sb);
+      pruef('Der Steckbrief füllt die Familie aus der Bibliothek',
+        !!sbo.daten['Familie'], sb.slice(0, 200));
+      pruef('Und die Frostgrenze in Worten',
+        /ins Haus|winterhart/.test(sbo.daten['Frostgrenze'] || ''), sbo.daten['Frostgrenze']);
+      pruef('Die Herkunft der Angaben steht dabei', sbo.ausBib === true);
+      /* Gegenprobe: eigene Angaben werden nicht überschrieben. */
+      const sbEigen = JSON.parse(w.__T(`(function(){
+        const p = Object.assign({}, allePflanzen().find(x=>x.id==='A2P'),
+          {stamm:{Familie:'Selbst eingetragen'}});
+        return JSON.stringify(steckbriefDaten(p)); })()`));
+      pruef('Gegenprobe: eine eigene Angabe bleibt stehen',
+        sbEigen.daten['Familie'] === 'Selbst eingetragen', sbEigen.daten['Familie']);
+
+      /* ── Der Untertitel trägt die Kennung nicht mehr ── */
+      const kopf = w.__T(`kartenKopfHTML(allePflanzen().find(x=>x.id==='A2P'))`);
+      pruef('Die interne Kennung steht nicht mehr im Untertitel',
+        !/km-held-art[^<]*>[^<]*A2P/.test(kopf) && kopf.indexOf('>Efeutute · <i>') > -1,
+        (kopf.match(/<p class="km-held-art">.*?<\/p>/) || [''])[0]);
+
+      /* ── Aufgaben als eine Zeile ── */
+      const auf = karteAus('A2P').querySelector('[data-acc="aufgaben-zeile"]');
+      pruef('Aufgaben stehen als eine Zeile mit Unterzeile',
+        !!auf && !!auf.querySelector('.az-unter'));
+      pruef('Ohne offene Aufgabe sagt die Zeile das',
+        /Nichts offen/.test(((auf && auf.querySelector('.az-unter')) || {}).textContent || ''));
+
+      w.__T(`(function(){
+        S.eigene = (S.eigene||[]).filter(x=>x.id !== 'A2P');
+        if(S.edits) delete S.edits.A2P;
+        sichern(); })()`);
+      w.__T('S.tiere = ' + (tiereAlt === 'null' ? 'null' : tiereAlt) + '; sichern();');
+      pruef('A2-Testpflanze wieder entfernt',
+        !w.__T(`allePflanzen().some(x=>x.id === 'A2P')`));
     }
 
     /* Der Bestand von vorher kommt zurueck: die Pruefungen danach
@@ -6235,7 +6414,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.11.0', e0.nr === '3.11.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.12.0', e0.nr === '3.12.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

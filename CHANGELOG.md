@@ -4,6 +4,37 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.12.0 — 11. September 2026
+**Die Pflanzenkarte kommt zur Ruhe**
+
+### Neu
+- **Licht am Platz.** Im Reiter Standort steht, wie viele Stunden Sonne an diesem Platz im laufenden Monat ankommen, dazu die Spanne, die die Art gewohnt ist, und ein Wort dazu: passt, zu wenig, zu viel. Steht die Pflanze nicht im Grundriss, wird nichts geraten — dann führt ein Knopf dorthin. Auf das Gießintervall wirkt die Angabe nicht.
+- **Topf und Substrat.** Ein eigener Abschnitt im Reiter Pflege: Topfgröße, wann zuletzt umgetopft wurde, und die für die Art empfohlene Mischung mit ihren Teilen. Die Topfgröße lässt sich direkt auf der Karte nachtragen, von dort geht es in den Substratrechner.
+- **Rhythmus von Hand.** Der Gießrhythmus lässt sich für Sommer und Winter getrennt festlegen. Eine Marke neben der Zahl sagt, woher sie kommt: Gießklasse, gelernt, von Hand oder Wasserwechsel. Zurück zur Gießklasse geht jederzeit.
+- **Giftigkeit je Tier.** Der Abschnitt im Reiter Wissen zeigt eine Zeile für jedes Tier, das du eingetragen hast, mit eigener Einstufung. Die Begründung steht dahinter.
+- **Steckbrief aus der Artenbibliothek.** Fehlen Familie, Wuchsform oder Frostgrenze, werden sie aus der Bibliothek ergänzt. Eigene Angaben bleiben unangetastet, und darunter steht, woher das kommt.
+
+### Besser
+- **Die Karte spricht dieselbe Sprache wie der Rest der App.** Jeder Abschnitt steht in einer weichen Kachel wie in Werkzeuge, die Überschriften in der Serifenschrift, Werte als Zeilen statt in Versalien und Schreibmaschinenschrift. Leere Abschnitte sagen ruhig, dass noch nichts da ist, statt zu mahnen.
+- **Die Reiter sind schlichter Text mit Unterstrich** und bleiben beim Scrollen oben stehen. Vorher waren es Karteikartenreiter mit Rahmen, die nach oben weggescrollt sind.
+- **Der Kopf beginnt mit dem Bild**, darunter das Fotoband, dann der Name. Ohne Foto steht statt eines leeren Kastens und eines gestrichelten Plusfelds eine einzige Zeile „Foto hinzufügen“.
+- **Aufgaben stehen als eine Zeile** wie unter Mehr, mit dem, was offen ist, in der Unterzeile. Das Formular kommt erst beim Aufklappen. Vorher stand es offen über den Reitern und schob sie eine halbe Seite nach unten.
+- **Die interne Kennung (E-100) steht nicht mehr unter dem Namen.** Sie hilft beim Erkennen der Pflanze nicht.
+- **Die Giftigkeit steht nur noch an einer Stelle im Kopf**, in der Warnung — vorher zusätzlich als Zeichen daneben.
+- **Der Reiter Wissen bleibt immer stehen.** Ist zur Art nichts hinterlegt, steht dort, was zu tun wäre. Vorher verschwand der Reiter ganz.
+- „Noch nie gedüngt eingetragen“ steht jetzt ruhig da statt fett wie eine Fälligkeit.
+
+### Behoben
+- **Ohne eingetragene Tiere stand trotzdem eine Katzenwarnung auf der Karte.** Wer keine Tiere einträgt, bekommt die Frage jetzt gar nicht mehr gestellt — weder als Warnung noch als Abschnitt.
+- **Ein von Hand gesetzter Gießrhythmus war nicht erreichbar.** Die App las das Merkmal, aber keine Stelle setzte es. Jetzt setzt es die Karte selbst.
+- **Ein gelernter Faktor verschob einen eigenen Rhythmus.** Nach „alle 7 Tage“ stand dann „alle 9 Tage“ auf der Karte. Wo ein eigener Rhythmus gilt, lernt die App nicht mehr nach.
+- Der Reiter Verlauf meldete „Noch nie als angesehen vermerkt“ und direkt darunter „Noch keine Einträge“ — zweimal dasselbe. Die erste Zeile fällt weg, solange nichts angesehen wurde.
+
+### Gut zu wissen
+- Klartext und Terrarium behalten ihr bisheriges Aussehen. Der ruhige Kartenaufbau gilt für Botanisch; die neuen Abschnitte gibt es in allen drei Designs.
+
+---
+
 ## 3.11.0 — 11. September 2026
 **Die Pflanzenkarte räumt auf**
 

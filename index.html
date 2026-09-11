@@ -3401,6 +3401,189 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #tour-zu{position:absolute;top:5px;right:7px;border:0;background:none;color:var(--peat);
   font-size:21px;line-height:1;padding:4px 7px;cursor:pointer}
 #tour-liste .mrow:first-child{border-top:0}
+
+/* ══════════════════════════════════════════════════════════════
+   PFLANZENKARTE 3.12.0
+   Erst die Bausteine, die jedes Design braucht (Rhythmus, Licht,
+   Topf, Giftigkeit je Tier). Darunter der ruhige Kartenaufbau für
+   Botanisch — dieselbe Sprache wie Heute, Mehr, Werkzeuge und
+   Gießmodus: weiche Kacheln, Serifen-Überschriften, keine Mono-
+   Etiketten, leere Zustände leise. Klartext und Terrarium bleiben,
+   wie sie sind. Alles hängt an #karte-rumpf, damit keine ältere
+   Regel mit höherem Gewicht dazwischenfunkt.
+   ══════════════════════════════════════════════════════════════ */
+.kb-lage{margin:0 0 4px;font-weight:600;font-size:var(--t-md)}
+.kb-lage.warn{color:var(--gift)}
+.kb-leer{color:var(--schrift-2)}
+p.kb-leer{margin:0 0 6px}
+.kb-klein{margin:0 0 6px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.45}
+.kb-tipp{margin:12px 0 0;font-family:var(--f-display);font-style:italic;color:var(--schrift-2);line-height:1.5}
+.kb-quelle{margin:8px 0 0;font-size:var(--t-xs);color:var(--schrift-3)}
+.kb-aktionen{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-top:10px}
+.kb-link{font:inherit;font-size:var(--t-m);border:0;background:none;padding:4px 0;cursor:pointer;
+  color:var(--wasser);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+.kb-zweit{font:inherit;font-size:var(--t-m);min-height:var(--tap);padding:0 16px;cursor:pointer;
+  border:1px solid var(--linie-stark);border-radius:var(--r-mittel);background:transparent;color:var(--schrift)}
+.kb-marke{display:inline-block;padding:2px 10px;border-radius:99px;font-size:var(--t-xs);
+  line-height:1.5;white-space:nowrap;background:var(--ton-still);color:var(--schrift-2);vertical-align:1px}
+.kb-marke.gift{background:var(--ton-gift);color:var(--gift)}
+.kb-marke.sicher{background:var(--ton-sicher);color:var(--sicher)}
+.kb-marke.unklar{background:var(--ton-unklar);color:var(--unklar)}
+.kb-marke.wasser{background:var(--ton-wasser);color:var(--wasser)}
+.kb-stapel>*+*{border-top:1px solid var(--linie)}
+.gift-zeile{display:flex;align-items:center;gap:10px;padding:9px 0}
+.gift-zeile:first-child{padding-top:0}
+.gift-zeile b{flex:1;font-weight:600}
+.kb-auf{margin-top:8px}
+.kb-auf>summary{cursor:pointer;color:var(--wasser);font-size:var(--t-m);padding:4px 0}
+.kb-auf p{margin:6px 0 0;font-size:var(--t-m);line-height:1.5}
+.iv-edit{margin-top:10px;padding:12px 14px;border-radius:var(--r-mittel);background:var(--ton-still)}
+.iv-regler{display:flex;align-items:center;gap:10px;padding:5px 0}
+.iv-regler>span{flex:1}
+.iv-regler output{min-width:72px;text-align:center;font-weight:600}
+.iv-knopf{width:40px;height:40px;border-radius:50%;border:1px solid var(--linie-stark);
+  background:var(--fl-karte);color:var(--schrift);font:inherit;font-size:1.2rem;cursor:pointer}
+.iv-edit .kb-klein{margin-top:6px}
+.licht-kopf{display:flex;align-items:center;gap:14px;margin:0 0 10px}
+.licht-zahl{font-family:var(--f-display);font-size:2.2rem;line-height:1;font-weight:var(--gewicht-titel)}
+.licht-zahl small{font-size:.45em;margin-left:4px;color:var(--schrift-2)}
+.licht-band{position:relative;height:8px;border-radius:99px;background:var(--fl-tief);margin:4px 0 6px}
+.licht-band i{position:absolute;top:0;bottom:0;border-radius:99px;background:var(--ton-unklar)}
+.licht-band b{position:absolute;top:-4px;width:4px;height:16px;border-radius:2px;background:var(--sonne)}
+.licht-skala{display:flex;justify-content:space-between;margin:0 0 10px;font-size:var(--t-xs);color:var(--schrift-3)}
+.acc-zeile .az-ico{display:none}
+.acc-zeile .az-unter{display:block;font-family:var(--f-body);font-weight:400;font-size:var(--t-s);color:var(--schrift-2)}
+.dg-lage.leer{font-weight:400;color:var(--schrift-2)}
+html[data-design="klartext"] .kb-marke{border:2px solid currentColor}
+html[data-design="klartext"] .kb-link{font-size:var(--t-md)}
+
+/* ── Botanisch: der ruhige Kartenaufbau ─────────────────────── */
+html[data-design="botanisch"] #karte-rumpf .detail{padding:0;border-top:0}
+html[data-design="botanisch"] #karte-rumpf .km-held{margin:0 0 14px}
+html[data-design="botanisch"] #karte-rumpf .km-held-bild{border-radius:var(--r-gross);aspect-ratio:4/3}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband{margin:8px 0 0}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal{margin:0;padding:4px;margin-left:-4px;gap:8px;scrollbar-width:none}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal::-webkit-scrollbar{display:none}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal figure{width:64px}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal figure img{width:64px;height:64px;border:0;border-radius:var(--r-klein)}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal figcaption,
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-profil-marke{display:none}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .gal figure.ist-profil img{outline:0;box-shadow:0 0 0 2px var(--fl-grund),0 0 0 3.5px var(--fl-akzent)}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-punkte{top:3px;right:3px;width:24px;height:24px}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-add{font-family:var(--f-body);color:var(--schrift-2);cursor:pointer}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-add.plus{flex:0 0 64px;width:64px;min-height:64px;height:64px;padding:0;
+  border:1px solid var(--linie-stark);border-radius:var(--r-klein);background:transparent}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-add svg{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-add.plus svg{width:20px;height:20px}
+html[data-design="botanisch"] #karte-rumpf .km-fotoband .foto-add.breit{flex:1 1 auto;width:auto;height:auto;min-height:0;display:flex;align-items:center;line-height:1.35;
+  justify-content:flex-start;gap:14px;padding:14px 16px;text-align:left;border:0;
+  border-radius:var(--r-gross);background:var(--fl-karte);box-shadow:var(--sch-karte);color:var(--schrift)}
+html[data-design="botanisch"] #karte-rumpf .km-held.leer .km-fotoband{margin:0}
+html[data-design="botanisch"] #karte-rumpf .km-held.leer .km-fotoband .gal{padding:0;margin:0}
+html[data-design="botanisch"] #karte-rumpf .fa-kreis{flex:0 0 auto;width:44px;height:44px;border-radius:50%;background:var(--fl-grund);
+  display:flex;align-items:center;justify-content:center}
+html[data-design="botanisch"] #karte-rumpf .fa-kreis svg{width:22px;height:22px}
+html[data-design="botanisch"] #karte-rumpf .fa-txt b{display:block;font-family:var(--f-display);font-weight:500;font-size:var(--t-l)}
+html[data-design="botanisch"] #karte-rumpf .fa-txt span{font-size:var(--t-s);color:var(--schrift-2)}
+html[data-design="botanisch"] #karte-rumpf .km-name{margin:0}
+html[data-design="botanisch"] #karte-rumpf .km-held-titel{margin:0;font-family:var(--f-display);font-weight:500;font-size:1.85rem;
+  line-height:1.12;letter-spacing:-.01em;color:var(--schrift)}
+html[data-design="botanisch"] #karte-rumpf .km-held-art{margin:4px 0 0;font-size:var(--t-s);font-style:normal;color:var(--schrift-2)}
+html[data-design="botanisch"] #karte-rumpf .km-held-art i{font-family:var(--f-display);font-size:1.03em}
+html[data-design="botanisch"] #karte-rumpf .km-stand{margin:14px 0 0;font-size:var(--t-md);font-weight:600}
+html[data-design="botanisch"] #karte-rumpf .km-stand[data-ton="still"]{font-weight:400;color:var(--schrift-2)}
+html[data-design="botanisch"] #karte-rumpf .km-zeichen{margin:12px 0 0}
+html[data-design="botanisch"] #karte-rumpf .km-zeichen .icons{margin:0;gap:6px}
+html[data-design="botanisch"] #karte-rumpf .km-zeichen .ico{gap:6px;padding:5px 11px 5px 9px;border-radius:99px;background:var(--ton-still);
+  font-family:var(--f-body);font-size:var(--t-xs);letter-spacing:0;color:var(--schrift-2)}
+html[data-design="botanisch"] #karte-rumpf .km-zeichen .ico.warn{background:var(--ton-gift);color:var(--gift)}
+html[data-design="botanisch"] #karte-rumpf .km-zeichen .ico.wet{color:var(--wasser)}
+html[data-design="botanisch"] #karte-rumpf .km-taten{margin:18px 0 0}
+html[data-design="botanisch"] #karte-rumpf .km-haupt{min-height:52px;border-radius:var(--r-mittel);background:var(--wasser);font-size:var(--t-l)}
+html[data-design="botanisch"] #karte-rumpf .km-haupt.erledigt{background:var(--ton-sicher);color:var(--sicher);box-shadow:none}
+html[data-design="botanisch"] #karte-rumpf .km-neben{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+html[data-design="botanisch"] #karte-rumpf .km-neben button{min-height:var(--tap);padding:0 4px;border:1px solid var(--linie-stark);
+  border-radius:var(--r-mittel);font-size:var(--t-s);color:var(--schrift)}
+@media (max-width:374px){ html[data-design="botanisch"] #karte-rumpf .km-neben{grid-template-columns:repeat(2,1fr)} }
+html[data-design="botanisch"] #karte-rumpf .warnbox{margin:16px 0 0;padding:13px 15px;border:0;border-radius:var(--r-mittel);background:var(--ton-gift)}
+html[data-design="botanisch"] #karte-rumpf .warnbox p{font-weight:400;color:var(--gift)}
+html[data-design="botanisch"] #karte-rumpf .warnbox p b{font-weight:600}
+html[data-design="botanisch"] #karte-rumpf .warnbox.unklar{background:var(--ton-unklar)}
+html[data-design="botanisch"] #karte-rumpf .pflegehinweis{margin-top:12px;border:0;border-radius:var(--r-mittel);background:var(--fl-karte);box-shadow:var(--sch-karte)}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile{margin:12px 0 0;border:0;border-radius:var(--r-mittel);background:var(--fl-karte);box-shadow:var(--sch-karte)}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile>summary{gap:13px;padding:12px 14px;font-family:var(--f-body);font-weight:400;font-size:var(--t-m)}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile>summary:hover{background:transparent}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile .az-ico{display:block;flex:0 0 auto;width:22px;height:22px;fill:none;stroke:var(--schrift);stroke-width:1.6;stroke-linecap:round}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile .az-titel{font-weight:600}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile .az-unter{font-family:var(--f-display);font-size:var(--t-m)}
+html[data-design="botanisch"] #karte-rumpf .acc-zeile[open]>summary{border-bottom:1px solid var(--linie)}
+
+/* Reiter: Text mit Unterstrich, klebt beim Scrollen oben */
+html[data-design="botanisch"] #karte-rumpf .ktabs{position:sticky;top:-16px;z-index:5;gap:0;margin:26px calc(var(--rand) * -1) 16px;
+  padding:0 var(--rand);background:var(--fl-grund);border-bottom:1px solid var(--linie);overflow:visible}
+html[data-design="botanisch"] #karte-rumpf .ktab{flex:1 1 0;padding:13px 2px 11px;border:0;border-bottom:2px solid transparent;border-radius:0;
+  margin-bottom:-1px;background:transparent;font-family:var(--f-display);font-size:1.08rem;
+  font-weight:400;color:var(--schrift-3)}
+html[data-design="botanisch"] #karte-rumpf .ktab[aria-selected="true"]{background:transparent;color:var(--schrift);font-weight:500;
+  border-bottom:2px solid var(--fl-akzent)}
+
+/* Blöcke: eine weiche Kachel je Abschnitt */
+html[data-design="botanisch"] #karte-rumpf .kblock,
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.zustand{margin:0 0 12px;padding:16px 16px 17px;border:0;border-radius:var(--r-gross);
+  background:var(--fl-karte);box-shadow:var(--sch-karte)}
+html[data-design="botanisch"] #karte-rumpf .kblock+.kblock,html[data-design="botanisch"] #karte-rumpf .zustand+.kblock,html[data-design="botanisch"] #karte-rumpf .lagebox+.kblock{border-top:0;padding-top:16px}
+html[data-design="botanisch"] #karte-rumpf .kblock-h{align-items:baseline;gap:10px;margin:0 0 10px;font-family:var(--f-display);
+  font-weight:500;font-size:var(--t-xl);line-height:1.2}
+html[data-design="botanisch"] #karte-rumpf .kblock-h .acc-z{border:0;padding:0;font-family:var(--f-body);font-size:var(--t-xs);
+  letter-spacing:0;text-transform:none;color:var(--schrift-3)}
+html[data-design="botanisch"] #karte-rumpf .kblock-in p{font-size:var(--t-m)}
+html[data-design="botanisch"] #karte-rumpf .kblock-in>h4{font-weight:500;font-size:var(--t-l);margin:16px 0 6px}
+html[data-design="botanisch"] #karte-rumpf dl.spec{display:grid;grid-template-columns:34% 1fr;gap:0;margin:6px 0 0}
+html[data-design="botanisch"] #karte-rumpf dl.spec dt,html[data-design="botanisch"] #karte-rumpf dl.spec dd{padding:9px 0;border-top:1px solid var(--linie);font-size:var(--t-m)}
+html[data-design="botanisch"] #karte-rumpf dl.spec dt{padding-right:12px;font-family:var(--f-body);letter-spacing:0;text-transform:none;color:var(--schrift-3)}
+html[data-design="botanisch"] #karte-rumpf dl.spec dd{margin:0}
+html[data-design="botanisch"] #karte-rumpf dl.spec dt:first-of-type,html[data-design="botanisch"] #karte-rumpf dl.spec dt:first-of-type+dd{border-top:0;padding-top:2px}
+html[data-design="botanisch"] #karte-rumpf .zustand .zsel{display:flex;align-items:center;gap:12px}
+html[data-design="botanisch"] #karte-rumpf .zustand .zsel+*{margin-top:12px}
+html[data-design="botanisch"] #karte-rumpf .zustand .ztext,html[data-design="botanisch"] #karte-rumpf .zustand .zstopp{font-size:var(--t-m);line-height:1.5}
+html[data-design="botanisch"] #karte-rumpf .zustand .zsel .lab{flex:1;font-family:var(--f-display);font-weight:500;font-size:var(--t-xl);
+  letter-spacing:0;text-transform:none;color:var(--schrift)}
+/* Der Pfeil bleibt der des Systems: ein eigener waere ein zweites
+   gekacheltes Bild im Stylesheet, und genau das soll hier keins mehr
+   geben. Geaendert werden nur Flaeche, Radius und Hoehe. */
+html[data-design="botanisch"] #karte-rumpf .zustand .zsel select,
+html[data-design="botanisch"] #karte-rumpf .lagebox select{flex:0 1 58%;min-width:0;max-width:58%;width:auto;min-height:var(--tap);
+  margin:0;padding:0 10px;border:0;border-radius:var(--r-mittel);
+  background:var(--fl-tief);color:var(--schrift);font-size:var(--t-md)}
+html[data-design="botanisch"] #karte-rumpf .lagebox{margin:0}
+html[data-design="botanisch"] #karte-rumpf .lagebox select{width:100%;max-width:none}
+html[data-design="botanisch"] #karte-rumpf .w-plus{min-height:var(--tap);padding:0 16px;border:1px solid var(--linie-stark);
+  border-radius:var(--r-mittel);background:transparent;color:var(--schrift);font-weight:400}
+html[data-design="botanisch"] #karte-rumpf .lagebox .lab{display:block;margin:0 0 5px;font-size:var(--t-s);letter-spacing:0;text-transform:none;color:var(--schrift-3)}
+html[data-design="botanisch"] #karte-rumpf .dg-block{padding:0}
+html[data-design="botanisch"] #karte-rumpf .dg-lage{font-size:var(--t-md)}
+html[data-design="botanisch"] #karte-rumpf .dg-knopf{margin-top:4px;border-radius:var(--r-mittel);border:1px solid var(--linie-stark);
+  background:transparent;color:var(--schrift);font-weight:400}
+html[data-design="botanisch"] #karte-rumpf .dg-knopf.erledigt{background:var(--ton-sicher);border-color:transparent;color:var(--sicher)}
+html[data-design="botanisch"] #karte-rumpf .water-hist{font-family:var(--f-body);font-size:var(--t-s);color:var(--schrift-2);letter-spacing:0}
+html[data-design="botanisch"] #karte-rumpf .bef-d{font-family:var(--f-body);font-size:var(--t-xs);color:var(--schrift-3)}
+html[data-design="botanisch"] #karte-rumpf .bef-liste li{border-bottom-color:var(--linie)}
+html[data-design="botanisch"] #karte-rumpf .stat-leer{font-size:var(--t-m);color:var(--schrift-2)}
+html[data-design="botanisch"] #karte-rumpf .stat-auf{border-top-color:var(--linie)}
+html[data-design="botanisch"] #karte-rumpf .stat-auf>summary,html[data-design="botanisch"] #karte-rumpf .stat-mehr>summary,html[data-design="botanisch"] #karte-rumpf .bef-mehr>summary{font-size:var(--t-m);color:var(--wasser)}
+html[data-design="botanisch"] #karte-rumpf .stat-chip{border-radius:99px;border-color:var(--linie-stark)}
+html[data-design="botanisch"] #karte-rumpf .notiz-eigen{font-size:var(--t-m)}
+html[data-design="botanisch"] #karte-rumpf .kblock .acc,html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc{border:0;border-radius:var(--r-gross);background:var(--fl-karte);box-shadow:var(--sch-karte);margin:0 0 12px}
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc>summary{padding:16px;font-weight:500;font-size:var(--t-xl)}
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc>summary .acc-z{border:0;padding:0;font-family:var(--f-body);font-size:var(--t-xs);
+  letter-spacing:0;text-transform:none}
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc>summary:hover{background:transparent}
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc[open]>summary{border-bottom:0;padding-bottom:6px}
+html[data-design="botanisch"] #karte-rumpf .ktab-pane>.acc>.acc-in{padding:0 16px 17px}
+html[data-design="botanisch"] #karte-rumpf .prob{border-left:0;padding:10px 0 0;margin:0 0 10px;border-top:1px solid var(--linie)}
+html[data-design="botanisch"] #karte-rumpf .prob:first-child{border-top:0;padding-top:0}
+html[data-design="botanisch"] #karte-rumpf .prob b{font-weight:500}
+html[data-design="botanisch"] #karte-rumpf .alert{border-radius:var(--r-mittel)}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#F1F4ED">
@@ -8376,8 +8559,8 @@ function statusHTML(p){
      Verlauf stand als eine Zeile darunter. Umgedreht: erst was war,
      dann was man eintragen kann. */
   return `<div class="stat">
-    <p class="stat-seit">${seit == null ? 'Noch nie als angesehen vermerkt.'
-      : (seit === 0 ? 'Heute angesehen.' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`)}</p>
+    ${seit == null ? '' : `<p class="stat-seit">${seit === 0 ? 'Heute angesehen.'
+      : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`}</p>`}
     ${liste.length ? `<ul class="stat-liste">${liste.map(zeile).join('')}</ul>` : '<p class="stat-leer">Noch keine Einträge.</p>'}
     ${aelter.length ? `<details class="stat-mehr"><summary>${aelter.length} ältere anzeigen</summary>
       <ul class="stat-liste">${aelter.map(zeile).join('')}</ul></details>` : ''}
@@ -10648,8 +10831,38 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.11.0';
+const FASSUNG = '3.12.0';
 const PATCHNOTES = [
+  {
+    nr: '3.12.0', datum: '2026-09-11', titel: 'Die Pflanzenkarte kommt zur Ruhe',
+    kurz: [
+      'Die Karte sieht jetzt aus wie der Rest der App: weiche Kacheln, ruhige Überschriften, Werte als Zeilen statt in Versalien.',
+      'Neu im Reiter Standort: Licht am Platz — wie viele Stunden Sonne dort ankommen und ob das zur Art passt.',
+      'Neu im Reiter Pflege: Topf und Substrat, samt der empfohlenen Mischung für die Art.',
+      'Der Gießrhythmus lässt sich für Sommer und Winter von Hand festlegen. Eine Marke sagt, woher die Zahl kommt.',
+      'Ohne eingetragene Tiere steht keine Giftwarnung mehr auf der Karte — mit Tieren eine Zeile je Tier.'
+    ],
+    behoben: [
+      'Ohne eingetragene Tiere stand trotzdem eine Katzenwarnung auf jeder giftigen Karte. Wer keine Tiere einträgt, bekommt die Frage jetzt gar nicht mehr gestellt.',
+      'Ein von Hand gesetzter Gießrhythmus war nicht erreichbar: die App las das Merkmal, aber keine Stelle setzte es.',
+      'Ein gelernter Faktor verschob einen eigenen Rhythmus — nach „alle 7 Tage“ stand dann „alle 9 Tage“ auf der Karte. Wo ein eigener Rhythmus gilt, lernt die App nicht mehr nach.',
+      'Der Reiter Verlauf meldete „Noch nie als angesehen vermerkt“ und direkt darunter „Noch keine Einträge“ — zweimal dasselbe.'
+    ],
+    neu: [
+      'Licht am Platz im Reiter Standort: Sonnenstunden im laufenden Monat, die Spanne der Art und ein Wort dazu — passt, zu wenig, zu viel. Ohne Platz im Grundriss wird nichts geraten.',
+      'Topf und Substrat im Reiter Pflege: Topfgröße, letztes Umtopfen und die empfohlene Mischung mit ihren Teilen. Die Topfgröße lässt sich auf der Karte nachtragen.',
+      'Gießrhythmus von Hand, für Sommer und Winter getrennt, jederzeit zurück zur Gießklasse.',
+      'Giftigkeit je eingetragenem Tier, mit eigener Einstufung und Begründung dahinter.',
+      'Der Steckbrief ergänzt Familie, Wuchsform und Frostgrenze aus der Artenbibliothek. Eigene Angaben bleiben stehen.'
+    ],
+    besser: [
+      'Jeder Abschnitt steht in einer weichen Kachel wie in Werkzeuge. Leere Abschnitte sagen ruhig, dass noch nichts da ist.',
+      'Die Reiter sind schlichter Text mit Unterstrich und bleiben beim Scrollen oben stehen.',
+      'Der Kopf beginnt mit dem Bild, darunter das Fotoband, dann der Name. Ohne Foto eine einzige Zeile statt leerem Kasten und gestricheltem Plusfeld.',
+      'Aufgaben stehen als eine Zeile wie unter Mehr; das Formular kommt erst beim Aufklappen.',
+      'Die interne Kennung steht nicht mehr unter dem Namen, und die Giftigkeit nur noch an einer Stelle im Kopf.'
+    ]
+  },
   {
     nr: '3.11.0', datum: '2026-09-11', titel: 'Die Pflanzenkarte räumt auf',
     kurz: [
@@ -12408,17 +12621,20 @@ function wechselIntervall(p){
   const a = g && typeof GIESSARTEN !== 'undefined' ? GIESSARTEN[g] : null;
   return (a && a.wechsel) ? a.wechsel : null;
 }
+/* Ein eigener Rhythmus gilt nur, wenn er ausdrücklich als solcher
+   gesetzt wurde. Vorher wurde geraten, ob ein Wert von Hand stammt —
+   dabei fielen Werte wie [8,12] als vermeintliche Kopie durch.
+   Seit 3.12.0 setzt die Karte ihn selbst (Block Gießen). */
+function ivEigen(p){
+  return p && p.intervallEigen === true
+      && Array.isArray(p.intervall) && p.intervall.length === 2
+      && p.intervall.every(x=>typeof x === 'number' && x > 0) ? p.intervall : null;
+}
 function intervallBasis(p){
   const w = wechselIntervall(p);
   if(w) return w;
   const ausKlasse = (typeof KLASSE_IV !== 'undefined' && KLASSE_IV[p.klasse]) || null;
-  /* Ein eigener Rhythmus gilt nur, wenn er ausdrücklich als solcher
-     gesetzt wurde. Vorher wurde geraten, ob ein Wert von Hand stammt —
-     dabei fielen Werte wie [8,12] als vermeintliche Kopie durch. */
-  const eigen = p.intervallEigen === true
-             && Array.isArray(p.intervall) && p.intervall.length === 2
-             && p.intervall.every(x=>typeof x === 'number' && x > 0) ? p.intervall : null;
-  return eigen || ausKlasse || [8,12];
+  return ivEigen(p) || ausKlasse || [8,12];
 }
 /* Zwischen dem Sommer- und dem Winterwert einer Art wird nach der
    Jahreslage gemischt: im Hochsommer der erste, im tiefen Winter der
@@ -12475,7 +12691,10 @@ function intervallVon(p){
   /* Gelerntes aus den Rueckmeldungen. Es sitzt vor dem Zustand: ein
      kranker oder frisch umgetopfter Stand ist voruebergehend, der
      gelernte Rhythmus gilt darunter weiter. */
-  if(typeof lernFaktorVon === 'function' && (typeof gruppeLernt !== 'function' || gruppeLernt(p)))
+  /* Ein eigener Rhythmus ist genau das, was eingetragen wurde. Ein
+     vorher gelernter Faktor darf ihn nicht still verschieben — sonst
+     stünde nach „alle 7 Tage“ auf der Karte „alle 9 Tage“. */
+  if(!ivEigen(p) && typeof lernFaktorVon === 'function' && (typeof gruppeLernt !== 'function' || gruppeLernt(p)))
     basis = basis * lernFaktorVon(p.id);
   basis = Math.max(1, Math.round(basis));
   const z = typeof zustandVon === 'function' ? zustandVon(p) : null;
@@ -12974,23 +13193,7 @@ function heuteStatusHTML(){
   return `<p class="heute-lage">${teile.join(' · ')}</p>`;
 }
 
-function trackerHTML(p){
-  const st = giessStatus(p);
-  const txt = st.stand==='stopp'
-    ? `<b>Gießpause.</b> Noch ${stoppRest(p)} ${stoppRest(p)===1?'Tag':'Tage'} trocken stehen lassen.`
-    : st.stand==='unbekannt'
-    ? `Noch nichts eingetragen. Intervall aktuell <b>${ivWort(st.iv)}</b>.`
-    : `Zuletzt vor <b>${st.tage} ${st.tage===1?'Tag':'Tagen'}</b> · Intervall ${ivWort(st.iv)} · ${
-        st.rest<0 ? `<b>${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig</b>` :
-        st.rest===0 ? '<b>heute dran</b>' : `wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`}`;
-  const zz = zustandVon(p);
-  const ug = zz.code!=='gesund'
-    ? `<p class="water-hist">Wegen „${esc(zz.def.name)}“ weicht das Intervall gerade vom Normalwert der Art ab.</p>`
-    : '';
-  return `<div class="tracker">
-      <span class="water-state ${st.stand==='over'||st.stand==='stopp'?'over':''}">${txt}</span>
-    </div>${ug}`;
-}
+
 /* Was beim Gießen war, steht im Reiter Verlauf: die letzten Gießtage
    und die Abstände dazwischen. Der Reiter Pflege sagt nur, was jetzt
    ansteht. */
@@ -13117,7 +13320,7 @@ document.addEventListener('click', e=>{
   fotoMenuSchliessen();
 }, true);
 window.addEventListener('scroll', ()=>{ if(fotoMenuOffen) fotoMenuSchliessen(); }, true);
-function galerieHTML(p){
+function galerieHTML(p, ruhig){
   const fs = fotosVon(p.id);
   const bilder = fs.map(f=>{
     const ist = istProfil(p.id, f.key);
@@ -13129,8 +13332,17 @@ function galerieHTML(p){
         aria-label="Was mit diesem Foto tun?" aria-expanded="false">•••</button>
     </figure>`;
   }).join('');
-  const add = `<button type="button" class="foto-add" data-p="${p.id}"
-      aria-label="Foto hinzufügen">+ Foto<br>hinzufügen</button>`;
+  /* Im ruhigen Kartenkopf (Botanisch): ohne Foto eine einzige Zeile
+     statt Platzhalter und Plusfeld, mit Fotos ein schlichtes Plus. */
+  const add = !ruhig
+    ? `<button type="button" class="foto-add" data-p="${p.id}"
+      aria-label="Foto hinzufügen">+ Foto<br>hinzufügen</button>`
+    : fs.length
+    ? `<button type="button" class="foto-add plus" data-p="${p.id}" aria-label="Foto hinzufügen">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>`
+    : `<button type="button" class="foto-add breit" data-p="${p.id}">
+        <span class="fa-kreis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+        <span class="fa-txt"><b>Foto hinzufügen</b><span>Das erste Foto wird das Titelbild.</span></span></button>`;
   return `<div class="gal">${bilder}${add}</div>`;
 }
 
@@ -13727,17 +13939,13 @@ function kartenKopfHTML(p){
   const stand = karteStand(p);
   const pf = profilFoto(p.id);
 
-  /* Ohne Foto steht der Name nicht auf einer leeren Flaeche, sondern
-     darunter — heller Text auf hellem Platzhalter waere unlesbar. */
-  const bild = pf
-    ? `<div class="km-held-bild"><img src="${pf.src}" alt="${esc(nice(p))}" decoding="async"></div>`
-    : `<div class="km-held-bild"><div class="km-held-leer">
-         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3"/></svg>
-         <span>Noch kein Foto</span></div></div>`;
-
   const spitz = (p.name && p.name !== 'Name offen') ? p.name : '';
   const titel = spitz || (p.botanisch || '').trim() || (p.art || '').trim() || p.id;
-  const unter = [spitz ? (p.art || '') : '', p.botanisch || '', p.id]
+  /* Die interne Kennung (E-100) stand bis 3.11.0 mit im Untertitel.
+     Sie hilft beim Erkennen der Pflanze nicht und fällt weg. */
+  const artTxt = spitz ? String(p.art || '').trim() : '';
+  const botTxt = String(p.botanisch || '').trim();
+  const unter = [artTxt ? esc(artTxt) : '', botTxt ? `<i>${esc(botTxt)}</i>` : '']
     .filter(Boolean).join(' · ');
 
   /* War die Pflanze als feucht gemeldet, ist das die wichtigere
@@ -13751,18 +13959,10 @@ function kartenKopfHTML(p){
     : st.rest === 0 ? 'Gießen: heute fällig'
     : `Gießen: wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`;
 
-  return `<div class="km-held${pf?'':' leer'}">
-      ${bild}
-      <div class="km-held-schleier">
-        <p class="km-held-titel">${esc(titel)}</p>
-        ${unter?`<p class="km-held-art">${esc(unter)}</p>`:''}
-      </div>
-    </div>
-    <div class="km-fotoband">${galerieHTML(p)}</div>
-    <p class="km-stand" data-ton="${stand.ton}">
+  const rest = `<p class="km-stand" data-ton="${stand.ton}">
       <i class="km-punkt" aria-hidden="true"></i>${esc(lage)}${z.code!=='gesund'?` · ${esc(z.def.name)}`:''}
     </p>
-    <div class="km-zeichen">${iconRow(p)}</div>
+    <div class="km-zeichen">${kartenZeichen(p)}</div>
     <div class="km-taten">
       <button class="km-haupt${heute?' erledigt':''}" data-do="giessen" data-p="${p.id}">${heute?'Heute erledigt ✓':giessTat(p)}</button>
       <div class="km-neben">
@@ -13773,6 +13973,59 @@ function kartenKopfHTML(p){
       </div>
     </div>
     <div class="bearb" id="b-${p.id}" data-spaet="${p.id}" hidden></div>`;
+
+  /* Botanisch (seit 3.12.0): Bild, Fotoband, dann der Name — wie Heute,
+     Mehr und Werkzeuge. Ohne Foto steht statt Platzhalter und Plusfeld
+     eine einzige Zeile. Klartext und Terrarium behalten ihren Kopf. */
+  if(S.design === 'botanisch'){
+    return `<div class="km-held km-ruhig${pf?'':' leer'}">
+        ${pf ? `<div class="km-held-bild"><img src="${pf.src}" alt="${esc(nice(p))}" decoding="async"></div>` : ''}
+        <div class="km-fotoband">${galerieHTML(p, true)}</div>
+      </div>
+      <div class="km-name"><p class="km-held-titel">${esc(titel)}</p>${unter?`<p class="km-held-art">${unter}</p>`:''}</div>
+      ${rest}`;
+  }
+
+  /* Ohne Foto steht der Name nicht auf einer leeren Flaeche, sondern
+     darunter — heller Text auf hellem Platzhalter waere unlesbar. */
+  const bild = pf
+    ? `<div class="km-held-bild"><img src="${pf.src}" alt="${esc(nice(p))}" decoding="async"></div>`
+    : `<div class="km-held-bild"><div class="km-held-leer">
+         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3"/></svg>
+         <span>Noch kein Foto</span></div></div>`;
+  return `<div class="km-held${pf?'':' leer'}">
+      ${bild}
+      <div class="km-held-schleier">
+        <p class="km-held-titel">${esc(titel)}</p>
+        ${unter?`<p class="km-held-art">${unter}</p>`:''}
+      </div>
+    </div>
+    <div class="km-fotoband">${galerieHTML(p)}</div>
+    ${rest}`;
+}
+
+/* Die Zeichen im Kartenkopf. Anders als an der Kachel ohne Katze: die
+   Giftigkeit steht in der Warnung darunter, sobald Tiere eingetragen
+   sind, und im Reiter Wissen — zweimal dasselbe ist nur Unruhe. */
+function kartenZeichen(p){
+  return `<span class="icons">${icoSonne(p)}${icoWasser(p)}${icoFrost(p)}${icoDuenger(p)}</span>`;
+}
+
+/* Aufgaben als eine Zeile wie in Mehr: was offen ist, steht in der
+   Unterzeile, das Formular erst nach dem Aufklappen. Bis 3.11.0 stand
+   es offen über den Reitern und schob sie eine halbe Seite nach unten. */
+function aufgabenZeileHTML(p){
+  const alle = aufgabenVon(p);
+  const offen = alle.filter(t=>!t.done);
+  const unter = offen.length
+    ? offen.length + ' offen · ' + String(offen[0].text || '').trim()
+    : 'Nichts offen';
+  /* Eigener Merkschlüssel: „aufgaben“ stand ab Werk auf offen. Die
+     Zeile startet zu und bleibt offen, sobald man sie einmal aufklappt. */
+  return `<details class="acc acc-zeile" data-acc="aufgaben-zeile"${accOffen('aufgaben-zeile')?' open':''}>
+    <summary><svg class="az-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h2M4 12h2M4 18h2M9 6h11M9 12h11M9 18h11"/></svg>
+      <span class="acc-t"><b class="az-titel">Aufgaben</b><span class="az-unter">${esc(unter)}</span></span></summary>
+    <div class="acc-in">${taskBlockHTML(alle, 'k-'+p.id, false, p.id)}</div></details>`;
 }
 
 
@@ -13795,7 +14048,7 @@ function duengAbschnittHTML(p){
   const heute = duengLog(p.id)[0] === iso(HEUTE);
 
   return `<div class="dg-block">
-    <p class="dg-lage${st.stand==='over'?' warn':''}">${esc(lage)}${
+    <p class="dg-lage${st.stand==='over'?' warn':''}${st.stand==='unbekannt'?' leer':''}">${esc(lage)}${
       st.letzte ? ` · zuletzt am ${new Date(st.letzte+'T12:00:00').toLocaleDateString('de-DE')}` : ''}</p>
     <p class="dg-fuss">${esc(stufe.text)} · ${ivWort(st.iv)} · ${esc(stufe.lang)}</p>
     <button class="dg-knopf${heute?' erledigt':''}" data-do="${heute?'dueng-weg':'duengen'}" data-p="${p.id}">${
@@ -13804,12 +14057,147 @@ function duengAbschnittHTML(p){
 }
 
 function giessAbschnitt(p){
-  const K = KLASSEN[p.klasse];
   const tipp = giesstippRest(p);
-  return trackerHTML(p)
-    + (K ? `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd>
-       <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd></dl>` : '')
-    + (tipp ? `<p><em>${esc(tipp)}</em></p>` : '');
+  const st = giessStatus(p);
+  const tag = n => n === 1 ? 'Tag' : 'Tage';
+  const tagen = n => n === 1 ? 'Tag' : 'Tagen';
+  const lage = st.stand === 'stopp'
+      ? `<p class="kb-lage warn">Gießpause — noch ${stoppRest(p)} ${tagen(stoppRest(p))} trocken stehen lassen.</p>`
+    : st.stand === 'unbekannt' ? '<p class="kb-leer">Noch nie gegossen eingetragen.</p>'
+    : st.rest < 0 ? `<p class="kb-lage warn">${-st.rest} ${tag(-st.rest)} überfällig</p>`
+    : st.rest === 0 ? '<p class="kb-lage">Heute dran</p>'
+    : `<p class="kb-lage">Wieder in ${st.rest} ${tagen(st.rest)}</p>`;
+  const zuletzt = st.letzte
+    ? `<p class="kb-klein">Zuletzt am ${new Date(st.letzte+'T12:00:00').toLocaleDateString('de-DE',{day:'numeric', month:'long'})}</p>` : '';
+  const zz = zustandVon(p);
+  const ab = zz.code !== 'gesund'
+    ? `<p class="kb-klein">Wegen „${esc(zz.def.name)}“ weicht der Rhythmus gerade vom Normalwert ab.</p>` : '';
+  const q = rhythmusQuelle(p);
+  const zeilen = `<dl class="spec kb-werte">
+      <dt>Rhythmus</dt><dd>${ivWort(st.iv)} <span class="kb-marke${q.ton?' '+q.ton:''}">${esc(q.wort)}</span></dd>
+      <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd>
+    </dl>`;
+  return lage + zuletzt + ab + zeilen + ivEditorHTML(p)
+    + (tipp ? `<p class="kb-tipp">${esc(tipp)}</p>` : '');
+}
+
+/* Woher der Rhythmus kommt — eine Marke neben der Zahl. */
+function rhythmusQuelle(p){
+  if(wechselIntervall(p)) return {wort:'Wasserwechsel', ton:''};
+  if(ivEigen(p)) return {wort:'von Hand', ton:'wasser'};
+  if(anstauLage(p)) return {wort:'Anstau', ton:''};
+  const lernt = typeof gruppeLernt !== 'function' || gruppeLernt(p);
+  if(lernt && typeof lernFaktorVon === 'function' && lernFaktorVon(p.id) !== 1) return {wort:'gelernt', ton:''};
+  return {wort:'Gießklasse', ton:''};
+}
+
+/* Den Rhythmus von Hand setzen. Bis 3.11.0 las die App `intervallEigen`,
+   aber keine Stelle setzte es. Die Zwischenwerte stehen am Kasten
+   selbst; gespeichert wird erst mit „Übernehmen“. Wasser- und
+   Hydrokultur folgen dem Wasserwechsel und bekommen keinen Regler. */
+function ivEditorHTML(p){
+  if(wechselIntervall(p)) return '';
+  const eigen = ivEigen(p);
+  const b = eigen || (typeof KLASSE_IV !== 'undefined' && KLASSE_IV[p.klasse]) || [8,12];
+  const s = Math.round(b[0]), w = Math.round(b[1]);
+  const t = n => n + (n === 1 ? ' Tag' : ' Tage');
+  const regler = (k, name, v) => `<div class="iv-regler"><span>${name}</span>
+      <button type="button" class="iv-knopf" data-do="iv-schritt" data-p="${p.id}" data-k="${k}" data-d="-1" aria-label="${name} kürzer">−</button>
+      <output data-iv-out="${k}">${t(v)}</output>
+      <button type="button" class="iv-knopf" data-do="iv-schritt" data-p="${p.id}" data-k="${k}" data-d="1" aria-label="${name} länger">+</button></div>`;
+  return `<div class="kb-aktionen"><button type="button" class="kb-link" data-do="iv-auf" data-p="${p.id}" aria-expanded="false">${eigen ? 'Rhythmus ändern' : 'Rhythmus von Hand festlegen'}</button></div>
+    <div class="iv-edit" data-iv-box="${p.id}" data-s="${s}" data-w="${w}" hidden>
+      ${regler('s', 'Sommer', s)}${regler('w', 'Winter', w)}
+      <p class="kb-klein">Solange ein eigener Rhythmus gilt, lernt die App nicht nach.</p>
+      <div class="kb-aktionen"><button type="button" class="kb-zweit" data-do="iv-ok" data-p="${p.id}">Übernehmen</button>${
+        eigen ? `<button type="button" class="kb-link" data-do="iv-zurueck" data-p="${p.id}">Zurück zur Gießklasse</button>` : ''}</div>
+    </div>`;
+}
+
+/* Topf und Substrat im Reiter Pflege. Die Mischung ist die Empfehlung
+   für die Art — gemerkt wird noch nichts, dafür fehlt der Auslöser. */
+function topfSubstratHTML(p){
+  const cm = parseInt(p.topf || ((S.edits && S.edits[p.id] && S.edits[p.id].topf) || 0), 10) || 0;
+  const form = (typeof TOPFFORMEN !== 'undefined' && TOPFFORMEN[p.topfform]) ? TOPFFORMEN[p.topfform].name : '';
+  const um = (typeof ereignisse === 'function') ? ereignisse(p.id).find(e=>e.typ === 'umgetopft') : null;
+  let misch = '';
+  if(typeof zielFuer === 'function' && typeof ZIELE !== 'undefined'){
+    const zid = zielFuer(p);
+    const ziel = ZIELE[zid] || ZIELE.standard;
+    if(ziel.ohneMischung) misch = esc(ziel.name) + ' — kein Substrat, nur Wasser';
+    else {
+      const r = (typeof rezeptFuer === 'function') ? rezeptFuer(zid) : null;
+      const teile = r ? Object.keys(r.teile).filter(id=>ZUTAT[id])
+        .sort((a,b)=>r.teile[b]-r.teile[a]).map(id=>r.teile[id] + ' × ' + esc(ZUTAT[id].name)) : [];
+      misch = esc(ziel.name) + (teile.length ? ' — ' + teile.join(' · ') : '');
+    }
+  }
+  const datum = d => new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'numeric', month:'long', year:'numeric'});
+  return `<dl class="spec kb-werte">
+      <dt>Topf</dt><dd>${cm ? cm + ' cm' + (form ? ' · ' + esc(form) : '') : '<span class="kb-leer">nicht eingetragen</span>'}</dd>
+      <dt>Umgetopft</dt><dd>${um ? datum(um.datum) : '<span class="kb-leer">noch nicht eingetragen</span>'}</dd>
+      ${misch ? `<dt>Mischung</dt><dd>${misch}</dd>` : ''}
+    </dl>
+    <div class="kb-aktionen">
+      <button type="button" class="kb-link" data-do="topf-eintragen" data-p="${p.id}">${cm ? 'Topfgröße ändern' : 'Topfgröße eintragen'}</button>
+      ${misch ? `<button type="button" class="kb-link" data-do="substrat-fuer" data-p="${p.id}">Im Substratrechner öffnen</button>` : ''}
+    </div>`;
+}
+
+/* Licht am Platz im Reiter Standort. Nur angezeigt — auf das Gieß-
+   intervall wirkt es nicht. Ohne Platz im Grundriss keine Zahl: die App
+   rät hier nichts zusammen. */
+function lichtAmPlatzHTML(p){
+  const m = (typeof standortStunden === 'function') ? standortStunden(p) : null;
+  if(!m){
+    const o = (typeof pflanzenOrt === 'function') ? pflanzenOrt(p.id) : null;
+    const text = o && o.raum
+      ? 'Der Raum im Grundriss ist noch nicht fertig eingerichtet — erst dann lässt sich das Licht berechnen.'
+      : 'Für eine Angabe muss die Pflanze im Grundriss stehen.';
+    return kblock('licht', 'Licht am Platz', `<p class="kb-leer">${text}</p>
+      <div class="kb-aktionen"><button type="button" class="kb-zweit" data-do="grundriss-fuer" data-p="${p.id}">${
+        o && o.raum ? 'Grundriss öffnen' : 'Im Grundriss einzeichnen'}</button></div>`);
+  }
+  const std = m.stunden;
+  const spanne = LICHT_SPANNE[p.sonne] || null;
+  const bedarf = SONNE[p.sonne] || null;
+  const urteil = !spanne ? null
+    : std < spanne.min ? {wort:'zu wenig', ton:'unklar'}
+    : std > spanne.max ? {wort:'zu viel', ton:'gift'}
+    : {wort:'passt', ton:'sicher'};
+  const MAX = 12;
+  const pos = v => Math.max(0, Math.min(100, v / MAX * 100));
+  const band = spanne ? `<i style="left:${pos(spanne.min)}%;width:${pos(Math.min(spanne.max, MAX)) - pos(spanne.min)}%"></i>` : '';
+  const hell = (typeof helligkeitStufe === 'function' && m.hell != null) ? HELL_NAME[helligkeitStufe(m.hell)] : '';
+  const text = (hell ? 'Grundhelligkeit am Platz: ' + hell + '. ' : '')
+    + (bedarf && spanne ? 'Eingetragen ist „' + bedarf.text + '“ — dafür wären ' + spanne.soll + ' üblich.'
+                        : 'Für diese Pflanze ist kein Lichtbedarf eingetragen.');
+  return kblock('licht', 'Licht am Platz', `<div class="licht-kopf"><span class="licht-zahl">${esc(m.text)}<small>Std. Sonne</small></span>${
+      urteil ? `<span class="kb-marke ${urteil.ton}">${urteil.wort}</span>` : ''}</div>
+    <div class="licht-band" aria-hidden="true">${band}<b style="left:calc(${pos(std)}% - 2px)"></b></div>
+    <div class="licht-skala" aria-hidden="true"><span>0</span><span>4</span><span>8</span><span>12 Std.</span></div>
+    <p class="kb-klein">${esc(text)}</p>`, `im ${esc(m.monat)}`);
+}
+
+/* Der Steckbrief füllt Lücken aus der Artenbibliothek: Familie,
+   Wuchsform, Frostgrenze. Was schon im Steckbrief steht, bleibt. */
+function frostWort(f){
+  return f <= 0 ? 'winterhart bis ' + f + ' °C' : 'ab ' + f + ' °C ins Haus';
+}
+function steckbriefDaten(p){
+  const stamm = (p.stamm && typeof p.stamm === 'object') ? Object.assign({}, p.stamm) : {};
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  const hat = re => Object.keys(stamm).some(k=>re.test(k));
+  const dazu = {};
+  const fam = String(p.familie || (b && b.fam) || '').trim();
+  if(fam && !hat(/famil/i)) dazu['Familie'] = fam;
+  let typ = String(p.typ || '').trim();
+  if(!typ || typ === 'Ohne Angabe') typ = b && b.typ ? String(b.typ) : '';
+  if(typ && !hat(/wuchs/i)) dazu['Wuchsform'] = typ;
+  const roh = p.frostMin != null && p.frostMin !== '' ? p.frostMin : (b && b.frost != null ? b.frost : null);
+  const frost = roh == null ? NaN : Number(roh);
+  if(!isNaN(frost) && !hat(/frost/i)) dazu['Frostgrenze'] = frostWort(frost);
+  return {daten: Object.assign(stamm, dazu), ausBib: !!b && Object.keys(dazu).length > 0};
 }
 
 /* Bei Viktor stand die Wasserregel viermal auf einem Bildschirm —
@@ -13868,10 +14256,10 @@ function warnungenHTML(p){
     if(g.stufe && g.stufe !== 'keine')
       betroffen.push((TIERARTEN[t] ? TIERARTEN[t].name : t));
   });
+  /* Ohne eingetragene Tiere gibt es nichts zu warnen. Bis 3.11.0 stand
+     hier ersatzweise die Katze — auch bei Haushalten ganz ohne Tier. */
   if(betroffen.length)
     w.push('<b>Giftig für ' + esc(betroffen.join(', ')) + '.</b> Nicht in Reichweite stellen.');
-  else if(!tiere.length && istGiftig(p, 'katze') === true)
-    w.push('<b>Giftig für Katzen.</b> Nicht in Reichweite stellen.');
 
   const z = zustandVon(p);
   if(z.code === 'schaedlinge')
@@ -13983,18 +14371,22 @@ function lagePaneHTML(p){
       : `<p class="lage-tier">${esc(ERREICHBARKEIT[stufe].name)}: für deine Tiere nicht erreichbar.</p>`;
   }
 
+  /* Steht die Pflanze nicht im Grundriss, sagt das der Block „Licht am
+     Platz“ samt Knopf zum Einzeichnen — ein zweiter Block hier sagte
+     dasselbe noch einmal. */
   const o = pflanzenOrt(p.id);
   const imPlan = (o && liste.some(r=>r.id===o.raum))
-    ? `<p class="lage-jetzt">Im Grundriss eingezeichnet in „${esc(raumNameVon(o.raum))}“. <button class="linkbtn" data-do="grundriss-fuer" data-p="${p.id}">Dort ansehen</button></p>`
-    : `<p class="lage-jetzt">Noch nicht im Grundriss eingezeichnet — das ist freiwillig. <button class="linkbtn" data-do="grundriss-fuer" data-p="${p.id}">Jetzt einzeichnen</button></p>`;
+    ? `<p class="lage-jetzt">Eingezeichnet in „${esc(raumNameVon(o.raum))}“. <button class="linkbtn" data-do="grundriss-fuer" data-p="${p.id}">Dort ansehen</button></p>`
+    : '';
 
-  return `<div class="lagebox">
+  return kblock('platz', 'Platz', `<div class="lagebox">
       <label><span class="lab">Raum</span>
         <select data-lage="raum" data-p="${p.id}">${rOpt}</select></label>
       <label><span class="lab">Stellplatz</span>
         <select data-lage="platz" data-p="${p.id}">${sOpt}</select></label>
-    </div>
-    ${kblock('tiere', 'Tiere', tierZeile)}${kblock('grundriss', 'Grundriss', imPlan)}`;
+    </div>`)
+    + lichtAmPlatzHTML(p)
+    + kblock('tiere', 'Tiere', tierZeile) + kblock('grundriss', 'Grundriss', imPlan);
 }
 
 /* ── Reiter ─────────────────────────────────────────────────
@@ -14027,6 +14419,54 @@ document.addEventListener('click', e=>{
   karte.querySelectorAll('[data-ktab]').forEach(x=>
     x.setAttribute('aria-selected', String(x.dataset.ktab === key)));
   karte.querySelectorAll('[data-kpane]').forEach(x=>{ x.hidden = x.dataset.kpane !== key; });
+});
+
+/* Rhythmus von Hand und Topfgröße, direkt auf der Karte (3.12.0) */
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do]'); if(!b) return;
+  const art = b.dataset.do;
+  if(['iv-auf','iv-schritt','iv-ok','iv-zurueck','topf-eintragen'].indexOf(art) === -1) return;
+  e.stopPropagation();
+  const id = b.dataset.p;
+  const p = allePflanzen().find(x=>x.id === id); if(!p) return;
+  const block = b.closest('[data-kblock]') || document;
+  const box = block.querySelector('.iv-edit');
+  if(art === 'iv-auf'){
+    if(!box) return;
+    box.hidden = !box.hidden;
+    b.setAttribute('aria-expanded', String(!box.hidden));
+    return;
+  }
+  if(art === 'iv-schritt'){
+    if(!box) return;
+    const k = b.dataset.k === 'w' ? 'w' : 's';
+    const v = Math.max(1, Math.min(60, (parseInt(box.dataset[k], 10) || 1) + Number(b.dataset.d || 0)));
+    box.dataset[k] = String(v);
+    const out = box.querySelector('[data-iv-out="' + k + '"]');
+    if(out) out.textContent = v + (v === 1 ? ' Tag' : ' Tage');
+    return;
+  }
+  if(art === 'iv-ok'){
+    if(!box) return;
+    const s = parseInt(box.dataset.s, 10), w = parseInt(box.dataset.w, 10);
+    if(!(s > 0 && w > 0)) return;
+    aenderungSetzen(id, {intervall:[s, w], intervallEigen:true});
+    render();
+    return;
+  }
+  if(art === 'iv-zurueck'){
+    aenderungSetzen(id, {intervallEigen:false});
+    render();
+    return;
+  }
+  if(art === 'topf-eintragen'){
+    const roh = prompt('Topfdurchmesser in Zentimetern?', p.topf ? String(p.topf) : '');
+    if(roh === null) return;
+    const n = parseInt(String(roh).replace(',', '.'), 10);
+    if(!(n >= 4 && n <= 120)){ alert('Bitte eine Zahl zwischen 4 und 120 eingeben.'); return; }
+    aenderungSetzen(id, {topf:String(n)});
+    render();
+  }
 });
 
 /* Raum und Stellplatz direkt in der Karte ändern */
@@ -14075,15 +14515,24 @@ function kblock(key, titel, inhalt, zusatz, klasse){
 function kListe(a){
   return Array.isArray(a) && a.length ? `<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '';
 }
-/* Giftigkeit für jede Pflanze, nicht nur für mitgelieferte. */
+/* Giftigkeit für jedes eingetragene Tier. Ohne Tiere kein Abschnitt —
+   dann interessiert die Frage nicht (Chris, 11.09.). */
 function kGiftHTML(p){
-  const g = istGiftig(p, 'katze');
-  const t = giftFuer(p, 'katze');
-  const kopf = g === true ? 'Nicht in Katzenreichweite.' : g === false ? 'Unbedenklich.' : 'Noch nicht geprüft.';
-  const text = t.quelle === 'eigen' || !p.katzentext ? t.grund : p.katzentext;
-  return kblock('gift', 'Giftigkeit',
-    `<div class="alert ${g === false ? 'safe' : ''}"><strong>${kopf}</strong> ${esc(text || '')}</div>`,
-    g === true ? 'giftig' : g === false ? 'sicher' : 'ungeprüft');
+  const tiere = (typeof meineTiere === 'function') ? meineTiere() : [];
+  if(!tiere.length) return '';
+  const gruende = [];
+  const zeilen = tiere.map(t=>{
+    const g = giftFuer(p, t);
+    const st = GIFT_STUFEN[g.stufe] || GIFT_STUFEN.unklar;
+    const ton = g.stufe === 'keine' ? 'sicher' : g.stufe === 'unklar' ? 'unklar' : 'gift';
+    const grund = (t === 'katze' && p.katzentext && g.quelle !== 'nutzer') ? p.katzentext : g.grund;
+    if(grund && gruende.indexOf(grund) === -1) gruende.push(grund);
+    const name = TIERARTEN[t] ? TIERARTEN[t].name : t;
+    return `<div class="gift-zeile" data-tier="${esc(t)}"><b>${esc(name)}</b><span class="kb-marke ${ton}">${esc(st.wort)}</span></div>`;
+  }).join('');
+  const warum = gruende.length
+    ? `<details class="kb-auf"><summary>Warum</summary>${gruende.map(x=>`<p>${esc(x)}</p>`).join('')}</details>` : '';
+  return kblock('gift', 'Giftigkeit', `<div class="kb-stapel">${zeilen}</div>${warum}`);
 }
 
 /* Der Inhalt einer aufgeklappten Karte. Steht in einer eigenen
@@ -14098,7 +14547,6 @@ function kGiftHTML(p){
    geprüft, und was fehlt, fällt weg — auch bei einer von Hand
    bearbeiteten Sicherung ohne Stammdaten. */
 function kartenDetailHTML(p){
-  const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
   const dl = o => (o && typeof o === 'object' && Object.keys(o).length)
     ? `<dl class="spec">${Object.entries(o).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
   const hinweis = p.hinweis ? `<div class="alert info"><strong>Sonderfall gerade.</strong> ${esc(p.hinweis)}</div>` : '';
@@ -14107,23 +14555,29 @@ function kartenDetailHTML(p){
   const probs = probleme.map(x=>Array.isArray(x)
     ? `<div class="prob"><b>${esc(x[0]||'')}</b><em>${esc(x[1]||'')}</em><div>${esc(x[2]||'')}</div></div>` : '').join('');
   const lebens = dl(p.bedingungen);
-  const steckbrief = dl(p.stamm) + (lebens ? `<h4>Lebensumstände</h4>${lebens}` : '');
+  const sb = steckbriefDaten(p);
+  const steckbrief = dl(sb.daten)
+    + (sb.ausBib ? '<p class="kb-quelle">Aus der Artenbibliothek</p>' : '')
+    + (lebens ? `<h4>Lebensumstände</h4>${lebens}` : '');
   const herkunft = p.herkunft
     ? `<p>${esc(p.herkunft)}</p>${p.folge ? `<p><strong>Was das für die Haltung heißt:</strong> ${esc(p.folge)}</p>` : ''}` : '';
   const nEreig = (typeof ereignisse === 'function') ? ereignisse(p.id).length : 0;
   const nBef = notizTrennen(p.notiz).befunde.length;
+  const wissenTeile = [steckbrief, p.merkmale || '', herkunft, kGiftHTML(p), probs, kListe(p.beob)];
+  const wissenLeer = !wissenTeile.some(x=>x && String(x).trim());
 
   return `<div class="detail">
       ${kartenKopfHTML(p)}
       ${hinweis}
       ${warnungenHTML(p)}
       ${pflegeHinweiseHTML(p)}
-      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
+      ${aufgabenZeileHTML(p)}
       ${kartenReiter(p.id, [
         {key:'pflege', titel:'Pflege', inhalt:
           zustandBlockHTML(p)
           + kblock('giessen', 'Gießen', giessAbschnitt(p))
           + kblock('duengen', 'Düngen', duengAbschnittHTML(p))
+          + kblock('topf', 'Topf und Substrat', topfSubstratHTML(p))
           + kblock('pflege', 'Pflegeschritte', kListe(p.pflege))
           + kblock('winter', 'Winterruhe', winter)},
         {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
@@ -14134,8 +14588,14 @@ function kartenDetailHTML(p){
           + kblock('befunde', 'Befunde des Doktors', befundeHTML(p), nBef ? `${nBef}` : '')
           + kblock('abstammung', 'Abstammung', abstammungHTML(p))
           + kblock('notiz', 'Notizen', notizenHTML(p))},
+        /* Der Reiter bleibt auch dann stehen, wenn zur Art nichts
+           hinterlegt ist: ein Reiter, der bei manchen Pflanzen fehlt und
+           bei anderen da ist, laesst einen suchen. Stattdessen steht
+           dort, was zu tun waere. */
         {key:'wissen', titel:'Wissen', inhalt:
-          kblock('steckbrief', 'Steckbrief', steckbrief)
+          (wissenLeer ? `<div class="kblock" data-kblock="wissen-leer"><p class="kb-leer">Zu dieser Art ist noch nichts hinterlegt.</p>
+            <div class="kb-aktionen"><button type="button" class="kb-zweit" data-do="bearb-auf" data-p="${p.id}">Angaben ergänzen</button></div></div>` : '')
+          + kblock('steckbrief', 'Steckbrief', steckbrief)
           + kblock('merkmale', 'Merkmale', p.merkmale ? `<p>${esc(p.merkmale)}</p>` : '')
           + kblock('herkunft', 'Herkunft', herkunft)
           + kGiftHTML(p)
