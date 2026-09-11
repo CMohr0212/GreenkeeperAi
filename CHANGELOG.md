@@ -4,6 +4,27 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.11.0 — 11. September 2026
+**Die Pflanzenkarte räumt auf**
+
+### Behoben
+- **Die Wachstumsrate rechnete zwei Blätter an zwei Tagen zu „15 Blättern im Monat“ hoch.** Eine Rate steht jetzt erst, wenn zwischen erstem und letztem notierten Blatt mindestens ein Monat liegt. Davor zeigt die Karte nur, wie viele Blätter seit wann notiert sind.
+- **Selbst angelegte Pflanzen verloren ganze Abschnitte.** Es gab zwei Wege, eine Karte zu bauen: einen vollen für die mitgelieferten Pflanzen und einen kurzen für alle anderen. Der kurze ließ Giftigkeit, Steckbrief, Pflegeschritte und Probleme weg — auch wenn die Angaben vorhanden waren. Jetzt baut ein Weg jede Karte, und nur was wirklich fehlt, fällt weg.
+
+### Neu
+- **Vier Reiter: Pflege · Standort · Verlauf · Wissen.** Pflege sagt, was jetzt ansteht: Zustand, Gießen, Düngen, Pflegeschritte, Winterruhe. Standort, wo sie steht: Raum, Stellplatz, Tiere, Grundriss. Verlauf, was war: Gießabstände, Wachstum, Einträge, Befunde, Abstammung, Notizen. Wissen, was die Art ausmacht: Steckbrief, Merkmale, Herkunft, Giftigkeit, „Wenn etwas nicht stimmt“, Beobachtungen.
+- **Eigener Abschnitt „Befunde des Doktors“** im Reiter Verlauf. Jeder Befund zeigt Datum und ersten Satz, der Rest öffnet sich per Tippen. Drei stehen offen, ältere liegen eingeklappt darunter. Unter „Notizen“ steht nur noch, was du selbst schreibst. Gespeichert ist alles wie vorher — nur die Anzeige ist neu.
+
+### Besser
+- **In Pflege und Standort klappt nichts mehr auf.** Jeder Abschnitt steht offen mit Überschrift da. Aufklapper gibt es nur noch für lange Texte („Wenn etwas nicht stimmt“) und für ältere Einträge.
+- **Der Zustand steht als erste Zeile im Reiter Pflege** statt mitten im Gießen-Aufklapper.
+- **Gießabstände und Wachstum sind in den Reiter Verlauf gezogen**, samt der Liste der letzten Gießtage.
+- **Eindeutige Namen.** „Gießen und Verlauf“ heißt jetzt „Gießen“, „Statusänderung und Verlauf“ heißt „Einträge“. Der Link „Verlauf ansehen“ in der Abstammung führte in den Stammbaum und heißt jetzt auch so.
+- **Einträge zeigen die fünf neuesten**, ältere liegen hinter „ältere anzeigen“.
+- **Der kursive Gießtipp lässt Sätze weg, die die Warnung oben schon sagt.** Bei einer Venusfliegenfalle stand die Wasserregel vorher viermal auf einem Bildschirm. Ein Satz, der etwas anderes sagt, bleibt immer stehen.
+
+---
+
 ## 3.10.8 — 8. September 2026
 **Der Düngetag hört auf zu drängeln**
 

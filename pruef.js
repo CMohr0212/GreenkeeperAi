@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.10.8', w.__T('FASSUNG') === '3.10.8', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.11.0', w.__T('FASSUNG') === '3.11.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -631,23 +631,25 @@ setTimeout(async () => {
   pruef('Bearbeitungsfach bleibt erhalten',
     !!d.querySelector('#karte-rumpf .bearb[data-spaet]'));
 
-  /* ── Drei Reiter statt vier ── */
+  /* ── Vier Reiter (seit 3.11.0: Wissen über die Art eigener Reiter) ── */
   {
     const tabs = [...d.querySelectorAll('#karte-rumpf .ktab')].map(x=>x.dataset.ktab);
-    pruef('Genau drei Reiter', tabs.length === 3, tabs.join(','));
-    pruef('Reiter heißen pflege, standort, verlauf',
-      tabs.join(',') === 'pflege,standort,verlauf', tabs.join(','));
+    pruef('Genau vier Reiter', tabs.length === 4, tabs.join(','));
+    pruef('Reiter heißen pflege, standort, verlauf, wissen',
+      tabs.join(',') === 'pflege,standort,verlauf,wissen', tabs.join(','));
     pruef('Kein Reiter „Allgemein" mehr', tabs.indexOf('allgemein') === -1);
     pruef('Fotos sind kein Akkordeon mehr',
       !d.querySelector('#karte-rumpf [data-acc="fotos"]'));
     pruef('Aufgaben stehen vor den Reitern',
       !!d.querySelector('#karte-rumpf .detail > [data-acc="aufgaben"]'));
-    pruef('Steckbrief liegt im Pflege-Reiter',
-      !!d.querySelector('#karte-rumpf [data-kpane="pflege"] [data-acc="steckbrief"]')
-      || !d.querySelector('#karte-rumpf [data-acc="steckbrief"]'));
+    pruef('Steckbrief liegt im Wissen-Reiter',
+      !!d.querySelector('#karte-rumpf [data-kpane="wissen"] [data-kblock="steckbrief"]')
+      || !d.querySelector('#karte-rumpf [data-kblock="steckbrief"]'));
     pruef('Notizen liegen im Verlauf-Reiter',
-      !!d.querySelector('#karte-rumpf [data-kpane="verlauf"] [data-acc="notiz"]')
-      || !d.querySelector('#karte-rumpf [data-acc="notiz"]'));
+      !!d.querySelector('#karte-rumpf [data-kpane="verlauf"] [data-kblock="notiz"]')
+      || !d.querySelector('#karte-rumpf [data-kblock="notiz"]'));
+    pruef('Giftigkeit liegt im Wissen-Reiter',
+      !!d.querySelector('#karte-rumpf [data-kpane="wissen"] [data-kblock="gift"]'));
     pruef('Standort trägt die Lagebox',
       !!d.querySelector('#karte-rumpf [data-kpane="standort"] .lagebox'));
   }
@@ -1202,14 +1204,14 @@ setTimeout(async () => {
     w.__T(`karteOeffnen('${kid}')`); await tick();
     pruef('Kartenfenster \u00f6ffnet', w.__T("modalOffen('karte-modal')"));
     const tot = [];
-    for(const t of ['pflege','standort','verlauf']){
+    for(const t of ['pflege','standort','verlauf','wissen']){
       const b = d.querySelector(`#karte-rumpf .ktab[data-ktab="${t}"]`);
       if(!b){ tot.push(t + ' (Knopf fehlt)'); continue; }
       b.click(); await tick();
       const pane = d.querySelector(`#karte-rumpf [data-kpane="${t}"]`);
       if(!pane || pane.hidden) tot.push(t);
     }
-    pruef('Alle drei Kartenreiter schalten um', tot.length === 0, tot.join(','));
+    pruef('Alle vier Kartenreiter schalten um', tot.length === 0, tot.join(','));
 
     /* Abstammung: offen im Verlauf-Reiter, nicht in einem Akkordeon.
        Sie greift auch bei Pflanzen aus alten Fass\u00fcngen \u2014 sie liest
@@ -3682,13 +3684,124 @@ setTimeout(async () => {
     const nur = w.__T("notizTrennen('Nur eine eigene Notiz.')");
     pruef('Ohne Befund bleibt alles eigene Notiz',
       nur.eigen === 'Nur eine eigene Notiz.' && nur.befunde.length === 0);
-    const html = w.__T("notizenHTML({id:'fa', notiz:'Meins.\\n\\nBefund vom 1.1.2026: A.\\n\\nBefund vom 2.1.2026: B.\\n\\nBefund vom 3.1.2026: C.\\n\\nBefund vom 4.1.2026: D.'})");
+    const html = w.__T("befundeHTML({id:'fa', notiz:'Meins.\\n\\nBefund vom 1.1.2026: A.\\n\\nBefund vom 2.1.2026: B.\\n\\nBefund vom 3.1.2026: C.\\n\\nBefund vom 4.1.2026: D.'})");
+    const nurNotiz = w.__T("notizenHTML({id:'fa', notiz:'Meins.\\n\\nBefund vom 1.1.2026: A.'})");
+    pruef('Notizen zeigen nur das Eigene', /Meins/.test(nurNotiz) && !/befund-weg|1\.1\.2026/.test(nurNotiz), nurNotiz);
+    pruef('Befunde zeigen nichts Eigenes', !/Meins/.test(html));
+    pruef('Nur Befunde: kein Notizenblock', w.__T("notizenHTML({id:'fa', notiz:'Befund vom 1.1.2026: A.'})") === '');
     pruef('Drei Befunde stehen offen, der Rest hinter einem Aufklapper',
       /bef-mehr/.test(html) && /1 ältere anzeigen/.test(html), html.slice(-90));
     pruef('Der neueste Befund steht oben',
       html.indexOf('4.1.2026') < html.indexOf('3.1.2026'));
     pruef('Jeder Befund laesst sich einzeln loeschen',
       (html.match(/data-do="befund-weg"/g) || []).length === 4);
+
+    /* ══ 3.11.0 · Pflanzenkarte A1 ══════════════════════════════
+       Die Testpflanzen legt der Test selbst an; der Bestand kommt
+       gleich danach zurück. */
+    {
+      const karteAus = id => {
+        const box = d.createElement('div');
+        box.innerHTML = w.__T(`kartenDetailHTML(allePflanzen().find(x=>x.id==='${id}'))`);
+        return box;
+      };
+      const bloecke = box => [...box.querySelectorAll('[data-kblock],[data-acc]')]
+        .map(x => (x.closest('[data-kpane]') || {dataset:{}}).dataset.kpane + ':' + (x.dataset.kblock || x.dataset.acc));
+      w.__T(`(function(){
+        const voll = id => ({id, name:id, art:'Testart', botanisch:'Testus probus',
+          klasse:'B', licht:'indirekt', seit:iso(HEUTE), katzentext:'', todo:[], log:[],
+          notiz:'Eigenes.\\n\\nBefund vom 2.9.2026: Erster Satz ist kurz. Zweiter Satz steht im Rest.',
+          stamm:{Familie:'Testgewächse'}, bedingungen:{Licht:'hell'},
+          probleme:[['Gelbe Blätter','zu nass','weniger gießen']],
+          pflege:['Staub abwischen'], beob:['Neigt sich zum Fenster'],
+          herkunft:'Aus dem Testwald.', folge:'Braucht Ruhe.', merkmale:'Glänzende Blätter.',
+          linie:'Testlinie'});
+        const a = voll('A1V'); a.eigen = true;
+        const b = voll('A1B');
+        const nackt = {id:'A1N', name:'Nackt', art:'', klasse:'B', seit:iso(HEUTE), eigen:true,
+          probleme:'kaputt', stamm:null, beob:null, notiz:''};
+        S.eigene = (S.eigene||[]).filter(x=>['A1V','A1B','A1N'].indexOf(x.id) < 0);
+        S.eigene.push(a, b, nackt); sichern(); })()`);
+      /* Die mitgelieferte Seite: dieselben Daten ohne die Kennung
+         „selbst angelegt“ — bis 3.10.8 entschied genau die über den Weg. */
+      const kv = karteAus('A1V');
+      const kb = d.createElement('div');
+      kb.innerHTML = w.__T(`kartenDetailHTML(Object.assign({}, allePflanzen().find(x=>x.id==='A1B'), {eigen:false}))`);
+      const lv = bloecke(kv).join(','), lb = bloecke(kb).join(',');
+      pruef('Eigene und mitgelieferte Pflanze: dieselben Abschnitte', lv === lb, lv + ' | ' + lb);
+      pruef('Eigene Pflanze hat Steckbrief im Wissen', lv.indexOf('wissen:steckbrief') > -1, lv);
+      pruef('Eigene Pflanze hat Giftigkeit im Wissen', lv.indexOf('wissen:gift') > -1, lv);
+      pruef('Vier Reiterflächen in jeder Karte',
+        [...kv.querySelectorAll('[data-kpane]')].map(x=>x.dataset.kpane).join(',') === 'pflege,standort,verlauf,wissen');
+      /* Pflege: keine Aufklapper mehr */
+      pruef('Im Reiter Pflege kein Aufklapper', !kv.querySelector('[data-kpane="pflege"] details.acc'));
+      pruef('Im Reiter Standort kein Aufklapper', !kv.querySelector('[data-kpane="standort"] details.acc'));
+      /* Zustand */
+      const pfl = kv.querySelector('[data-kpane="pflege"]');
+      pruef('Zustand ist die erste Zeile im Reiter Pflege',
+        !!pfl && !!pfl.firstElementChild && pfl.firstElementChild.classList.contains('zustand'));
+      pruef('Zustand steht nicht im Gießen-Block',
+        !kv.querySelector('[data-kblock="giessen"] [data-zsel]'));
+      pruef('Gießabstände stehen im Verlauf, nicht in Pflege',
+        !kv.querySelector('[data-kpane="pflege"] .verlauf, [data-kpane="pflege"] .wachstum'));
+      /* Namen */
+      const txt = kv.textContent;
+      pruef('Kein „Gießen und Verlauf“ mehr', txt.indexOf('Gießen und Verlauf') < 0);
+      pruef('Kein „Statusänderung und Verlauf“ mehr', txt.indexOf('Statusänderung') < 0);
+      pruef('Abstammung ist da', !!kv.querySelector('[data-kpane="verlauf"] [data-kblock="abstammung"] .abstammung'));
+      pruef('Kein „Verlauf ansehen“ mehr', !kv.querySelector('[data-sbblatt]'));
+      /* Befunde */
+      const bef = kv.querySelector('[data-kpane="verlauf"] [data-kblock="befunde"]');
+      pruef('Befunde haben eigenen Abschnitt im Verlauf', !!bef);
+      pruef('Befunde stehen nicht unter Notizen',
+        !kv.querySelector('[data-kblock="notiz"] .bef-liste') && !!kv.querySelector('[data-kblock="notiz"]'));
+      pruef('Befund zeigt ersten Satz offen',
+        !!bef && /Erster Satz ist kurz\./.test((bef.querySelector('.bef-k')||{}).textContent || ''));
+      pruef('Rest des Befunds liegt hinter Tippen',
+        !!bef && !!bef.querySelector('details.bef-auf .bef-t')
+        && /Zweiter Satz/.test(bef.querySelector('details.bef-auf .bef-t').textContent));
+      /* Nackte eigene Pflanze */
+      let nacktOk = true, nacktFehler = '';
+      try{ karteAus('A1N'); }catch(e){ nacktOk = false; nacktFehler = e.message; }
+      pruef('Eigene Pflanze ohne Stammdaten rendert ohne Fehler', nacktOk, nacktFehler);
+      const kn = nacktOk ? karteAus('A1N') : null;
+      pruef('Leere Abschnitte fallen weg',
+        !!kn && !kn.querySelector('[data-kblock="steckbrief"],[data-kblock="beob"],[data-acc="probleme"],[data-kblock="notiz"]'));
+
+      /* Wachstum: zwei Blätter in zwei Tagen ergeben keine Monatsrate */
+      const wz = w.__T(`(function(){
+        const alt = S.blatt; S.blatt = {A1V:[iso(new Date(HEUTE-2*86400000)), iso(HEUTE)]};
+        const h = wachstumHTML({id:'A1V'}); S.blatt = alt; return h; })()`);
+      pruef('2 Blätter in 2 Tagen: keine Monatsrate', !/im Monat/.test(wz) && /2<\/span> Blätter seit/.test(wz), wz.slice(0, 200));
+      const wl = w.__T(`(function(){
+        const alt = S.blatt; S.blatt = {A1V:[iso(new Date(HEUTE-40*86400000)), iso(new Date(HEUTE-20*86400000)), iso(HEUTE)]};
+        const h = wachstumHTML({id:'A1V'}); S.blatt = alt; return h; })()`);
+      pruef('Ab 30 Tagen steht die Rate', /im Monat/.test(wl), wl.slice(0, 200));
+
+      /* Gießtipp: was die Warnbox sagt, fällt weg; Rest bleibt */
+      const tippKarni = w.__T(`giesstippRest({id:'A1K', art:'Venusfliegenfalle', botanisch:'Dionaea muscipula', klasse:'S',
+        wichtig:'Ausschließlich Regenwasser, destilliertes Wasser oder Osmosewasser verwenden und niemals düngen.',
+        giesstipp:'Nur Regen-, Osmose- oder destilliertes Wasser. Niemals düngen. Morgens gießen.'})`);
+      pruef('Gießtipp: doppelte Sätze fallen weg', !/Niemals düngen|destilliertes/.test(tippKarni), tippKarni);
+      pruef('Gießtipp: eigener Satz bleibt', /Morgens gießen/.test(tippKarni), tippKarni);
+      const tippFrei = w.__T(`giesstippRest({id:'A1F', art:'Testart', botanisch:'Testus probus', klasse:'B',
+        giesstipp:'Nur Regenwasser verwenden.'})`);
+      pruef('Gießtipp ohne passende Warnung bleibt ganz', tippFrei === 'Nur Regenwasser verwenden.', tippFrei);
+
+      /* Einträge: fünf offen, ältere eingeklappt */
+      const st = w.__T(`(function(){
+        const alt = S.ereignisse; S.ereignisse = {A1V:[]};
+        for(let i=0;i<7;i++) S.ereignisse.A1V.push({id:'t'+i, datum:iso(new Date(HEUTE-i*86400000)), typ:'blatt', text:''});
+        const h = statusHTML({id:'A1V'}); S.ereignisse = alt; return h; })()`);
+      const sb = d.createElement('div'); sb.innerHTML = st;
+      pruef('Einträge: fünf offen', sb.querySelectorAll(':scope .stat > .stat-liste > li').length === 5,
+        String(sb.querySelectorAll(':scope .stat > .stat-liste > li').length));
+      pruef('Einträge: ältere eingeklappt', /2 ältere anzeigen/.test(st));
+
+      w.__T(`S.eigene = (S.eigene||[]).filter(x=>['A1V','A1B','A1N'].indexOf(x.id) < 0); sichern();`);
+      pruef('A1-Testpflanzen wieder entfernt',
+        !w.__T(`allePflanzen().some(x=>['A1V','A1B','A1N'].indexOf(x.id) > -1)`));
+    }
 
     /* Der Bestand von vorher kommt zurueck: die Pruefungen danach
        rechnen mit ihren eigenen Pflanzen. */
@@ -6122,7 +6235,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.10.8', e0.nr === '3.10.8', e0.nr);
+    pruef('Der oberste Eintrag ist 3.11.0', e0.nr === '3.11.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

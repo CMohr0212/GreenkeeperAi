@@ -2636,8 +2636,30 @@ body.einfach #zonen-sec{display:none!important}
   overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .ktabs::-webkit-scrollbar{display:none}
 .ktab{font:inherit;font-size:var(--t-m);font-family:var(--f-display);font-weight:600;
-  padding:9px 13px;border:1px solid var(--line);border-bottom:0;border-radius:4px 4px 0 0;
-  background:var(--sand);color:var(--peat);cursor:pointer;white-space:nowrap;margin-bottom:-1px}
+  padding:9px 8px;border:1px solid var(--line);border-bottom:0;border-radius:4px 4px 0 0;
+  background:var(--sand);color:var(--peat);cursor:pointer;white-space:nowrap;margin-bottom:-1px;
+  flex:1 1 auto;text-align:center}
+/* Offene Abschnitte der Karte: Überschrift und Inhalt, ohne Aufklapper */
+.kblock{margin:0 0 16px}
+.kblock+.kblock,.zustand+.kblock,.lagebox+.kblock{border-top:1px solid var(--line);padding-top:14px}
+.kblock-h{display:flex;align-items:center;gap:8px;margin:0 0 8px;
+  font-family:var(--f-display);font-size:var(--t-md);font-weight:600}
+.kblock-t{flex:1;min-width:0;overflow-wrap:anywhere}
+.kblock-in>*:first-child{margin-top:0}
+.kblock-in>ul,.kblock-in>ol{margin:0;padding-left:20px}
+.kblock-in>h4{margin:14px 0 6px;font-size:var(--t-m);font-family:var(--f-display)}
+.kblock-in>.verlauf,.kblock-in>.wachstum{border-top:0;margin-top:8px;padding-top:0}
+.kblock-in>.water-hist:first-child{margin-top:0}
+.kblock-in .v-kopf,.kblock-in .w-kopf{display:none}
+.kblock-in>.abstammung{margin-bottom:0}
+.kblock-in .lage-tier,.kblock-in .lage-jetzt{margin:0}
+.stat-mehr>summary{font-size:var(--t-s);color:var(--water);cursor:pointer;padding:6px 0}
+.bef-auf>summary{list-style:none;cursor:pointer}
+.bef-auf>summary::-webkit-details-marker{display:none}
+.bef-k{display:block;line-height:1.5}
+.bef-w{display:inline-block;margin-top:3px;font-size:var(--t-s);color:var(--water)}
+.bef-auf[open] .bef-w{display:none}
+.bef-auf .bef-t{margin-top:6px}
 .ktab[aria-selected="true"]{background:var(--paper);color:var(--ink);border-bottom:1px solid var(--paper)}
 .ktab-pane[hidden]{display:none}
 .lagebox{display:grid;gap:10px;margin-bottom:12px}
@@ -8191,8 +8213,7 @@ function abstammungHTML(p){
       ${kinder.map(k=>`<button class="kid-link" data-go="${k.id}">${esc(nice(k))}</button>`).join(' · ')}</p>`);
 
   return `<div class="abstammung">${zeilen.join('')}
-    <p class="ab-zeile"><button class="linkbtn" data-sbblatt="${p.id}">Verlauf ansehen</button>
-      <button class="linkbtn schmal" data-do="stammbaum-auf">Im Stammbaum</button></p>
+    <p class="ab-zeile"><button class="linkbtn" data-do="stammbaum-auf">Im Stammbaum ansehen</button></p>
   </div>`;
 }
 
@@ -8284,23 +8305,42 @@ function notizTrennen(text){
   return {eigen:eigen.join('\n\n').trim(), befunde:befunde};
 }
 
-/* Neuester zuerst, drei sichtbar. Wer mehr will, klappt auf. */
+/* Notizen sind das, was der Mensch schreibt. Die Befunde des Doktors
+   stehen seit 3.11.0 in einem eigenen Abschnitt — unter „Notizen“
+   las sie niemand, und die eigene Zeile ging dazwischen unter. */
 function notizenHTML(p){
-  const t = notizTrennen(p.notiz);
-  const eigen = t.eigen
-    ? `<p class="notiz-eigen">${esc(t.eigen).replace(/\n/g,'<br>')}</p>`
-    : '<p class="notiz-leer">Noch keine eigene Notiz.</p>';
-  if(!t.befunde.length) return eigen;
+  const t = notizTrennen(p && p.notiz);
+  return t.eigen ? `<p class="notiz-eigen">${esc(t.eigen).replace(/\n/g,'<br>')}</p>` : '';
+}
+
+/* Ein Befund war eine Textwand. Jetzt: Datum und erster Satz, der
+   Rest öffnet sich per Tippen. Neuester oben, drei sichtbar, ältere
+   hinter einem Aufklapper. Die Daten bleiben, wie sie sind. */
+function befundKopf(text){
+  const t = String(text || '').trim();
+  const m = t.match(/^[^.!?\n]+[.!?]?/);
+  let kopf = m ? m[0].trim() : t;
+  if(kopf.length > 160) kopf = kopf.slice(0, 157).replace(/\s+\S*$/, '') + ' …';
+  const rest = t.slice(m ? m[0].length : t.length).trim();
+  return {kopf, rest};
+}
+function befundeHTML(p){
+  const t = notizTrennen(p && p.notiz);
+  if(!t.befunde.length) return '';
   const bef = t.befunde.slice().reverse();
-  const eintrag = b => `<li><span class="bef-d">${esc(b.datum)}</span>
-    <span class="bef-t">${esc(b.text).replace(/\n/g,'<br>')}</span>
-    <button class="linkbtn" data-do="befund-weg" data-p="${p.id}"
-      data-b="${esc(b.roh.slice(0, 60))}" aria-label="Befund löschen">×</button></li>`;
+  const eintrag = b => {
+    const k = befundKopf(b.text);
+    const weg = `<button class="linkbtn" data-do="befund-weg" data-p="${p.id}"
+      data-b="${esc(b.roh.slice(0, 60))}" aria-label="Befund löschen">×</button>`;
+    const kopf = `<span class="bef-d">${esc(b.datum)}</span><span class="bef-k">${esc(k.kopf)}</span>`;
+    return k.rest
+      ? `<li><details class="bef-auf"><summary>${kopf}<span class="bef-w">weiterlesen</span></summary>
+          <span class="bef-t">${esc(k.rest).replace(/\n/g,'<br>')}</span></details>${weg}</li>`
+      : `<li>${kopf}${weg}</li>`;
+  };
   const oben = bef.slice(0, 3).map(eintrag).join('');
   const rest = bef.slice(3);
-  return eigen
-    + `<p class="notiz-uber">Befunde <span class="notiz-n">${bef.length}</span></p>`
-    + `<ul class="bef-liste">${oben}</ul>`
+  return `<ul class="bef-liste">${oben}</ul>`
     + (rest.length
         ? `<details class="bef-mehr"><summary>${rest.length} ältere anzeigen</summary>
             <ul class="bef-liste">${rest.map(eintrag).join('')}</ul></details>`
@@ -8319,23 +8359,28 @@ const REGEL_STICHWORTE = [
 
 function statusHTML(p){
   const knoepfe = (S.rundgang && S.rundgang.knoepfe) || STANDARD_KNOEPFE;
-  const liste = ereignisse(p.id).slice(0, 12);
+  const alle = ereignisse(p.id);
+  const liste = alle.slice(0, 5);
+  const aelter = alle.slice(5);
   const seit = tageSeitGesehen(p.id);
+  const zeile = e=>{
+    const a = EREIGNIS_ARTEN[e.typ] || {name:e.typ, ton:'info'};
+    const and = e.bezug ? allePflanzen().find(x=>x.id === e.bezug) : null;
+    return `<li class="${a.ton}"><span class="stat-d">${new Date(e.datum+'T12:00:00').toLocaleDateString('de-DE')}</span>
+      <span class="stat-t">${esc(a.name)}${e.text?' · '+esc(e.text):''}${and
+        ? ` · <button class="kid-link" data-go="${and.id}">${esc(nice(and))}</button>`
+        : ''}</span>
+      <button class="linkbtn" data-do="ereignis-weg" data-p="${p.id}" data-e="${e.id}">×</button></li>`;
+  };
   /* Acht Eintrageknöpfe nahmen den ganzen Bildschirm, der eigentliche
      Verlauf stand als eine Zeile darunter. Umgedreht: erst was war,
      dann was man eintragen kann. */
   return `<div class="stat">
     <p class="stat-seit">${seit == null ? 'Noch nie als angesehen vermerkt.'
       : (seit === 0 ? 'Heute angesehen.' : `Zuletzt vor ${seit} ${seit===1?'Tag':'Tagen'} angesehen.`)}</p>
-    ${liste.length ? `<ul class="stat-liste">${liste.map(e=>{
-      const a = EREIGNIS_ARTEN[e.typ] || {name:e.typ, ton:'info'};
-      const and = e.bezug ? allePflanzen().find(x=>x.id === e.bezug) : null;
-      return `<li class="${a.ton}"><span class="stat-d">${new Date(e.datum+'T12:00:00').toLocaleDateString('de-DE')}</span>
-        <span class="stat-t">${esc(a.name)}${e.text?' · '+esc(e.text):''}${and
-          ? ` · <button class="kid-link" data-go="${and.id}">${esc(nice(and))}</button>`
-          : ''}</span>
-        <button class="linkbtn" data-do="ereignis-weg" data-p="${p.id}" data-e="${e.id}">×</button></li>`;
-    }).join('')}</ul>` : '<p class="stat-leer">Noch keine Einträge.</p>'}
+    ${liste.length ? `<ul class="stat-liste">${liste.map(zeile).join('')}</ul>` : '<p class="stat-leer">Noch keine Einträge.</p>'}
+    ${aelter.length ? `<details class="stat-mehr"><summary>${aelter.length} ältere anzeigen</summary>
+      <ul class="stat-liste">${aelter.map(zeile).join('')}</ul></details>` : ''}
     <details class="stat-auf">
       <summary>Etwas eintragen</summary>
       <div class="stat-chips">
@@ -10603,8 +10648,32 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.10.8';
+const FASSUNG = '3.11.0';
 const PATCHNOTES = [
+  {
+    nr: '3.11.0', datum: '2026-09-11', titel: 'Die Pflanzenkarte räumt auf',
+    kurz: [
+      'Vier Reiter statt drei: Pflege sagt, was jetzt ansteht. Standort, wo sie steht. Verlauf, was war. Wissen, was die Art ausmacht.',
+      'Jede Pflanze bekommt dieselbe Karte. Selbst angelegte Pflanzen verloren bisher ganze Abschnitte, darunter die Giftigkeit.',
+      'In Pflege und Standort klappt nichts mehr auf — alles steht offen da.',
+      'Die Befunde des Doktors haben einen eigenen Abschnitt: Datum und erster Satz, der Rest per Tippen.'
+    ],
+    behoben: [
+      'Die Wachstumsrate rechnete zwei Blätter an zwei Tagen zu „15 Blättern im Monat“ hoch. Eine Rate steht jetzt erst ab einem Monat zwischen erstem und letztem Blatt, davor nur die Anzahl.',
+      'Selbst angelegte Pflanzen hatten keinen Abschnitt zur Giftigkeit, keinen Steckbrief und keine Probleme — auch wenn die Angaben da waren. Es gab zwei Wege, eine Karte zu bauen, und der kurze ließ sie weg.'
+    ],
+    neu: [
+      'Reiter „Wissen“ mit Steckbrief, Merkmalen, Herkunft, Giftigkeit, „Wenn etwas nicht stimmt“ und Beobachtungen.',
+      'Abschnitt „Befunde des Doktors“ im Reiter Verlauf. Neuester oben, drei sichtbar, ältere eingeklappt. Unter „Notizen“ steht nur noch, was du selbst schreibst.'
+    ],
+    besser: [
+      'Der Zustand steht als erste Zeile im Reiter Pflege statt versteckt im Gießen-Aufklapper.',
+      'Gießabstände und Wachstum stehen im Reiter Verlauf. Pflege zeigt nur noch, was ansteht.',
+      'Eindeutige Namen: „Gießen“ statt „Gießen und Verlauf“, „Einträge“ statt „Statusänderung und Verlauf“. Der Link „Verlauf ansehen“, der in den Stammbaum führte, heißt jetzt „Im Stammbaum ansehen“.',
+      'Einträge zeigen die fünf neuesten, ältere liegen hinter „ältere anzeigen“.',
+      'Der kursive Gießtipp lässt Sätze weg, die die Warnung oben schon sagt — bei Karnivoren stand die Wasserregel vorher viermal auf einem Bildschirm.'
+    ]
+  },
   {
     nr: '3.10.8', datum: '2026-09-08', titel: 'Der Düngetag hört auf zu drängeln',
     kurz: [
@@ -12907,7 +12976,6 @@ function heuteStatusHTML(){
 
 function trackerHTML(p){
   const st = giessStatus(p);
-  const log = giessLog(p.id);
   const txt = st.stand==='stopp'
     ? `<b>Gießpause.</b> Noch ${stoppRest(p)} ${stoppRest(p)===1?'Tag':'Tage'} trocken stehen lassen.`
     : st.stand==='unbekannt'
@@ -12915,14 +12983,21 @@ function trackerHTML(p){
     : `Zuletzt vor <b>${st.tage} ${st.tage===1?'Tag':'Tagen'}</b> · Intervall ${ivWort(st.iv)} · ${
         st.rest<0 ? `<b>${-st.rest} ${-st.rest===1?'Tag':'Tage'} überfällig</b>` :
         st.rest===0 ? '<b>heute dran</b>' : `wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`}`;
-  const hist = log.length ? `<p class="water-hist">Verlauf: ${log.slice(0,8).map(d=>new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})).join(' · ')}${log.length>8?' …':''}</p>` : '';
   const zz = zustandVon(p);
   const ug = zz.code!=='gesund'
     ? `<p class="water-hist">Wegen „${esc(zz.def.name)}“ weicht das Intervall gerade vom Normalwert der Art ab.</p>`
     : '';
   return `<div class="tracker">
       <span class="water-state ${st.stand==='over'||st.stand==='stopp'?'over':''}">${txt}</span>
-    </div>${ug}${hist}${zustandBlockHTML(p)}${typeof verlaufHTML==='function'?verlaufHTML(p):''}${typeof wachstumHTML==='function'?wachstumHTML(p):''}`;
+    </div>${ug}`;
+}
+/* Was beim Gießen war, steht im Reiter Verlauf: die letzten Gießtage
+   und die Abstände dazwischen. Der Reiter Pflege sagt nur, was jetzt
+   ansteht. */
+function giessVerlaufHTML(p){
+  const log = giessLog(p.id);
+  const hist = log.length ? `<p class="water-hist">Gegossen: ${log.slice(0,8).map(d=>new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})).join(' · ')}${log.length>8?' …':''}</p>` : '';
+  return hist + (typeof verlaufHTML==='function' ? verlaufHTML(p) : '');
 }
 
 /* ══════════════════ Fotos ══════════════════ */
@@ -13730,10 +13805,33 @@ function duengAbschnittHTML(p){
 
 function giessAbschnitt(p){
   const K = KLASSEN[p.klasse];
+  const tipp = giesstippRest(p);
   return trackerHTML(p)
-    + `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd>
-       <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd></dl>`
-    + (p.giesstipp ? `<p><em>${esc(p.giesstipp)}</em></p>` : '');
+    + (K ? `<dl class="spec"><dt>Sommer</dt><dd>${esc(K.sommer)}</dd><dt>Winter</dt><dd>${esc(K.winter)}</dd>
+       <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd></dl>` : '')
+    + (tipp ? `<p><em>${esc(tipp)}</em></p>` : '');
+}
+
+/* Bei Viktor stand die Wasserregel viermal auf einem Bildschirm —
+   einmal davon im kursiven Tipp. Ein Satz des Tipps fällt weg, wenn
+   er nur Regeln nennt, die die Warnbox oben schon ausspricht; dafür
+   dieselben Stichworte wie beim eigenen Warntext. Ein Satz ohne
+   solches Stichwort bleibt immer stehen. Satzweise, ohne Lookbehind:
+   den kennen ältere Safari-Fassungen nicht, und ein Syntaxfehler
+   legte die ganze App still. */
+function giesstippRest(p){
+  const tipp = String((p && p.giesstipp) || '').trim();
+  if(!tipp) return '';
+  const warn = String(warnungenHTML(p) || '').replace(/<[^>]+>/g, ' ').toLowerCase();
+  if(!warn.trim()) return tipp;
+  const saetze = tipp.match(/[^.!?]+[.!?]*/g) || [tipp];
+  const bleibt = saetze.filter(satz=>{
+    const l = satz.toLowerCase();
+    const treffer = REGEL_STICHWORTE.filter(r=>r.worte.some(x=>l.indexOf(x) > -1));
+    if(!treffer.length) return true;
+    return !treffer.every(r=>r.worte.some(x=>warn.indexOf(x) > -1));
+  });
+  return bleibt.map(x=>x.trim()).filter(Boolean).join(' ');
 }
 
 /* ── Warnungen ───────────────────────────────────────────────
@@ -13896,7 +13994,7 @@ function lagePaneHTML(p){
       <label><span class="lab">Stellplatz</span>
         <select data-lage="platz" data-p="${p.id}">${sOpt}</select></label>
     </div>
-    ${tierZeile}${imPlan}`;
+    ${kblock('tiere', 'Tiere', tierZeile)}${kblock('grundriss', 'Grundriss', imPlan)}`;
 }
 
 /* ── Reiter ─────────────────────────────────────────────────
@@ -13963,47 +14061,59 @@ document.addEventListener('change', e=>{
    Funktion, weil er erst gebaut wird, wenn jemand die Karte öffnet —
    zugeklappt lag er vorher in jeder einzelnen Karte im Markup und
    machte bei zweihundert Pflanzen den Löwenanteil der Last aus. */
+/* ── Bausteine der Karte ─────────────────────────────────────
+   Ein Block ist ein Abschnitt, der offen dasteht: Überschrift und
+   Inhalt, nichts zum Aufklappen. Aufklapper (acc) bleiben für lange
+   Texte. Ohne Inhalt entsteht nichts — ein leerer Kasten sagt nur,
+   dass hier etwas fehlt. */
+function kblock(key, titel, inhalt, zusatz, klasse){
+  if(!inhalt || !String(inhalt).trim()) return '';
+  return `<section class="kblock${klasse?' '+klasse:''}" data-kblock="${key}">
+    <h4 class="kblock-h"><span class="kblock-t">${esc(titel)}</span>${zusatz?`<span class="acc-z">${zusatz}</span>`:''}</h4>
+    <div class="kblock-in">${inhalt}</div></section>`;
+}
+function kListe(a){
+  return Array.isArray(a) && a.length ? `<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>` : '';
+}
+/* Giftigkeit für jede Pflanze, nicht nur für mitgelieferte. */
+function kGiftHTML(p){
+  const g = istGiftig(p, 'katze');
+  const t = giftFuer(p, 'katze');
+  const kopf = g === true ? 'Nicht in Katzenreichweite.' : g === false ? 'Unbedenklich.' : 'Noch nicht geprüft.';
+  const text = t.quelle === 'eigen' || !p.katzentext ? t.grund : p.katzentext;
+  return kblock('gift', 'Giftigkeit',
+    `<div class="alert ${g === false ? 'safe' : ''}"><strong>${kopf}</strong> ${esc(text || '')}</div>`,
+    g === true ? 'giftig' : g === false ? 'sicher' : 'ungeprüft');
+}
+
+/* Der Inhalt einer aufgeklappten Karte. Steht in einer eigenen
+   Funktion, weil er erst gebaut wird, wenn jemand die Karte öffnet —
+   zugeklappt lag er vorher in jeder einzelnen Karte im Markup und
+   machte bei zweihundert Pflanzen den Löwenanteil der Last aus.
+
+   Bis 3.10.8 gab es hier zwei Wege: mitgelieferte Pflanzen mit
+   vollem Steckbrief und einen Kurzweg für alle anderen. Selbst
+   angelegte Pflanzen verloren dabei ganze Abschnitte, darunter die
+   Giftigkeit. Jetzt baut ein Weg jede Karte; jedes Feld wird einzeln
+   geprüft, und was fehlt, fällt weg — auch bei einer von Hand
+   bearbeiteten Sicherung ohne Stammdaten. */
 function kartenDetailHTML(p){
-  const K = KLASSEN[p.klasse];
   const offeneAufgaben = aufgabenVon(p).filter(t=>!t.done).length;
-  let detail;
+  const dl = o => (o && typeof o === 'object' && Object.keys(o).length)
+    ? `<dl class="spec">${Object.entries(o).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
+  const hinweis = p.hinweis ? `<div class="alert info"><strong>Sonderfall gerade.</strong> ${esc(p.hinweis)}</div>` : '';
+  const winter = p.winterruhe ? `<div class="alert"><strong>Ist Pflicht.</strong> Ab Oktober oder November stellt sie das Wachstum ein, Blätter werden braun und sterben teils ab — das ist normal, nicht der Tod. Sie braucht 3–4 Monate bei 0–10 °C: ungeheizter Balkon, kalter Keller mit Licht, ungeheiztes Gewächshaus. Untersetzer leeren, Substrat nur leicht feucht. Ohne Winterruhe schwächt sie sich über 1–2 Jahre ab und stirbt.</div>` : '';
+  const probleme = Array.isArray(p.probleme) ? p.probleme : [];
+  const probs = probleme.map(x=>Array.isArray(x)
+    ? `<div class="prob"><b>${esc(x[0]||'')}</b><em>${esc(x[1]||'')}</em><div>${esc(x[2]||'')}</div></div>` : '').join('');
+  const lebens = dl(p.bedingungen);
+  const steckbrief = dl(p.stamm) + (lebens ? `<h4>Lebensumstände</h4>${lebens}` : '');
+  const herkunft = p.herkunft
+    ? `<p>${esc(p.herkunft)}</p>${p.folge ? `<p><strong>Was das für die Haltung heißt:</strong> ${esc(p.folge)}</p>` : ''}` : '';
+  const nEreig = (typeof ereignisse === 'function') ? ereignisse(p.id).length : 0;
+  const nBef = notizTrennen(p.notiz).befunde.length;
 
-  /* Der zweite Weg setzt einen vollständigen Bibliotheks-Steckbrief
-     voraus. Fehlt der — etwa weil eine ältere oder von Hand bearbeitete
-     Sicherung eine Pflanze ohne diese Felder enthält —, lief render()
-     vorher in einen Absturz und die ganze Anzeige blieb stehen. Im
-     Zweifel deshalb den Kurzeintrag zeigen: lieber weniger Angaben als
-     eine tote App. */
-  if(p.eigen || !p.stamm || !p.bedingungen || !p.probleme){
-    detail = `<div class="detail">
-      ${kartenKopfHTML(p)}
-      ${warnungenHTML(p)}
-      ${pflegeHinweiseHTML(p)}
-      ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
-      ${kartenReiter(p.id, [
-        {key:'pflege', titel:'Pflege', inhalt:
-          acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
-          + acc('duengen', 'Düngen', duengAbschnittHTML(p))},
-        {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
-        {key:'verlauf', titel:'Verlauf', inhalt:
-          abstammungHTML(p)
-          + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
-          + acc('notiz', 'Notizen', p.notiz ? notizenHTML(p) : '')}
-      ])}
-    </div>`;
-  } else {
-    const spec = Object.entries(p.stamm).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
-    const bed = Object.entries(p.bedingungen).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('');
-    const probs = p.probleme.map(([sy,u,t])=>`<div class="prob"><b>${esc(sy)}</b><em>${esc(u)}</em><div>${esc(t)}</div></div>`).join('');
-    const hinweis = p.hinweis ? `<div class="alert info"><strong>Sonderfall gerade.</strong> ${esc(p.hinweis)}</div>` : '';
-    const winter = p.winterruhe ? `<div class="alert"><strong>Winterruhe ist Pflicht.</strong> Ab Oktober oder November stellt sie das Wachstum ein, Blätter werden braun und sterben teils ab — das ist normal, nicht der Tod. Sie braucht 3–4 Monate bei 0–10 °C: ungeheizter Balkon, kalter Keller mit Licht, ungeheiztes Gewächshaus. Untersetzer leeren, Substrat nur leicht feucht. Ohne Winterruhe schwächt sie sich über 1–2 Jahre ab und stirbt.</div>` : '';
-    const eltern = p.eltern ? (()=>{ const m = allePflanzen().find(x=>x.id===p.eltern); return m?`<p>Ableger von <button class="kid-link" data-go="${m.id}">${esc(nice(m))}</button>.</p>`:''; })() : '';
-    const herkunft = `<p>${esc(p.herkunft)}</p><p><strong>Was das für die Haltung heißt:</strong> ${esc(p.folge)}</p>`;
-    const steckbrief = `<dl class="spec">${spec}</dl>
-      <h4>Erkennungsmerkmale</h4><p>${esc(p.merkmale)}</p>
-      <h4>Lebensumstände</h4><dl class="spec">${bed}</dl>${eltern}`;
-
-    detail = `<div class="detail">
+  return `<div class="detail">
       ${kartenKopfHTML(p)}
       ${hinweis}
       ${warnungenHTML(p)}
@@ -14011,32 +14121,28 @@ function kartenDetailHTML(p){
       ${acc('aufgaben', 'Aufgaben', taskBlockHTML(aufgabenVon(p), 'k-'+p.id, false, p.id), offeneAufgaben?`${offeneAufgaben} offen`:'')}
       ${kartenReiter(p.id, [
         {key:'pflege', titel:'Pflege', inhalt:
-          winter
-          + acc('giessen', 'Gießen und Verlauf', giessAbschnitt(p))
-          + acc('duengen', 'Düngen', duengAbschnittHTML(p))
-          + acc('pflege', 'Pflege', `<ul>${p.pflege.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
-          + acc('probleme', 'Wenn etwas nicht stimmt', probs, `${p.probleme.length}`)
-          + (function(){
-              const g = istGiftig(p, 'katze');
-              const t = giftFuer(p, 'katze');
-              const kopf = g === true ? 'Nicht in Katzenreichweite.' : g === false ? 'Unbedenklich.' : 'Noch nicht geprüft.';
-              const text = t.quelle === 'eigen' || !p.katzentext ? t.grund : p.katzentext;
-              return acc('katzen', 'Katzen',
-                `<div class="alert ${g === false ? 'safe' : ''}"><strong>${kopf}</strong> ${esc(text)}</div>`,
-                g === true ? 'giftig' : g === false ? 'sicher' : 'ungeprüft');
-            })()
-          + acc('steckbrief', 'Steckbrief der Art', steckbrief)},
+          zustandBlockHTML(p)
+          + kblock('giessen', 'Gießen', giessAbschnitt(p))
+          + kblock('duengen', 'Düngen', duengAbschnittHTML(p))
+          + kblock('pflege', 'Pflegeschritte', kListe(p.pflege))
+          + kblock('winter', 'Winterruhe', winter)},
         {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
         {key:'verlauf', titel:'Verlauf', inhalt:
-          abstammungHTML(p)
-          + acc('status', 'Statusänderung und Verlauf', typeof statusHTML==='function'?statusHTML(p):'', (typeof ereignisse==='function' && ereignisse(p.id).length)?`${ereignisse(p.id).length}`:'')
-          + acc('beob', 'Beobachtungen an diesem Exemplar', `<ul>${p.beob.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`)
-          + acc('notiz', 'Notizen', p.notiz ? notizenHTML(p) : '')
-          + acc('herkunft', 'Herkunft', herkunft)}
+          kblock('giessabstand', 'Gießabstände', giessVerlaufHTML(p))
+          + kblock('wachstum', 'Wachstum', typeof wachstumHTML==='function' ? wachstumHTML(p) : '', '', 'nur-experte')
+          + kblock('status', 'Einträge', typeof statusHTML==='function' ? statusHTML(p) : '', nEreig ? `${nEreig}` : '')
+          + kblock('befunde', 'Befunde des Doktors', befundeHTML(p), nBef ? `${nBef}` : '')
+          + kblock('abstammung', 'Abstammung', abstammungHTML(p))
+          + kblock('notiz', 'Notizen', notizenHTML(p))},
+        {key:'wissen', titel:'Wissen', inhalt:
+          kblock('steckbrief', 'Steckbrief', steckbrief)
+          + kblock('merkmale', 'Merkmale', p.merkmale ? `<p>${esc(p.merkmale)}</p>` : '')
+          + kblock('herkunft', 'Herkunft', herkunft)
+          + kGiftHTML(p)
+          + acc('probleme', 'Wenn etwas nicht stimmt', probs, probleme.length ? `${probleme.length}` : '')
+          + kblock('beob', 'Beobachtungen', kListe(p.beob))}
       ])}
     </div>`;
-  }
-  return detail;
 }
 
 /* ── Die Standzeile auf der Karte ─────────────────────────────
@@ -21368,8 +21474,15 @@ function wachstumHTML(p){
   const log = blattLog(p.id);
   const letzte = log.length ? log[log.length-1] : null;
   let bilanz = '';
-  if(log.length >= 2){
-    const spanne = Math.max(1, (new Date(log[log.length-1]+'T12:00:00') - new Date(log[0]+'T12:00:00'))/86400000);
+  /* Zwei Blätter an zwei Tagen ergaben „15 Blätter im Monat“. Eine
+     Rate braucht Zeit: erst ab 30 Tagen zwischen erstem und letztem
+     Eintrag, davor nur die Anzahl. */
+  const spanne = log.length >= 2
+    ? (new Date(log[log.length-1]+'T12:00:00') - new Date(log[0]+'T12:00:00'))/86400000 : 0;
+  if(log.length >= 2 && spanne < 30){
+    bilanz = `<span class="w-zahl">${log.length}</span> Blätter seit ${new Date(log[0]+'T12:00:00').toLocaleDateString('de-DE')}`
+      + ' · das Tempo zeigt sich ab einem Monat';
+  } else if(log.length >= 2){
     const proMonat = (log.length-1) / spanne * 30;
     const letzte60 = log.filter(d=>tageSeit(d) <= 60).length;
     bilanz = `<span class="w-zahl">${proMonat.toFixed(1).replace('.',',')}</span> Blätter im Monat`
@@ -26626,8 +26739,8 @@ const TOUR_KAPITEL = {
 
       { fenster: 'karte-modal',
         ziel: ()=>document.querySelector('#karte-rumpf .ktabs'),
-        titel: 'Drei Reiter',
-        text: 'Pflege für Gießen, Art und Probleme. Standort für Raum und Stellplatz samt Tierwarnung. Verlauf für Zustand, Notizen und Herkunft. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
+        titel: 'Vier Reiter',
+        text: 'Pflege für das, was jetzt ansteht: Zustand, Gießen, Düngen. Standort für Raum und Stellplatz samt Tierwarnung. Verlauf für das, was war: Gießabstände, Einträge, Befunde, Notizen. Wissen für alles über die Art. Welcher Reiter offen ist, merkt sich die App für alle Karten.' },
 
       { fenster: 'karte-modal',
         ziel: ()=>document.querySelector('#karte-rumpf .acc'),
