@@ -1,50 +1,55 @@
-# PLAN — Etappe A1 · Anlegen-Auftrag entkernen
-Freigegeben: 12.09.2026 · Zielversion: 3.14.0 (sw.js greenkeeperai-v108)
+# PLAN — Etappe A2 · Anlegen-Formular
+Freigegeben: 12.09.2026 · Zielversion: 3.15.0 (sw.js greenkeeperai-v109)
 
 ## Ziel
 
-Der Anlegen-Auftrag fragt nur noch nach Bestimmung und sichtbarem Ist-Zustand; jede Bewertung entfällt.
+Das Anlegen-Formular fragt Topfdurchmesser, Topfart, Substrat und Ablauf selbst ab, statt Urteile der KI zu übernehmen, und schickt die fertige Pflanze zum Doktor.
 
 ## Änderungen
 
-- `ANTWORT_FORMAT` wird zur Laufzeit in seine Feldzeilen zerlegt; Anlegen und Doktor setzen daraus ihre eigene Liste zusammen. Der Doktortext bleibt dabei zeichengleich.
-- Aus dem Anlegen-Auftrag fallen: `ZUSTAND`, `BEFUND`, `MASSNAHME`, `FEHLT`, `GIESSEN`, `TOPF`.
-- Neu im Anlegen-Auftrag: `SUBSTRAT` (sichtbare Oberfläche), `TOPFART` (gegen `TOPFFORMEN`), `ABLAUF` (ja/nein/nicht sichtbar).
-- `KATZEN` richtet sich nach den eingetragenen Tieren (`meineTiere`); ohne Tier fällt die Zeile weg.
-- `ANTWORT_SCHLUESSEL` bekommt `substrat`, `topfart`, `ablauf`.
-- Die drei neuen Angaben werden beim Speichern an der Pflanze abgelegt.
-- Die Notiz beim Anlegen enthält nur noch `VERWECHSLUNG` und `FROST`.
-- Das Zahlwort und die Beispielantwort wandern für beide Aufträge getrennt mit.
+- Neuer Block `al-topf` in Stufe 4 (Platz und Pflege), unter der Kulturform:
+  - Schieber `f-topf` für den Topfdurchmesser, 5 bis 80 cm. Er startet **ungesetzt** und zeigt „nicht angegeben“; die erste Berührung setzt ihn auf 14 cm. Unter dem Schieber steht das Topfvolumen aus `topfVolumen`.
+  - Knopfgruppe `f-topfform` aus `TOPFFORMEN`, mit `topfIcon` je Knopf — dieselbe Darstellung wie im Substratrechner.
+  - Knopfgruppe `f-substrat` aus neuer Tabelle `SUBSTRATARTEN`: Erde, Erde mit Rinde, Rinde, Blähton, Seramis oder Pon, Sphagnum, Kies oder Sand, Wasser.
+  - Knopfgruppe `f-ablauf`: ja, nein, weiß nicht.
+- Vorbelegung aus der KI-Antwort: `topfartLesen` setzt `f-topfform`, `ablaufLesen` setzt `f-ablauf`, ein neues `substratLesen` setzt `f-substrat`. Ohne sichere Zuordnung bleibt die Gruppe ohne Auswahl. Kein Wert wird geraten.
+- Kulturform steuert den Block: bei „Erde“ und „Blähton“ sichtbar (bei Blähton ist Blähton vorbelegt), bei „Wasserglas“ ausgeblendet; gespeichert wird dann `substrat: 'wasser'`, Topfgröße und Topfform bleiben leer.
+- `alSpeichern` nimmt `topf`, `topfform`, `substrat`, `ablauf` aus den Feldern statt aus `letzteKiAntwort`. `topf` wird wie bisher als Zeichenkette abgelegt, nur wenn der Schieber gesetzt wurde.
+- `formularLeeren` setzt die vier neuen Felder zurück.
+- Raus aus dem Anlegen: `neuMassnahmenZeigen` samt Aufruf, der Kasten `#neu-massnahmen`, der Topfblock daraus (`topfHTML`, `topfMassnahme`), die Topfzeile in der Notiz, die Zustandsübernahme aus der KI-Antwort und die Umwandlung der Maßnahmen in Aufgaben in `alSpeichern` samt Meldung. Die Funktionen selbst bleiben — der Doktor benutzt sie weiter.
+- Doktor-Anstoß: Nach dem Speichern zeigt die geöffnete Karte oben einen Kasten „Angelegt — der Doktor kann jetzt Zustand und Pflege bewerten“ mit den Knöpfen „Zum Doktor“ (bestehendes `data-do="doktor-fuer"`) und „Später“. Der Kasten erscheint nur für die gerade angelegte Pflanze und verschwindet nach einer Antwort.
+- `alZsfZeichnen` („Das wird angelegt“) bekommt die Zeilen Topf und Substrat.
+- `topfSubstratHTML` im Reiter Pflege zeigt zusätzlich das eingetragene Substrat und den Ablauf.
 
 ## Nicht angefasst
 
-Doktor-Auftrag und Doktor-Ansicht, Anlegen-Formular (Schieber und Knopfgruppen kommen in A2), Maßnahmenauswahl und Topfblock im Formular (A2), Doktor-Anstoß nach dem Speichern (A2), Rundgang, Karte, Historie, Grundriss, Gieß- und Lernlogik, Substratrechner.
+Anlegen-Auftrag und Antwortleser aus A1, Doktor-Auftrag und Doktor-Ansicht, `ANTWORT_FORMAT`, Substratrechner, Umtopfen-Werkzeug, Rundgang, Karte im Übrigen, Historie, Grundriss, Gieß- und Lernlogik, Altbestand (Herkunftsstempel sind Etappe C).
 
 ## Risiken
 
-- Die Zerlegung muss den Doktortext zeichengleich wieder herstellen. Tut sie es nicht, ändert sich der Doktor still mit, obwohl er erst in B dran ist.
-- `promptZahlSetzen` zählt die Feldzeilen selbst — zwei Aufträge heißen zwei Zahlen.
-- `mitDoktorZeilen`, `ohneVermehrung` und `ohneTopf` arbeiten per Textersetzung und brechen still, wenn sich Formulierungen verschieben.
-- Die Beispielantwort muss für beide Wege getrennt passen, sonst widerspricht sie der Liste.
-- Die drei neuen Angaben haben in A1 noch kein Formularfeld; sie sind bis A2 nur gespeichert, nicht sichtbar.
+- Eine eingetragene Topfgröße ändert `wasserBedarf` und damit die angezeigte Gießmenge. Neue Pflanzen bekommen damit andere Mengen als bisher — gewollt, aber neu.
+- Ein Schieber mit Standardwert hätte eine Messung erfunden, die niemand vorgenommen hat. Der ungesetzte Startzustand ist der Preis dafür und ein zusätzlicher Zustand, der am Handy überzeugen muss.
+- Der Kasten auf der Karte liegt über der Kartenansicht. Ebenen und Modal-Sperre sind nach Regel 10.5 mitzuprüfen.
+- Das Entfernen der Maßnahmenauswahl fasst Code an, den der Doktor mitbenutzt. Getrennt wird nur der Aufruf, nicht die Funktion.
+- Vier neue Bedienelemente auf Stufe 4 machen die Stufe lang. Ob sie am Handy noch beherrschbar ist, zeigt erst das Gerät.
 
 ## Prüfung
 
-pruef.js prüft: der Anlegen-Auftrag enthält `SUBSTRAT`, `TOPFART`, `ABLAUF` und enthält `ZUSTAND`, `BEFUND`, `MASSNAHME`, `FEHLT`, `GIESSEN`, `TOPF` nicht; der Doktor-Auftrag enthält sie weiterhin; der zusammengesetzte Doktortext ist zeichengleich mit dem bisherigen; beide Zahlwörter stimmen zur jeweiligen Feldzahl; beide Beispielantworten enthalten jedes Feld ihrer Liste und keines darüber hinaus; die Tierzeile folgt `meineTiere` und fehlt ohne Tier; der Leser kennt `substrat`, `topfart`, `ablauf`; eine Musterantwort legt die drei Werte an der Pflanze ab; die Notiz enthält keinen Befund mehr; `ohneVermehrung` lässt den Rest unversehrt.
+pruef.js prüft: der Block `al-topf` und die vier Felder sind vorhanden; `SUBSTRATARTEN` und die Knopfgruppen haben genau die geplanten Werte; `substratLesen` ordnet die erlaubten KI-Angaben zu und gibt bei „nicht sichtbar“ und bei Unbekanntem leer zurück; eine eingelesene Musterantwort belegt Topfform, Substrat und Ablauf vor; ein ungesetzter Schieber legt kein `topf` an der Pflanze ab, ein gesetzter legt die Zeichenkette ab; Kulturform „Wasserglas“ blendet den Block aus und speichert `substrat: 'wasser'`; `formularLeeren` setzt alle vier zurück; `#neu-massnahmen` und der Aufruf von `neuMassnahmenZeigen` sind fort; eine Musterantwort mit Maßnahmen legt beim Anlegen keine Aufgaben mehr an; die Notiz enthält keine Topfzeile; `topfHTML` und `massnahmenAuswahlHTML` sind für den Doktor unverändert erreichbar; der Anstoßkasten erscheint nach dem Speichern mit beiden Knöpfen und trägt die Kennung der neuen Pflanze.
 
-Nicht durch Tests abgedeckt — nur am Handy prüfbar: Qualität und Tempo der echten Antwort.
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: Schieber und Knopfgruppen unter dem Finger, Länge der Stufe 4, Ebenen des Anstoßkastens über der Karte.
 
 ## Größe
 
 Mittel.
 
+## Abweichung vom Ausblick
+
+Der Ausblick nannte drei Bedienelemente. Der Ablauf bekommt eine vierte Knopfgruppe, weil er sonst als einziger der drei Werte aus A1 ohne Formularfeld bliebe — genau der Punkt, der in der Übergabe als offen steht.
+
 ---
 
 # Ausblick — noch nicht freigegeben
-
-## A2 — Anlegen-Formular
-
-Schieber für den Topfdurchmesser, Knopfgruppen für Topfart und Substrat mit dem KI-Vorschlag vorbelegt, Maßnahmenauswahl und Topfblock raus, Doktor-Anstoß nach dem Speichern. Größe: mittel.
 
 ## B — Doktor bewertet mit den Ist-Werten
 

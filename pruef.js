@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.14.0', w.__T('FASSUNG') === '3.14.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.15.0', w.__T('FASSUNG') === '3.15.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3280,7 +3280,8 @@ setTimeout(async () => {
     /* Kein Feld darf beim Umbau verschwunden sein. */
     ['f-name','f-bot','f-art','f-typ','f-notiz','f-wichtig','f-paste','f-fotos',
      'f-zustand','f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
-     'bib-liste','bib-gewaehlt','paste-box','paste-meld','neu-unsicher','neu-massnahmen',
+     'bib-liste','bib-gewaehlt','paste-box','paste-meld','neu-unsicher',
+     'f-topfform','f-topf','f-substrat','f-ablauf','al-topf',
      'al-weiter','btn-neu-leeren','btn-neu-cancel','btn-bib','btn-paste-los',
      'btn-paste-auf','btn-ki-kopie','ki-text','neu-bibbox','neu-kibox','f-quar'
     ].forEach(id => pruef('Feld ' + id + ' hat den Umbau ueberlebt', !!d.getElementById(id)));
@@ -6496,6 +6497,170 @@ setTimeout(async () => {
   }
   }
 
+  /* ══════════ A2: das Anlegen-Formular ══════════
+     Topf, Substrat und Ablauf werden am Geraet eingetragen. Die KI
+     belegt nur vor. Faellt das weg, stehen die drei Werte wieder so
+     an der Pflanze, wie die KI sie geraten hat. */
+  {
+    const keys = Object.keys(w.__T('SUBSTRATARTEN'));
+    pruef('Die Substratliste hat genau die acht vorgesehenen Arten',
+      keys.join(',') === 'erde,erdeRinde,rinde,blaehton,seramis,sphagnum,kies,wasser',
+      keys.join(','));
+
+    w.__T('alListenFuellen(); alKnoepfeAlle();');
+    const werte = id => Array.prototype.map.call(
+      d.getElementById(id).options, o => o.value).join(',');
+    pruef('Die Substratknöpfe folgen der Tabelle',
+      werte('f-substrat') === ',' + keys.join(','), werte('f-substrat'));
+    pruef('Die Topfartknöpfe folgen den Topfformen',
+      werte('f-topfform') === ',' + Object.keys(w.__T('TOPFFORMEN')).join(','),
+      werte('f-topfform'));
+    pruef('Jede Topfart trägt ihre Zeichnung',
+      d.querySelectorAll('#f-topfform-knoepfe .as-knopf-bild svg').length
+        === Object.keys(w.__T('TOPFFORMEN')).length,
+      String(d.querySelectorAll('#f-topfform-knoepfe .as-knopf-bild svg').length));
+    pruef('Der Ablauf hat drei Knöpfe',
+      d.querySelectorAll('#f-ablauf-knoepfe .al-knopf').length === 3,
+      String(d.querySelectorAll('#f-ablauf-knoepfe .al-knopf').length));
+
+    pruef('Das Substrat wird auf einen Schlüssel abgebildet',
+      w.__T("substratLesen('Erde mit Rinde')") === 'erdeRinde'
+      && w.__T("substratLesen('Blähton')") === 'blaehton'
+      && w.__T("substratLesen('Seramis oder Pon')") === 'seramis'
+      && w.__T("substratLesen('Sphagnum')") === 'sphagnum'
+      && w.__T("substratLesen('Rinde')") === 'rinde');
+    pruef('Ein unklares Substrat wird nicht geraten',
+      w.__T("substratLesen('nicht sichtbar')") === null
+      && w.__T("substratLesen('')") === null
+      && w.__T("substratLesen('Glitzerstaub')") === null);
+
+    /* Die Musterantwort belegt vor — und legt nichts fest. */
+    w.__T('alStart(); neuWegSetzen("ki")');
+    w.__T("document.getElementById('f-paste').value = "
+      + "'ART: Frauenschuh\\nBOTANISCH: Paphiopedilum insigne\\nSUBSTRAT: Erde mit Rinde"
+      + "\\nTOPFART: Orchideentopf\\nABLAUF: ja"
+      + "\\nMASSNAHME: Blattachsel | Achseln mit Lupe ansehen | sofort | einmalig'; "
+      + "document.getElementById('btn-paste-los').click()");
+    pruef('Die KI belegt die drei Knopfgruppen vor',
+      d.getElementById('f-topfform').value === 'orchidee'
+      && d.getElementById('f-substrat').value === 'erdeRinde'
+      && d.getElementById('f-ablauf').value === 'ja',
+      [d.getElementById('f-topfform').value, d.getElementById('f-substrat').value,
+       d.getElementById('f-ablauf').value].join('|'));
+    pruef('Und der Knopf zeigt die Vorbelegung an',
+      d.querySelector('#f-substrat-knoepfe [data-alwert="erdeRinde"]')
+        .getAttribute('aria-pressed') === 'true');
+    pruef('Das Anlegen füllt keine Maßnahmenauswahl mehr',
+      (w.__T("(typeof massnahmeAuswahl !== 'undefined' && massnahmeAuswahl['neu'] || []).length")) === 0);
+
+    /* Der Schieber erfindet keine Messung. */
+    pruef('Ein unberührter Schieber gibt nichts an', w.__T('alTopfWert()') === '',
+      w.__T('alTopfWert()'));
+    pruef('Und sagt das auch',
+      d.getElementById('f-topf-wert').textContent === 'nicht angegeben'
+      && d.getElementById('f-topf-ergebnis').innerHTML === '',
+      d.getElementById('f-topf-wert').textContent);
+    w.__T("(function(){var sl = document.getElementById('f-topf'); sl.value = '16';"
+      + " sl.dispatchEvent(new Event('input', {bubbles:true}));})()");
+    pruef('Der bewegte Schieber zählt', w.__T('alTopfWert()') === '16', w.__T('alTopfWert()'));
+    pruef('Und nennt das Volumen',
+      /Fasst rund <b>/.test(d.getElementById('f-topf-ergebnis').innerHTML),
+      d.getElementById('f-topf-ergebnis').innerHTML);
+
+    w.__T("document.getElementById('f-name').value = 'A2-Topf'");
+    w.__T('alSpeichern()');
+    await tick();
+    const pA = JSON.parse(w.__T("JSON.stringify(S.eigene.filter("
+      + "function(x){return x.name === 'A2-Topf';})[0] || null)"));
+    pruef('Topf, Form, Substrat und Ablauf stehen an der Pflanze',
+      !!pA && pA.topf === '16' && pA.topfform === 'orchidee'
+      && pA.substrat === 'erdeRinde' && pA.ablauf === 'ja',
+      JSON.stringify(pA && {t:pA.topf, f:pA.topfform, s:pA.substrat, a:pA.ablauf}));
+    pruef('Aus der Maßnahme wird beim Anlegen keine Aufgabe',
+      !!pA && (w.__T("(S.added['" + (pA ? pA.id : 'x') + "'] || []).length")) === 0,
+      String(w.__T("(S.added['" + (pA ? pA.id : 'x') + "'] || []).length")));
+
+    /* Der Anstoss zum Doktor. */
+    pruef('Die Karte fragt nach dem Doktor',
+      !!d.querySelector('#karte-rumpf .km-anstoss [data-do="doktor-fuer"]')
+      && !!d.querySelector('#karte-rumpf .km-anstoss [data-do="anstoss-weg"]')
+      && d.querySelector('#karte-rumpf .km-anstoss [data-do="doktor-fuer"]').dataset.p
+         === (pA ? pA.id : ''),
+      d.getElementById('karte-rumpf').innerHTML.slice(0, 120));
+    const spaeter = d.querySelector('#karte-rumpf .km-anstoss [data-do="anstoss-weg"]');
+    if(spaeter) spaeter.dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Später“ nimmt den Kasten weg',
+      w.__T('alAnstoss') === null
+      && !d.querySelector('#karte-rumpf .km-anstoss'));
+    w.__T("modalZu('karte-modal')");
+    await tick();
+
+    /* Wasserkultur: kein Topf, kein Substrat ausser Wasser. */
+    w.__T('alStart()');
+    w.__T("document.getElementById('f-kultur').value = 'wasser'; alKulturSetzen();");
+    pruef('Im Wasserglas fällt der Topfblock weg',
+      d.getElementById('al-topf').hidden === true);
+    w.__T("document.getElementById('f-name').value = 'A2-Glas'");
+    w.__T('alSpeichern()');
+    await tick();
+    const pW = JSON.parse(w.__T("JSON.stringify(S.eigene.filter("
+      + "function(x){return x.name === 'A2-Glas';})[0] || null)"));
+    pruef('Wasserkultur speichert Wasser und keinen Topf',
+      !!pW && pW.substrat === 'wasser' && pW.topf === ''
+      && pW.topfform === '' && pW.ablauf === '',
+      JSON.stringify(pW && {t:pW.topf, f:pW.topfform, s:pW.substrat, a:pW.ablauf}));
+    w.__T('alAnstoss = null;');
+    w.__T("modalZu('karte-modal')");
+    await tick();
+
+    /* Blähton: Block bleibt, Substrat steht fest. */
+    w.__T('alStart()');
+    w.__T("document.getElementById('f-kultur').value = 'hydro'; alKulturSetzen();");
+    pruef('In Blähton bleibt der Block stehen, das Substrat ist gesetzt',
+      d.getElementById('al-topf').hidden === false
+      && d.getElementById('f-substrat').value === 'blaehton',
+      d.getElementById('f-substrat').value);
+
+    /* Formular leeren raeumt die vier neuen Felder mit ab. */
+    w.__T("document.getElementById('f-topfform').value = 'schale';"
+      + "document.getElementById('f-substrat').value = 'rinde';"
+      + "document.getElementById('f-ablauf').value = 'nein';"
+      + "(function(){var sl = document.getElementById('f-topf'); sl.value = '30';"
+      + " sl.dispatchEvent(new Event('input', {bubbles:true}));})();"
+      + "formularLeeren();");
+    pruef('Formular leeren setzt die vier neuen Felder zurück',
+      d.getElementById('f-topfform').value === ''
+      && d.getElementById('f-substrat').value === ''
+      && d.getElementById('f-ablauf').value === ''
+      && w.__T('alTopfWert()') === '',
+      [d.getElementById('f-topfform').value, d.getElementById('f-substrat').value,
+       d.getElementById('f-ablauf').value, w.__T('alTopfWert()')].join('|'));
+
+    /* Aus dem Anlegen entfernt — beim Doktor unveraendert da. */
+    pruef('Maßnahmenkasten und Topfblock sind aus dem Anlegen fort',
+      html.indexOf('neuMassnahmenZeigen') === -1
+      && html.indexOf('id="neu-massnahmen"') === -1
+      && html.indexOf('const nTopf = topfLesen') === -1);
+    pruef('Der Doktor behält Topfblock und Maßnahmenauswahl',
+      typeof w.__T('topfHTML') === 'function'
+      && typeof w.__T('topfMassnahme') === 'function'
+      && typeof w.__T('massnahmenAuswahlHTML') === 'function');
+
+    /* Die Karte zeigt, was eingetragen wurde. */
+    pruef('Der Reiter Pflege nennt Substrat und Abzugsloch',
+      /Substrat<\/dt><dd>Erde mit Rinde · Abzugsloch vorhanden/.test(
+        w.__T("topfSubstratHTML(S.eigene.filter(function(x){return x.name === 'A2-Topf';})[0])")),
+      w.__T("topfSubstratHTML(S.eigene.filter(function(x){return x.name === 'A2-Topf';})[0])").slice(0, 220));
+
+    /* Aufraeumen: die beiden Testpflanzen gehoeren nicht in die Sammlung. */
+    w.__T("S.eigene = S.eigene.filter(function(x){"
+      + "return x.name !== 'A2-Topf' && x.name !== 'A2-Glas';}); sichern(); render();");
+    w.__T('alStart(); formularLeeren();');
+    w.__T("modalZu('anleg-modal')");
+    await tick();
+  }
+
 
   /* ══════════ Scrollen in der Sammlung ══════════
      Die Zuklapp-Mechanik ist entfernt. Sie konnte nie greifen: seit
@@ -6715,7 +6880,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.14.0', e0.nr === '3.14.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.15.0', e0.nr === '3.15.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

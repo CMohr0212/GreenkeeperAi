@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.15.0 — 12. September 2026
+**Topf und Substrat trägst du ein**
+
+### Neu
+- **Topfart, Durchmesser, Substrat und Abzugsloch beim Anlegen.** Auf der Stufe „Platz und Pflege“ stehen vier neue Angaben: Topfart als Knöpfe mit Zeichnung, ein Schieber für den Durchmesser samt Literangabe, Substrat und Abzugsloch. Was die KI am Foto erkannt hat, steht vorgewählt da — entschieden wird am Gerät.
+- **Der Schieber startet leer.** Ohne Angabe rechnet die App weiter mit einem Mittelwert. Ein voreingestellter Wert wäre eine Messung, die niemand vorgenommen hat, und er ginge sofort in die Gießmenge ein.
+- **Kulturform entscheidet mit.** Im Wasserglas fällt der Block ganz weg, in Blähton ist das Substrat vorgewählt.
+- **Nach dem Anlegen fragt die Karte nach dem Doktor.** Ein Tipp, und er bewertet Zustand, Befund und Pflege — mit Topf und Substrat, die gerade eingetragen wurden.
+- **Der Reiter Pflege zeigt Substrat und Abzugsloch.**
+
+### Besser
+- **Maßnahmenauswahl und Topfeinschätzung sind aus dem Anlegen verschwunden.** Beides kam aus Antwortzeilen, nach denen der Anlegen-Auftrag seit 3.14.0 nicht mehr fragt — die Kästen standen leer da.
+
+---
+
 ## 3.14.0 — 12. September 2026
 **Anlegen bestimmt, Doktor bewertet**
 

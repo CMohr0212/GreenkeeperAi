@@ -1567,6 +1567,18 @@ html[data-design="klartext"] .ver-k{border-width:2px}
   background:var(--fl-karte);margin-bottom:15px}
 .al-bibzsf h4{margin:0 0 8px;font-family:var(--f-display);font-size:var(--t-l);font-weight:600}
 .al-bibzsf .al-zsf>div:last-child{border-bottom:0}
+/* Der Anstoss auf der frisch angelegten Karte. Eigene Klassen statt
+   `.tools`, damit kein Spezifitaetskampf mit den Kartenknoepfen
+   entsteht. */
+.km-anstoss{padding:12px 13px;margin:0 0 14px;border:1px solid var(--fl-akzent);
+  border-radius:var(--r-mittel);background:var(--fl-karte)}
+.km-anstoss p{margin:0 0 10px;font-size:var(--t-s);line-height:1.5}
+.km-anstoss-taten{display:flex;gap:8px}
+.km-anstoss-taten button{flex:1;min-height:var(--tap);border-radius:var(--r-klein);
+  border:1px solid var(--linie);background:transparent;color:var(--schrift);
+  font:inherit;cursor:pointer}
+.km-anstoss-taten button.haupt{background:var(--fl-akzent);color:var(--schrift-invers);
+  border-color:transparent;font-weight:600}
 /* Die Fussleiste klebt am unteren Rand des Fensters. Vorher stand sie
    am Ende des Textes: bei einer langen Stufe hiess „weiter" erst
    einmal scrollen. */
@@ -8087,6 +8099,40 @@ function topfLiter(durchmesser, formKey){
   return topfVolumen(durchmesser, formKey || (typeof subForm !== 'undefined' ? subForm : 'kultur'));
 }
 
+/* ── Was oben im Topf liegt ────────────────────────────────
+   Nicht die Zielmischung des Substratrechners, sondern der Ist-Zustand:
+   was auf dem Foto zu sehen ist und was am Geraet eingetragen wird.
+   Die Schluessel stehen an der Pflanze, die Namen in den Knoepfen.
+   Steht die Liste hier, ist sie beim Fuellen der Auswahlfelder
+   (Zeile ~17250) laengst da — eine zeitliche Totzone gaebe es sonst. */
+const SUBSTRATARTEN = {
+  erde:        {name:'Erde',             kurz:'klassische Blumenerde'},
+  erdeRinde:   {name:'Erde mit Rinde',   kurz:'aufgelockert'},
+  rinde:       {name:'Rinde',            kurz:'Orchideensubstrat'},
+  blaehton:    {name:'Bl\u00e4hton',         kurz:'Hydrokultur'},
+  seramis:     {name:'Seramis oder Pon', kurz:'mineralisches Granulat'},
+  sphagnum:    {name:'Sphagnum',         kurz:'Torfmoos'},
+  kies:        {name:'Kies oder Sand',   kurz:'mineralisch, grob'},
+  wasser:      {name:'Wasser',           kurz:'Wasserkultur'}
+};
+/* Wie topfartLesen: was nicht sicher zuzuordnen ist, bleibt leer.
+   Geraten wird hier nichts — das Substrat steuert spaeter die
+   Bewertung des Doktors. */
+function substratLesen(t){
+  if(!t) return null;
+  const x = norm(String(t).replace(/^[^:]{2,20}:\s*/, ''));
+  if(!x || /nicht sichtbar|unbekannt|nicht beurteilbar/.test(x)) return null;
+  if(/sphagnum|torfmoos/.test(x)) return 'sphagnum';
+  if(/blahton|leca/.test(x)) return 'blaehton';
+  if(/seramis|\bpon\b|granulat/.test(x)) return 'seramis';
+  if(/erde mit rinde|erde und rinde|rinde mit erde/.test(x)) return 'erdeRinde';
+  if(/rinde|bark/.test(x)) return 'rinde';
+  if(/kies|sand|splitt|bims|lava/.test(x)) return 'kies';
+  if(/wasser/.test(x)) return 'wasser';
+  if(/erde|humus|substrat/.test(x)) return 'erde';
+  return null;
+}
+
 /* Kleine Zeichnung der Topfform fürs Karussell. */
 function topfIcon(formKey){
   const f = TOPFFORMEN[formKey] || TOPFFORMEN.kultur;
@@ -10747,7 +10793,6 @@ function papierkorbRender(){
               <div class="tools"><button id="btn-paste-los" class="haupt" type="button">Übernehmen</button><button id="btn-paste-zu" type="button">Schließen</button></div>
               <p class="pastemeld" id="paste-meld" hidden></p>
               <div id="neu-unsicher"></div>
-              <div id="neu-massnahmen"></div>
             </div>
           </details>
         </div>
@@ -10806,6 +10851,37 @@ function papierkorbRender(){
           </select>
           <div class="al-knoepfe" id="f-kultur-knoepfe"></div>
           <p class="fhint" id="f-kultur-hint"></p>
+        </div>
+        <div id="al-topf">
+          <div class="al-feld">
+            <span class="lab">Topfart</span>
+            <select id="f-topfform" data-bild="topf" hidden></select>
+            <div class="al-knoepfe" id="f-topfform-knoepfe"></div>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Topfdurchmesser</span>
+            <label class="topf-schieber">
+              <span class="lab">Oben gemessen: <b id="f-topf-wert">nicht angegeben</b></span>
+              <input id="f-topf" type="range" min="5" max="80" step="1" value="14"
+                aria-label="Topfdurchmesser in Zentimetern">
+            </label>
+            <p class="topf-ergebnis" id="f-topf-ergebnis"></p>
+            <span class="fhint">Zählt erst, wenn du den Schieber bewegst. Ohne Angabe rechnet die App mit einem Mittelwert.</span>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Substrat</span>
+            <select id="f-substrat" hidden></select>
+            <div class="al-knoepfe" id="f-substrat-knoepfe"></div>
+          </div>
+          <div class="al-feld">
+            <span class="lab">Abzugsloch</span>
+            <select id="f-ablauf" hidden>
+              <option value="">Keine Angabe</option>
+              <option value="ja">Ja — Wasser kann ablaufen</option>
+              <option value="nein">Nein — geschlossener Boden</option>
+            </select>
+            <div class="al-knoepfe" id="f-ablauf-knoepfe"></div>
+          </div>
         </div>
         <div id="al-pflege">
           <div class="al-feld">
@@ -10996,8 +11072,24 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.14.0';
+const FASSUNG = '3.15.0';
 const PATCHNOTES = [
+  {
+    nr: '3.15.0', datum: '2026-09-12', titel: 'Topf und Substrat trägst du ein',
+    kurz: [
+      'Beim Anlegen fragt die App nach Topfart, Topfdurchmesser, Substrat und Abzugsloch — die KI schlägt nur vor.'
+    ],
+    neu: [
+      'Neu auf der Stufe „Platz und Pflege“: Topfart als Knöpfe mit Zeichnung, ein Schieber für den Durchmesser samt Literangabe, Substrat und Abzugsloch. Was die KI am Foto erkannt hat, steht schon vorgewählt da.',
+      'Der Schieber startet leer. Ohne Angabe rechnet die App wie bisher mit einem Mittelwert — ein voreingestellter Wert wäre eine Messung, die niemand vorgenommen hat, und er ginge sofort in die Gießmenge ein.',
+      'Im Wasserglas fällt der ganze Block weg; in Blähton ist das Substrat vorgewählt.',
+      'Nach dem Anlegen fragt die Karte, ob der Pflanzendoktor Zustand und Pflege bewerten soll. Er sieht dabei, was du gerade eingetragen hast.',
+      'Der Reiter Pflege zeigt Substrat und Abzugsloch mit an.'
+    ],
+    besser: [
+      'Die Maßnahmenauswahl und die Topfeinschätzung sind aus dem Anlegen verschwunden. Beides kam aus einer Antwort, die seit 3.14.0 gar nicht mehr danach gefragt wird — sie standen leer da.'
+    ]
+  },
   {
     nr: '3.14.0', datum: '2026-09-12', titel: 'Anlegen bestimmt, Doktor bewertet',
     kurz: [
@@ -14228,7 +14320,18 @@ function kartenKopfHTML(p){
     : st.rest === 0 ? 'Gießen: heute fällig'
     : `Gießen: wieder in ${st.rest} ${st.rest===1?'Tag':'Tagen'}`;
 
-  const rest = `<p class="km-stand" data-ton="${stand.ton}">
+  /* Nach dem Anlegen steht die Bestimmung, die Bewertung fehlt. Statt
+     die Karte still zu oeffnen, fragt sie einmal nach. */
+  const anstoss = (typeof alAnstoss !== 'undefined' && alAnstoss === p.id)
+    ? `<div class="km-anstoss">
+        <p>Angelegt. Der Doktor kann jetzt Zustand, Befund und Pflege bewerten — er sieht dabei Topf und Substrat, die du gerade eingetragen hast.</p>
+        <div class="km-anstoss-taten">
+          <button type="button" class="haupt" data-do="doktor-fuer" data-p="${p.id}">Zum Doktor</button>
+          <button type="button" data-do="anstoss-weg" data-p="${p.id}">Später</button>
+        </div>
+      </div>` : '';
+
+  const rest = `${anstoss}<p class="km-stand" data-ton="${stand.ton}">
       <i class="km-punkt" aria-hidden="true"></i>${esc(lage)}${z.code!=='gesund'?` · ${esc(z.def.name)}`:''}
     </p>
     <div class="km-zeichen">${kartenZeichen(p)}</div>
@@ -14452,6 +14555,10 @@ function ivVorschlagHTML(p){
 function topfSubstratHTML(p){
   const cm = parseInt(p.topf || ((S.edits && S.edits[p.id] && S.edits[p.id].topf) || 0), 10) || 0;
   const form = (typeof TOPFFORMEN !== 'undefined' && TOPFFORMEN[p.topfform]) ? TOPFFORMEN[p.topfform].name : '';
+  const subIst = (typeof SUBSTRATARTEN !== 'undefined' && SUBSTRATARTEN[p.substrat])
+    ? SUBSTRATARTEN[p.substrat].name : '';
+  const ablIst = p.ablauf === 'ja' ? 'Abzugsloch vorhanden'
+    : p.ablauf === 'nein' ? 'kein Abzugsloch' : '';
   const um = (typeof ereignisse === 'function') ? ereignisse(p.id).find(e=>e.typ === 'umgetopft') : null;
   let misch = '';
   if(typeof zielFuer === 'function' && typeof ZIELE !== 'undefined'){
@@ -14468,6 +14575,7 @@ function topfSubstratHTML(p){
   const datum = d => new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'numeric', month:'long', year:'numeric'});
   return `<dl class="spec kb-werte">
       <dt>Topf</dt><dd>${cm ? cm + ' cm' + (form ? ' · ' + esc(form) : '') : '<span class="kb-leer">nicht eingetragen</span>'}</dd>
+      ${(subIst || ablIst) ? `<dt>Substrat</dt><dd>${[esc(subIst), esc(ablIst)].filter(Boolean).join(' · ')}</dd>` : ''}
       <dt>Umgetopft</dt><dd>${um ? datum(um.datum) : '<span class="kb-leer">noch nicht eingetragen</span>'}</dd>
       ${misch ? `<dt>Mischung</dt><dd>${misch}</dd>` : ''}
     </dl>
@@ -16450,9 +16558,11 @@ function formularLeeren(){
   ['f-name','f-art','f-bot','f-typ','f-notiz','f-paste','f-wichtig'].forEach(x=>{
     if($('#'+x)) $('#'+x).value = '';
   });
-  ['f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz'].forEach(x=>{
+  ['f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
+   'f-topfform','f-substrat','f-ablauf'].forEach(x=>{
     const el = $('#'+x); if(el) el.selectedIndex = 0;
   });
+  if(typeof alTopfZuruecksetzen === 'function') alTopfZuruecksetzen();
   if($('#f-fotos')) $('#f-fotos').value = '';
   if(typeof AL_FOTOS !== 'undefined'){
     AL_FOTOS.forEach(f=>{
@@ -16479,8 +16589,6 @@ function formularLeeren(){
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
   $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
   const uns = $('#neu-unsicher'); if(uns) uns.innerHTML = '';
-  const mnz = $('#neu-massnahmen'); if(mnz) mnz.innerHTML = '';
-  if(typeof massnahmeAuswahl !== 'undefined') massnahmeAuswahl['neu'] = [];
   zustandListe(null);
   if(typeof zustandHinweis === 'function') zustandHinweis();
   neuWegSetzen(null);
@@ -17189,19 +17297,84 @@ function alKnopfGruppe(selId){
   const sel = document.getElementById(selId);
   const box = document.getElementById(selId + '-knoepfe');
   if(!sel || !box) return;
+  /* Traegt das Auswahlfeld data-bild, bekommt jeder Knopf die
+     Zeichnung seiner Topfform. Derselbe Klickweg wie sonst — zwei
+     Knopfarten mit zwei Handlern waeren zwei Stellen zum Auseinander-
+     laufen. */
+  const bild = sel.dataset.bild === 'topf' && typeof topfIcon === 'function';
   box.innerHTML = Array.prototype.map.call(sel.options, o => {
     const t = String(o.textContent || '');
     const i = t.indexOf(' — ');
     const kopf = i > -1 ? t.slice(0, i) : t;
     const rest = i > -1 ? t.slice(i + 3) : '';
-    return '<button type="button" class="al-knopf" data-alwert="' + esc(o.value) + '"'
+    const text = '<b>' + esc(kopf) + '</b>' + (rest ? '<i>' + esc(rest) + '</i>' : '');
+    const mitBild = bild && o.value;
+    return '<button type="button" class="al-knopf' + (mitBild ? ' as-knopf-bild' : '') + '"'
+      + ' data-alwert="' + esc(o.value) + '"'
       + ' data-alziel="' + esc(selId) + '"'
       + ' aria-pressed="' + (o.value === sel.value ? 'true' : 'false') + '">'
-      + '<b>' + esc(kopf) + '</b>' + (rest ? '<i>' + esc(rest) + '</i>' : '') + '</button>';
+      + (mitBild ? topfIcon(o.value) + '<span>' + text + '</span>' : text)
+      + '</button>';
   }).join('');
 }
+
+/* Topfart und Substrat stehen als Tabelle im Code, nicht als Liste im
+   HTML: sonst muessten zwei Stellen dieselben Werte kennen. */
+function alListenFuellen(){
+  const tf = document.getElementById('f-topfform');
+  if(tf && !tf.options.length && typeof TOPFFORMEN !== 'undefined'){
+    tf.innerHTML = '<option value="">Keine Angabe</option>'
+      + Object.keys(TOPFFORMEN).map(k => '<option value="' + esc(k) + '">'
+          + esc(TOPFFORMEN[k].name) + ' — ' + esc(TOPFFORMEN[k].kurz) + '</option>').join('');
+  }
+  const sb = document.getElementById('f-substrat');
+  if(sb && !sb.options.length && typeof SUBSTRATARTEN !== 'undefined'){
+    sb.innerHTML = '<option value="">Keine Angabe</option>'
+      + Object.keys(SUBSTRATARTEN).map(k => '<option value="' + esc(k) + '">'
+          + esc(SUBSTRATARTEN[k].name) + ' — ' + esc(SUBSTRATARTEN[k].kurz) + '</option>').join('');
+  }
+}
+alListenFuellen();
+
+/* ── Der Topfschieber ──────────────────────────────────────
+   Er startet ungesetzt. Ein Standardwert waere eine Messung, die
+   niemand vorgenommen hat — und sie ginge sofort in die Giessmenge
+   ein, weil wasserBedarf() mit dem Durchmesser rechnet. */
+function alTopfWert(){
+  const sl = document.getElementById('f-topf');
+  if(!sl || sl.dataset.gesetzt !== '1') return '';
+  const cm = parseInt(sl.value, 10);
+  return cm ? String(cm) : '';
+}
+function alTopfZeichnen(){
+  const sl = document.getElementById('f-topf'); if(!sl) return;
+  const gesetzt = sl.dataset.gesetzt === '1';
+  const cm = parseInt(sl.value, 10) || 14;
+  const form = (document.getElementById('f-topfform') || {}).value || 'kultur';
+  const wert = document.getElementById('f-topf-wert');
+  if(wert) wert.textContent = gesetzt ? cm + ' cm' : 'nicht angegeben';
+  const erg = document.getElementById('f-topf-ergebnis');
+  if(!erg) return;
+  if(!gesetzt){ erg.innerHTML = ''; return; }
+  const liter = topfVolumen(cm, form);
+  const zahl = liter < 1 ? Math.round(liter * 1000) + ' ml'
+    : liter.toFixed(liter < 10 ? 1 : 0).replace('.', ',') + ' Liter';
+  erg.innerHTML = 'Fasst rund <b>' + zahl + '</b> Substrat.';
+}
+function alTopfZuruecksetzen(){
+  const sl = document.getElementById('f-topf');
+  if(sl){ sl.value = '14'; delete sl.dataset.gesetzt; }
+  alTopfZeichnen();
+}
+document.addEventListener('input', e => {
+  if(!e.target || e.target.id !== 'f-topf') return;
+  e.target.dataset.gesetzt = '1';
+  alTopfZeichnen();
+});
 function alKnoepfeAlle(){
-  ['f-zustand', 'f-kultur', 'f-klasse', 'f-sonne', 'f-giftig'].forEach(alKnopfGruppe);
+  alListenFuellen();
+  ['f-zustand', 'f-kultur', 'f-klasse', 'f-sonne', 'f-giftig',
+   'f-topfform', 'f-substrat', 'f-ablauf'].forEach(alKnopfGruppe);
 }
 
 /* Die Kulturform ist keine Feinheit der Gießart, sondern die Frage
@@ -17227,6 +17400,15 @@ function alKulturSetzen(){
      Sie stehen zu lassen hieße, nach etwas zu fragen, das die App
      danach ohnehin ignoriert. */
   if(pflege) pflege.hidden = (wert !== 'erde');
+  /* Im Wasserglas gibt es weder Topfart noch Substrat. In Blaehton
+     schon — dort ist nur das Substrat von vornherein klar. */
+  const tblock = document.getElementById('al-topf');
+  if(tblock) tblock.hidden = (wert === 'wasser');
+  const sb = document.getElementById('f-substrat');
+  if(sb && wert === 'hydro' && !sb.value){
+    sb.value = 'blaehton';
+    alKnopfGruppe('f-substrat');
+  }
   if(hint) hint.textContent =
       wert === 'wasser' ? 'Kein Gießen: alle 5 bis 7 Tage Wasser wechseln, Gefäß ausspülen, faule Wurzeln entfernen.'
     : wert === 'hydro' ? 'Kein Gießen: Wasserstand am Anzeiger halten, alle 10 bis 16 Tage nachsehen.'
@@ -17348,6 +17530,16 @@ function alZsfZeichnen(){
   const kultur = document.getElementById('f-kultur');
   const kulturText = (kultur && kultur.value !== 'erde')
     ? (kultur.options[kultur.selectedIndex] || {}).textContent : '';
+  /* Nur der fette Teil vor dem Gedankenstrich — die Erklaerung dahinter
+     gehoert auf den Knopf, nicht in die Zusammenfassung. */
+  const kopf = id => {
+    const sel = document.getElementById(id);
+    if(!sel || !sel.value) return '';
+    const t = text(id); const i = t.indexOf(' — ');
+    return i > -1 ? t.slice(0, i) : t;
+  };
+  const cm = (typeof alTopfWert === 'function') ? alTopfWert() : '';
+  const topfText = [cm ? cm + ' cm' : '', kopf('f-topfform')].filter(Boolean).join(' · ');
   box.innerHTML =
       alZeile('Name', wert('f-name') || 'Name offen')
     + alZeile('Art', art || 'Unbestimmt')
@@ -17355,6 +17547,8 @@ function alZsfZeichnen(){
     + alZeile('Botanisch', wert('f-bot') || (a ? a.bot : ''))
     + alZeile('Zustand', text('f-zustand'))
     + alZeile('Standort', ort)
+    + alZeile('Topf', topfText)
+    + alZeile('Substrat', kopf('f-substrat'))
     + alZeile('Gießklasse', text('f-klasse'))
     + alZeile('Licht', text('f-sonne'))
     + alZeile('Für Katzen', alGiftText())
@@ -17395,7 +17589,7 @@ function alStufeZeigen(nr){
 
   if(alStufe === 2) alStufe2Zeichnen();
   if(alStufe === 3){ alKnoepfeAlle(); }
-  if(alStufe === 4){ alKnoepfeAlle(); alKulturSetzen(); alBibZsfZeichnen(); }
+  if(alStufe === 4){ alKnoepfeAlle(); alKulturSetzen(); alTopfZeichnen(); alBibZsfZeichnen(); }
   if(alStufe === 5){ alFotosZeichnen(); alZsfZeichnen(); }
   const rumpf = document.querySelector('#anleg-modal .sekm-rumpf');
   if(rumpf) rumpf.scrollTop = 0;
@@ -17487,8 +17681,10 @@ modalAnmelden('anleg-modal', {
 document.addEventListener('change', e => {
   const t = e.target;
   if(!t || !t.id) return;
-  if(/^f-(zustand|kultur|klasse|sonne|giftig)$/.test(t.id)) alKnopfGruppe(t.id);
+  if(/^f-(zustand|kultur|klasse|sonne|giftig|topfform|substrat|ablauf)$/.test(t.id))
+    alKnopfGruppe(t.id);
   if(t.id === 'f-kultur') alKulturSetzen();
+  if(t.id === 'f-topfform' && typeof alTopfZeichnen === 'function') alTopfZeichnen();
   if(/^f-(klasse|sonne|giftig|typ)$/.test(t.id) && alStufe === 4) alBibZsfZeichnen();
 });
 
@@ -19138,10 +19334,21 @@ $('#btn-paste-los').onclick = ()=>{
     $('#f-wichtig').value = d.wichtig;
     uebernommen.push('Wichtiger Hinweis übernommen');
   }
-  const zcode = zustandRaten(d.zustand);
-  if(zcode && $('#f-zustand').querySelector(`option[value="${zcode}"]`)){
-    $('#f-zustand').value = zcode; zustandHinweis(); uebernommen.push('Zustand gesetzt');
-  }
+  /* Was die KI am Bild gesehen hat, belegt die Knopfgruppen vor.
+     Entschieden wird am Geraet: die Vorbelegung ist ein Vorschlag,
+     kein Eintrag. Was sich nicht sicher zuordnen laesst, bleibt leer. */
+  const vorbelegen = (id, wert) => {
+    const sel = document.getElementById(id);
+    if(!sel || !wert) return false;
+    if(!Array.prototype.some.call(sel.options, o => o.value === wert)) return false;
+    sel.value = wert;
+    alKnopfGruppe(id);
+    return true;
+  };
+  if(vorbelegen('f-topfform', topfartLesen(d.topfart))) uebernommen.push('Topfart vorbelegt');
+  if(vorbelegen('f-substrat', substratLesen(d.substrat))) uebernommen.push('Substrat vorbelegt');
+  if(vorbelegen('f-ablauf', ablaufLesen(d.ablauf))) uebernommen.push('Abzugsloch vorbelegt');
+  alTopfZeichnen();
   /* Für den Anlegen-Knopf merken: die Maßnahmen sollen gleich als
      Aufgaben mitkommen, sobald die Pflanze eine ID hat. */
   letzteKiAntwort = d;
@@ -19153,25 +19360,18 @@ $('#btn-paste-los').onclick = ()=>{
   /* Die Notiz traegt nur noch, was zur Bestimmung gehoert. Befund,
      Giesssatz und Massnahmen sind Sache des Doktors. */
   const notiz = [];
-  const nTopf = topfLesen(d.topf);
-  if(nTopf && nTopf.empfehlung){
-    notiz.push('Topf und Platz: ' + nTopf.groesse
-      + (nTopf.material ? ', ' + nTopf.material : '') + ', ' + nTopf.ablauf + '. ' + nTopf.empfehlung);
-    uebernommen.push('Topfeinschätzung übernommen');
-  }
   if(d.vermehrung) uebernommen.push('Vermehrungswege gemerkt');
   if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
   if(d.verw) notiz.push('Könnte verwechselt sein mit: ' + d.verw);
   if(notiz.length){
     const alt = $('#f-notiz').value.trim();
     $('#f-notiz').value = (alt ? alt + '\n\n' : '') + notiz.join('\n');
-    uebernommen.push('Befund in die Notizen');
+    uebernommen.push('Hinweise in die Notizen');
   }
   meld.className = 'pastemeld';
   const gelesen = Object.keys(d).length;
   meld.textContent = uebernommen.join(' · ') + `. ${gelesen} Angaben gelesen — bitte kurz kontrollieren, dann anlegen.`;
   unsicherZeigen('#neu-unsicher', d, 'neu');
-  neuMassnahmenZeigen(d);
   /* Ohne Bibliothekstreffer und ohne bekannte Gattung: nicht still
      übernehmen, sondern nachfragen. */
   if(!treffer && d.bot && !botPlausibel(d.bot)){
@@ -19179,18 +19379,6 @@ $('#btn-paste-los').onclick = ()=>{
     if(el) el.innerHTML = botWarnungHTML(d.bot) + el.innerHTML;
   }
 };
-
-/* Beim Anlegen gibt es die Pflanze noch nicht. Die Auswahl steht
-   trotzdem schon da und wird beim Speichern eingelöst. */
-function neuMassnahmenZeigen(d){
-  const ziel = document.getElementById('neu-massnahmen');
-  if(!ziel) return;
-  const topf = topfLesen(d.topf);
-  const liste = massnahmenLesen(d.schritte ? String(d.schritte).split(/\r?\n/) : []);
-  const ausTopf = topfMassnahme(topf);
-  if(ausTopf) liste.unshift(ausTopf);
-  ziel.innerHTML = topfHTML(topf) + massnahmenAuswahlHTML('neu', liste);
-}
 
 /* Sieht der botanische Name überhaupt nach einer Pflanze aus?
    Eine Antwort mit „Carassius auratus“ wurde bisher wortlos
@@ -19371,6 +19559,9 @@ formLageZeichnen();
 /* Zuletzt eingelesene KI-Antwort, damit ihre Maßnahmen beim Anlegen
    direkt zu Aufgaben werden. */
 let letzteKiAntwort = null;
+/* Die gerade angelegte Pflanze. Solange sie hier steht, traegt ihre
+   Karte den Anstoss zum Doktor. */
+let alAnstoss = null;
 async function alSpeichern(){
   const name = $('#f-name').value.trim();
   const suchtext = $('#f-art').value.trim();
@@ -19379,6 +19570,9 @@ async function alSpeichern(){
   const id = neueId();
   const gift = $('#f-giftig').value;
   const kl = $('#f-klasse').value;
+  /* Im Wasserglas gibt es keinen Topf und kein Substrat. Der Block ist
+     dort ausgeblendet — was in den Feldern stehen blieb, gilt nicht. */
+  const imWasser = ($('#f-kultur') || {}).value === 'wasser';
   const a = gewaehlteArt;
   const p = {
     id, eigen:true, name: name || 'Name offen', art: art || 'Unbestimmt',
@@ -19401,12 +19595,12 @@ async function alSpeichern(){
        Ausgewertet wird es nur dann — steht die Gattung in
        GRUPPEN_GATTUNG, gewinnt sie. */
     speicher: (letzteKiAntwort && letzteKiAntwort.speicher) || '',
-    /* Was die KI am Bild gesehen hat. Bis A2 gibt es dafuer kein
-       Formularfeld — der Wert wird nur abgelegt, damit der Doktor ihn
-       spaeter bewerten kann. */
-    substrat: (letzteKiAntwort && letzteKiAntwort.substrat) || '',
-    topfform: topfartLesen(letzteKiAntwort && letzteKiAntwort.topfart) || '',
-    ablauf: ablaufLesen(letzteKiAntwort && letzteKiAntwort.ablauf) || ''
+    /* Topf und Substrat kommen aus dem Formular. Die KI hat die
+       Knopfgruppen nur vorbelegt — eingetragen hat sie der Mensch. */
+    topf: imWasser ? '' : alTopfWert(),
+    topfform: imWasser ? '' : ($('#f-topfform').value || ''),
+    substrat: imWasser ? 'wasser' : ($('#f-substrat').value || ''),
+    ablauf: imWasser ? '' : ($('#f-ablauf').value || '')
   };
   /* Der Giftwert wird genau hier festgelegt und danach nur noch gelesen.
      Steht die Art in der Tabelle, gilt sie als geprüft; sonst ist der
@@ -19421,23 +19615,12 @@ async function alSpeichern(){
   const files = (typeof AL_FOTOS !== 'undefined' && AL_FOTOS.length)
     ? AL_FOTOS.map(f=>f.datei) : $('#f-fotos').files;
   sichern();
-  /* Hat die KI Maßnahmen mitgeliefert, werden sie jetzt zu Aufgaben —
-     dieselbe Funktion, die auch der Pflanzendoktor benutzt. Damit kennt
-     der Doktor den Zustand von Anfang an und die Schritte stehen sofort
-     auf der Liste, statt nur in der Notiz zu verschwinden. */
-  let kiAufgaben = 0;
-  const gewaehlt = massnahmenGewaehlt('neu');
-  if(gewaehlt.length){
-    kiAufgaben = aufgabenAusMassnahmen(id, gewaehlt.filter(m=>!massnahmeTrivial(m, p)), 'anlegen');
-  }
   if(letzteKiAntwort && letzteKiAntwort.vermehrung){
     const v = vermehrungLesen(letzteKiAntwort.vermehrung,
       (KI_DIENSTE[$('#ki-dienst').value] || {}).name);
     if(v) p.vermehrungKi = v;
   }
   letzteKiAntwort = null;
-  massnahmeAuswahl['neu'] = [];
-  const nmz = document.getElementById('neu-massnahmen'); if(nmz) nmz.innerHTML = '';
   /* Zuerst aufräumen und schließen, dann die Bilder. Vorher hing
      beides am selben await: ein einziges unlesbares Bild ließ das
      Fenster offen stehen und die Auswahl der vorigen Pflanze in der
@@ -19451,15 +19634,9 @@ async function alSpeichern(){
     try{ await fotosHinzu(id, bilder); }
     catch(e){ console.warn('Fotos konnten nicht übernommen werden', e); }
   }
-  if(kiAufgaben){
-    const meld = $('#paste-meld');
-    if(meld){
-      meld.hidden = false; meld.className = 'pastemeld ok';
-      meld.textContent = kiAufgaben + (kiAufgaben === 1
-        ? ' Aufgabe aus der Bestimmung übernommen.'
-        : ' Aufgaben aus der Bestimmung übernommen.') + ' Sie stehen jetzt unter „Heute“.';
-    }
-  }
+  /* Bestimmt ist sie — bewertet noch nicht. Die Karte fragt gleich,
+     ob der Doktor übernehmen soll. */
+  alAnstoss = id;
   render();
   karteOeffnen(id);
 }
@@ -24858,8 +25035,15 @@ document.addEventListener('click', e=>{
       setTimeout(()=>alert('Diese Pflanze hat noch keinen Platz. Raum öffnen, im Tab „Pflanzen“ unten antippen und dann in den Grundriss tippen.'), 350);
     return;
   }
+  if(btn.dataset.do === 'anstoss-weg'){
+    e.stopPropagation();
+    alAnstoss = null;
+    if(typeof karteRumpfFuellen === 'function') karteRumpfFuellen();
+    return;
+  }
   if(btn.dataset.do === 'doktor-fuer'){
     e.stopPropagation();
+    alAnstoss = null;
     dokPflanze = btn.dataset.p;
     dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null;
     dokSymptome.clear(); dokAntworten = {};
