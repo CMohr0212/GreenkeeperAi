@@ -781,7 +781,11 @@ html[data-design="klartext"] .abstammung{border:2px solid var(--linie);
 .knopf-leise{background:none;border:none;color:var(--ink-2);text-decoration:underline;
   font:inherit;font-size:var(--t-m);padding:4px 0;cursor:pointer}
 
-#lightbox{position:fixed;inset:0;background:var(--schleier-tief);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out}
+/* Ueber dem Kartenfenster (200) und ueber den Blattfenstern (210),
+   unter der Tour (300). Bis 3.13.0 lag die Fotoansicht auf 100 und
+   damit hinter der Karte: sie oeffnete unsichtbar, legte die Karte
+   still, und nichts nahm mehr einen Griff an. */
+#lightbox{position:fixed;inset:0;background:var(--schleier-tief);display:none;align-items:center;justify-content:center;z-index:220;padding:24px;cursor:zoom-out}
 #lightbox.on{display:flex}
 #lightbox img{max-width:100%;max-height:100%;border-radius:3px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -10853,8 +10857,17 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.13.0';
+const FASSUNG = '3.13.1';
 const PATCHNOTES = [
+  {
+    nr: '3.13.1', datum: '2026-09-12', titel: 'Fotos gehen wieder groß',
+    kurz: [
+      'Ein Foto auf der Karte antippen fror den Bildschirm ein — behoben.'
+    ],
+    behoben: [
+      'Ein Foto auf der Pflanzenkarte antippen ließ nichts mehr geschehen: die große Ansicht öffnete hinter dem Kartenfenster und legte dabei die Karte still. Zu sehen war nichts, zu bedienen auch nichts — nur der Zurück-Knopf des Geräts half, zweimal. Die große Ansicht liegt jetzt vorn.'
+    ]
+  },
   {
     nr: '3.13.0', datum: '2026-09-12', titel: 'Die Geschichte einer Pflanze',
     kurz: [

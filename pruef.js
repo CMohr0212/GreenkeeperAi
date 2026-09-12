@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.13.0', w.__T('FASSUNG') === '3.13.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.13.1', w.__T('FASSUNG') === '3.13.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3988,6 +3988,33 @@ setTimeout(async () => {
       + " gruppierung = 'raum'; sortierung = 'faellig'; filterZustand.clear(); render()");
   }
 
+  /* ══ 3.13.1 · Die Fotoansicht liegt vorn ═══════════════════════
+     Die Karte ist seit 3.11.0 ein eigenes Fenster auf Ebene 200. Lag
+     die Fotoansicht darunter, oeffnete sie unsichtbar und legte dabei
+     die Karte stumm — der Bildschirm fror ein. Geprueft wird an den
+     Zahlen im Stilblatt: eine Prüfung auf „das Fenster ist offen“
+     haette den Fehler nicht gesehen, denn offen war es. */
+  {
+    const stil = [...d.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+    const ebene = muster => {
+      const m = stil.match(muster);
+      return m ? parseInt(m[1], 10) : null;
+    };
+    const lb   = ebene(/#lightbox\{[^}]*z-index:(\d+)/);
+    const fenster = ebene(/\n\.wk\{[^}]*z-index:(\d+)/);
+    const blatt = ebene(/\n\.modal\{[^}]*z-index:(\d+)/);
+    const tour = ebene(/#tour\{[^}]*z-index:(\d+)/);
+    pruef('Die Ebenen sind im Stilblatt zu finden',
+      lb !== null && fenster !== null && blatt !== null && tour !== null,
+      lb + '/' + fenster + '/' + blatt + '/' + tour);
+    pruef('Die Fotoansicht liegt ueber dem Kartenfenster',
+      lb > fenster, lb + ' vs ' + fenster);
+    pruef('Die Fotoansicht liegt ueber den Blattfenstern',
+      lb > blatt, lb + ' vs ' + blatt);
+    pruef('Die Tour bleibt ueber der Fotoansicht',
+      tour > lb, tour + ' vs ' + lb);
+  }
+
   /* ══ 3.13.0 · Historie und Lernen über einem Handwert ═══════════
      Zwei Dinge: die Karte fragt, statt einen Handwert still zu
      verschieben — und der Reiter Verlauf zeigt die Geschichte als
@@ -6583,7 +6610,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.13.0', e0.nr === '3.13.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.13.1', e0.nr === '3.13.1', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

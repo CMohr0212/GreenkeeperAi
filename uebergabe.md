@@ -1,7 +1,7 @@
 # Übergabe — GreenkeeperAI
 
-Stand: 12.09.2026, Ende der Sitzung. Fassung **3.13.0**, sw.js **v106**,
-Prüfstand **1587 Prüfungen, alles sauber**.
+Stand: 12.09.2026, Ende der Sitzung. Fassung **3.13.1**, sw.js **v107**,
+Prüfstand **1591 Prüfungen, alles sauber**.
 
 ---
 
@@ -99,6 +99,22 @@ schlägt vor.
 `lernSchritt`, `lernZuruecksetzen`, `verlaufHTML` und `giessVerlaufHTML` sind
 umgebaut. Merkmale in `S.zustand[id]`: `ivVorschlag`, `vorZahl`,
 `vorRichtung`. Neu in `S`: `histAnsicht`.
+
+### 3.13.1 — die Fotoansicht lag hinten
+
+Von Chris am Gerät gefunden: ein Foto auf der Karte antippen fror den
+Bildschirm ein. `#lightbox` lag auf Ebene 100, das Kartenfenster `.wk` auf
+200 — die große Ansicht öffnete also hinter der Karte, und weil
+`_modalSperre` alles außer dem obersten Fenster auf `inert` setzt, nahm auch
+die Karte keinen Griff mehr an. Nur zweimal Zurück half heraus. Kam mit dem
+Kartenfenster in 3.11.0/3.12.0 herein.
+
+- `#lightbox` liegt jetzt auf 220: über `.wk` (200) und `.modal` (210),
+  unter `#tour` (300).
+- Geprüft wird an den Zahlen im Stilblatt, nicht am geöffneten Fenster —
+  offen war es ja. Die Gegenprobe schlägt bei 100 fehl.
+- **Merksatz für neue Vollbild-Ebenen:** jede neue Schicht muss gegen `.wk`
+  (200), `.modal` (210) und `#tour` (300) einsortiert werden.
 
 ---
 

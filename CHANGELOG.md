@@ -4,6 +4,14 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.13.1 — 12. September 2026
+**Fotos gehen wieder groß**
+
+### Behoben
+- **Ein Foto auf der Pflanzenkarte antippen fror den Bildschirm ein.** Die große Ansicht öffnete hinter dem Kartenfenster — zu sehen war nichts, und weil die App alles außer dem obersten Fenster stilllegt, nahm auch die Karte keinen Griff mehr an. Nur zweimal Zurück half heraus. Die große Ansicht liegt jetzt vorn.
+
+---
+
 ## 3.13.0 — 12. September 2026
 **Die Geschichte einer Pflanze**
 
