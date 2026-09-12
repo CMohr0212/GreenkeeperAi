@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.12.0', w.__T('FASSUNG') === '3.12.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.13.0', w.__T('FASSUNG') === '3.13.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3988,6 +3988,175 @@ setTimeout(async () => {
       + " gruppierung = 'raum'; sortierung = 'faellig'; filterZustand.clear(); render()");
   }
 
+  /* ══ 3.13.0 · Historie und Lernen über einem Handwert ═══════════
+     Zwei Dinge: die Karte fragt, statt einen Handwert still zu
+     verschieben — und der Reiter Verlauf zeigt die Geschichte als
+     Balken oder als Zeitstrahl. Die Pflanze legt der Test selbst an
+     und raeumt sie wieder weg. */
+  {
+    const karte3 = id => {
+      const box = d.createElement('div');
+      box.innerHTML = w.__T(`kartenDetailHTML(allePflanzen().find(x=>x.id==='${id}'))`);
+      return box;
+    };
+    const P3 = id => `allePflanzen().find(x=>x.id==='${id}')`;
+    const iv = () => w.__T(`intervallVon(${P3('A3P')})`);
+    const vor = () => w.__T(`ivVorschlagVon(${P3('A3P')})`);
+    const giessen3 = tage => w.__T(`(function(){
+      S.water = S.water || {}; S.water.A3P = ${JSON.stringify([])};
+      ${tage.map(t=>`S.water.A3P.push('${t}');`).join('')} sichern(); })()`);
+    const schritt = r => w.__T(`lernSchritt(${P3('A3P')}, '${r}')`);
+
+    w.__T(`(function(){
+      const p = {id:'A3P', name:'A3', art:'Efeutute', botanisch:'Epipremnum aureum',
+        klasse:'B', licht:'indirekt', sonne:'indirekt', seit:iso(HEUTE), eigen:true,
+        todo:[], log:[], notiz:'', intervall:[7,7], intervallEigen:true};
+      S.eigene = (S.eigene||[]).filter(x=>x.id !== 'A3P');
+      S.eigene.push(p);
+      S.zustand = S.zustand || {}; delete S.zustand.A3P;
+      S.ereignisse = S.ereignisse || {}; delete S.ereignisse.A3P;
+      sichern(); })()`);
+    giessen3(['2026-08-01', '2026-08-08']);
+
+    /* ── Ein Handwert bleibt ein Handwert ── */
+    const ivStart = iv();
+    pruef('Der Handwert gilt als Ausgangspunkt',
+      w.__T(`rhythmusQuelle(${P3('A3P')}).wort`) === 'von Hand');
+    pruef('Ueber einem Handwert wird nicht mehr gesperrt, sondern gezaehlt',
+      schritt('hoch') === false && !vor(), String(!!vor()));
+    giessen3(['2026-08-01', '2026-08-08', '2026-08-16']);
+    schritt('hoch');
+    const v2 = vor();
+    pruef('Zwei gleichgerichtete Rueckmeldungen erzeugen einen Vorschlag',
+      !!v2 && v2.richtung === 'hoch' && v2.wert > 7, v2 ? String(v2.wert) : 'keiner');
+    /* Die Gegenprobe aus der Uebergabe: bis zur Zustimmung bewegt
+       sich der gerechnete Wert nicht. */
+    pruef('Gegenprobe: Handwert plus zwei Rueckmeldungen verschiebt nichts',
+      iv() === ivStart && w.__T(`lernFaktorVon('A3P')`) === 1,
+      ivStart + ' → ' + iv() + ' / Faktor ' + w.__T(`lernFaktorVon('A3P')`));
+
+    /* ── Die Karte fragt ── */
+    const gb = karte3('A3P').querySelector('[data-kblock="giessen"]');
+    pruef('Die Karte stellt die Frage',
+      !!gb && !!gb.querySelector('[data-do="iv-vor-ja"]')
+      && /Zweimal/.test(((gb && gb.querySelector('.iv-vor-t')) || {}).textContent || ''),
+      ((gb && gb.querySelector('.iv-vor-t')) || {}).textContent || '');
+    pruef('Die Frage nennt Saison und Zielwert',
+      /(Sommer|Winter)/.test(((gb && gb.querySelector('.iv-vor-t')) || {}).textContent || '')
+      && new RegExp(String(v2 && v2.wert)).test(((gb && gb.querySelector('.iv-vor-t')) || {}).textContent || ''));
+
+    /* ── Gegenlaeufige Rueckmeldung raeumt den Vorschlag weg ── */
+    giessen3(['2026-08-01', '2026-08-08', '2026-08-16', '2026-08-24']);
+    schritt('runter');
+    pruef('Eine gegenlaeufige Rueckmeldung loescht den Vorschlag', !vor());
+
+    /* ── Uebernehmen ── */
+    w.__T(`(function(){
+      aenderungSetzen('A3P', {intervall:[7,7], intervallEigen:true});
+      const e = S.zustand.A3P || (S.zustand.A3P = {});
+      e.ivVorschlag = {saison: (sommer() ? 's' : 'w'), wert:14, von:7,
+                       richtung:'hoch', datum:iso(HEUTE)};
+      e.lernFaktor = 1.6; sichern(); })()`);
+    const vorAnnahme = iv();
+    pruef('Uebernehmen meldet Erfolg', w.__T(`ivVorschlagUebernehmen('A3P')`) === true);
+    const saisonFeld = w.__T(`(sommer() ? 0 : 1)`);
+    pruef('Der uebernommene Wert ist jetzt der Handwert',
+      w.__T(`ivEigen(${P3('A3P')})`)[saisonFeld] === 14,
+      JSON.stringify(w.__T(`ivEigen(${P3('A3P')})`)));
+    pruef('Nach der Annahme rechnet die App mit der neuen Zahl',
+      iv() > vorAnnahme, vorAnnahme + ' → ' + iv());
+    pruef('Der gelernte Faktor geht bei der Annahme zurueck auf 1',
+      w.__T(`lernFaktorVon('A3P')`) === 1, String(w.__T(`lernFaktorVon('A3P')`)));
+    pruef('Der Vorschlag ist danach weg', !vor());
+
+    /* ── Der Fix: eine Aenderung von Hand setzt den Faktor zurueck ──
+       Ueber die echte Bedienung, nicht ueber die Innereien: die Karte
+       wird geoeffnet und der Knopf angeklickt. */
+    w.__T(`(function(){
+      aenderungSetzen('A3P', {intervall:[7,7], intervallEigen:true});
+      S.zustand.A3P = {lernFaktor:1.6}; sichern(); })()`);
+    pruef('Vorbedingung: ein gelernter Faktor liegt vor',
+      w.__T(`lernFaktorVon('A3P')`) === 1.6);
+    w.__T(`karteOeffnen('A3P')`);
+    const box3 = d.querySelector('#karte-rumpf [data-kblock="giessen"] .iv-edit');
+    if(box3){ box3.dataset.s = '5'; box3.dataset.w = '5'; }
+    const ok3 = d.querySelector('#karte-rumpf [data-kblock="giessen"] [data-do="iv-ok"]');
+    if(ok3) ok3.click();
+    pruef('Ein von Hand gesetzter Rhythmus kommt an',
+      JSON.stringify(w.__T(`ivEigen(${P3('A3P')})`)) === '[5,5]',
+      JSON.stringify(w.__T(`ivEigen(${P3('A3P')})`)));
+    pruef('Eine Aenderung von Hand setzt den gelernten Faktor auf 1',
+      w.__T(`lernFaktorVon('A3P')`) === 1, String(w.__T(`lernFaktorVon('A3P')`)));
+    w.__T(`modalZu('karte-modal')`);
+
+    /* ── Historie: Balken und Zeitstrahl ── */
+    w.__T(`S.histAnsicht = 'balken'; sichern();`);
+    const hist = () => karte3('A3P').querySelector('[data-kblock="historie"]');
+    pruef('Die Historie steht im Reiter Verlauf',
+      !!karte3('A3P').querySelector('[data-kpane="verlauf"] [data-kblock="historie"]'));
+    pruef('Es gibt einen Umschalter Balken / Zeitstrahl',
+      (((hist() || {}).querySelectorAll ? hist().querySelectorAll('.hist-um [data-do="hist-um"]') : []).length) === 2);
+    const svg = hist().querySelector('.v-svg');
+    pruef('Ein Balken je Abstand, der aelteste links',
+      !!svg && svg.querySelectorAll('.vb').length === 3,
+      String(svg ? svg.querySelectorAll('.vb').length : 0));
+    pruef('Die Marke beim gerechneten Rhythmus ist gezeichnet',
+      !!svg && !!svg.querySelector('.v-ziel'));
+    pruef('Jeder Balken traegt Datum und Tage zum Antippen',
+      !!svg && /^\d{4}-\d{2}-\d{2}\|\d+$/.test(svg.querySelector('.vb').getAttribute('data-vb')),
+      svg ? svg.querySelector('.vb').getAttribute('data-vb') : '');
+    /* Gegenprobe: mit zwei Terminen gibt es kein Diagramm, sondern
+       eine ruhige Zeile. */
+    giessen3(['2026-08-01', '2026-08-08']);
+    pruef('Gegenprobe: zu wenige Termine ergeben kein leeres Diagramm',
+      !hist().querySelector('.v-svg') && !!hist().querySelector('.kb-leer'),
+      (hist().textContent || '').slice(0, 60));
+    giessen3(['2026-08-01', '2026-08-08', '2026-08-16', '2026-08-24']);
+
+    w.__T(`ereignisDazu('A3P', 'umgetopft', 'Testeintrag')`);
+    w.__T(`S.histAnsicht = 'strahl'; sichern();`);
+    const zs = hist();
+    pruef('Der Zeitstrahl fuehrt Giessen und Ereignisse zusammen',
+      !!zs.querySelector('.zs') && /Gegossen/.test(zs.textContent) && /Umgetopft/.test(zs.textContent),
+      (zs.textContent || '').slice(0, 80));
+    pruef('Der Zeitstrahl gruppiert nach Monaten',
+      !!zs.querySelector('.zs-monat'),
+      ((zs.querySelector('.zs-monat') || {}).textContent) || '');
+    const daten = [...zs.querySelectorAll('.zs-zeile .zs-d')].map(x=>x.textContent);
+    pruef('Das Neueste steht oben', daten.length > 1, daten.slice(0, 3).join(' | '));
+    pruef('Die gewaehlte Ansicht bleibt stehen',
+      /data-v="strahl" aria-pressed="true"/.test(w.__T(`giessVerlaufHTML(${P3('A3P')})`)));
+    pruef('Ohne jeden Eintrag bleibt der Zeitstrahl ruhig',
+      /kb-leer/.test(w.__T(`zeitstrahlHTML({id:'A3XNIX', notiz:''})`)),
+      w.__T(`zeitstrahlHTML({id:'A3XNIX', notiz:''})`).slice(0, 60));
+    w.__T(`S.histAnsicht = 'balken'; sichern();`);
+
+    /* ── Gegenprobe zum Lernen ohne Handwert: derselbe Weg bewegt
+       dort sehr wohl etwas. ── */
+    w.__T(`(function(){
+      aenderungSetzen('A3P', {intervallEigen:false});
+      S.zustand.A3P = {}; sichern(); })()`);
+    const ohneEigen = iv();
+    giessen3(['2026-09-01']);
+    schritt('hoch');
+    giessen3(['2026-09-01', '2026-09-09']);
+    schritt('hoch');
+    pruef('Gegenprobe: ohne Handwert lernt die App wie bisher still',
+      w.__T(`lernFaktorVon('A3P')`) > 1 && iv() >= ohneEigen && !vor(),
+      ohneEigen + ' → ' + iv() + ' / Faktor ' + w.__T(`lernFaktorVon('A3P')`));
+
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(x=>x.id !== 'A3P');
+      if(S.edits) delete S.edits.A3P;
+      if(S.zustand) delete S.zustand.A3P;
+      if(S.water) delete S.water.A3P;
+      if(S.ereignisse) delete S.ereignisse.A3P;
+      sichern(); })()`);
+    pruef('A3-Testpflanze wieder entfernt',
+      !w.__T(`allePflanzen().some(x=>x.id === 'A3P')`));
+    w.__T("S.eigene = JSON.parse(window.__sicher); sichern(); render()");
+  }
+
   /* ══ Doktor: Pflanzenauswahl als Galerie ═══════════════════════ */
   {
     pruef('Das Auswahlfeld ist weg', !d.getElementById('dok-pflanze'));
@@ -6414,7 +6583,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.12.0', e0.nr === '3.12.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.13.0', e0.nr === '3.13.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

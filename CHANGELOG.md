@@ -4,6 +4,24 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.13.0 — 12. September 2026
+**Die Geschichte einer Pflanze**
+
+### Neu
+- **Zeitstrahl auf der Karte.** Der Reiter Verlauf führt zusammen, was sonst an vier Stellen lag: Gießgänge, neue und verlorene Blätter, Fotos, Umtopfen, Vermehren und die Befunde des Doktors — das Neueste oben, nach Monaten gruppiert.
+- **Die Gießabstände als Balken.** Ein Balken je Abstand zwischen zwei Gießgängen, der älteste links, dazu eine Marke beim gerechneten Rhythmus. Ein Tipp auf einen Balken sagt, wann gegossen wurde und wie viele Tage dazwischen lagen.
+- **Vorschlag statt stiller Änderung.** Steht ein eigener Gießrhythmus und meldest du zweimal „noch feucht“ oder zweimal „staubtrocken“, fragt die Karte, ob der Wert auf die neue Zahl soll. Ein Tipp übernimmt, und die neue Zahl ist dann deine. Ohne Zustimmung ändert sich nichts.
+
+### Besser
+- **Balken oder Zeitstrahl** lassen sich mit einem Griff umschalten; die Wahl bleibt über alle Pflanzen hinweg stehen.
+- **Wer erst zweimal gegossen hat**, sieht statt eines leeren Diagramms eine ruhige Zeile.
+- **Ein eigener Rhythmus sperrt das Lernen nicht mehr.** Bisher hieß ein selbst gesetzter Wert: die App hört auf mitzudenken. Jetzt denkt sie weiter mit und fragt, wenn sie etwas gelernt hat.
+
+### Behoben
+- **Ein von Hand geänderter Rhythmus behielt den vorher gelernten Faktor.** Der schob die frische Zahl sofort wieder weg — genau dorthin, wo man sie gerade wegkorrigiert hatte. Ein Handwert fängt jetzt bei sich selbst an.
+
+---
+
 ## 3.12.0 — 11. September 2026
 **Die Pflanzenkarte kommt zur Ruhe**
 

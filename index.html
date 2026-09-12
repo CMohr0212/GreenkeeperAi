@@ -2423,6 +2423,28 @@ body.gm-offen{overflow:hidden}
 .v-svg .vb.zu-kurz{fill:var(--schrift-3)}
 .v-svg .v-ziel{stroke:var(--ink);stroke-width:1;stroke-dasharray:4 3;opacity:.55}
 .v-fuss{margin:6px 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.5}
+.v-tipp{margin:6px 0 0;font-size:var(--t-s);color:var(--schrift-2)}
+.v-svg .vb{cursor:pointer}
+.hist-um{margin:0 0 10px}
+/* Der Vorschlag ist eine Frage, keine Warnung: getönte Fläche, kein Rahmen. */
+.iv-vor{margin:10px 0 0;padding:10px 12px;border-radius:var(--r-mittel);background:var(--ton-wasser)}
+.iv-vor-t{margin:0 0 6px;font-size:var(--t-md);line-height:1.45}
+.iv-vor .kb-aktionen{margin:0}
+.zs{margin-top:2px}
+.zs-monat{margin:12px 0 5px;font-family:var(--f-data);font-size:var(--t-mono);
+  letter-spacing:.1em;text-transform:uppercase;color:var(--peat)}
+.zs-monat:first-child{margin-top:0}
+.zs-liste{list-style:none;margin:0;padding:0}
+.zs-zeile{display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.zs-zeile:last-child{border-bottom:0}
+.zs-punkt{flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--schrift-3);align-self:center}
+.zs-punkt[data-ton="gut"]{background:var(--moss)}
+.zs-punkt[data-ton="warn"]{background:var(--terra)}
+.zs-punkt[data-ton="wasser"]{background:var(--water)}
+.zs-d{flex:0 0 auto;min-width:66px;font-size:var(--t-s);color:var(--schrift-2)}
+.zs-t{font-size:var(--t-s);line-height:1.45}
+.zs-mehr{margin-top:10px}
+.zs-mehr>summary{font-size:var(--t-s);color:var(--schrift-2);cursor:pointer}
 .w-reihe{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .w-plus{font:inherit;font-size:var(--t-m);padding:8px 13px;border:1px solid var(--moss);color:var(--moss);background:var(--paper);border-radius:var(--r-klein);cursor:pointer}
 .w-bilanz{margin:8px 0 0;font-size:var(--t-s);color:var(--ink-2);line-height:1.5}
@@ -10831,8 +10853,28 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.12.0';
+const FASSUNG = '3.13.0';
 const PATCHNOTES = [
+  {
+    nr: '3.13.0', datum: '2026-09-12', titel: 'Die Geschichte einer Pflanze',
+    kurz: [
+      'Der Reiter Verlauf hat zwei Ansichten: Balken für die Gießabstände, Zeitstrahl für alles andere daneben.',
+      'Ein Tipp auf einen Balken sagt, wann gegossen wurde und wie viele Tage dazwischen lagen.',
+      'Ein selbst gesetzter Gießrhythmus sperrt das Nachlernen nicht mehr — die App fragt jetzt, statt die Zahl still zu verschieben.'
+    ],
+    neu: [
+      'Zeitstrahl auf der Karte: Gießgänge, Blätter, Fotos, Umtopfen, Vermehren und die Befunde des Doktors in einer Liste, nach Monaten sortiert.',
+      'Die Gießabstände stehen als Balken mit einer Marke beim gerechneten Rhythmus. Ein Tipp auf einen Balken zeigt Datum und Abstand.',
+      'Vorschlag statt stiller Änderung: Wer zweimal „noch feucht“ oder zweimal „staubtrocken“ meldet, wird gefragt, ob der eigene Rhythmus auf den neuen Wert soll. Ein Tipp übernimmt.'
+    ],
+    besser: [
+      'Die gewählte Ansicht der Historie bleibt über alle Pflanzen hinweg stehen.',
+      'Wer erst zweimal gegossen hat, sieht statt eines leeren Diagramms eine ruhige Zeile.'
+    ],
+    behoben: [
+      'Ein von Hand geänderter Rhythmus behielt den vorher gelernten Faktor. Der schob die frische Zahl sofort wieder weg — genau dorthin, wo man sie gerade wegkorrigiert hatte. Jetzt fängt ein Handwert bei sich selbst an.'
+    ]
+  },
   {
     nr: '3.12.0', datum: '2026-09-11', titel: 'Die Pflanzenkarte kommt zur Ruhe',
     kurz: [
@@ -13194,13 +13236,76 @@ function heuteStatusHTML(){
 }
 
 
-/* Was beim Gießen war, steht im Reiter Verlauf: die letzten Gießtage
-   und die Abstände dazwischen. Der Reiter Pflege sagt nur, was jetzt
-   ansteht. */
+/* Was war, steht im Reiter Verlauf. Zwei Blickwinkel auf dieselbe
+   Geschichte: die Balken zeigen den Rhythmus — wie weit die
+   Gießgänge auseinanderlagen —, der Zeitstrahl alles andere
+   daneben. Umgeschaltet wird einmal, die Wahl bleibt. */
+function histAnsicht(){ return S.histAnsicht === 'strahl' ? 'strahl' : 'balken'; }
 function giessVerlaufHTML(p){
-  const log = giessLog(p.id);
-  const hist = log.length ? `<p class="water-hist">Gegossen: ${log.slice(0,8).map(d=>new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})).join(' · ')}${log.length>8?' …':''}</p>` : '';
-  return hist + (typeof verlaufHTML==='function' ? verlaufHTML(p) : '');
+  const a = histAnsicht();
+  const knopf = (v, t) => `<button type="button" data-do="hist-um" data-v="${v}" aria-pressed="${a === v ? 'true' : 'false'}">${t}</button>`;
+  const leiste = `<div class="sam-ansicht hist-um" role="group" aria-label="Ansicht der Historie">${
+    knopf('balken', 'Balken')}${knopf('strahl', 'Zeitstrahl')}</div>`;
+  return leiste + (a === 'strahl' ? zeitstrahlHTML(p) : verlaufHTML(p));
+}
+
+/* Der Zeitstrahl führt zusammen, was sonst an vier Stellen liegt:
+   Gießgänge, eingetragene Ereignisse, Fotos und die Befunde des
+   Doktors. Nach Monaten gruppiert, das Neueste oben. */
+function zsDatumIso(text){
+  const m = String(text || '').match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(!m) return null;
+  return m[3] + '-' + ('0'+m[2]).slice(-2) + '-' + ('0'+m[1]).slice(-2);
+}
+function zeitstrahlEintraege(p){
+  const raus = [];
+  (typeof giessTermine === 'function' ? giessTermine(p.id) : []).forEach(d=>{
+    if(d) raus.push({datum:d, ton:'wasser', name:'Gegossen', text:''});
+  });
+  (typeof ereignisse === 'function' ? ereignisse(p.id) : []).forEach(e=>{
+    if(!e || !e.datum || e.typ === 'foto') return;
+    const a = EREIGNIS_ARTEN[e.typ] || {name:e.typ, ton:'info'};
+    raus.push({datum:e.datum, ton:a.ton || 'info', name:a.name, text:e.text || ''});
+  });
+  (typeof fotosVon === 'function' ? fotosVon(p.id) : []).forEach(f=>{
+    if(!f || !f.datum) return;
+    raus.push({datum:f.datum, ton:'info', name:'Foto',
+               text: f.quelle === 'doktor' ? 'aus dem Pflanzendoktor' : '', foto:true});
+  });
+  (typeof notizTrennen === 'function' ? notizTrennen(p.notiz).befunde : []).forEach(b=>{
+    const d = zsDatumIso(b.datum);
+    if(!d) return;
+    const kurz = String(b.text || '').replace(/\s+/g, ' ').trim();
+    raus.push({datum:d, ton:'warn', name:'Befund des Doktors',
+               text: kurz.length > 90 ? kurz.slice(0, 88) + '…' : kurz});
+  });
+  return raus.sort((a,b)=>b.datum.localeCompare(a.datum));
+}
+function zeitstrahlHTML(p){
+  const alle = zeitstrahlEintraege(p);
+  if(!alle.length) return '<p class="kb-leer">Noch nichts eingetragen — hier sammelt sich, was mit der Pflanze passiert ist.</p>';
+  const monat = d => new Date(d+'T12:00:00').toLocaleDateString('de-DE',{month:'long', year:'numeric'});
+  const tag = d => new Date(d+'T12:00:00').toLocaleDateString('de-DE',{day:'numeric', month:'short'});
+  const zeile = e => `<li class="zs-zeile"><span class="zs-punkt" data-ton="${e.ton}" aria-hidden="true"></span>
+    <span class="zs-d">${esc(tag(e.datum))}</span>
+    <span class="zs-t">${esc(e.name)}${e.text ? ' · ' + esc(e.text) : ''}${
+      e.foto ? ` <button type="button" class="kid-link" data-do="foto-band" data-p="${p.id}">ansehen</button>` : ''}</span></li>`;
+  const bloecke = liste => {
+    let raus = '', letzter = '';
+    liste.forEach(e=>{
+      const m = monat(e.datum);
+      if(m !== letzter){
+        if(letzter) raus += '</ul>';
+        raus += `<p class="zs-monat">${esc(m)}</p><ul class="zs-liste">`;
+        letzter = m;
+      }
+      raus += zeile(e);
+    });
+    return raus + (letzter ? '</ul>' : '');
+  };
+  const oben = alle.slice(0, 25), rest = alle.slice(25);
+  return `<div class="zs">${bloecke(oben)}${rest.length
+    ? `<details class="zs-mehr"><summary>${rest.length} ältere anzeigen</summary>${bloecke(rest)}</details>` : ''}</div>`;
 }
 
 /* ══════════════════ Fotos ══════════════════ */
@@ -14077,7 +14182,7 @@ function giessAbschnitt(p){
       <dt>Rhythmus</dt><dd>${ivWort(st.iv)} <span class="kb-marke${q.ton?' '+q.ton:''}">${esc(q.wort)}</span></dd>
       <dt>Gießart</dt><dd>${esc(giessartName(p))} — ${esc(giessartText(p))}</dd>
     </dl>`;
-  return lage + zuletzt + ab + zeilen + ivEditorHTML(p)
+  return lage + zuletzt + ab + zeilen + ivVorschlagHTML(p) + ivEditorHTML(p)
     + (tipp ? `<p class="kb-tipp">${esc(tipp)}</p>` : '');
 }
 
@@ -14108,10 +14213,74 @@ function ivEditorHTML(p){
   return `<div class="kb-aktionen"><button type="button" class="kb-link" data-do="iv-auf" data-p="${p.id}" aria-expanded="false">${eigen ? 'Rhythmus ändern' : 'Rhythmus von Hand festlegen'}</button></div>
     <div class="iv-edit" data-iv-box="${p.id}" data-s="${s}" data-w="${w}" hidden>
       ${regler('s', 'Sommer', s)}${regler('w', 'Winter', w)}
-      <p class="kb-klein">Solange ein eigener Rhythmus gilt, lernt die App nicht nach.</p>
+      <p class="kb-klein">Der eigene Wert gilt genau so, wie er hier steht. Lernt die App aus den Rückmeldungen später etwas dazu, fragt sie nach, statt ihn still zu verschieben.</p>
       <div class="kb-aktionen"><button type="button" class="kb-zweit" data-do="iv-ok" data-p="${p.id}">Übernehmen</button>${
         eigen ? `<button type="button" class="kb-link" data-do="iv-zurueck" data-p="${p.id}">Zurück zur Gießklasse</button>` : ''}</div>
     </div>`;
+}
+
+/* ══════ Lernen über einem Handwert (3.13.0) ══════
+   In 3.12.0 sperrte ein eigener Rhythmus das Nachlernen ganz. Das war
+   zu streng: zweimal „noch feucht“ sagt auch über einen von Hand
+   gesetzten Wert etwas. Nur verschieben darf es ihn nicht — sonst
+   stünde wieder „alle 7 Tage“ auf der Karte, während die App mit 9
+   rechnet. Also fragt die App, statt zu rechnen. Wird der Vorschlag
+   angenommen, ist die neue Zahl der Handwert. */
+function vorschlagRechnen(p, richtung){
+  const eigen = ivEigen(p); if(!eigen) return null;
+  const g = gruppeVon(p);
+  const saison = (typeof sommer === 'function' && sommer()) ? 's' : 'w';
+  const basis = Math.round(eigen[saison === 's' ? 0 : 1]);
+  /* Fällt die Rundung auf denselben Wert, wird es ein Tag — ein
+     Vorschlag, der nichts ändert, ist keiner. */
+  let wert = Math.max(1, Math.round(basis * (richtung === 'hoch' ? g.hoch : g.runter)));
+  if(wert === basis) wert = richtung === 'hoch' ? basis + 1 : basis - 1;
+  wert = Math.max(1, Math.min(60, wert));
+  if(wert === basis) return null;
+  return {saison, wert, von:basis, richtung, datum:iso(HEUTE)};
+}
+/* Ein Vorschlag gilt nur zu dem Wert, zu dem er entstanden ist, und
+   nur in seiner Saison. Wurde der Rhythmus inzwischen von Hand
+   geändert, ist er hinfällig. */
+function ivVorschlagVon(p){
+  if(!p) return null;
+  const eigen = ivEigen(p); if(!eigen) return null;
+  const v = (S.zustand && S.zustand[p.id] && S.zustand[p.id].ivVorschlag) || null;
+  if(!v || !v.wert) return null;
+  const saison = (typeof sommer === 'function' && sommer()) ? 's' : 'w';
+  if(v.saison !== saison) return null;
+  if(Math.round(eigen[saison === 's' ? 0 : 1]) !== v.von) return null;
+  return v;
+}
+function ivVorschlagWeg(id){
+  const e = S.zustand && S.zustand[id]; if(!e) return;
+  delete e.ivVorschlag; delete e.vorZahl; delete e.vorRichtung;
+  sichern();
+}
+function ivVorschlagUebernehmen(id){
+  const p = allePflanzen().find(x=>x.id === id); if(!p) return false;
+  const v = ivVorschlagVon(p); if(!v) return false;
+  const eigen = ivEigen(p);
+  const neu = [Math.round(eigen[0]), Math.round(eigen[1])];
+  neu[v.saison === 's' ? 0 : 1] = v.wert;
+  aenderungSetzen(id, {intervall:neu, intervallEigen:true});
+  /* Der gelernte Faktor geht mit zurück auf 1: sonst schöbe er den
+     frisch übernommenen Wert sofort wieder weg. */
+  lernZuruecksetzen(id);
+  return true;
+}
+function ivVorschlagHTML(p){
+  const v = ivVorschlagVon(p);
+  if(!v) return '';
+  const wort = v.saison === 's' ? 'Sommer' : 'Winter';
+  const anlass = v.richtung === 'hoch' ? 'Zweimal „noch feucht“' : 'Zweimal „staubtrocken“';
+  const ziel = v.wert === 1 ? 'auf täglich' : 'auf ' + v.wert + ' Tage';
+  return `<div class="iv-vor">
+    <p class="iv-vor-t">${anlass} — ${wort} ${ziel} setzen?</p>
+    <div class="kb-aktionen">
+      <button type="button" class="kb-zweit" data-do="iv-vor-ja" data-p="${p.id}">Übernehmen</button>
+      <button type="button" class="kb-link" data-do="iv-vor-nein" data-p="${p.id}">Lassen, wie es ist</button>
+    </div></div>`;
 }
 
 /* Topf und Substrat im Reiter Pflege. Die Mischung ist die Empfehlung
@@ -14425,7 +14594,7 @@ document.addEventListener('click', e=>{
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
   const art = b.dataset.do;
-  if(['iv-auf','iv-schritt','iv-ok','iv-zurueck','topf-eintragen'].indexOf(art) === -1) return;
+  if(['iv-auf','iv-schritt','iv-ok','iv-zurueck','iv-vor-ja','iv-vor-nein','topf-eintragen'].indexOf(art) === -1) return;
   e.stopPropagation();
   const id = b.dataset.p;
   const p = allePflanzen().find(x=>x.id === id); if(!p) return;
@@ -14451,14 +14620,22 @@ document.addEventListener('click', e=>{
     const s = parseInt(box.dataset.s, 10), w = parseInt(box.dataset.w, 10);
     if(!(s > 0 && w > 0)) return;
     aenderungSetzen(id, {intervall:[s, w], intervallEigen:true});
+    /* Ein von Hand gesetzter Wert startet bei sich selbst: ein alter
+       gelernter Faktor schlüge sonst sofort auf die frische Zahl
+       durch, und man landet wieder bei dem, was man gerade
+       wegkorrigiert hat. */
+    if(typeof lernZuruecksetzen === 'function') lernZuruecksetzen(id);
     render();
     return;
   }
   if(art === 'iv-zurueck'){
     aenderungSetzen(id, {intervallEigen:false});
+    ivVorschlagWeg(id);
     render();
     return;
   }
+  if(art === 'iv-vor-ja'){  ivVorschlagUebernehmen(id); render(); return; }
+  if(art === 'iv-vor-nein'){ ivVorschlagWeg(id);        render(); return; }
   if(art === 'topf-eintragen'){
     const roh = prompt('Topfdurchmesser in Zentimetern?', p.topf ? String(p.topf) : '');
     if(roh === null) return;
@@ -14466,6 +14643,37 @@ document.addEventListener('click', e=>{
     if(!(n >= 4 && n <= 120)){ alert('Bitte eine Zahl zwischen 4 und 120 eingeben.'); return; }
     aenderungSetzen(id, {topf:String(n)});
     render();
+  }
+});
+
+/* Historie: umschalten, Balken antippen, ins Fotoband springen (3.13.0) */
+document.addEventListener('click', e=>{
+  const rect = e.target.closest('[data-vb]');
+  if(rect){
+    e.stopPropagation();
+    const teile = String(rect.dataset.vb || '').split('|');
+    const box = rect.closest('.verlauf');
+    const tipp = box && box.querySelector('[data-v-tipp]');
+    if(tipp && teile.length === 2){
+      const n = parseInt(teile[1], 10) || 0;
+      tipp.textContent = new Date(teile[0]+'T12:00:00').toLocaleDateString('de-DE',{day:'numeric', month:'long'})
+        + ' · ' + n + (n === 1 ? ' Tag' : ' Tage') + ' Abstand';
+    }
+    return;
+  }
+  const b = e.target.closest('[data-do]'); if(!b) return;
+  const art = b.dataset.do;
+  if(art === 'hist-um'){
+    e.stopPropagation();
+    S.histAnsicht = b.dataset.v === 'strahl' ? 'strahl' : 'balken';
+    sichern(); render();
+    return;
+  }
+  if(art === 'foto-band'){
+    e.stopPropagation();
+    const karte = document.getElementById('karte-rumpf') || document;
+    const band = karte.querySelector('.km-fotoband') || karte.querySelector('.gal');
+    if(band && band.scrollIntoView) band.scrollIntoView({block:'center'});
   }
 });
 
@@ -14582,7 +14790,7 @@ function kartenDetailHTML(p){
           + kblock('winter', 'Winterruhe', winter)},
         {key:'standort', titel:'Standort', inhalt: lagePaneHTML(p)},
         {key:'verlauf', titel:'Verlauf', inhalt:
-          kblock('giessabstand', 'Gießabstände', giessVerlaufHTML(p))
+          kblock('historie', 'Historie', giessVerlaufHTML(p))
           + kblock('wachstum', 'Wachstum', typeof wachstumHTML==='function' ? wachstumHTML(p) : '', '', 'nur-experte')
           + kblock('status', 'Einträge', typeof statusHTML==='function' ? statusHTML(p) : '', nEreig ? `${nEreig}` : '')
           + kblock('befunde', 'Befunde des Doktors', befundeHTML(p), nBef ? `${nBef}` : '')
@@ -21778,9 +21986,9 @@ function lernStand(p){
   return {faktor:f, unten: f <= g.min + 0.001, oben: f >= g.max - 0.001};
 }
 /* Richtung 'hoch' verlängert den Abstand, 'runter' verkürzt ihn. */
+const VORSCHLAG_AB = 2;
 function lernSchritt(p, richtung){
   if(!p || !gruppeLernt(p)) return false;
-  if(p.intervallEigen === true) return false;
   const g = gruppeVon(p);
   const e = S.zustand[p.id] || (S.zustand[p.id] = {});
   /* Ein Zyklus ist die Zeit bis zum nächsten Gießen. Solange kein
@@ -21788,12 +21996,25 @@ function lernSchritt(p, richtung){
      als eine. */
   const marke = (typeof giessLog === 'function' ? (giessLog(p.id)[0] || '') : '') + '|' + richtung;
   if(e.lernMarke === marke) return false;
-  const alt = lernFaktorVon(p.id);
-  const neu = Math.max(g.min, Math.min(g.max, alt * (richtung === 'hoch' ? g.hoch : g.runter)));
   e.lernMarke = marke;
-  e.lernFaktor = neu;
   if(richtung === 'runter') e.trockenZahl = (e.trockenZahl || 0) + 1;
   else e.trockenZahl = 0;
+  /* Über einem Handwert wird nicht gerechnet, sondern gefragt: der
+     gerechnete Abstand bleibt, bis der Vorschlag angenommen ist. */
+  if(ivEigen(p)){
+    e.vorZahl = (e.vorRichtung === richtung ? (e.vorZahl || 0) : 0) + 1;
+    e.vorRichtung = richtung;
+    delete e.ivVorschlag;
+    if(e.vorZahl >= VORSCHLAG_AB){
+      const v = vorschlagRechnen(p, richtung);
+      if(v) e.ivVorschlag = v;
+    }
+    sichern();
+    return false;
+  }
+  const alt = lernFaktorVon(p.id);
+  const neu = Math.max(g.min, Math.min(g.max, alt * (richtung === 'hoch' ? g.hoch : g.runter)));
+  e.lernFaktor = neu;
   sichern();
   return Math.abs(neu - alt) > 0.001;
 }
@@ -21803,6 +22024,7 @@ function lernZuruecksetzen(id){
   const e = S.zustand[id];
   if(!e) return;
   delete e.lernFaktor; delete e.lernMarke; delete e.trockenZahl;
+  delete e.ivVorschlag; delete e.vorZahl; delete e.vorRichtung;
   sichern();
 }
 /* Was ein dauerndes Anschlagen bedeutet — je Gruppe verschieden.
@@ -21892,21 +22114,30 @@ function giessAbstaende(id){
   }
   return raus;
 }
+/* Ein Balken je Abstand zwischen zwei Gießgängen, der älteste links,
+   die gestrichelte Marke beim gerechneten Rhythmus. Ein Tipp auf einen
+   Balken schreibt Datum und Tage in die Zeile darunter — ein
+   Mauszeiger-Titel bleibt am Handy unsichtbar. */
 function verlaufHTML(p){
-  const ab = giessAbstaende(p.id);
-  if(ab.length < 2) return '';
-  const zeig = ab.slice(-14);
+  const log = (typeof giessTermine === 'function' ? giessTermine(p.id) : []).slice().sort();
+  const ab = [];
+  for(let i = 1; i < log.length; i++)
+    ab.push({tage: Math.round((new Date(log[i]+'T12:00:00') - new Date(log[i-1]+'T12:00:00'))/86400000),
+             datum: log[i]});
+  if(ab.length < 2)
+    return '<p class="kb-leer">Für ein Bild der Abstände fehlen noch Gießtermine — ab dem dritten steht hier einer.</p>';
+  const zeig = ab.slice(-12);
   const ziel = intervallVon(p);
-  const max = Math.max(ziel*1.6, ...zeig) || 1;
+  const max = Math.max(ziel*1.6, ...zeig.map(x=>x.tage)) || 1;
   const B = 240, H = 46, bw = B/zeig.length;
   const zielY = H - (ziel/max)*H;
   const balken = zeig.map((v,i)=>{
-    const h = (v/max)*H;
-    const ton = v > ziel*1.4 ? 'zu-lang' : (v < ziel*0.6 ? 'zu-kurz' : 'passt');
-    return `<rect class="vb ${ton}" x="${(i*bw+bw*0.15).toFixed(1)}" y="${(H-h).toFixed(1)}"
-      width="${(bw*0.7).toFixed(1)}" height="${h.toFixed(1)}" rx="1"><title>${v} ${v === 1 ? 'Tag' : 'Tage'}</title></rect>`;
+    const h = (v.tage/max)*H;
+    const ton = v.tage > ziel*1.4 ? 'zu-lang' : (v.tage < ziel*0.6 ? 'zu-kurz' : 'passt');
+    return `<rect class="vb ${ton}" data-vb="${v.datum}|${v.tage}" x="${(i*bw+bw*0.15).toFixed(1)}" y="${(H-h).toFixed(1)}"
+      width="${(bw*0.7).toFixed(1)}" height="${h.toFixed(1)}" rx="1"><title>${v.tage} ${v.tage === 1 ? 'Tag' : 'Tage'}</title></rect>`;
   }).join('');
-  const schnitt = Math.round(zeig.reduce((a,b)=>a+b,0)/zeig.length);
+  const schnitt = Math.round(zeig.reduce((a,b)=>a+b.tage,0)/zeig.length);
   const urteil = schnitt > ziel*1.3 ? 'im Schnitt später als vorgesehen'
     : schnitt < ziel*0.7 ? 'im Schnitt öfter als vorgesehen' : 'passt zum Richtwert';
   return `<div class="verlauf">
@@ -21915,6 +22146,7 @@ function verlaufHTML(p){
       ${balken}
       <line x1="0" y1="${zielY.toFixed(1)}" x2="${B}" y2="${zielY.toFixed(1)}" class="v-ziel"/>
     </svg>
+    <p class="v-tipp" data-v-tipp>Marke: ${ivWort(ziel)} · tippe einen Balken an</p>
     <p class="v-fuss">Im Schnitt alle ${schnitt} Tage, Richtwert ${ziel} — ${urteil}.</p>
   </div>`;
 }

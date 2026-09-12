@@ -1,7 +1,7 @@
 # Übergabe — GreenkeeperAI
 
-Stand: 11.09.2026, Ende der Sitzung. Fassung **3.12.0**, sw.js **v105**,
-Prüfstand **1559 Prüfungen, alles sauber**.
+Stand: 12.09.2026, Ende der Sitzung. Fassung **3.13.0**, sw.js **v106**,
+Prüfstand **1587 Prüfungen, alles sauber**.
 
 ---
 
@@ -32,133 +32,107 @@ Prüfstand **1559 Prüfungen, alles sauber**.
 
 ## Technik in Kürze
 
-- Alles in einer `index.html` (~27.000 Zeilen), dazu `sw.js` und `CHANGELOG.md`.
+- Alles in einer `index.html` (~28.000 Zeilen), dazu `sw.js` und `CHANGELOG.md`.
   Kein Framework, kein Build.
 - Zustand in localStorage (`pflanzenglossar-start`), Fotos in IndexedDB.
 - Prüfstand: `node pruef.js`, jsdom, Brücke `window.__T`.
-  `pruef.js` hält die Fassungsnummer fest — muss mit FASSUNG mitwandern.
+  `pruef.js` hält die Fassungsnummer an zwei Stellen fest (FASSUNG und
+  oberster PATCHNOTES-Eintrag) — muss mitwandern.
 - Patchskripte in Python: immer `assert s.count(alt) == n` vor jeder Ersetzung.
 - Dateien holen: `curl -sL -H "User-Agent: c"` von raw.githubusercontent.com.
   Direktes web_fetch auf diese Domain scheitert.
+- jsdom ist im Container nicht vorinstalliert: einmal `npm install jsdom`.
 - Gegenprobe-Standard: jede Korrektur braucht eine Prüfung, die fehlschlägt,
   wenn man die Korrektur entfernt. Gegenproben in Häppchen mit Zeitlimit laufen
   lassen, sonst bleibt bei Abbruch eine kaputte Datei liegen.
 
 ---
 
-## Diese Sitzung: 3.12.0
+## Diese Sitzung: 3.13.0
 
-Ziel war die Etappe A2 der Pflanzenkarte, davor eine Designrunde. Chris hat
-die Designvorschau abgenommen („Finde ich super so“), dann umgesetzt.
+Zwei Themen: die Historie auf der Pflanzenkarte und das Lernen über einem
+Handwert. Beides in allen drei Designs.
 
-### Design (nur Botanisch)
+### Lernen über einem Handwert
 
-Die Karte spricht jetzt dieselbe Sprache wie Heute, Mehr, Werkzeuge und
-Gießmodus. Klartext und Terrarium bleiben unverändert — alle neuen Regeln
-hängen an `html[data-design="botanisch"] #karte-rumpf`.
+Umgesetzt wie am 12.09. entschieden: der Handwert ersetzt die Gießklasse als
+Ausgangspunkt, mehr nicht — und das Lernen ändert ihn nie still, sondern
+schlägt vor.
 
-- Kopf: Bild, Fotoband, dann Name. Ohne Foto eine einzige Zeile
-  „Foto hinzufügen“ statt leerem Kasten plus gestricheltem Plusfeld.
-- Interne Kennung (E-100) raus aus dem Untertitel.
-- Katze raus aus den Kurzprofil-Zeichen; die Warnung sagt es schon.
-- Warnung als getönte Fläche statt Rahmen mit Balken.
-- Aufgaben als eine Zeile wie in Mehr, eigener Merkschlüssel
-  `aufgaben-zeile`, startet zugeklappt.
-- Reiter: Text mit Unterstrich, `position:sticky`.
-- Jeder Abschnitt eine weiche Kachel, Werte als Zeilen statt Mono-Etiketten,
-  leere Zustände leise.
+- `lernSchritt` sperrt bei gesetztem Handwert nicht mehr, sondern zählt.
+  Zwei gleichgerichtete Rückmeldungen schreiben `ivVorschlag` in
+  `S.zustand[id]`; eine gegenläufige setzt den Zähler zurück.
+- Der Vorschlag gilt nur für seine Saison und nur zu dem Wert, zu dem er
+  entstanden ist. Ändert sich der Handwert, ist er hinfällig.
+- Die Karte fragt im Gießen-Block: „Zweimal ‚noch feucht‘ — Sommer auf
+  9 Tage setzen?“ Ein Tipp übernimmt, daneben steht „Lassen, wie es ist“.
+- **Der Fix aus 3.12.0 ist mit drin:** Eine Änderung von Hand *und* die
+  Annahme eines Vorschlags setzen den gelernten Faktor zurück auf 1.
+- Gegenprobe wie vermerkt: Handwert plus zwei Rückmeldungen verschiebt den
+  gerechneten Wert nicht, solange nicht zugestimmt wurde.
 
-### A2-Inhalte (in allen drei Designs)
+### Historie (Reiter Verlauf)
 
-- **Licht am Platz** (Reiter Standort): Sonnenstunden im laufenden Monat,
-  Spanne der Art als Band, Urteil passt/zu wenig/zu viel. Ohne Platz im
-  Grundriss keine Zahl, stattdessen Knopf dorthin. **Wirkt nicht auf das
-  Gießintervall** — nur Anzeige.
-- **Topf und Substrat** (Reiter Pflege): Topfgröße, letztes Umtopfen,
-  empfohlene Mischung der Art mit Teilen. Topfgröße auf der Karte
-  nachtragbar, Sprung in den Substratrechner.
-- **Rhythmus von Hand**: Sommer und Winter getrennt, Marke zur Herkunft
-  (Gießklasse / gelernt / von Hand / Wasserwechsel), zurück zur Gießklasse.
-- **Giftigkeit je Tier** (Reiter Wissen): eine Zeile pro eingetragenem Tier.
-  Ohne Tiere kein Abschnitt und keine Warnung.
-- **Steckbrief** ergänzt Familie, Wuchsform, Frostgrenze aus der
-  Artenbibliothek. Eigene Angaben bleiben stehen.
+- Umschalter **Balken / Zeitstrahl**, die Wahl steht in `S.histAnsicht` und
+  gilt über alle Pflanzen.
+- Balken: zwölf Abstände, ältester links, gestrichelte Marke beim gerechneten
+  Rhythmus, Tipp auf einen Balken schreibt Datum und Tage in die Zeile
+  darunter. Unter drei Gießterminen eine ruhige Zeile statt leerem Bild.
+- Zeitstrahl: Gießgänge, Ereignisse, Fotos und Doktor-Befunde zusammen, nach
+  Monaten gruppiert, das Neueste oben, 25 Einträge offen, Rest im Aufklapper.
+  Foto-Zeilen springen ins Fotoband.
 
-### Abweichungen vom Plan, beide abgesprochen
+### Abweichung vom Plan
 
-- „Angerührte Mischung merken“ ist herausgefallen: In der App wird eine
-  Mischung nur empfohlen, nie angerührt — es gibt keinen Auslöser. Liegt im
-  Backlog.
-- Ein eigener Rhythmus schaltet jetzt auch einen früher gelernten Faktor ab.
-  Sonst stünde nach „alle 7 Tage“ eine andere Zahl auf der Karte.
+- Der Plan sagte „neue Kachel Historie im Reiter Pflege“. Im Reiter Verlauf
+  stand aber längst ein Balkenbild der Gießabstände (`verlaufHTML`). Eine
+  zweite Historie daneben wäre dasselbe zweimal gewesen. Also im Reiter
+  Verlauf ausgebaut: der Block heißt jetzt „Historie“ statt „Gießabstände“,
+  das alte Bild ist der Balkenteil. Die Textzeile „Gegossen: 01.08. · …“ ist
+  entfallen, der Zeitstrahl sagt dasselbe genauer.
 
 ### Neue oder geänderte Funktionen (zum Wiederfinden)
 
-`ivEigen`, `rhythmusQuelle`, `ivEditorHTML`, `topfSubstratHTML`,
-`lichtAmPlatzHTML`, `frostWort`, `steckbriefDaten`, `kartenZeichen`,
-`aufgabenZeileHTML`. `trackerHTML` ist entfallen. `galerieHTML(p, ruhig)`
-hat einen zweiten Parameter. `kGiftHTML` und `warnungenHTML` hängen jetzt an
-`meineTiere()`.
+`vorschlagRechnen`, `ivVorschlagVon`, `ivVorschlagWeg`,
+`ivVorschlagUebernehmen`, `ivVorschlagHTML`, `VORSCHLAG_AB`,
+`histAnsicht`, `zeitstrahlHTML`, `zeitstrahlEintraege`, `zsDatumIso`.
+`lernSchritt`, `lernZuruecksetzen`, `verlaufHTML` und `giessVerlaufHTML` sind
+umgebaut. Merkmale in `S.zustand[id]`: `ivVorschlag`, `vorZahl`,
+`vorRichtung`. Neu in `S`: `histAnsicht`.
 
 ---
 
 ## Wichtig für die nächste Sitzung
 
 1. **Der Reiter Wissen bleibt immer stehen.** Ist zur Art nichts hinterlegt,
-   steht dort ein Hinweis. Vorher verschwand der Reiter — das hat beim
-   Umbau zwei Prüfungen umgeworfen.
+   steht dort ein Hinweis.
 2. **Kein `background-image:url("data:image/svg+xml…")` im Stylesheet.**
-   Eine Prüfung verbietet das seit dem Papierbild. Selects behalten deshalb
-   den Systempfeil.
-3. **Prüfungen nicht spröde schreiben.** `auf.querySelector(…).textContent`
-   stürzt bei einer Gegenprobe ab, statt sauber FEHL zu melden. Immer
+   Eine Prüfung verbietet das seit dem Papierbild.
+3. **Prüfungen nicht spröde schreiben.** Immer
    `((a && a.querySelector(…)) || {}).textContent || ''`.
 4. `prompt()` gibt es in jsdom nicht — die Meldung im Protokoll ist normal.
+5. **Der Handwert ist ein Paar** (Sommer, Winter), der gerechnete Abstand eine
+   Mischung nach Jahreslage. Ein Vorschlag ändert immer nur eine Seite — wer
+   prüft, ob „die App mit der angezeigten Zahl rechnet“, darf nicht erwarten,
+   dass der Handwert selbst herauskommt.
+6. **Rückmeldungen zählen nur einmal je Gießzyklus** (`lernMarke`). Wer im
+   Prüfstand zwei Schritte braucht, muss dazwischen einen Gießtermin
+   eintragen.
 
-## Noch offen aus dieser Sitzung
+## Noch offen
 
-- Klebende Reiter und die Zustandsauswahl am echten Gerät ansehen.
-- Der Sprung „Im Substratrechner öffnen“ von der Karte aus ist nicht am
-  Gerät getestet, nur die Verdrahtung.
-
-### Gleich im nächsten Schritt mitnehmen: Lernen über einem Handwert
-
-Klein, aber inhaltlich wichtig. In 3.12.0 sperrt ein eigener Rhythmus das
-Nachlernen komplett. Das ist zu streng: Wer einmal von Hand etwas eingestellt
-hat, soll trotzdem übernehmen können, was der Gießmodus später lernt — zweimal
-„noch feucht“ oder zweimal „staubtrocken“ sagen ja etwas.
-
-Verhindert werden sollte nur eines: dass auf der Karte „alle 7 Tage“ steht und
-die App in Wahrheit mit 9 rechnet.
-
-Entscheidung (Chris, 12.09.): **Der Handwert ersetzt die Gießklasse als
-Ausgangspunkt, mehr nicht — und das Lernen ändert ihn nie still, sondern
-schlägt vor.**
-
-- Nach zwei gleichgerichteten Rückmeldungen fragt die Karte:
-  „Zweimal noch feucht — Sommer auf 9 Tage setzen?“ Ein Tipp übernimmt, und
-  der neue Wert ist dann der Handwert.
-- Nichts verschiebt sich hinter dem Rücken; passt zum Düngetag, der auch fragt
-  statt einfach zu tun.
-- Verworfen: still lernen und beide Zahlen anzeigen (zwei Zahlen für eine
-  Sache), sowie still lernen und nur das Ergebnis zeigen (genau der
-  Widerspruch, der in 3.12.0 rausgeflogen ist).
-- **Wichtiges Detail:** Wird der Rhythmus von Hand geändert, muss der bis
-  dahin gelernte Faktor zurück auf 1. Sonst schlägt ein alter Faktor sofort
-  auf den frischen Wert durch, und man landet wieder bei der Zahl, die man
-  gerade wegkorrigiert hat.
-- Gegenprobe dazu: Ein Handwert plus zwei Rückmeldungen darf den gerechneten
-  Wert **nicht** verschieben, solange der Vorschlag nicht angenommen wurde.
+- Am echten Gerät ansehen: klebende Reiter, Zustandsauswahl, der Sprung
+  „Im Substratrechner öffnen“, der Umschalter der Historie, der Tipp auf
+  einen Balken und der Sprung vom Zeitstrahl ins Fotoband.
+- Der Zeitstrahl hat keinen Filter je Ereignisart — bewusst weggelassen,
+  liegt im Backlog.
 
 ## Backlog
 
 - Nach dem Hochladen: Chris an eine Pause von 1–3 Tagen erinnern, in der er
   lernt, wie er am besten mit Claude arbeitet (Prompting, Modellwahl,
   Arbeitsweise). Steht seit mehreren Sitzungen an.
-- Gießhistorie auf der Pflanzenkarte als Diagramm, das die Abstände deutlich
-  macht. In der Vorschau war ein Balkenbild dafür — noch nicht gebaut.
-- Historie als umschaltbarer Zeitstrahl: Gießen, Blatt/Foto, Doktor,
-  Umtopfen, Vermehren.
+- Zeitstrahl: umschaltbar nach Ereignisart filtern.
 - Sammelvermehrung: Bilderstapel aus der Sammlung, um Vermehrungswege per KI
   zu bestimmen (Eingabegrenzen von Gemini beachten).
 - Pflichtkriterien in den KI-Aufträgen (Doktor und Anlegen): Gesundheit
@@ -174,4 +148,3 @@ schlägt vor.**
 ## Zu liefernde Dateien dieser Sitzung
 
 `index.html`, `pruef.js`, `sw.js`, `CHANGELOG.md`, `uebergabe.md`
-(und `vorschau.html`, falls die Designvorschau online bleiben soll).
