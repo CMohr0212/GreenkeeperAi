@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.13.1', w.__T('FASSUNG') === '3.13.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.14.0', w.__T('FASSUNG') === '3.14.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -6390,7 +6390,112 @@ setTimeout(async () => {
     pruef('Der Leser kennt SPEICHER',
       JSON.parse(w.__T("JSON.stringify(geminiLesen('SPEICHER: dicker Stamm oder Caudex'))")).speicher
         === 'dicker Stamm oder Caudex');
+  
+  /* ══════════ A1: zwei Auftraege aus einem Text ══════════
+     Das Anlegen bestimmt und erfasst, der Doktor bewertet. Faellt die
+     Trennung weg, fragt das Anlegen wieder nach Zustand und Massnahmen
+     — genau das pruefen die naechsten Zeilen. */
+  {
+    const anl = w.__T('anlegenPromptBauen()');
+    const dok = w.__T('dokPromptBauen()');
+    const hat = (t, n) => new RegExp('^' + n + ':', 'm').test(String(t));
+
+    ['SUBSTRAT','TOPFART','ABLAUF'].forEach(n=>
+      pruef('Der Anlegen-Auftrag fragt nach ' + n, hat(anl, n)));
+    ['ZUSTAND','BEFUND','MASSNAHME','FEHLT','GIESSEN','TOPF'].forEach(n=>
+      pruef('Der Anlegen-Auftrag fragt nicht mehr nach ' + n, !hat(anl, n)));
+    ['ZUSTAND','BEFUND','MASSNAHME','FEHLT','GIESSEN','TOPF'].forEach(n=>
+      pruef('Der Doktor-Auftrag fragt weiter nach ' + n, hat(dok, n)));
+
+    /* Der Doktor darf sich nicht still mitaendern: er benutzt weiterhin
+       ANTWORT_FORMAT unveraendert. */
+    pruef('Der Doktor benutzt das unveraenderte Antwortformat',
+      dok.indexOf(w.__T('ohneVermehrung(mitDoktorZeilen(ANTWORT_FORMAT))')
+        .split('\n\n')[4].split('\n')[0]) !== -1
+      || dok.indexOf(w.__T('ANTWORT_FORMAT').split('\n\n')[4].split('\n')[0]) !== -1);
+
+    /* Die Zahl im Kopf zaehlt die Feldzeilen selbst. Zwei Auftraege,
+       zwei Zahlen — eine feste Zahl waere hier falsch. */
+    const zahlZu = t => {
+      const felder = new Set();
+      String(t).split('\n').forEach(z=>{
+        const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
+        if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
+      });
+      return w.__T('ZAHLWORT')[felder.size];
+    };
+    pruef('Die Zahl im Anlegen-Auftrag stimmt',
+      new RegExp('Alle ' + zahlZu(anl) + ' Schlüsselwörter').test(anl),
+      (anl.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
+    pruef('Die Zahl im Doktor-Auftrag stimmt',
+      new RegExp('Alle ' + zahlZu(dok) + ' Schlüsselwörter').test(dok),
+      (dok.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
+
+    /* Liste und Beispiel muessen dieselben Felder nennen. Sagt das
+       Beispiel etwas, das die Liste nicht kennt, widerspricht der
+       Auftrag sich selbst. */
+    const felderVon = blk => (String(blk).match(/^[A-ZÄÖÜ]{3,}(?=:)/gm) || []);
+    {
+      const t = anl.split('\n\n');
+      const liste = felderVon(t[t.length - 7]);
+      const bsp = felderVon(t[t.length - 5]);
+      pruef('Anlegen: Beispiel und Liste nennen dieselben Felder',
+        liste.length > 0 && liste.every(n=>bsp.indexOf(n) >= 0)
+        && bsp.every(n=>liste.indexOf(n) >= 0),
+        liste.join(',') + ' ||| ' + bsp.join(','));
+    }
+
+    /* Die Tierzeile richtet sich nach den eingetragenen Tieren. */
+    w.__T("S.tiere = {aktiv:true, arten:['hund','nager']}");
+    const mitHund = w.__T('anlegenPromptBauen()');
+    pruef('Die Tierzeile nennt die eingetragenen Tiere',
+      /^KATZEN: Giftig für Hunde und Nager\?/m.test(mitHund),
+      (mitHund.match(/^KATZEN:.*/m) || [''])[0].slice(0, 60));
+    w.__T("S.tiere = {aktiv:true, arten:['katze']}");
+    pruef('Mit Katze steht Katzen da',
+      /^KATZEN: Giftig für Katzen\?/m.test(w.__T('anlegenPromptBauen()')));
+    w.__T("S.tiere = {aktiv:false, arten:[]}");
+    const ohneTier = w.__T('anlegenPromptBauen()');
+    pruef('Ohne Tier fällt die Frage ganz weg', !/^KATZEN:/m.test(ohneTier));
+    pruef('Und die Zahl zählt eins weniger',
+      new RegExp('Alle ' + zahlZu(ohneTier) + ' Schlüsselwörter').test(ohneTier));
+    w.__T("S.tiere = {aktiv:true, arten:['katze']}");
+
+    /* Der Leser muss die drei neuen Zeilen kennen. */
+    const gl = JSON.parse(w.__T(
+      "JSON.stringify(geminiLesen('SUBSTRAT: Blähton\\nTOPFART: Orchideentopf\\nABLAUF: ja'))"));
+    pruef('Der Leser kennt SUBSTRAT', gl.substrat === 'Blähton', JSON.stringify(gl));
+    pruef('Der Leser kennt TOPFART', gl.topfart === 'Orchideentopf');
+    pruef('Der Leser kennt ABLAUF',
+      w.__T('ablaufLesen(' + JSON.stringify(gl.ablauf) + ')') === 'ja',
+      String(gl.ablauf));
+    pruef('Die Topfart wird auf einen Schlüssel abgebildet',
+      w.__T("topfartLesen('Orchideentopf')") === 'orchidee'
+      && w.__T("topfartLesen('flache Schale')") === 'schale'
+      && w.__T("topfartLesen('Kulturtopf')") === 'kultur');
+    pruef('Eine unklare Topfart wird nicht geraten',
+      w.__T("topfartLesen('nicht sichtbar')") === null
+      && w.__T("topfartLesen('')") === null);
+    pruef('Der Ablauf wird gelesen',
+      w.__T("ablaufLesen('ja')") === 'ja' && w.__T("ablaufLesen('nein')") === 'nein'
+      && w.__T("ablaufLesen('nicht sichtbar')") === null);
+
+    /* Eine Musterantwort muss die drei Werte bis an die Pflanze
+       tragen. Der Test legt sich seine Pflanze selbst an. */
+    w.__T('alStart(); neuWegSetzen("ki")');
+    w.__T("document.getElementById('f-paste').value = "
+      + "'ART: Fensterblatt\\nBOTANISCH: Monstera deliciosa\\nSUBSTRAT: Erde mit Rinde"
+      + "\\nTOPFART: Kulturtopf\\nABLAUF: ja'; "
+      + "document.getElementById('btn-paste-los').click()");
+    pruef('Die neuen Angaben stehen in der gelesenen Antwort',
+      w.__T('letzteKiAntwort && letzteKiAntwort.substrat') === 'Erde mit Rinde'
+      && w.__T('letzteKiAntwort && letzteKiAntwort.topfart') === 'Kulturtopf');
+    pruef('Die Notiz trägt keinen Befund mehr',
+      !/Befund:/.test(w.__T("document.getElementById('f-notiz').value")),
+      w.__T("document.getElementById('f-notiz').value").slice(0, 60));
   }
+  }
+
 
   /* ══════════ Scrollen in der Sammlung ══════════
      Die Zuklapp-Mechanik ist entfernt. Sie konnte nie greifen: seit
@@ -6610,7 +6715,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.13.1', e0.nr === '3.13.1', e0.nr);
+    pruef('Der oberste Eintrag ist 3.14.0', e0.nr === '3.14.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

@@ -5861,6 +5861,142 @@ PRÜFE VOR DEM ABSENDEN
 7. Enthält TOPF in Feld 1 und 3 nur die erlaubten Wörter, und passt das Urteil dazu, was auf dem Foto überhaupt zu sehen ist?
 8. Steht in BOTANISCH kein geratener Sortenname?`;
 
+/* ── Zwei Auftraege aus einem Text ────────────────────────
+   Anlegen und Doktor brauchen verschiedene Felder: das Anlegen
+   bestimmt und erfasst, was zu sehen ist, der Doktor bewertet. Statt
+   zwei lange Texte nebeneinander zu pflegen, wird ANTWORT_FORMAT zur
+   Laufzeit in seine Feldzeilen zerlegt und je Auftrag neu
+   zusammengesetzt. Der Doktor benutzt weiterhin ANTWORT_FORMAT
+   unveraendert — so kann sich sein Text nicht still mitaendern. */
+/* Die Zahl im Prompt wird nicht mehr von Hand heruntergezählt, sondern
+   aus der Feldliste selbst gelesen. Vorher liefen zwei Ersetzungen
+   hintereinander über denselben Text: die erste machte aus „sechzehn“
+   ein „fünfzehn“, die zweite zog sofort noch einmal ab. Der Prompt nannte
+   dann vierzehn Schlüsselwörter und listete fünfzehn. */
+const ZAHLWORT = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
+  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+
+function promptZahlSetzen(txt){
+  const t = String(txt);
+  /* Gezählt werden die Feldzeilen, die genau einmal vorkommen müssen —
+     also alles außer den mehrfach erlaubten VERMEHRUNG und MASSNAHME. */
+  const felder = new Set();
+  t.split('\n').forEach(z => {
+    const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
+    if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
+  });
+  const n = felder.size;
+  const wort = ZAHLWORT[n] || String(n);
+  return t.replace(/Alle \S+ Schlüsselwörter/g, 'Alle ' + wort + ' Schlüsselwörter');
+}
+
+const FMT_TEILE = ANTWORT_FORMAT.split('\n\n');
+const BT = String.fromCharCode(96, 96, 96);
+
+/* Zerlegt einen Block in Felder. Ein Schluesselwort am Zeilenanfang
+   beginnt ein neues Feld, eingerueckte Folgezeilen gehoeren zum
+   vorigen — GIESSART hat drei davon. */
+function fmtFelder(block){
+  const raus = []; let jetzt = null;
+  String(block || '').split('\n').forEach(z=>{
+    const m = z.match(/^([A-ZAEOEUEÄÖÜ]{3,}):/);
+    if(m){ jetzt = {name:m[1], zeilen:[z]}; raus.push(jetzt); }
+    else if(jetzt) jetzt.zeilen.push(z);
+  });
+  return raus;
+}
+const FMT_ZEILEN   = fmtFelder(FMT_TEILE[4]);
+const FMT_BEISPIEL = fmtFelder(FMT_TEILE[6].split('\n').slice(1, -1).join('\n'));
+
+/* Felder, die es nur im Anlegen-Auftrag gibt. Sie beschreiben, was am
+   Bild zu sehen ist — kein Urteil, keine Empfehlung. */
+const FELD_ZUSATZ = {
+  SUBSTRAT: {
+    text:'SUBSTRAT: Was an der Oberflaeche zu sehen ist. Nur genau eine dieser Angaben: Erde, Erde mit Rinde, Rinde, Blaehton, Seramis oder Pon, Sphagnum, Kies oder Sand, Wasser, nicht sichtbar. Du beurteilst nur die Oberflaeche, nicht was darunter liegt.'
+      .replace(/ae/g, '\u00e4').replace(/oe/g, '\u00f6'),
+    bsp:'SUBSTRAT: Erde'
+  },
+  TOPFART: {
+    text:'TOPFART: Nur genau eine dieser Angaben: Kulturtopf, Schale, Orchideentopf, quadratisch, hoher Topf, Glas oder Vase, nicht sichtbar. Steht der Kulturtopf in einem Uebertopf, nenne den Kulturtopf.'
+      .replace(/Uebertopf/, '\u00dcbertopf'),
+    bsp:'TOPFART: Kulturtopf'
+  },
+  ABLAUF: {
+    text:'ABLAUF: Hat der Topf ein sichtbares Abzugsloch? Nur genau eines dieser Woerter: ja, nein, nicht sichtbar'
+      .replace(/Woerter/, 'W\u00f6rter'),
+    bsp:'ABLAUF: ja'
+  }
+};
+
+/* Setzt aus der Namensliste einen vollstaendigen Auftrag zusammen:
+   Feldliste und Beispielantwort folgen derselben Reihenfolge. */
+function auftragFormat(namen, sonicht, pruefliste){
+  const zeile = n => {
+    const f = FMT_ZEILEN.find(x=>x.name === n);
+    if(f) return f.zeilen.join('\n');
+    return FELD_ZUSATZ[n] ? FELD_ZUSATZ[n].text : '';
+  };
+  const bsp = n => {
+    const f = FMT_BEISPIEL.filter(x=>x.name === n);
+    if(f.length) return f.map(x=>x.zeilen.join('\n')).join('\n');
+    return FELD_ZUSATZ[n] ? FELD_ZUSATZ[n].bsp : '';
+  };
+  const t = FMT_TEILE.slice();
+  t[4] = namen.map(zeile).filter(Boolean).join('\n');
+  t[6] = BT + '\n' + namen.map(bsp).filter(Boolean).join('\n') + '\n' + BT;
+  if(sonicht)    t[8]  = sonicht;
+  if(pruefliste) t[10] = pruefliste;
+  return t.join('\n\n');
+}
+
+/* Der Anlegen-Auftrag: bestimmen und erfassen. Zustand, Befund,
+   Massnahmen, Topfurteil und der Giesssatz gehoeren zum Doktor und
+   stehen hier nicht mehr. Jede Zeile weniger ist eine Stelle weniger,
+   an der die Antwort ausschert. */
+const ANLEGEN_FELDER = ['ART','BOTANISCH','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
+  'LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART','ABLAUF','FROST','WICHTIG',
+  'KATZEN','VERMEHRUNG'];
+
+const ANLEGEN_SONICHT = 'Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:. '
+  + 'Keine Zeile ohne Schl\u00fcsselwort. Kein "Ich hoffe, das hilft!". Keine Werte wie "hell bis indirekt", '
+  + 'wo nur ein Wort erlaubt ist. Keine Diagnose, keine Pflegeempfehlung, kein Urteil dar\u00fcber, '
+  + 'ob der Topf zu klein ist oder die Pflanze gesund — hier wird nur beschrieben, was zu sehen ist.';
+
+const ANLEGEN_PRUEFLISTE = '1. Steht die gesamte Antwort in einem Codeblock und au\u00dferhalb nichts?\n'
+  + '2. Kommen alle Schl\u00fcsselw\u00f6rter genau einmal vor, in der Reihenfolge der Liste? Nur VERMEHRUNG darf mehrfach vorkommen.\n'
+  + '3. Enthalten SICHERHEIT, LICHT, GIESSKLASSE, GIESSART, SUBSTRAT, TOPFART und ABLAUF nur eine der erlaubten Angaben?\n'
+  + '4. Hat jede VERMEHRUNG-Zeile genau vier senkrechte Striche?\n'
+  + '5. Steht in BOTANISCH kein geratener Sortenname?\n'
+  + '6. Steht irgendwo ein Urteil oder eine Empfehlung? Dann streich es.';
+
+/* Die Tierzeile richtet sich nach den eingetragenen Tieren. Wer keine
+   haelt, bekommt die Frage gar nicht gestellt. */
+function tierZeileFuer(arten){
+  const liste = (arten || []).map(t=>(typeof TIERARTEN !== 'undefined' && TIERARTEN[t])
+    ? TIERARTEN[t].mehrzahl : '').filter(Boolean);
+  if(!liste.length) return null;
+  const wort = liste.length === 1 ? liste[0]
+    : liste.slice(0, -1).join(', ') + ' und ' + liste[liste.length - 1];
+  return 'KATZEN: Giftig f\u00fcr ' + wort + '? Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.';
+}
+
+function anlegenFormat(){
+  const tiere = (typeof meineTiere === 'function') ? meineTiere() : ['katze'];
+  const zeile = tierZeileFuer(tiere);
+  const felder = ANLEGEN_FELDER.filter(n=>n !== 'KATZEN' || zeile);
+  if(zeile) FELD_ZUSATZ.KATZEN = {text:zeile, bsp:'KATZEN: giftig, enth\u00e4lt Calciumoxalat-Kristalle'};
+  else delete FELD_ZUSATZ.KATZEN;
+  /* Der Zusatz gewinnt gegen die Standardzeile — deshalb wird sie aus
+     FMT_ZEILEN ausgeblendet, solange ein Zusatz da ist. */
+  const alt = FMT_ZEILEN.find(x=>x.name === 'KATZEN');
+  const merk = alt ? alt.name : null;
+  if(alt && zeile) alt.name = 'KATZEN_ALT';
+  let t;
+  try { t = auftragFormat(felder, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE); }
+  finally { if(alt && merk) alt.name = merk; }
+  return promptZahlSetzen(t);
+}
+
 /* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
 const GEMINI_PROMPT = ANLEGEN_KOPF + '\n\n' + ANTWORT_FORMAT;
 
@@ -5904,7 +6040,7 @@ function anlegenPromptBauen(){
     kontext.push('Wir haben gerade ' + MONATE[new Date().getMonth()] + '.');
 
   if(kontext.length){ kontext.forEach(z=>zeilen.push(z)); zeilen.push(''); }
-  zeilen.push(ANTWORT_FORMAT);
+  zeilen.push(anlegenFormat());
   return zeilen.join('\n');
 }
 
@@ -5983,6 +6119,9 @@ const ANTWORT_SCHLUESSEL = [
   ['giessart',['giessart','gießart','giessweise','gießweise','art des giessens','wassergabe','watering style']],
   ['wichtig', ['wichtig','besonderheit','besonderheiten','hinweis','hinweise','achtung','kritisch','special']],
   ['katzen',  ['katzen','katze','giftigkeit','giftig','toxizität','toxizitaet','haustiere','pets']],
+  ['substrat',['substrat','erde','medium','oberflaeche','oberfläche','topfinhalt']],
+  ['topfart', ['topfart','topfform','gefaessform','gefäßform','art des topfes']],
+  ['ablauf',  ['ablauf','abzugsloch','abzug','wasserablauf','drainage','drainageloch']],
   ['topf',    ['topf','topfverhaeltnisse','topfverhältnisse','topf und platz','gefaess','gefäß','pflanzgefaess','pflanzgefäß','pot']],
   ['vermehrung',['vermehrung','vermehrungsmethode','vermehrungsmethoden','vermehren','stecklinge','steckling','propagation']],
   ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
@@ -10857,8 +10996,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.13.1';
+const FASSUNG = '3.14.0';
 const PATCHNOTES = [
+  {
+    nr: '3.14.0', datum: '2026-09-12', titel: 'Anlegen bestimmt, Doktor bewertet',
+    kurz: [
+      'Beim Anlegen fragt die KI nur noch, was sie sieht — keine Diagnose mehr.'
+    ],
+    neu: [
+      'Der KI-Auftrag beim Anlegen ist auf die Bestimmung zugeschnitten: Art, Wuchsform, Licht, Gie\u00dfweise — dazu neu, was am Bild wirklich zu erkennen ist: welches Substrat oben liegt, welche Topfart es ist und ob ein Abzugsloch zu sehen ist.',
+      'Zustand, Befund, Ma\u00dfnahmen und das Urteil \u00fcber die Topfgr\u00f6\u00dfe fallen beim Anlegen weg. Sie geh\u00f6ren zum Pflanzendoktor, der sie am Foto tats\u00e4chlich beurteilen kann. Der Auftrag ist damit gut ein Drittel k\u00fcrzer und die Antwort kommt schneller.',
+      'Die Giftigkeitsfrage richtet sich nach den Tieren, die du eingetragen hast. Wer einen Hund h\u00e4lt, wird nach Hunden gefragt; wer kein Tier h\u00e4lt, gar nicht.',
+      'Die Notiz beim Anlegen tr\u00e4gt nur noch, was zur Bestimmung geh\u00f6rt.'
+    ]
+  },
   {
     nr: '3.13.1', datum: '2026-09-12', titel: 'Fotos gehen wieder groß',
     kurz: [
@@ -18999,16 +19150,15 @@ $('#btn-paste-los').onclick = ()=>{
      will. */
   if(typeof alStufe !== 'undefined' && alStufe === 2
      && typeof alStufeZeigen === 'function') alStufeZeigen(3);
+  /* Die Notiz traegt nur noch, was zur Bestimmung gehoert. Befund,
+     Giesssatz und Massnahmen sind Sache des Doktors. */
   const notiz = [];
-  if(d.befund) notiz.push('Befund: ' + d.befund);
-  if(d.giessen) notiz.push('Gießen laut Bestimmung: ' + d.giessen);
   const nTopf = topfLesen(d.topf);
   if(nTopf && nTopf.empfehlung){
     notiz.push('Topf und Platz: ' + nTopf.groesse
       + (nTopf.material ? ', ' + nTopf.material : '') + ', ' + nTopf.ablauf + '. ' + nTopf.empfehlung);
     uebernommen.push('Topfeinschätzung übernommen');
   }
-  if(d.schritte) notiz.push('Schritte: ' + d.schritte);
   if(d.vermehrung) uebernommen.push('Vermehrungswege gemerkt');
   if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
   if(d.verw) notiz.push('Könnte verwechselt sein mit: ' + d.verw);
@@ -19250,7 +19400,13 @@ async function alSpeichern(){
     /* Auffangnetz fuer Gattungen, die die Tabelle nicht kennt.
        Ausgewertet wird es nur dann — steht die Gattung in
        GRUPPEN_GATTUNG, gewinnt sie. */
-    speicher: (letzteKiAntwort && letzteKiAntwort.speicher) || ''
+    speicher: (letzteKiAntwort && letzteKiAntwort.speicher) || '',
+    /* Was die KI am Bild gesehen hat. Bis A2 gibt es dafuer kein
+       Formularfeld — der Wert wird nur abgelegt, damit der Doktor ihn
+       spaeter bewerten kann. */
+    substrat: (letzteKiAntwort && letzteKiAntwort.substrat) || '',
+    topfform: topfartLesen(letzteKiAntwort && letzteKiAntwort.topfart) || '',
+    ablauf: ablaufLesen(letzteKiAntwort && letzteKiAntwort.ablauf) || ''
   };
   /* Der Giftwert wird genau hier festgelegt und danach nur noch gelesen.
      Steht die Art in der Tabelle, gilt sie als geprüft; sonst ist der
@@ -24442,27 +24598,6 @@ function dokPromptBauen(){
   return zeilen.join('\n');
 }
 /* Schneidet die VERMEHRUNG-Zeilen aus dem Antwortformat heraus. */
-/* Die Zahl im Prompt wird nicht mehr von Hand heruntergezählt, sondern
-   aus der Feldliste selbst gelesen. Vorher liefen zwei Ersetzungen
-   hintereinander über denselben Text: die erste machte aus „sechzehn“
-   ein „fünfzehn“, die zweite zog sofort noch einmal ab. Der Prompt nannte
-   dann vierzehn Schlüsselwörter und listete fünfzehn. */
-const ZAHLWORT = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
-  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
-
-function promptZahlSetzen(txt){
-  const t = String(txt);
-  /* Gezählt werden die Feldzeilen, die genau einmal vorkommen müssen —
-     also alles außer den mehrfach erlaubten VERMEHRUNG und MASSNAHME. */
-  const felder = new Set();
-  t.split('\n').forEach(z => {
-    const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
-    if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
-  });
-  const n = felder.size;
-  const wort = ZAHLWORT[n] || String(n);
-  return t.replace(/Alle \S+ Schlüsselwörter/g, 'Alle ' + wort + ' Schlüsselwörter');
-}
 
 function ohneVermehrung(txt){
   return promptZahlSetzen(
@@ -24841,6 +24976,30 @@ const AB_FELDER = [
   {feld:'frostMin', name:'Frost', lies:d=>frostRaten(d.frost),
    ist:p=>p.frostMin != null ? p.frostMin : '', zeig:v=>v + ' °C'}
 ];
+/* Die Antwort nennt die Topfart im Klartext, TOPFFORMEN kennt sie als
+   Schluessel. Was nicht zugeordnet werden kann, bleibt leer — geraten
+   wird hier nicht, die Form steuert das Topfvolumen. */
+function topfartLesen(t){
+  if(!t) return null; const x = norm(t);
+  if(/nicht sichtbar|unbekannt|nicht beurteilbar/.test(x)) return null;
+  if(/orchidee/.test(x)) return 'orchidee';
+  if(/schale|flach/.test(x)) return 'schale';
+  if(/quadrat|eckig|kantig/.test(x)) return 'quadrat';
+  if(/hoher topf|hoch|schlank|tief/.test(x)) return 'hoch';
+  if(/kultur|standard|rund|glas|vase/.test(x)) return 'kultur';
+  return null;
+}
+/* ja, nein oder nichts. „nicht sichtbar“ ist keine Aussage. */
+function ablaufLesen(t){
+  if(!t) return null;
+  /* Der Leser haengt bei reinen Ja/Nein-Werten die Beschriftung davor
+     („ABLAUF: ja“) — dort steckt sonst keine Aussage. Hier wieder ab. */
+  const x = norm(String(t).replace(/^[^:]{2,20}:\s*/, ''));
+  if(/nicht sichtbar|unbekannt|nicht beurteilbar/.test(x)) return null;
+  if(/^nein|kein/.test(x)) return 'nein';
+  if(/^ja|vorhanden/.test(x)) return 'ja';
+  return null;
+}
 function lichtRaten(t){
   if(!t) return null; const x = norm(t);
   /* „indirekt“ enthält „direkt“ — der Fall muss zuerst weg, sonst

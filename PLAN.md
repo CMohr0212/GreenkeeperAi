@@ -1,46 +1,67 @@
-# PLAN — Fassung A1 · Pflanzenkarte umbauen
-Freigegeben: 11.09.2026 · Zielversion: 3.11.0 (sw.js greenkeeperai-v104)
+# PLAN — Etappe A1 · Anlegen-Auftrag entkernen
+Freigegeben: 12.09.2026 · Zielversion: 3.14.0 (sw.js greenkeeperai-v108)
 
-Ziel: Jede Pflanze hat dieselbe Karte mit 4 klar getrennten Reitern, und das Wichtige steht ohne Aufklappen da.
+## Ziel
 
-Änderungen:
-- Ein Darstellungsweg für alle Pflanzen. Abschnitte ohne Inhalt fallen weg. Fehlende Bibliotheksfelder führen nicht zum Absturz.
-- 4 Reiter:
-  - Pflege: Zustand · Gießen · Düngen · Pflegeschritte · Winterruhe
-  - Standort: Raum · Stellplatz · Tiere · Grundriss
-  - Verlauf: Gießabstände · Wachstum · Einträge · Befunde · Abstammung · Notizen
-  - Wissen: Steckbrief · Merkmale · Herkunft · Giftigkeit · Wenn etwas nicht stimmt · Beobachtungen
-- Der Zustand kommt aus dem Gießen-Aufklapper heraus und wird die erste Zeile im Reiter Pflege.
-- In Pflege und Standort gibt es keine Aufklapper mehr, nur Blöcke mit Zwischenüberschrift. Aufklapper bleiben nur für lange Texte und für ältere Einträge.
-- Aus „Gießen und Verlauf“ wird „Gießen“, aus „Statusänderung und Verlauf“ wird „Einträge“, und der Link „Verlauf ansehen“ entfällt.
-- Der kursive Gießtipp fällt weg, wenn die Warnbox dasselbe sagt. Erkannt wird das über die vorhandenen `REGEL_STICHWORTE`.
-- Befunde bekommen einen eigenen Abschnitt „Befunde des Doktors“ im Reiter Verlauf. Er zeigt den neuesten Befund mit Datum und erstem Satz, der Rest öffnet sich per Tippen. Die Daten bleiben unverändert, es ist nur eine andere Anzeige.
-- Die Wachstumsrate erscheint erst ab 30 Tagen Spanne. Davor steht nur die Anzahl.
-- Das Pflichtpaket läuft nach Regel 6.2. Zielversion ist 3.11.0 mit sw v104.
+Der Anlegen-Auftrag fragt nur noch nach Bestimmung und sichtbarem Ist-Zustand; jede Bewertung entfällt.
 
-Nicht angefasst:
-- Kopf (Foto bis Knopfreihe), Aufgaben, Warnbox
-- Scroll-Code
-- Datenformat (keine Umzüge)
-- Doktor und Prompt
-- Zeitstrahl
-- Klartext-Design: stapelt weiter statt Reiter
+## Änderungen
 
-Risiken:
-- 4 Reiter könnten am Handy zu breit werden, weil 3 schon rund 70 % der Breite belegen.
-- Rund 10 bestehende Tests prüfen die alten Positionen (z. B. Steckbrief in Pflege) und müssen angepasst werden. Jede Anpassung wird einzeln begründet, damit kein Test nur „grün gemacht“ wird.
-- Ein gespeicherter Reiter mit altem Schlüssel fällt auf den ersten Reiter zurück, was harmlos ist.
-- Eigene Pflanzen ohne Bibliotheksfelder waren der Grund für den Kurzweg. Hier liegt die Absturzgefahr.
+- `ANTWORT_FORMAT` wird zur Laufzeit in seine Feldzeilen zerlegt; Anlegen und Doktor setzen daraus ihre eigene Liste zusammen. Der Doktortext bleibt dabei zeichengleich.
+- Aus dem Anlegen-Auftrag fallen: `ZUSTAND`, `BEFUND`, `MASSNAHME`, `FEHLT`, `GIESSEN`, `TOPF`.
+- Neu im Anlegen-Auftrag: `SUBSTRAT` (sichtbare Oberfläche), `TOPFART` (gegen `TOPFFORMEN`), `ABLAUF` (ja/nein/nicht sichtbar).
+- `KATZEN` richtet sich nach den eingetragenen Tieren (`meineTiere`); ohne Tier fällt die Zeile weg.
+- `ANTWORT_SCHLUESSEL` bekommt `substrat`, `topfart`, `ablauf`.
+- Die drei neuen Angaben werden beim Speichern an der Pflanze abgelegt.
+- Die Notiz beim Anlegen enthält nur noch `VERWECHSLUNG` und `FROST`.
+- Das Zahlwort und die Beispielantwort wandern für beide Aufträge getrennt mit.
 
-Prüfung:
-- pruef.js prüft:
-  - Es gibt 4 Reiter.
-  - Eine eigene und eine Bibliothekspflanze (vom Test angelegt) bekommen dieselben Abschnitte.
-  - Eine eigene Pflanze ohne Stammdaten rendert ohne Fehler.
-  - Befunde stehen nicht mehr unter Notizen.
-  - Der Zustand steht nicht im Gießen-Block.
-  - 2 Blätter in 2 Tagen ergeben keine Monatsrate.
-  - Die Versionsangaben stimmen.
-- Nicht durch Tests abgedeckt — nur am Handy prüfbar: Breite der Reiterleiste, Blocklayout ohne Aufklapper, Lesbarkeit der Befunde.
+## Nicht angefasst
 
-Größe: mittel
+Doktor-Auftrag und Doktor-Ansicht, Anlegen-Formular (Schieber und Knopfgruppen kommen in A2), Maßnahmenauswahl und Topfblock im Formular (A2), Doktor-Anstoß nach dem Speichern (A2), Rundgang, Karte, Historie, Grundriss, Gieß- und Lernlogik, Substratrechner.
+
+## Risiken
+
+- Die Zerlegung muss den Doktortext zeichengleich wieder herstellen. Tut sie es nicht, ändert sich der Doktor still mit, obwohl er erst in B dran ist.
+- `promptZahlSetzen` zählt die Feldzeilen selbst — zwei Aufträge heißen zwei Zahlen.
+- `mitDoktorZeilen`, `ohneVermehrung` und `ohneTopf` arbeiten per Textersetzung und brechen still, wenn sich Formulierungen verschieben.
+- Die Beispielantwort muss für beide Wege getrennt passen, sonst widerspricht sie der Liste.
+- Die drei neuen Angaben haben in A1 noch kein Formularfeld; sie sind bis A2 nur gespeichert, nicht sichtbar.
+
+## Prüfung
+
+pruef.js prüft: der Anlegen-Auftrag enthält `SUBSTRAT`, `TOPFART`, `ABLAUF` und enthält `ZUSTAND`, `BEFUND`, `MASSNAHME`, `FEHLT`, `GIESSEN`, `TOPF` nicht; der Doktor-Auftrag enthält sie weiterhin; der zusammengesetzte Doktortext ist zeichengleich mit dem bisherigen; beide Zahlwörter stimmen zur jeweiligen Feldzahl; beide Beispielantworten enthalten jedes Feld ihrer Liste und keines darüber hinaus; die Tierzeile folgt `meineTiere` und fehlt ohne Tier; der Leser kennt `substrat`, `topfart`, `ablauf`; eine Musterantwort legt die drei Werte an der Pflanze ab; die Notiz enthält keinen Befund mehr; `ohneVermehrung` lässt den Rest unversehrt.
+
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: Qualität und Tempo der echten Antwort.
+
+## Größe
+
+Mittel.
+
+---
+
+# Ausblick — noch nicht freigegeben
+
+## A2 — Anlegen-Formular
+
+Schieber für den Topfdurchmesser, Knopfgruppen für Topfart und Substrat mit dem KI-Vorschlag vorbelegt, Maßnahmenauswahl und Topfblock raus, Doktor-Anstoß nach dem Speichern. Größe: mittel.
+
+## B — Doktor bewertet mit den Ist-Werten
+
+`dokPromptBauen` bekommt Topfdurchmesser, Topfart, Substrat, Ablauf und Kulturform mit. `TOPF` wird zur Bewertung gegen die echte cm-Zahl. Art-Gegenprüfung nur bei anderer Art und `SICHERHEIT: hoch`. Zustand, Befund und Maßnahmen liegen ab hier ausschließlich beim Doktor. Größe: mittel.
+
+## C — Herkunft und Rangfolge
+
+Stempel `ki` / `bib` / `hand` je Feld. Hand schlägt KI, KI schlägt Bibliothek, Bibliothek nur ohne KI-Antwort. Der Doktor-Abgleich zeigt keine Felder mit Stempel `hand`. Altbestand ohne Stempel gilt als `bib`. Einzige Etappe, die Altdaten anfasst. Größe: mittel.
+
+## D — Sorten
+
+Feld `sorte` an der Pflanze, Freitext vom Nutzer. Karte und Listen zeigen die Sorte hinter dem Artnamen. Der Auftrag beschreibt sichtbare Sortenmerkmale, statt einen Namen zu raten. Größe: klein.
+
+## E — Sammel-Anlegen
+
+Mehrere Fotos wählen, je Pflanze eine eigene Anfrage gleichzeitig, Durchwinkliste, Standort einmal für alle. Größe: groß — Aufteilung: E1 Fotos und parallele Anfragen, E2 Durchwinkliste.
+
+## F — KI im Rundgang
+
+Noch Idee, kein Plan. Wird besprochen, wenn A bis E stehen.

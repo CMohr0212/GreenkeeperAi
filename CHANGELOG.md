@@ -4,6 +4,17 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.14.0 — 12. September 2026
+**Anlegen bestimmt, Doktor bewertet**
+
+### Neu
+- **Der KI-Auftrag beim Anlegen ist auf die Bestimmung zugeschnitten.** Gefragt wird nach Art, Wuchsform, Licht und Gießweise — dazu neu nach dem, was am Bild wirklich zu erkennen ist: welches Substrat oben liegt, welche Topfart es ist und ob ein Abzugsloch zu sehen ist.
+- **Zustand, Befund, Maßnahmen und das Urteil über die Topfgröße fallen beim Anlegen weg.** Sie gehören zum Pflanzendoktor. Der Auftrag ist damit gut ein Drittel kürzer, und die Antwort kommt schneller.
+- **Die Giftigkeitsfrage richtet sich nach deinen Tieren.** Wer einen Hund hält, wird nach Hunden gefragt. Wer kein Tier hält, gar nicht.
+- **Die Notiz beim Anlegen trägt nur noch, was zur Bestimmung gehört.**
+
+---
+
 ## 3.13.1 — 12. September 2026
 **Fotos gehen wieder groß**
 
