@@ -1,72 +1,50 @@
-# PLAN — Etappe A2 · Anlegen-Formular
-Freigegeben: 12.09.2026 · Zielversion: 3.15.0 (sw.js greenkeeperai-v109)
+# PLAN — Etappe B · Doktor bewertet mit den Ist-Werten
+
+Freigegeben: 12.09.2026 · Zielversion: 3.16.0 (sw.js greenkeeperai-v110)
 
 ## Ziel
 
-Das Anlegen-Formular fragt Topfdurchmesser, Topfart, Substrat und Ablauf selbst ab, statt Urteile der KI zu übernehmen, und schickt die fertige Pflanze zum Doktor.
+Der Pflanzendoktor bekommt Topfdurchmesser, Topfform, Substrat, Ablauf und Kulturform der Pflanze mit und bewertet sie, statt sie am Foto zu schätzen.
 
 ## Änderungen
 
-- Neuer Block `al-topf` in Stufe 4 (Platz und Pflege), unter der Kulturform:
-  - Schieber `f-topf` für den Topfdurchmesser, 5 bis 80 cm. Er startet **ungesetzt** und zeigt „nicht angegeben“; die erste Berührung setzt ihn auf 14 cm. Unter dem Schieber steht das Topfvolumen aus `topfVolumen`.
-  - Knopfgruppe `f-topfform` aus `TOPFFORMEN`, mit `topfIcon` je Knopf — dieselbe Darstellung wie im Substratrechner.
-  - Knopfgruppe `f-substrat` aus neuer Tabelle `SUBSTRATARTEN`: Erde, Erde mit Rinde, Rinde, Blähton, Seramis oder Pon, Sphagnum, Kies oder Sand, Wasser.
-  - Knopfgruppe `f-ablauf`: ja, nein, weiß nicht.
-- Vorbelegung aus der KI-Antwort: `topfartLesen` setzt `f-topfform`, `ablaufLesen` setzt `f-ablauf`, ein neues `substratLesen` setzt `f-substrat`. Ohne sichere Zuordnung bleibt die Gruppe ohne Auswahl. Kein Wert wird geraten.
-- Kulturform steuert den Block: bei „Erde“ und „Blähton“ sichtbar (bei Blähton ist Blähton vorbelegt), bei „Wasserglas“ ausgeblendet; gespeichert wird dann `substrat: 'wasser'`, Topfgröße und Topfform bleiben leer.
-- `alSpeichern` nimmt `topf`, `topfform`, `substrat`, `ablauf` aus den Feldern statt aus `letzteKiAntwort`. `topf` wird wie bisher als Zeichenkette abgelegt, nur wenn der Schieber gesetzt wurde.
-- `formularLeeren` setzt die vier neuen Felder zurück.
-- Raus aus dem Anlegen: `neuMassnahmenZeigen` samt Aufruf, der Kasten `#neu-massnahmen`, der Topfblock daraus (`topfHTML`, `topfMassnahme`), die Topfzeile in der Notiz, die Zustandsübernahme aus der KI-Antwort und die Umwandlung der Maßnahmen in Aufgaben in `alSpeichern` samt Meldung. Die Funktionen selbst bleiben — der Doktor benutzt sie weiter.
-- Doktor-Anstoß: Nach dem Speichern zeigt die geöffnete Karte oben einen Kasten „Angelegt — der Doktor kann jetzt Zustand und Pflege bewerten“ mit den Knöpfen „Zum Doktor“ (bestehendes `data-do="doktor-fuer"`) und „Später“. Der Kasten erscheint nur für die gerade angelegte Pflanze und verschwindet nach einer Antwort.
-- `alZsfZeichnen` („Das wird angelegt“) bekommt die Zeilen Topf und Substrat.
-- `topfSubstratHTML` im Reiter Pflege zeigt zusätzlich das eingetragene Substrat und den Ablauf.
+- **Ist-Werte im Auftrag.** `dokPromptBauen` schreibt nach den Standortzeilen einen Block „Das ist zu dieser Pflanze eingetragen“ mit je einer Zeile für gesetzte Werte: Topfdurchmesser in cm (aus `p.topf`), Topfform (Name aus `TOPFFORMEN`), Substrat (Name aus `SUBSTRATARTEN`), Wasserablauf (ja / nein aus `p.ablauf`), Kulturform (aus `p.substrat`: `wasser` → Wasserkultur, `blaehton`/`seramis` → Hydrokultur, sonst Erdkultur). Nicht eingetragene Werte erzeugen keine Zeile. Ist gar nichts eingetragen, entfällt der Block ganz.
+- **Neue Funktion `mitIstWerten(txt, p)`**: sie hängt an die vorhandenen Feldzeilen des Doktor-Formats zusätzliche Sätze an, statt Textstellen wörtlich zu ersetzen. Sie läuft als letzte der drei Formatfunktionen und nur, wenn die TOPF-Zeile noch vorhanden ist.
+  - Ist `p.topf` gesetzt: Das Größenurteil wird gegen die eingetragene cm-Zahl und die Art gefällt, nicht am Bild geschätzt; die Empfehlung muss eine Zielgröße in cm nennen, die von der eingetragenen Zahl abweicht, oder genau „kein Umtopfen nötig“. Prüflistenpunkt 7 bekommt denselben Zusatz.
+  - Ist `p.ablauf` `ja` oder `nein`: Feld 3 übernimmt die eingetragene Angabe. Eine abweichende Beobachtung am Foto gehört in FEHLT, nicht ins Urteil.
+  - Ist `p.topfform` gesetzt: Feld 2 nennt die eingetragene Form und ergänzt nur, was am Foto zusätzlich zu sehen ist.
+  - Ist `p.substrat` gesetzt: BEFUND bekommt einen Satz dazu, ob das Substrat für diese Art taugt; passt es nicht, folgt eine MASSNAHME zum Wechsel.
+  - Feldzahl, Reihenfolge und die drei senkrechten Striche der TOPF-Zeile bleiben unverändert; es kommt kein Schlüsselwort hinzu.
+- **Art-Gegenprüfung mit Übernehmen-Knopf.** Der Doktorkopf verlangt: ART nur dann abweichend benennen, wenn am Foto eindeutig eine andere Art zu sehen ist, und dann SICHERHEIT auf hoch. Neuer Kasten `#dok-art` unter dem Giftkasten, gezeichnet von `dokArtZeigen(d)` — nur wenn die gelesene ART von `p.art` abweicht **und** SICHERHEIT hoch ist. Er zeigt alten und neuen Namen und hat zwei Knöpfe: „Art übernehmen“ (`art-nehmen`) und „So lassen“ (`art-lassen`).
+  - `art-nehmen` setzt `art` und, wenn der Doktor einen botanischen Namen nennt, `botanisch`. Danach wird der Giftwert neu ermittelt — außer sein Status ist `fest` oder `strittig`, dann bleibt die eigene Angabe stehen und der Kasten sagt das.
+  - Ohne Antippen ändert sich nichts. Der Kasten verschwindet nach jeder der beiden Antworten.
+- **Nichts ohne Antippen.** Alles, was diese Etappe neu baut, ändert eine Pflanze erst auf einen ausdrücklichen Knopfdruck.
 
 ## Nicht angefasst
 
-Anlegen-Auftrag und Antwortleser aus A1, Doktor-Auftrag und Doktor-Ansicht, `ANTWORT_FORMAT`, Substratrechner, Umtopfen-Werkzeug, Rundgang, Karte im Übrigen, Historie, Grundriss, Gieß- und Lernlogik, Altbestand (Herkunftsstempel sind Etappe C).
+`ANTWORT_FORMAT` (die Konstante bleibt zeichengleich; geändert wird nur die Kopie, die der Doktor baut), `topfLesen` und das Vier-Felder-Format, Anlegen-Auftrag und Anlegen-Formular aus A1/A2, `massnahmenLesen`, `topfHTML`, `topfMassnahme`, Umtopf-Vormerkung, der Giftabgleich selbst, `AB_FELDER`, Karte, Rundgang, Grundriss, Gieß- und Lernlogik, Altbestand, App-Rundgang (Tour).
 
 ## Risiken
 
-- Eine eingetragene Topfgröße ändert `wasserBedarf` und damit die angezeigte Gießmenge. Neue Pflanzen bekommen damit andere Mengen als bisher — gewollt, aber neu.
-- Ein Schieber mit Standardwert hätte eine Messung erfunden, die niemand vorgenommen hat. Der ungesetzte Startzustand ist der Preis dafür und ein zusätzlicher Zustand, der am Handy überzeugen muss.
-- Der Kasten auf der Karte liegt über der Kartenansicht. Ebenen und Modal-Sperre sind nach Regel 10.5 mitzuprüfen.
-- Das Entfernen der Maßnahmenauswahl fasst Code an, den der Doktor mitbenutzt. Getrennt wird nur der Aufruf, nicht die Funktion.
-- Vier neue Bedienelemente auf Stufe 4 machen die Stufe lang. Ob sie am Handy noch beherrschbar ist, zeigt erst das Gerät.
+- Der Doktor-Auftrag wird länger. Bei Pflanzen mit allen Werten kommen rund acht Zeilen dazu — mehr Text heißt mehr Stellen, an denen eine Antwort ausschert.
+- Ein falsch eingetragener Topfwert wird jetzt zur Grundlage des Urteils. Er lässt sich in der Karte ändern, aber bis dahin urteilt der Doktor auf der falschen Zahl.
+- Der Artkasten kann bei falsch bestimmten Altpflanzen häufig erscheinen. Er ändert nichts von selbst, aber er kostet Aufmerksamkeit.
+- Ein Artwechsel zieht die Giftfrage nach sich. Neu ermitteln kann eine hinterlegte Angabe verschieben; deshalb bleiben `fest` und `strittig` unangetastet.
+- Altpflanzen ohne Topfwerte laufen auf dem alten Weg weiter. Zwei Verhalten nebeneinander sind zwei Verhalten zum Prüfen.
+- `ohneTopf` und `mitIstWerten` fassen dieselbe Zeile an. `mitIstWerten` läuft deshalb zuletzt und nur, wenn die TOPF-Zeile noch da ist.
 
 ## Prüfung
 
-pruef.js prüft: der Block `al-topf` und die vier Felder sind vorhanden; `SUBSTRATARTEN` und die Knopfgruppen haben genau die geplanten Werte; `substratLesen` ordnet die erlaubten KI-Angaben zu und gibt bei „nicht sichtbar“ und bei Unbekanntem leer zurück; eine eingelesene Musterantwort belegt Topfform, Substrat und Ablauf vor; ein ungesetzter Schieber legt kein `topf` an der Pflanze ab, ein gesetzter legt die Zeichenkette ab; Kulturform „Wasserglas“ blendet den Block aus und speichert `substrat: 'wasser'`; `formularLeeren` setzt alle vier zurück; `#neu-massnahmen` und der Aufruf von `neuMassnahmenZeigen` sind fort; eine Musterantwort mit Maßnahmen legt beim Anlegen keine Aufgaben mehr an; die Notiz enthält keine Topfzeile; `topfHTML` und `massnahmenAuswahlHTML` sind für den Doktor unverändert erreichbar; der Anstoßkasten erscheint nach dem Speichern mit beiden Knöpfen und trägt die Kennung der neuen Pflanze.
+pruef.js prüft: Der Ist-Werte-Block steht im Auftrag, sobald Werte an der Pflanze liegen, und fehlt ganz ohne Werte; jede gesetzte Angabe erscheint mit ihrem Klartextnamen, keine nicht gesetzte; `mitIstWerten` ändert die TOPF-Zeile nur bei gesetztem `p.topf` und lässt Feldzahl und Strichzahl unverändert; bei `ablauf: 'ja'` steht die Vorgabe im Text, bei leerem Ablauf nicht; `ANTWORT_FORMAT` ist nach jedem Auftragsbau zeichengleich unverändert; bei frisch umgetopfter Pflanze bleibt die TOPF-Zeile fort und `mitIstWerten` hängt nichts an; die Prüfliste bleibt lückenlos durchnummeriert und die Schlüsselwortzahl unverändert; eine Musterantwort mit abweichender ART und SICHERHEIT hoch erzeugt den Artkasten, dieselbe Antwort mit SICHERHEIT mittel nicht, gleiche ART nie; das bloße Zeichnen des Kastens ändert keine Pflanze; `art-nehmen` setzt Art und botanischen Namen, `art-lassen` nicht; ein Giftwert mit Status `fest` überlebt den Artwechsel.
 
-Nicht durch Tests abgedeckt — nur am Handy prüfbar: Schieber und Knopfgruppen unter dem Finger, Länge der Stufe 4, Ebenen des Anstoßkastens über der Karte.
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: Länge des Doktor-Auftrags im Kopierfeld, Ebenen des Artkastens über dem Abgleich, Lesbarkeit des Kastens auf schmalem Gerät.
 
 ## Größe
 
 Mittel.
 
-## Abweichung vom Ausblick
-
-Der Ausblick nannte drei Bedienelemente. Der Ablauf bekommt eine vierte Knopfgruppe, weil er sonst als einziger der drei Werte aus A1 ohne Formularfeld bliebe — genau der Punkt, der in der Übergabe als offen steht.
-
 ---
 
-# Ausblick — noch nicht freigegeben
+# Offen daneben
 
-## B — Doktor bewertet mit den Ist-Werten
-
-`dokPromptBauen` bekommt Topfdurchmesser, Topfart, Substrat, Ablauf und Kulturform mit. `TOPF` wird zur Bewertung gegen die echte cm-Zahl. Art-Gegenprüfung nur bei anderer Art und `SICHERHEIT: hoch`. Zustand, Befund und Maßnahmen liegen ab hier ausschließlich beim Doktor. Größe: mittel.
-
-## C — Herkunft und Rangfolge
-
-Stempel `ki` / `bib` / `hand` je Feld. Hand schlägt KI, KI schlägt Bibliothek, Bibliothek nur ohne KI-Antwort. Der Doktor-Abgleich zeigt keine Felder mit Stempel `hand`. Altbestand ohne Stempel gilt als `bib`. Einzige Etappe, die Altdaten anfasst. Größe: mittel.
-
-## D — Sorten
-
-Feld `sorte` an der Pflanze, Freitext vom Nutzer. Karte und Listen zeigen die Sorte hinter dem Artnamen. Der Auftrag beschreibt sichtbare Sortenmerkmale, statt einen Namen zu raten. Größe: klein.
-
-## E — Sammel-Anlegen
-
-Mehrere Fotos wählen, je Pflanze eine eigene Anfrage gleichzeitig, Durchwinkliste, Standort einmal für alle. Größe: groß — Aufteilung: E1 Fotos und parallele Anfragen, E2 Durchwinkliste.
-
-## F — KI im Rundgang
-
-Noch Idee, kein Plan. Wird besprochen, wenn A bis E stehen.
+- **App-Rundgang (Tour) braucht ein komplettes Remake.** Eigene Etappe, eigene Sitzung — nach Regel 4.1 nicht Teil dieser Etappe.

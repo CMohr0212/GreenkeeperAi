@@ -1,166 +1,52 @@
-# Übergabe — GreenkeeperAI
+# Übergabe — GreenkeeperAI · Fassung 3.16.0 · sw v110 · 12.09.2026
 
-Stand: 12.09.2026, Ende der Sitzung. Fassung **3.13.1**, sw.js **v107**,
-Prüfstand **1591 Prüfungen, alles sauber**.
+## Kurz
 
----
+Version: 3.16.0, sw.js greenkeeperai-v110, Prüfstand 1675 Prüfungen, alles sauber.
+Nächster Schritt: App-Rundgang (TOUR_KAPITEL) komplett neu bauen — eigene Etappe, von Chris gesetzt. Etappe C (Herkunft und Rangfolge) wartet dahinter.
+Offen oder kaputt: Gerätekontrollen aus 3.13.0, 3.13.1, 3.14.0, 3.15.0 und 3.16.0 alle unbestätigt. Für 3.16.0 betrifft das die Länge des Doktor-Auftrags im Kopierfeld und die Ebenen des Artkastens über dem Abgleich.
+Nicht anfassen: `ANTWORT_FORMAT` bleibt zeichengleich — geändert wird nur die Kopie, die der Doktor baut.
+Offener Plan: nein — B ist geliefert. PLAN.md trägt den erledigten B-Plan.
 
-## Wer hier arbeitet
+## Gescheiterte Versuche
 
-- Chris ist Eigentümer, Produktverantwortlicher und einziger Tester.
-- Er arbeitet **ausschließlich vom Handy über die GitHub-Weboberfläche**.
-  Jede Lieferung muss eine fertig hochladbare Datei sein.
-- Er liest keinen Code, debuggt nicht und führt nichts lokal aus.
-- Design am Handy: **Botanisch**.
+- **Gifttest prüfte nur den Status.** „Eine eigene Giftangabe überlebt den Artwechsel“ blieb grün, obwohl die Gegenprobe den Schutz entfernt hatte: `giftErmitteln` liefert für eine Art aus der geprüften Tabelle ebenfalls `status: 'fest'`. Der Test prüft jetzt zusätzlich `quelle === 'nutzer'`. Der Test war falsch, nicht der Code richtig.
+- **`artBox()` stürzte ab, statt zu melden.** Ohne den Container `#dok-art` warf der Testlauf eine TypeError und zählte null Fehlschläge — eine Gegenprobe, die nichts beweist. Der Helfer verträgt jetzt ein fehlendes Element, und eine eigene Prüfung fragt nach dem Container.
+- **Ersetzungsanker nicht eindeutig.** `aenderungSetzen(dokPflanze, felder);` kam zweimal vor; die `assert`-Zeile fing es ab. Anker mit den beiden Zeilen davor gebaut.
+- **Werkzeuglimit beim Liefern, zweite Sitzung in Folge.** Code und Prüflauf waren fertig, CHANGELOG und `present_files` kamen nicht mehr durch. Lehre: bei mittleren Etappen nach dem grünen Prüflauf sofort liefern, Gegenproben danach.
 
-## Arbeitsweise
+## Entscheidungen
 
-- **Planmodus zuerst.** Kein Code, bevor Chris den Plan freigibt.
-- Antworten kurz, Stichpunkte, keine Begründungsabsätze.
-- Fortschritt: was getan wurde, nicht wie. Erklärung nur bei Abweichung vom Plan.
-- Nur wirklich geänderte Dateien liefern.
-- Keine Zwischenstände — alle Änderungen einer Sitzung in einer Fassung.
-- `node pruef.js` ist nach jeder Änderung Pflicht.
-- Jede funktionale Lieferung: CHANGELOG.md, neuer PATCHNOTES-Eintrag,
-  FASSUNG hoch, VERSION in sw.js hoch. Alle drei zusammen.
-- Reine Fehlerkorrekturen an unveröffentlichten Neuerungen bekommen keinen
-  eigenen PATCHNOTES-Eintrag.
-- Dateinamen tragen nie Fassung, Datum oder Nummer. GitHub ersetzt beim
-  Hochladen nur gleichnamige Dateien.
-- Die Vorschaudatei heißt immer `vorschau.html`.
-- Diese Übergabedatei heißt immer `uebergabe.md` und wird jede Sitzung ersetzt.
+- **Sätze anhängen statt Textstellen ersetzen.** `mitIstWerten` hängt an die Feldzeilen an (`formatZeileErgaenzen`, erste Fundstelle je Schlüsselwort). Eine wortgleiche Ersetzung im Antwortformat bricht, sobald dort ein Komma wandert.
+- **`mitIstWerten` läuft zuletzt und nur bei vorhandener TOPF-Zeile.** `ohneTopf` nimmt sie bei frisch umgetopften Pflanzen heraus; an eine entfernte Zeile hängt man nichts. Folge: ohne TOPF-Zeile bleibt auch der Substratsatz im BEFUND weg.
+- **Der Artkasten übernimmt nur auf Knopfdruck** und erscheint nur bei abweichender ART *und* `SICHERHEIT: hoch`. Ein Artwechsel zieht Giftangabe, Pflegedaten und Bibliothek nach sich.
+- **Giftangaben mit Status `fest` oder `strittig` überleben den Artwechsel.** Sie neu zu ermitteln wäre eine Entwarnung, die niemand gegeben hat. Alle anderen werden für die neue Art neu ermittelt.
+- **Kein neues Schlüsselwort im Antwortformat.** Die Feldzahl bleibt bei neunzehn, `topfLesen` und die Vier-Felder-Zeile sind unberührt.
+- **Der Artkasten benutzt die CSS-Klasse `.giftblock warn`.** Eine eigene Klasse hätte einen neuen Spezifitätskampf eröffnet (Regel 10.3), ohne anders auszusehen.
 
-## Technik in Kürze
+## Backlog-Zuwachs
 
-- Alles in einer `index.html` (~28.000 Zeilen), dazu `sw.js` und `CHANGELOG.md`.
-  Kein Framework, kein Build.
-- Zustand in localStorage (`pflanzenglossar-start`), Fotos in IndexedDB.
-- Prüfstand: `node pruef.js`, jsdom, Brücke `window.__T`.
-  `pruef.js` hält die Fassungsnummer an zwei Stellen fest (FASSUNG und
-  oberster PATCHNOTES-Eintrag) — muss mitwandern.
-- Patchskripte in Python: immer `assert s.count(alt) == n` vor jeder Ersetzung.
-- Dateien holen: `curl -sL -H "User-Agent: c"` von raw.githubusercontent.com.
-  Direktes web_fetch auf diese Domain scheitert.
-- jsdom ist im Container nicht vorinstalliert: einmal `npm install jsdom`.
-- Gegenprobe-Standard: jede Korrektur braucht eine Prüfung, die fehlschlägt,
-  wenn man die Korrektur entfernt. Gegenproben in Häppchen mit Zeitlimit laufen
-  lassen, sonst bleibt bei Abbruch eine kaputte Datei liegen.
-
----
-
-## Diese Sitzung: 3.13.0
-
-Zwei Themen: die Historie auf der Pflanzenkarte und das Lernen über einem
-Handwert. Beides in allen drei Designs.
-
-### Lernen über einem Handwert
-
-Umgesetzt wie am 12.09. entschieden: der Handwert ersetzt die Gießklasse als
-Ausgangspunkt, mehr nicht — und das Lernen ändert ihn nie still, sondern
-schlägt vor.
-
-- `lernSchritt` sperrt bei gesetztem Handwert nicht mehr, sondern zählt.
-  Zwei gleichgerichtete Rückmeldungen schreiben `ivVorschlag` in
-  `S.zustand[id]`; eine gegenläufige setzt den Zähler zurück.
-- Der Vorschlag gilt nur für seine Saison und nur zu dem Wert, zu dem er
-  entstanden ist. Ändert sich der Handwert, ist er hinfällig.
-- Die Karte fragt im Gießen-Block: „Zweimal ‚noch feucht‘ — Sommer auf
-  9 Tage setzen?“ Ein Tipp übernimmt, daneben steht „Lassen, wie es ist“.
-- **Der Fix aus 3.12.0 ist mit drin:** Eine Änderung von Hand *und* die
-  Annahme eines Vorschlags setzen den gelernten Faktor zurück auf 1.
-- Gegenprobe wie vermerkt: Handwert plus zwei Rückmeldungen verschiebt den
-  gerechneten Wert nicht, solange nicht zugestimmt wurde.
-
-### Historie (Reiter Verlauf)
-
-- Umschalter **Balken / Zeitstrahl**, die Wahl steht in `S.histAnsicht` und
-  gilt über alle Pflanzen.
-- Balken: zwölf Abstände, ältester links, gestrichelte Marke beim gerechneten
-  Rhythmus, Tipp auf einen Balken schreibt Datum und Tage in die Zeile
-  darunter. Unter drei Gießterminen eine ruhige Zeile statt leerem Bild.
-- Zeitstrahl: Gießgänge, Ereignisse, Fotos und Doktor-Befunde zusammen, nach
-  Monaten gruppiert, das Neueste oben, 25 Einträge offen, Rest im Aufklapper.
-  Foto-Zeilen springen ins Fotoband.
-
-### Abweichung vom Plan
-
-- Der Plan sagte „neue Kachel Historie im Reiter Pflege“. Im Reiter Verlauf
-  stand aber längst ein Balkenbild der Gießabstände (`verlaufHTML`). Eine
-  zweite Historie daneben wäre dasselbe zweimal gewesen. Also im Reiter
-  Verlauf ausgebaut: der Block heißt jetzt „Historie“ statt „Gießabstände“,
-  das alte Bild ist der Balkenteil. Die Textzeile „Gegossen: 01.08. · …“ ist
-  entfallen, der Zeitstrahl sagt dasselbe genauer.
-
-### Neue oder geänderte Funktionen (zum Wiederfinden)
-
-`vorschlagRechnen`, `ivVorschlagVon`, `ivVorschlagWeg`,
-`ivVorschlagUebernehmen`, `ivVorschlagHTML`, `VORSCHLAG_AB`,
-`histAnsicht`, `zeitstrahlHTML`, `zeitstrahlEintraege`, `zsDatumIso`.
-`lernSchritt`, `lernZuruecksetzen`, `verlaufHTML` und `giessVerlaufHTML` sind
-umgebaut. Merkmale in `S.zustand[id]`: `ivVorschlag`, `vorZahl`,
-`vorRichtung`. Neu in `S`: `histAnsicht`.
-
-### 3.13.1 — die Fotoansicht lag hinten
-
-Von Chris am Gerät gefunden: ein Foto auf der Karte antippen fror den
-Bildschirm ein. `#lightbox` lag auf Ebene 100, das Kartenfenster `.wk` auf
-200 — die große Ansicht öffnete also hinter der Karte, und weil
-`_modalSperre` alles außer dem obersten Fenster auf `inert` setzt, nahm auch
-die Karte keinen Griff mehr an. Nur zweimal Zurück half heraus. Kam mit dem
-Kartenfenster in 3.11.0/3.12.0 herein.
-
-- `#lightbox` liegt jetzt auf 220: über `.wk` (200) und `.modal` (210),
-  unter `#tour` (300).
-- Geprüft wird an den Zahlen im Stilblatt, nicht am geöffneten Fenster —
-  offen war es ja. Die Gegenprobe schlägt bei 100 fehl.
-- **Merksatz für neue Vollbild-Ebenen:** jede neue Schicht muss gegen `.wk`
-  (200), `.modal` (210) und `#tour` (300) einsortiert werden.
-
----
-
-## Wichtig für die nächste Sitzung
-
-1. **Der Reiter Wissen bleibt immer stehen.** Ist zur Art nichts hinterlegt,
-   steht dort ein Hinweis.
-2. **Kein `background-image:url("data:image/svg+xml…")` im Stylesheet.**
-   Eine Prüfung verbietet das seit dem Papierbild.
-3. **Prüfungen nicht spröde schreiben.** Immer
-   `((a && a.querySelector(…)) || {}).textContent || ''`.
-4. `prompt()` gibt es in jsdom nicht — die Meldung im Protokoll ist normal.
-5. **Der Handwert ist ein Paar** (Sommer, Winter), der gerechnete Abstand eine
-   Mischung nach Jahreslage. Ein Vorschlag ändert immer nur eine Seite — wer
-   prüft, ob „die App mit der angezeigten Zahl rechnet“, darf nicht erwarten,
-   dass der Handwert selbst herauskommt.
-6. **Rückmeldungen zählen nur einmal je Gießzyklus** (`lernMarke`). Wer im
-   Prüfstand zwei Schritte braucht, muss dazwischen einen Gießtermin
-   eintragen.
-
-## Noch offen
-
-- Am echten Gerät ansehen: klebende Reiter, Zustandsauswahl, der Sprung
-  „Im Substratrechner öffnen“, der Umschalter der Historie, der Tipp auf
-  einen Balken und der Sprung vom Zeitstrahl ins Fotoband.
-- Der Zeitstrahl hat keinen Filter je Ereignisart — bewusst weggelassen,
-  liegt im Backlog.
-
-## Backlog
-
-- Nach dem Hochladen: Chris an eine Pause von 1–3 Tagen erinnern, in der er
-  lernt, wie er am besten mit Claude arbeitet (Prompting, Modellwahl,
-  Arbeitsweise). Steht seit mehreren Sitzungen an.
-- Zeitstrahl: umschaltbar nach Ereignisart filtern.
-- Sammelvermehrung: Bilderstapel aus der Sammlung, um Vermehrungswege per KI
-  zu bestimmen (Eingabegrenzen von Gemini beachten).
-- Pflichtkriterien in den KI-Aufträgen (Doktor und Anlegen): Gesundheit
-  (Schädlinge, Mängel, Krankheiten) plus Topf- und Platzbewertung mit
-  konkreter Umtopf-Empfehlung.
-- Lampen im Grundriss ausschließlich als angezeigter Lichtkegel, keine
-  Weiterberechnung.
+- **App-Rundgang komplett neu** (von Chris gesetzt, nächste Etappe): Kapitel „Einrichtung“ beschreibt den KI-Weg noch als Kopieren-und-Einfügen, kennt den Topf- und Substratblock auf Stufe 4 und den Doktor-Anstoß nach dem Anlegen nicht. Alle Kapitel einzeln gegen den Ist-Stand prüfen.
+- Prüfen, ob die Giftverschärfung („Neu: diese Pflanze ist giftig“) noch zur neuen Regel 10.8 passt — der Text sagt, die Angabe werde übernommen, bevor jemand den Knopf gedrückt hat.
+- Zielgröße aus dem Doktor direkt in den Topfschieber der Karte übernehmen, statt sie nur als Notiz abzulegen.
+- Topfdurchmesser auf der Karte als Schieber statt als `prompt`.
+- Substrat und Ablauf auf der Karte nachtragen können.
+- Schnelleres Modell fürs Anlegen wählen.
+- Die achtteilige Prüfliste im Doktor-Auftrag kürzen, sobald dessen Feldliste kürzer ist.
+- Zeitstrahl nach Ereignisart filtern.
+- Sammelvermehrung aus einem Bilderstapel.
+- Lampen im Grundriss nur als Lichtkegel.
 - Anbindung an Anthropic und OpenAI neben Gemini.
-- „Angerührte Mischung merken“, falls je ein Auslöser dafür entsteht.
+- „Angerührte Mischung merken“, falls je ein Auslöser entsteht.
 
----
+## Offene Regeländerungen
 
-## Zu liefernde Dateien dieser Sitzung
+```
+ÄNDERUNG PROJEKTANWEISUNGEN → Stand 3
+Aktion: NEU
+Regel: 10.8
+Alt: –
+Neu: Eine KI-Antwort ändert nie von selbst Daten an einer Pflanze. Jede Übernahme in die Karte geschieht erst, nachdem Chris einen Knopf angetippt hat, der die Übernahme benennt.
+```
 
-`index.html`, `pruef.js`, `sw.js`, `CHANGELOG.md`, `uebergabe.md`
+Chris hat das Eintragen nicht bestätigt. Steht der Punkt in den Anweisungen, fällt dieser Abschnitt weg.

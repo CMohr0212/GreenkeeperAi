@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.16.0 — 12. September 2026
+**Der Doktor rechnet mit deinen Angaben**
+
+### Neu
+- **Topfgröße, Topfform, Substrat und Abzugsloch gehen an den Pflanzendoktor.** Was in der Karte steht, bekommt er im Auftrag mit — er bewertet es, statt es ein zweites Mal am Foto zu schätzen.
+- **Das Größenurteil hängt an der echten Zahl.** Steht ein Durchmesser in der Karte, urteilt der Doktor dagegen und nennt eine Zielgröße in Zentimetern, die davon abweicht — oder sagt, dass kein Umtopfen nötig ist.
+- **Das Abzugsloch wird nicht mehr geraten.** Ist es eingetragen, übernimmt er die Angabe. Was er am Foto anders sieht, steht unter „nicht beurteilbar“ statt im Urteil.
+- **Das Substrat wird mitbewertet.** Taugt es für die Art nicht, kommt der Wechsel als Maßnahme.
+- **Widerspruch zur Art mit Knopf.** Nennt der Doktor eine andere Art und gibt sich dabei als sicher an, erscheint ein Kasten mit beiden Namen und dem Knopf „Art übernehmen“. Ohne Antippen ändert sich nichts, und eine eigene Giftangabe bleibt stehen.
+
+---
+
 ## 3.15.0 — 12. September 2026
 **Topf und Substrat trägst du ein**
 

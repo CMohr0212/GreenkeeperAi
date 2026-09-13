@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.15.0', w.__T('FASSUNG') === '3.15.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.16.0', w.__T('FASSUNG') === '3.16.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -6662,6 +6662,146 @@ setTimeout(async () => {
   }
 
 
+  /* ══════════ B: der Doktor bewertet mit den Ist-Werten ══════════
+     Topf, Topfform, Substrat und Ablauf stehen seit A2 am Datensatz.
+     Der Doktor soll sie bewerten statt sie ein zweites Mal am Foto zu
+     schaetzen. Faellt das weg, raet er wieder gegen bekannte Zahlen an.
+     Der Block legt seine beiden Pflanzen selbst an. */
+  {
+    const fmt0 = w.__T('ANTWORT_FORMAT');
+    w.__T(`(function(){
+      S.eigene = S.eigene.filter(function(x){ return String(x.id).slice(0,2) !== 'BT'; });
+      S.eigene.push({id:'BT1', eigen:true, name:'B-Topf', art:'Efeutute',
+        botanisch:'Epipremnum aureum', klasse:'B', sonne:'hell', typ:'Kletterpflanze',
+        intervall:[8,12], todo:[], log:[], notiz:'',
+        topf:'14', topfform:'kultur', substrat:'erdeRinde', ablauf:'ja'});
+      S.eigene.push({id:'BT2', eigen:true, name:'B-Leer', art:'Efeutute',
+        klasse:'B', sonne:'hell', typ:'Kletterpflanze',
+        intervall:[8,12], todo:[], log:[], notiz:'',
+        topf:'', topfform:'', substrat:'', ablauf:''});
+      if(S.zustand){ delete S.zustand.BT1; delete S.zustand.BT2; }
+      sichern();
+    })()`);
+
+    w.__T("dokPflanze = 'BT1'; dokFrage = '';");
+    const mitIst = w.__T('dokPromptBauen()');
+    pruef('Der Auftrag nennt die eingetragenen Werte',
+      /^- Topfdurchmesser: 14 cm$/m.test(mitIst)
+      && /^- Topfform: Kulturtopf$/m.test(mitIst)
+      && /^- Substrat: Erde mit Rinde$/m.test(mitIst)
+      && /^- Wasserablauf: Abzugsloch vorhanden$/m.test(mitIst)
+      && /^- Kulturform: Erdkultur$/m.test(mitIst),
+      (mitIst.match(/Das ist zu dieser Pflanze eingetragen:[\s\S]{0,180}/) || [''])[0]);
+    pruef('Die TOPF-Zeile urteilt gegen die Zentimeter',
+      /^TOPF: .*Durchmesser von 14 cm eingetragen/m.test(mitIst));
+    pruef('Der Ablauf wird vorgegeben, nicht geraten',
+      /^TOPF: .*Zum Wasserablauf ist eingetragen: Ablauf vorhanden/m.test(mitIst));
+    pruef('Die Topfform steht in Feld 2',
+      /^TOPF: .*Als Topfform ist eingetragen: Kulturtopf/m.test(mitIst));
+    pruef('Das Substrat wird im Befund bewertet',
+      /^BEFUND: .*Als Substrat ist eingetragen: Erde mit Rinde/m.test(mitIst));
+    pruef('Die Prüfliste fragt nach dem Verhältnis zur Zahl',
+      /^7\. Enthält TOPF.*eingetragenen 14 cm\?$/m.test(mitIst),
+      (mitIst.match(/^7\..*/m) || [''])[0].slice(-70));
+
+    /* Aufbau und Beispiel bleiben, sonst liest topfLesen die Antwort
+       nicht mehr — vier Angaben, drei Striche. */
+    pruef('Die TOPF-Zeile behält Aufbau und Beispiel',
+      /^TOPF: Vier Angaben, getrennt durch genau drei senkrechte Striche/m.test(mitIst)
+      && /^TOPF: zu klein \| /m.test(mitIst));
+    pruef('Die Schlüsselwortzahl bleibt unverändert',
+      /neunzehn Schlüsselwörter/.test(mitIst),
+      (mitIst.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
+    pruef('Der Doktorkopf verlangt Sicherheit für eine andere Art',
+      /Nenne in ART nur dann einen anderen Namen/.test(mitIst));
+
+    /* Gegenprobe: ohne Werte haengt nichts an. */
+    w.__T("dokPflanze = 'BT2';");
+    const ohneIst = w.__T('dokPromptBauen()');
+    pruef('Ohne eingetragene Werte fehlt der Block ganz',
+      ohneIst.indexOf('Das ist zu dieser Pflanze eingetragen:') === -1);
+    pruef('Und die TOPF-Zeile bleibt unangetastet',
+      ohneIst.indexOf('Durchmesser von') === -1
+      && ohneIst.indexOf('Als Topfform ist eingetragen') === -1
+      && ohneIst.indexOf('Zum Wasserablauf ist eingetragen') === -1);
+    pruef('mitIstWerten hängt ohne Werte nichts an',
+      w.__T("mitIstWerten('TOPF: A\\nBEFUND: B', {topf:'', topfform:'', substrat:'', ablauf:''})")
+        === 'TOPF: A\nBEFUND: B');
+    pruef('Ohne TOPF-Zeile bleibt der Text unverändert',
+      w.__T("mitIstWerten('BEFUND: B', {topf:'14', substrat:'erde'})") === 'BEFUND: B');
+
+    /* Frisch umgetopft: ohneTopf nimmt die Zeile heraus, und an eine
+       entfernte Zeile haengt mitIstWerten nichts. */
+    w.__T("dokPflanze = 'BT1'; zustandSetzen('BT1', 'frisch');");
+    const frisch = w.__T('dokPromptBauen()');
+    pruef('Frisch umgetopft: keine TOPF-Zeile und kein Zusatz',
+      !/^TOPF:/m.test(frisch) && frisch.indexOf('Durchmesser von 14 cm eingetragen') === -1);
+    w.__T("(function(){ if(S.zustand) delete S.zustand.BT1; sichern(); })()");
+
+    pruef('ANTWORT_FORMAT bleibt zeichengleich', w.__T('ANTWORT_FORMAT') === fmt0);
+
+    /* Der Artkasten: nur bei anderer Art UND ausdruecklicher Sicherheit,
+       und er aendert nichts ohne Antippen. */
+    pruef('Der Doktor hat einen Platz für den Artkasten', !!d.getElementById('dok-art'));
+    const artBox = () => {
+      const el = d.getElementById('dok-art');
+      return el ? (el.innerHTML || '') : 'KASTEN FEHLT';
+    };
+    const artVon = () => w.__T("allePflanzen().find(function(x){return x.id==='BT1';}).art");
+    w.__T("dokPflanze = 'BT1';");
+    w.__T("dokArtZeigen({art:'Efeutute', bot:'Epipremnum aureum', sicher:'hoch'})");
+    pruef('Gleiche Art zeigt keinen Kasten', artBox() === '');
+    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'mittel'})");
+    pruef('Ohne hohe Sicherheit zeigt er keinen Kasten', artBox() === '');
+    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'})");
+    pruef('Bei anderer Art und hoher Sicherheit steht der Kasten',
+      /data-do="art-nehmen"/.test(artBox()) && /data-do="art-lassen"/.test(artBox()),
+      artBox().slice(0, 100));
+    pruef('Der Kasten allein ändert nichts an der Pflanze', artVon() === 'Efeutute', artVon());
+
+    d.querySelector('#dok-art [data-do="art-lassen"]')
+      .dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„So lassen“ nimmt den Kasten weg und ändert nichts',
+      artBox() === '' && artVon() === 'Efeutute');
+
+    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'})");
+    d.querySelector('#dok-art [data-do="art-nehmen"]')
+      .dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    pruef('„Art übernehmen“ setzt Art und botanischen Namen',
+      artVon() === 'Herzblattphilodendron'
+      && w.__T("allePflanzen().find(function(x){return x.id==='BT1';}).botanisch")
+         === 'Philodendron hederaceum',
+      artVon());
+    pruef('Und der Kasten ist danach weg', artBox() === '');
+
+    /* Eine eigene Giftangabe ist kein KI-Ergebnis — sie ueberlebt. */
+    w.__T("aenderungSetzen('BT1', {giftig:true});");
+    w.__T("dokArtZeigen({art:'Efeutute', bot:'Epipremnum aureum', sicher:'hoch'})");
+    d.querySelector('#dok-art [data-do="art-nehmen"]')
+      .dispatchEvent(new w.Event('click', {bubbles:true}));
+    await tick();
+    /* Auf den Status allein ist kein Verlass: eine Art aus der
+       gepruefften Tabelle liefert ebenfalls „fest“. Die eigene Angabe
+       erkennt man an der Quelle. */
+    pruef('Eine eigene Giftangabe überlebt den Artwechsel',
+      w.__T("giftVon(allePflanzen().find(function(x){return x.id==='BT1';})).status") === 'fest'
+      && w.__T("giftVon(allePflanzen().find(function(x){return x.id==='BT1';})).quelle") === 'nutzer',
+      String(w.__T("giftVon(allePflanzen().find(function(x){return x.id==='BT1';})).quelle")));
+
+    /* Aufraeumen: die Testpflanzen gehoeren nicht in die Sammlung. */
+    w.__T(`(function(){
+      dokPflanze = null; dokArtLage = null;
+      var z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
+      S.eigene = S.eigene.filter(function(x){ return String(x.id).slice(0,2) !== 'BT'; });
+      if(S.zustand){ delete S.zustand.BT1; delete S.zustand.BT2; }
+      sichern(); render();
+    })()`);
+    await tick();
+  }
+
+
   /* ══════════ Scrollen in der Sammlung ══════════
      Die Zuklapp-Mechanik ist entfernt. Sie konnte nie greifen: seit
      die Kartendetails im eigenen Fenster stehen, traegt in der Liste
@@ -6880,7 +7020,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.15.0', e0.nr === '3.15.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.16.0', e0.nr === '3.16.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

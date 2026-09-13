@@ -9394,6 +9394,7 @@ function papierkorbRender(){
       <div id="dok-ergebnis"></div>
       <div id="dok-massnahmen"></div>
       <div id="dok-gift"></div>
+      <div id="dok-art"></div>
       <details class="dok-mehr" id="dok-abgleich-auf" hidden>
         <summary><span id="dok-abgleich-zahl">Abgleich mit der Karte</span></summary>
         <div id="dok-abgleich"></div>
@@ -11072,8 +11073,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.15.0';
+const FASSUNG = '3.16.0';
 const PATCHNOTES = [
+  {
+    nr: '3.16.0', datum: '2026-09-12', titel: 'Der Doktor rechnet mit deinen Angaben',
+    kurz: [
+      'Topfgröße, Topfform, Substrat und Abzugsloch gehen an den Pflanzendoktor — er bewertet sie, statt sie am Foto zu schätzen.'
+    ],
+    neu: [
+      'Steht ein Topfdurchmesser in der Karte, urteilt der Doktor gegen diese Zahl und nennt eine Zielgröße in Zentimetern, die davon abweicht.',
+      'Ist ein Abzugsloch eingetragen, übernimmt er die Angabe, statt sie zu raten. Was er am Foto anders sieht, landet unter „nicht beurteilbar“.',
+      'Das eingetragene Substrat wird mitbewertet: taugt es für die Art nicht, kommt der Wechsel als Maßnahme.',
+      'Widerspricht der Doktor der hinterlegten Art und nennt sich dabei sicher, erscheint ein Kasten mit beiden Namen und einem Knopf „Art übernehmen“. Ohne Antippen ändert sich nichts, und eine eigene Giftangabe bleibt stehen.'
+    ]
+  },
   {
     nr: '3.15.0', datum: '2026-09-12', titel: 'Topf und Substrat trägst du ein',
     kurz: [
@@ -24447,10 +24460,11 @@ function dokAbschliessen(){
   dokSymptome.clear();
   dokAntworten = {};
   dokVorschlaege = [];
+  dokArtLage = null;
   ['dok-paste','dok-frage-eigen','dok-such'].forEach(id=>{
     const f = document.getElementById(id); if(f) f.value = '';
   });
-  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-massnahmen','dok-ergebnis']
+  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-art','dok-massnahmen','dok-ergebnis']
     .forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ''; });
   const auf = document.getElementById('dok-abgleich-auf');
   if(auf){ auf.hidden = true; auf.open = false; }
@@ -24510,6 +24524,9 @@ const DOKTOR_PROMPT_KOPF =
   + 'ist ein fehlender Wasserablauf dort kein Mangel und keine Maßnahme wert. '
   + 'Entscheide dich in dem Fall für genau eines: so lassen oder in Erde umstellen. '
   + 'Nicht beides nebeneinander.\n'
+  + 'Die Art steht fest. Nenne in ART nur dann einen anderen Namen als den oben genannten, '
+  + 'wenn am Foto eindeutig eine andere Art zu sehen ist — und setze dann SICHERHEIT auf hoch. '
+  + 'Im Zweifel bleibt die genannte Art stehen.\n'
   + 'Halte jede Maßnahme auf einen kurzen Befehlssatz. Die Begründung steht im Auslöser, '
   + 'sie gehört nicht noch einmal in die Handlung.';
 
@@ -24737,6 +24754,91 @@ function dokErgebnis(){
     }).join('');
 }
 
+/* ── Die Ist-Werte der Pflanze ───────────────────────────────
+   Seit 3.15.0 stehen Topfdurchmesser, Topfform, Substrat und Ablauf
+   am Datensatz. Der Doktor soll sie bewerten, nicht ein zweites Mal
+   am Foto schaetzen. Geraten wird nur noch, was wirklich fehlt. */
+function istTopfCm(p){
+  const n = parseInt(String((p && p.topf) || '').replace(',', '.'), 10);
+  return (n && n > 0) ? n : null;
+}
+function istKulturform(p){
+  const sub = (p && p.substrat) || '';
+  if(sub === 'wasser') return 'Wasserkultur, die Wurzeln stehen im Wasser';
+  if(sub === 'blaehton' || sub === 'seramis') return 'Hydrokultur';
+  return sub ? 'Erdkultur' : '';
+}
+function istTopfformName(p){
+  const f = (typeof TOPFFORMEN === 'object' && p) ? TOPFFORMEN[p.topfform] : null;
+  return f ? f.name : '';
+}
+function istSubstratName(p){
+  const s = (typeof SUBSTRATARTEN === 'object' && p) ? SUBSTRATARTEN[p.substrat] : null;
+  return s ? s.name : '';
+}
+function istWerteZeilen(p){
+  if(!p) return [];
+  const raus = [];
+  const cm = istTopfCm(p);
+  if(cm) raus.push('Topfdurchmesser: ' + cm + ' cm');
+  const form = istTopfformName(p);
+  if(form) raus.push('Topfform: ' + form);
+  const sub = istSubstratName(p);
+  if(sub) raus.push('Substrat: ' + sub);
+  if(p.ablauf === 'ja')   raus.push('Wasserablauf: Abzugsloch vorhanden');
+  if(p.ablauf === 'nein') raus.push('Wasserablauf: kein Abzugsloch');
+  const kult = istKulturform(p);
+  if(kult) raus.push('Kulturform: ' + kult);
+  return raus;
+}
+
+/* Haengt einen Satz an eine Feldzeile des Antwortformats an. Ersetzt
+   wird nur die erste Fundstelle — die Feldliste steht vor dem
+   Beispiel, und im Beispiel hat der Zusatz nichts zu suchen. Angehaengt
+   statt ersetzt: eine Ersetzung mit wortgleichem Anker bricht, sobald
+   jemand im Format ein Komma verschiebt. */
+function formatZeileErgaenzen(txt, feld, satz){
+  return String(txt).replace(new RegExp('^' + feld + ':[^\n]*', 'm'), m => m + ' ' + satz);
+}
+
+/* Laeuft als letzte der drei Formatfunktionen und nur, solange die
+   TOPF-Zeile noch da ist — ohneTopf nimmt sie bei frisch umgetopften
+   Pflanzen heraus, und an eine entfernte Zeile haengt man nichts. */
+function mitIstWerten(txt, p){
+  let t = String(txt);
+  if(!p || !/^TOPF:/m.test(t)) return t;
+  const cm = istTopfCm(p);
+  if(cm){
+    t = formatZeileErgaenzen(t, 'TOPF',
+      'Für diesen Topf ist ein Durchmesser von ' + cm + ' cm eingetragen. '
+      + 'Fälle das Größenurteil gegen diese Zahl und den Bedarf der Art, nicht nach Augenmaß am Foto. '
+      + 'Die Empfehlung nennt eine Zielgröße in Zentimetern, die von ' + cm
+      + ' cm abweicht, oder genau: kein Umtopfen nötig.');
+    t = t.replace(/^7\. Enthält TOPF[^\n]*/m,
+      m => m.replace(/\?\s*$/, '') + ', und steht das Größenurteil im Verhältnis zu den eingetragenen '
+           + cm + ' cm?');
+  }
+  if(p.ablauf === 'ja' || p.ablauf === 'nein'){
+    t = formatZeileErgaenzen(t, 'TOPF',
+      'Zum Wasserablauf ist eingetragen: '
+      + (p.ablauf === 'ja' ? 'Ablauf vorhanden' : 'kein Ablauf sichtbar')
+      + '. Schreib genau das in Feld 3. Sieht das Foto anders aus, gehört das in FEHLT, nicht ins Urteil.');
+  }
+  const form = istTopfformName(p);
+  if(form){
+    t = formatZeileErgaenzen(t, 'TOPF',
+      'Als Topfform ist eingetragen: ' + form
+      + '. Nenne sie in Feld 2 und ergänze nur, was am Foto zusätzlich zu sehen ist.');
+  }
+  const sub = istSubstratName(p);
+  if(sub){
+    t = formatZeileErgaenzen(t, 'BEFUND',
+      'Als Substrat ist eingetragen: ' + sub
+      + '. Schreib einen Satz dazu, ob es für diese Art taugt; passt es nicht, nenne den Wechsel als MASSNAHME.');
+  }
+  return t;
+}
+
 function dokPromptBauen(){
   const p = pflanzeAusWahl(dokPflanze);
   const sym = [...dokSymptome].map(k=>SYMPTOM_NAME[k]).filter(Boolean);
@@ -24755,6 +24857,13 @@ function dokPromptBauen(){
         + (sl.text || sl.stunden) + ' Stunden direkte Sonne pro Tag.');
     const st = giessStatus(p);
     if(st.letzte) zeilen.push('Zuletzt gegossen vor ' + st.tage + ' Tagen, üblicher Abstand ' + ivWort(st.iv) + '.');
+    /* Was am Gerät eingetragen wurde, ist belastbarer als jede
+       Schätzung am Foto — der Doktor bewertet es, statt es zu raten. */
+    const ist = istWerteZeilen(p);
+    if(ist.length){
+      zeilen.push('Das ist zu dieser Pflanze eingetragen:');
+      ist.forEach(z => zeilen.push('- ' + z));
+    }
     zeilen.push('');
   }
   /* Die eigene Frage steht vor allem anderen — sie ist der Anlass. */
@@ -24771,6 +24880,7 @@ function dokPromptBauen(){
   /* Wer gerade umgetopft hat, braucht keine Umtopfempfehlung. */
   const zst = (typeof zustandVon === 'function' && p) ? zustandVon(p) : null;
   if(zst && zst.code === 'frisch') format = ohneTopf(format);
+  format = mitIstWerten(format, p);
   zeilen.push(format);
   return zeilen.join('\n');
 }
@@ -24930,6 +25040,29 @@ document.addEventListener('click', e=>{
   if(btn.dataset.do === 'gift-lassen'){
     dokGiftLage = null;
     const z = document.getElementById('dok-gift'); if(z) z.innerHTML = '';
+    return;
+  }
+  if(btn.dataset.do === 'art-nehmen'){
+    if(dokPflanze && dokArtLage){
+      const felder = {art: dokArtLage.art};
+      if(dokArtLage.bot) felder.botanisch = dokArtLage.bot;
+      aenderungSetzen(dokPflanze, felder);
+      /* Die Giftangabe haengt an der Art. Eine eigene oder strittige
+         Angabe bleibt stehen — sie zu ueberschreiben waere eine
+         Entwarnung, die niemand gegeben hat. */
+      const pn = allePflanzen().find(x=>x.id === dokPflanze);
+      const gn = pn ? giftVon(pn) : null;
+      if(pn && gn && gn.status !== 'fest' && gn.status !== 'strittig')
+        aenderungSetzen(dokPflanze, {gift: giftErmitteln(pn)});
+      dokKiHinweis('Art übernommen: ' + dokArtLage.art + '.', 'ok');
+    }
+    dokArtLage = null;
+    const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
+    render(); return;
+  }
+  if(btn.dataset.do === 'art-lassen'){
+    dokArtLage = null;
+    const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
     return;
   }
   if(btn.dataset.do === 'ab-alle'){
@@ -25350,6 +25483,40 @@ function dokGiftZeigen(d){
   </div>`;
 }
 
+/* ── Der Doktor sieht eine andere Art ────────────────────────
+   Ein Widerspruch zur hinterlegten Art ist keine Kleinigkeit: an ihr
+   haengen Giftangabe, Pflegedaten und die Bibliothek. Deshalb nur ein
+   Kasten mit Knopf, und nur, wenn der Doktor sich ausdruecklich sicher
+   nennt. Uebernommen wird nichts ohne Antippen. */
+let dokArtLage = null;
+
+function dokArtZeigen(d){
+  const ziel = document.getElementById('dok-art'); if(!ziel) return;
+  dokArtLage = null;
+  ziel.innerHTML = '';
+  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
+  if(!p || !d) return;
+  const neu = String(d.art || '').trim();
+  if(!neu || /^unbekannt$/i.test(neu)) return;
+  if(norm(neu) === norm(p.art || '')) return;
+  if(norm(String(d.sicher || '')) !== 'hoch') return;
+  const bot = String(d.bot || '').trim();
+  const g = giftVon(p) || {};
+  const giftEigen = g.status === 'fest' || g.status === 'strittig';
+  dokArtLage = {art: neu, bot: (bot && !/^unbekannt$/i.test(bot)) ? bot : ''};
+  ziel.innerHTML = `<div class="giftblock warn">
+    <h4>Der Doktor sieht eine andere Art</h4>
+    <p>In der Karte steht „${esc(p.art || 'Unbestimmt')}“, die Antwort nennt
+      „${esc(neu)}“${dokArtLage.bot ? ' (' + esc(dokArtLage.bot) + ')' : ''} und gibt sich dabei als sicher an.
+      ${giftEigen
+        ? 'Deine eigene Giftangabe bleibt beim Übernehmen stehen.'
+        : 'Beim Übernehmen wird die Giftangabe für die neue Art neu ermittelt.'}
+      Solange du nichts antippst, ändert sich nichts.</p>
+    <div class="tools"><button class="haupt" data-do="art-nehmen">Art übernehmen</button>
+      <button data-do="art-lassen">So lassen</button></div>
+  </div>`;
+}
+
 function dokAbgleichZeigen(d){
   const ziel = $('#dok-abgleich'); if(!ziel) return;
   dokVorschlaege = [];
@@ -25492,6 +25659,7 @@ $('#btn-dok-paste').onclick = ()=>{
       if(n) teile.push(n + (n === 1 ? ' Vermehrungsweg' : ' Vermehrungswege') + ' gemerkt');
     }
     dokGiftZeigen(d);
+    dokArtZeigen(d);
     dokAbgleichZeigen(d);
     render();
   } else {
