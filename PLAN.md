@@ -1,6 +1,12 @@
-# PLAN — Etappe B · Doktor bewertet mit den Ist-Werten
+# PLAN — GreenkeeperAI
 
-Freigegeben: 12.09.2026 · Zielversion: 3.16.0 (sw.js greenkeeperai-v110)
+Stand: 12.09.2026
+
+---
+
+# Erledigt — Etappe B · Doktor bewertet mit den Ist-Werten
+
+Freigegeben und geliefert in 3.16.0 (sw.js greenkeeperai-v110). Prüfstand 1675 Prüfungen, alles sauber. Gerätekontrolle steht aus.
 
 ## Ziel
 
@@ -45,6 +51,24 @@ Mittel.
 
 ---
 
-# Offen daneben
+# Ausblick — noch nicht freigegeben
 
-- **App-Rundgang (Tour) braucht ein komplettes Remake.** Eigene Etappe, eigene Sitzung — nach Regel 4.1 nicht Teil dieser Etappe.
+## T — App-Rundgang neu (nächste Etappe, von Chris gesetzt)
+
+Kompletter Neubau von `TOUR_KAPITEL`. Der Rundgang beschreibt die App von vorgestern: das Kapitel „Einrichtung“ führt den KI-Weg noch als Kopieren-und-Einfügen, kennt den Topf- und Substratblock auf Stufe 4 nicht und nicht den Doktor-Anstoß nach dem Anlegen. Jedes Kapitel einzeln gegen den Ist-Stand prüfen, Ziele und Texte neu setzen. Größe: noch zu bestimmen — vermutlich groß, dann Aufteilung nach Kapiteln.
+
+## C — Herkunft und Rangfolge
+
+Stempel `ki` / `bib` / `hand` je Feld. Hand schlägt KI, KI schlägt Bibliothek, Bibliothek nur ohne KI-Antwort. Der Doktor-Abgleich zeigt keine Felder mit Stempel `hand`. Altbestand ohne Stempel gilt als `bib`. Einzige Etappe, die Altdaten anfasst. Größe: mittel.
+
+## D — Sorten
+
+Feld `sorte` an der Pflanze, Freitext vom Nutzer. Karte und Listen zeigen die Sorte hinter dem Artnamen. Der Auftrag beschreibt sichtbare Sortenmerkmale, statt einen Namen zu raten. Größe: klein.
+
+## E — Sammel-Anlegen
+
+Mehrere Fotos wählen, je Pflanze eine eigene Anfrage gleichzeitig, Durchwinkliste, Standort einmal für alle. Größe: groß — Aufteilung: E1 Fotos und parallele Anfragen, E2 Durchwinkliste.
+
+## F — KI im Rundgang
+
+Noch Idee, kein Plan. Wird besprochen, wenn A bis E stehen.

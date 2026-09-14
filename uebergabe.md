@@ -6,13 +6,14 @@ Version: 3.16.0, sw.js greenkeeperai-v110, Prüfstand 1675 Prüfungen, alles sau
 Nächster Schritt: App-Rundgang (TOUR_KAPITEL) komplett neu bauen — eigene Etappe, von Chris gesetzt. Etappe C (Herkunft und Rangfolge) wartet dahinter.
 Offen oder kaputt: Gerätekontrollen aus 3.13.0, 3.13.1, 3.14.0, 3.15.0 und 3.16.0 alle unbestätigt. Für 3.16.0 betrifft das die Länge des Doktor-Auftrags im Kopierfeld und die Ebenen des Artkastens über dem Abgleich.
 Nicht anfassen: `ANTWORT_FORMAT` bleibt zeichengleich — geändert wird nur die Kopie, die der Doktor baut.
-Offener Plan: nein — B ist geliefert. PLAN.md trägt den erledigten B-Plan.
+Offener Plan: nein — B ist geliefert. PLAN.md trägt den erledigten B-Plan und den Ausblick T, C, D, E, F.
 
 ## Gescheiterte Versuche
 
 - **Gifttest prüfte nur den Status.** „Eine eigene Giftangabe überlebt den Artwechsel“ blieb grün, obwohl die Gegenprobe den Schutz entfernt hatte: `giftErmitteln` liefert für eine Art aus der geprüften Tabelle ebenfalls `status: 'fest'`. Der Test prüft jetzt zusätzlich `quelle === 'nutzer'`. Der Test war falsch, nicht der Code richtig.
 - **`artBox()` stürzte ab, statt zu melden.** Ohne den Container `#dok-art` warf der Testlauf eine TypeError und zählte null Fehlschläge — eine Gegenprobe, die nichts beweist. Der Helfer verträgt jetzt ein fehlendes Element, und eine eigene Prüfung fragt nach dem Container.
 - **Ersetzungsanker nicht eindeutig.** `aenderungSetzen(dokPflanze, felder);` kam zweimal vor; die `assert`-Zeile fing es ab. Anker mit den beiden Zeilen davor gebaut.
+- **Ausblick beim Überschreiben verloren.** Die neue PLAN.md trug zuerst nur den B-Plan; die Etappen C bis F aus dem alten Ausblick fehlten. Chris hat es bemerkt, bevor die Datei hochgeladen war. Lehre: PLAN.md ersetzt die alte Datei ganz — alles, was weitergelten soll, muss mit hinein.
 - **Werkzeuglimit beim Liefern, zweite Sitzung in Folge.** Code und Prüflauf waren fertig, CHANGELOG und `present_files` kamen nicht mehr durch. Lehre: bei mittleren Etappen nach dem grünen Prüflauf sofort liefern, Gegenproben danach.
 
 ## Entscheidungen
