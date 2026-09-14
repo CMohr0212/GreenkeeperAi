@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.16.0', w.__T('FASSUNG') === '3.16.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.17.0', w.__T('FASSUNG') === '3.17.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7020,7 +7020,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.16.0', e0.nr === '3.16.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.17.0', e0.nr === '3.17.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7443,6 +7443,144 @@ setTimeout(async () => {
         if(S.zustand) delete S.zustand[id];
       });
       delete S.giess.dgSchwelle; S.giess.winterpause = true;
+      sichern();
+    })()`);
+  }
+
+  /* ══ Herkunft und Rangfolge ════════════════════════════════════
+     Jedes der sieben Steckbrieffelder traegt einen Stempel: hand, ki
+     oder bib. Wer niedriger steht, ueberschreibt keinen hoeheren —
+     ausser der Mensch tippt ausdruecklich auf einen Knopf. */
+  {
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'HQ'; });
+      if(S.edits) delete S.edits.HQ1;
+      S.eigene.push({id:'HQ1', eigen:true, name:'Herkunftstest', art:'Testart',
+        botanisch:'', typ:'', klasse:'B', sonne:'hell', wichtig:'', frostMin:null,
+        gift:null, intervall:[8,12], notiz:'', todo:[], log:[], seit:'selbst angelegt'});
+      sichern();
+    })()`);
+    const hq = c => w.__T(`(function(){ const p = allePflanzen().find(x=>x.id==='HQ1'); return ${c}; })()`);
+
+    pruef('Ohne Eintrag gilt bib', hq(`herkunftVon(p, 'typ')`) === 'bib', String(hq(`herkunftVon(p, 'typ')`)));
+    pruef('Die Rangfolge steht fest',
+      w.__T('[Q_RANG.bib, Q_RANG.ki, Q_RANG.hand].join(",")') === '1,2,3',
+      String(w.__T('[Q_RANG.bib, Q_RANG.ki, Q_RANG.hand].join(",")')));
+    pruef('Sieben Felder werden gestempelt',
+      w.__T('Q_FELDER.length') === 7, String(w.__T('Q_FELDER.length')));
+
+    /* Ohne drittes Argument: hand */
+    w.__T(`aenderungSetzen('HQ1', {typ:'Kletterpflanze'})`);
+    pruef('Ohne drittes Argument wird hand gestempelt',
+      hq(`herkunftVon(p, 'typ')`) === 'hand', String(hq(`herkunftVon(p, 'typ')`)));
+    pruef('Der Wert steht in der Karte', hq(`p.typ`) === 'Kletterpflanze', String(hq(`p.typ`)));
+
+    /* ki schreibt nicht ueber hand */
+    w.__T(`aenderungSetzen('HQ1', {typ:'Rankpflanze'}, 'ki')`);
+    pruef('Eine KI-Antwort ueberschreibt keine eigene Angabe',
+      hq(`p.typ`) === 'Kletterpflanze', String(hq(`p.typ`)));
+    pruef('Der Stempel bleibt dabei hand',
+      hq(`herkunftVon(p, 'typ')`) === 'hand', String(hq(`herkunftVon(p, 'typ')`)));
+
+    /* ki schreibt ueber bib */
+    w.__T(`aenderungSetzen('HQ1', {botanisch:'Aus der Bibliothek'}, 'bib')`);
+    w.__T(`aenderungSetzen('HQ1', {botanisch:'Von der KI'}, 'ki')`);
+    pruef('Eine KI-Antwort ueberschreibt einen Bibliothekswert',
+      hq(`p.botanisch`) === 'Von der KI', String(hq(`p.botanisch`)));
+    pruef('und stempelt ki', hq(`herkunftVon(p, 'botanisch')`) === 'ki',
+      String(hq(`herkunftVon(p, 'botanisch')`)));
+
+    /* bib schreibt nicht ueber ki */
+    w.__T(`aenderungSetzen('HQ1', {botanisch:'Wieder Bibliothek'}, 'bib')`);
+    pruef('Ein Bibliothekswert ueberschreibt keine KI-Antwort',
+      hq(`p.botanisch`) === 'Von der KI', String(hq(`p.botanisch`)));
+    pruef('Der Stempel bleibt dabei ki',
+      hq(`herkunftVon(p, 'botanisch')`) === 'ki', String(hq(`herkunftVon(p, 'botanisch')`)));
+
+    /* gleicher Rang schreibt */
+    w.__T(`aenderungSetzen('HQ1', {botanisch:'Zweite KI-Antwort'}, 'ki')`);
+    pruef('Gleicher Rang ueberschreibt',
+      hq(`p.botanisch`) === 'Zweite KI-Antwort', String(hq(`p.botanisch`)));
+
+    /* ausdruecklich angetippt schreibt immer */
+    w.__T(`aenderungSetzen('HQ1', {typ:'Ausdruecklich'}, 'ki', true)`);
+    pruef('Ein ausdruecklicher Knopf schreibt auch ueber hand',
+      hq(`p.typ`) === 'Ausdruecklich', String(hq(`p.typ`)));
+    pruef('und stempelt ehrlich ki',
+      hq(`herkunftVon(p, 'typ')`) === 'ki', String(hq(`herkunftVon(p, 'typ')`)));
+
+    /* Leerwerte stempeln nicht */
+    w.__T(`aenderungSetzen('HQ1', {wichtig:''}, 'ki')`);
+    pruef('Ein Leerwert setzt keinen Stempel',
+      hq(`herkunftVon(p, 'wichtig')`) === 'bib', String(hq(`herkunftVon(p, 'wichtig')`)));
+
+    /* Nicht gestempelte Felder bleiben unberuehrt */
+    w.__T(`aenderungSetzen('HQ1', {notiz:'Eine Notiz'}, 'ki')`);
+    pruef('Die Notiz wird nicht gestempelt',
+      hq(`p.quellen && p.quellen.notiz === undefined`) === true);
+    pruef('und trotzdem geschrieben', hq(`p.notiz`) === 'Eine Notiz', String(hq(`p.notiz`)));
+
+    /* Stempel ueberstehen eine Sicherungsrunde */
+    pruef('Die Stempel ueberstehen Sichern und Laden',
+      w.__T(`(function(){
+        const roh = JSON.stringify(S);
+        const zurueck = JSON.parse(roh);
+        const p = (zurueck.eigene||[]).find(x=>x.id==='HQ1');
+        return !!(p && p.quellen && p.quellen.typ === 'ki' && p.quellen.botanisch === 'ki');
+      })()`) === true);
+
+    /* ── Der Abgleich im Doktor ── */
+    w.__T(`(function(){
+      aenderungSetzen('HQ1', {klasse:'B'});           /* hand */
+      aenderungSetzen('HQ1', {sonne:'hell'}, 'bib');  /* bib  */
+      dokPflanze = 'HQ1';
+      dokAbgleichZeigen({klasse:'C — durchtrocknen', licht:'volle Sonne'});
+    })()`);
+    pruef('Eine eigene Angabe steht weiter im Abgleich',
+      w.__T(`dokVorschlaege.some(v=>v.feld==='klasse' && v.hand === true)`) === true);
+    pruef('Ein Bibliothekswert steht ohne Vermerk da',
+      w.__T(`dokVorschlaege.some(v=>v.feld==='sonne' && !v.hand)`) === true);
+    pruef('Der Vermerk steht auch im Kasten',
+      /von dir gesetzt/.test(String(d.getElementById('dok-abgleich').innerHTML)));
+    pruef('Jede Zeile hat einen eigenen Uebernehmen-Knopf',
+      d.querySelectorAll('#dok-abgleich [data-do="ab-eins"]').length
+        === w.__T('dokVorschlaege.length'),
+      String(d.querySelectorAll('#dok-abgleich [data-do="ab-eins"]').length));
+    pruef('Das blosse Zeichnen aendert nichts',
+      hq(`p.klasse`) === 'B' && hq(`p.sonne`) === 'hell');
+
+    /* Alles uebernehmen laesst die eigene Angabe stehen.
+       Fehlt ein Knopf, muss die Pruefung melden statt abzustuerzen —
+       eine Gegenprobe, die eine TypeError wirft, beweist nichts. */
+    const tipp = async sel => { const b = d.querySelector('#dok-abgleich ' + sel);
+      pruef('Der Knopf ' + sel + ' ist da', !!b);
+      if(b){ b.click(); await tick(); } };
+    await tipp('[data-do="ab-alle"]');
+    pruef('Alles uebernehmen laesst die eigene Angabe stehen',
+      hq(`p.klasse`) === 'B', String(hq(`p.klasse`)));
+    pruef('und schreibt die uebrigen',
+      hq(`p.sonne`) === 'voll', String(hq(`p.sonne`)));
+    pruef('Die eigene Zeile bleibt danach sichtbar',
+      w.__T(`dokVorschlaege.length === 1 && dokVorschlaege[0].feld === 'klasse'`) === true,
+      String(w.__T('JSON.stringify(dokVorschlaege.map(v=>v.feld))')));
+    pruef('Der Fusstext nennt sie',
+      /selbst gesetzt/.test(String(d.getElementById('dok-abgleich').innerHTML)));
+
+    /* Einzeln uebernehmen greift auch bei einer eigenen Angabe */
+    await tipp('[data-do="ab-eins"]');
+    pruef('Einzeln uebernehmen greift auch bei hand',
+      hq(`p.klasse`) === 'C', String(hq(`p.klasse`)));
+    pruef('und stempelt die Zeile auf ki',
+      hq(`herkunftVon(p, 'klasse')`) === 'ki', String(hq(`herkunftVon(p, 'klasse')`)));
+    pruef('Danach ist der Abgleich leer',
+      w.__T('dokVorschlaege.length') === 0, String(w.__T('dokVorschlaege.length')));
+
+    /* Aufraeumen */
+    w.__T(`(function(){
+      dokPflanze = null; dokVorschlaege = [];
+      const z = document.getElementById('dok-abgleich'); if(z) z.innerHTML = '';
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'HQ'; });
+      if(S.edits) delete S.edits.HQ1;
       sichern();
     })()`);
   }

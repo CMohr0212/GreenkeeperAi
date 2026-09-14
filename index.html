@@ -2017,6 +2017,16 @@ body.gm-offen #fab-neu{display:none}
 .ab-weg{flex:0 0 auto;background:none;border:0;font:inherit;font-size:var(--t-l);
   color:var(--peat);cursor:pointer;line-height:1;padding:0 4px;
   min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center}
+/* Herkunft: eine eigene Angabe steht weiter in der Liste, nur sichtbar
+   abgesetzt. Die Zeile bricht auf schmalem Gerät um, statt zu quetschen. */
+.ab-zeile{flex-wrap:wrap}
+.ab-eigen{background:color-mix(in srgb, var(--peat) 6%, transparent)}
+.ab-herkunft{display:block;font-family:var(--f-body);font-size:var(--t-xs, .78rem);
+  letter-spacing:0;text-transform:none;font-style:normal;color:var(--peat);opacity:.85}
+.ab-nimm{flex:0 0 auto;background:none;border:1px solid var(--line);border-radius:var(--r-klein);
+  font:inherit;font-size:var(--t-s);color:var(--schrift);cursor:pointer;
+  padding:0 10px;min-height:var(--tap)}
+.ab-fuss{margin:8px 0 0;font-size:var(--t-s);line-height:1.5;color:var(--peat)}
 /* Die Giftfrage im Doktor: eigener Kasten, weil sie nicht wie die
    übrigen Angaben einfach übernommen werden darf. */
 .giftblock{margin:var(--a-3) 0;border:1px solid var(--line);border-left-width:4px;
@@ -8914,8 +8924,26 @@ function giessartText(p){ return GIESSARTEN[giessartVon(p)].kurz; }
 const AENDERBAR = ['name','art','botanisch','typ','klasse','sonne','giftig','gift','notiz','frostMin','giessart','wichtig','raum','stellplatz'];
 
 function aenderungen(id){ return (S.edits||{})[id] || null; }
-function aenderungSetzen(id, felder){
+/* ── Herkunft und Rangfolge ───────────────────────────────────
+   Sieben Steckbrieffelder tragen einen Stempel, woher ihr Wert
+   stammt. Ohne Stempel gilt `bib` — der niedrigste Rang. Altdaten
+   werden dadurch beim Lesen ausgelegt und nie umgeschrieben. */
+const Q_FELDER = ['art', 'botanisch', 'typ', 'klasse', 'sonne', 'wichtig', 'frostMin'];
+const Q_RANG = {bib: 1, ki: 2, hand: 3};
+function herkunftVon(p, feld){
+  const q = p && p.quellen;
+  const v = (q && typeof q === 'object' && !Array.isArray(q)) ? q[feld] : null;
+  return (v === 'ki' || v === 'hand' || v === 'bib') ? v : 'bib';
+}
+
+/* `herkunft` ist 'hand', 'ki' oder 'bib'; ohne Angabe gilt 'hand'.
+   Die Rangfolge greift nur beim stillen Schreiben. Was hinter einem
+   ausdrücklich angetippten Knopf steht, kommt mit `erzwungen` und
+   schreibt immer — der Stempel sagt trotzdem die Wahrheit. */
+function aenderungSetzen(id, felder, herkunft, erzwungen){
   if(!S.edits) S.edits = {};
+  const her = (herkunft === 'ki' || herkunft === 'bib') ? herkunft : 'hand';
+  felder = Object.assign({}, felder);
   /* Die Giftfrage hat einen eigenen Weg: sie wird nicht als Rohwert
      abgelegt, sondern durch giftEigenSetzen geschickt. Nur so kann eine
      eigene Eingabe verschärfen, ohne eine geprüfte Quelle zu
@@ -8928,6 +8956,21 @@ function aenderungSetzen(id, felder){
     felder = Object.assign({}, felder, {gift: giftEigenSetzen(vorher, wert)});
     delete felder.giftig;
   }
+  /* Rangfolge: ein niedrigerer Rang überschreibt keinen höheren, der
+     schon einen Wert trägt. Der bestehende Stempel bleibt stehen. */
+  const stand = allePflanzen().find(x => x.id === id) || {};
+  const stempel = {};
+  Q_FELDER.forEach(f=>{
+    if(!Object.prototype.hasOwnProperty.call(felder, f)) return;
+    const wert = felder[f];
+    if(wert === null || wert === undefined || wert === '') return;
+    const bisher = herkunftVon(stand, f);
+    const hatWert = stand[f] !== null && stand[f] !== undefined && stand[f] !== '';
+    if(!erzwungen && hatWert && Q_RANG[her] < Q_RANG[bisher]){ delete felder[f]; return; }
+    stempel[f] = her;
+  });
+  if(Object.keys(stempel).length)
+    felder.quellen = Object.assign({}, stand.quellen, stempel);
   const eigen = (S.eigene||[]).find(p=>p.id===id);
   if(eigen){ Object.assign(eigen, felder); }
   else { S.edits[id] = Object.assign({}, S.edits[id], felder); }
@@ -11073,8 +11116,20 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.16.0';
+const FASSUNG = '3.17.0';
 const PATCHNOTES = [
+  {
+    nr: '3.17.0', datum: '2026-09-14', titel: 'Jede Angabe weiß, woher sie kommt',
+    kurz: [
+      'Art, Botanisch, Wuchsform, Gießklasse, Licht, Wichtig und Frost tragen jetzt einen Stempel: von dir, von der KI oder aus der Bibliothek.'
+    ],
+    neu: [
+      'Eine KI-Antwort überschreibt nicht mehr still, was du selbst eingetragen hast — und ein Wert aus der Bibliothek überschreibt keine KI-Antwort.',
+      'Der Abgleich im Doktor zeigt weiterhin alle Abweichungen, auch bei deinen eigenen Angaben. Sie stehen mit dem Vermerk „von dir gesetzt“ dabei.',
+      'Jede Zeile im Abgleich hat einen eigenen Knopf „Übernehmen“. Damit lässt sich auch eine eigene Angabe ausdrücklich korrigieren.',
+      '„Alles übernehmen“ lässt deine eigenen Angaben stehen und sagt darunter, wie viele es waren.'
+    ]
+  },
   {
     nr: '3.16.0', datum: '2026-09-12', titel: 'Der Doktor rechnet mit deinen Angaben',
     kurz: [
@@ -19477,7 +19532,7 @@ document.addEventListener('click', e=>{
     if(typeof dokVorschlaege !== 'undefined' && dokVorschlaege.length && dokPflanze){
       const felder = {};
       dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
-      aenderungSetzen(dokPflanze, felder);
+      aenderungSetzen(dokPflanze, felder, 'ki');
       n = dokVorschlaege.length;
       dokVorschlaege = [];
       if(typeof dokAbgleichZeichnen === 'function') dokAbgleichZeichnen();
@@ -19613,7 +19668,13 @@ async function alSpeichern(){
     topf: imWasser ? '' : alTopfWert(),
     topfform: imWasser ? '' : ($('#f-topfform').value || ''),
     substrat: imWasser ? 'wasser' : ($('#f-substrat').value || ''),
-    ablauf: imWasser ? '' : ($('#f-ablauf').value || '')
+    ablauf: imWasser ? '' : ($('#f-ablauf').value || ''),
+    /* Woher die sieben Steckbrieffelder stammen, hat Stufe 1 entschieden:
+       Bibliothek, KI oder selbst eingetragen. */
+    quellen: (function(){
+      const w = (typeof neuWeg !== 'undefined' && Q_RANG[neuWeg]) ? neuWeg : 'hand';
+      const q = {}; Q_FELDER.forEach(f=>{ q[f] = w; }); return q;
+    })()
   };
   /* Der Giftwert wird genau hier festgelegt und danach nur noch gelesen.
      Steht die Art in der Tabelle, gilt sie als geprüft; sonst ist der
@@ -25029,6 +25090,19 @@ document.addEventListener('click', e=>{
     dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
     dokAbgleichZeichnen(); return;
   }
+  /* Eine einzelne Zeile, ausdrücklich angetippt: sie schreibt auch
+     über eine eigene Angabe — der Stempel bleibt trotzdem `ki`. */
+  if(btn.dataset.do === 'ab-eins'){
+    const i = parseInt(btn.dataset.i, 10);
+    const v = dokVorschlaege[i];
+    if(!dokPflanze || !v) return;
+    if(v.feld === 'klasse' && !klasseSBestaetigt(dokPflanze, v.wert)) return;
+    aenderungSetzen(dokPflanze, {[v.feld]: v.wert}, 'ki', true);
+    dokVorschlaege.splice(i, 1);
+    dokAbgleichZeichnen();
+    dokKiHinweis(v.name + ' übernommen.', 'ok');
+    render(); return;
+  }
   if(btn.dataset.do === 'gift-nehmen' || btn.dataset.do === 'gift-strittig'){
     if(dokPflanze && dokGiftLage && dokGiftLage.gift)
       aenderungSetzen(dokPflanze, {gift: dokGiftLage.gift});
@@ -25046,7 +25120,8 @@ document.addEventListener('click', e=>{
     if(dokPflanze && dokArtLage){
       const felder = {art: dokArtLage.art};
       if(dokArtLage.bot) felder.botanisch = dokArtLage.bot;
-      aenderungSetzen(dokPflanze, felder);
+      /* Ausdrücklich angetippt — schreibt auch über eine eigene Angabe. */
+      aenderungSetzen(dokPflanze, felder, 'ki', true);
       /* Die Giftangabe haengt an der Art. Eine eigene oder strittige
          Angabe bleibt stehen — sie zu ueberschreiben waere eine
          Entwarnung, die niemand gegeben hat. */
@@ -25072,11 +25147,15 @@ document.addEventListener('click', e=>{
     /* Weg von Klasse S heißt: keine Anstau-Texte, kein Karnivoren-
        Rhythmus mehr. Das darf keine KI-Antwort nebenbei erledigen. */
     if(!klasseSBestaetigt(dokPflanze, felder.klasse)) delete felder.klasse;
-    aenderungSetzen(dokPflanze, felder);
-    const anzahl = dokVorschlaege.length;
-    dokVorschlaege = [];
+    /* Ohne `erzwungen`: die Rangfolge lässt eigene Angaben stehen. */
+    const eigenE = dokVorschlaege.filter(v=>v.hand).length;
+    const anzahl = dokVorschlaege.length - eigenE;
+    aenderungSetzen(dokPflanze, felder, 'ki');
+    dokVorschlaege = dokVorschlaege.filter(v=>v.hand);
     dokAbgleichZeichnen();
-    dokKiHinweis(anzahl + (anzahl === 1 ? ' Angabe' : ' Angaben') + ' in die Karte übernommen.', 'ok');
+    dokKiHinweis(anzahl + (anzahl === 1 ? ' Angabe' : ' Angaben') + ' in die Karte übernommen.'
+      + (eigenE ? ' ' + eigenE + (eigenE === 1 ? ' Angabe hast' : ' Angaben hast')
+                + ' du selbst gesetzt — die bleiben stehen, bis du sie einzeln übernimmst.' : ''), 'ok');
     render(); return;
   }
   if(btn.dataset.do === 'dok-tasks'){
@@ -25357,7 +25436,7 @@ function vermehrungLesen(roh, dienst){
 function vermehrungUebernehmen(id, roh, dienst){
   const v = vermehrungLesen(roh, dienst);
   if(!id || !v) return null;
-  aenderungSetzen(id, {vermehrungKi: v});
+  aenderungSetzen(id, {vermehrungKi: v}, 'ki');
   return v.wege.length;
 }
 function vermehrungKiVon(p){
@@ -25528,6 +25607,7 @@ function dokAbgleichZeigen(d){
     const alt = f.ist(p);
     if(String(alt) === String(neu)) return;
     dokVorschlaege.push({feld:f.feld, name:f.name, wert:neu,
+      hand: herkunftVon(p, f.feld) === 'hand',
       altText: alt === '' ? '' : f.zeig(alt), neuText: f.zeig(neu)});
   });
   dokAbgleichZeichnen();
@@ -25541,14 +25621,20 @@ function dokAbgleichZeichnen(){
     ? 'Eine Angabe steht noch anders in der Karte'
     : dokVorschlaege.length + ' Angaben stehen noch anders in der Karte';
   if(!dokVorschlaege.length){ ziel.innerHTML = ''; return; }
+  /* Eigene Angaben stehen weiter in der Liste — wer sich einmal
+     vertippt hat, soll den Widerspruch sehen. Nur der Sammelknopf
+     lässt sie aus, damit ein Tipp nicht mehrere davon wegräumt. */
+  const eigenE = dokVorschlaege.filter(v=>v.hand).length;
   ziel.innerHTML = `<div class="abgleich">
     <h4>Das steht noch nicht so in der Karte</h4>
-    ${dokVorschlaege.map((v,i)=>`<div class="ab-zeile">
-      <span class="ab-feld">${esc(v.name)}</span>
+    ${dokVorschlaege.map((v,i)=>`<div class="ab-zeile${v.hand?' ab-eigen':''}">
+      <span class="ab-feld">${esc(v.name)}${v.hand?'<i class="ab-herkunft">von dir gesetzt</i>':''}</span>
       <span class="ab-wert">${v.altText?`<span class="ab-alt">${esc(v.altText)}</span> → `:''}${esc(v.neuText)}</span>
+      <button class="ab-nimm" data-do="ab-eins" data-i="${i}" aria-label="Diese Angabe übernehmen">Übernehmen</button>
       <button class="ab-weg" data-do="ab-weg" data-i="${i}" aria-label="Diese Zeile verwerfen">×</button>
     </div>`).join('')}
     <div class="tools"><button class="haupt" data-do="ab-alle">Alles übernehmen</button></div>
+    ${eigenE?`<p class="ab-fuss">${eigenE === 1 ? 'Eine Angabe hast du selbst gesetzt. Sie bleibt' : eigenE + ' Angaben hast du selbst gesetzt. Sie bleiben'} beim Sammelknopf stehen — einzeln übernehmen geht.</p>`:''}
   </div>`;
 }
 

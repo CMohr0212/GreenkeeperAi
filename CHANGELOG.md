@@ -4,6 +4,22 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.17.0 — 14. September 2026
+**Jede Angabe weiß, woher sie kommt**
+
+### Neu
+- **Sieben Felder tragen jetzt einen Stempel.** Art, Botanisch, Wuchsform, Gießklasse, Licht, Wichtig und Frost merken sich, ob der Wert von dir stammt, von der KI oder aus der Bibliothek.
+- **Eine KI-Antwort überschreibt nicht mehr still, was du eingetragen hast.** Ein Bibliothekswert überschreibt keine KI-Antwort. Von Hand schlägt KI, KI schlägt Bibliothek.
+- **Der Abgleich im Doktor zeigt trotzdem alles.** Auch wo deine eigene Angabe der Antwort widerspricht — mit dem Vermerk „von dir gesetzt“ daneben. Wer sich einmal vertippt hat, soll den Widerspruch sehen.
+- **Jede Zeile im Abgleich hat einen eigenen Knopf „Übernehmen“.** Damit lässt sich auch eine eigene Angabe ausdrücklich korrigieren.
+- **„Alles übernehmen“ lässt deine eigenen Angaben stehen** und sagt darunter, wie viele es waren.
+
+### Bleibt wie es war
+- Bestehende Pflanzen werden nicht angefasst. Felder ohne Stempel gelten als „aus der Bibliothek“ und stehen damit jeder Korrektur offen.
+- Die Giftangabe behält ihren eigenen Weg mit den Status „fest“ und „strittig“.
+
+---
+
 ## 3.16.0 — 12. September 2026
 **Der Doktor rechnet mit deinen Angaben**
 
