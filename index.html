@@ -5820,7 +5820,8 @@ Im Codeblock gilt:
 DIE ZEILEN
 
 ART: gebräuchlicher deutscher Name. Gibt es keinen, der botanische Name.
-BOTANISCH: Gattung und Art. Erkennst du sicher eine Sorte, hänge sie in einfachen Anführungszeichen an, etwa: Monstera deliciosa 'Thai Constellation'. Erkennst du die Sorte nicht sicher, lass sie weg. Erfinde keinen Sortennamen — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
+BOTANISCH: Gattung und Art. Häng keinen Sortennamen an — panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner. Was du an der Sorte siehst, gehört in MERKMALE. Bist du dir nur bei der Gattung sicher, nenne nur die Gattung.
+MERKMALE: Was diese Pflanze von anderen derselben Art unterscheidet — Muster und Farbe der Panaschierung, Blattform, Blattgröße, Farbe von Stiel und Blattstiel, Wuchs. Kurze Aufzählung, mit Komma getrennt, keine ganzen Sätze. Nenne keinen Sortennamen, auch keinen vermuteten. Ist nichts Besonderes zu sehen, schreib genau: keine
 SPEICHER: Wie speichert die Pflanze Wasser? Nur genau eine dieser Angaben: kein Speicher, dickfleischige Blätter, dicker Stamm oder Caudex, unterirdische Knolle oder Rhizom, Luftwurzeln am Baum, Sumpf- oder Moorpflanze. Beurteile das an dem, was auf dem Foto zu sehen ist.
 TYP: Wuchsform in ein bis zwei Wörtern, etwa Kletterpflanze, Rankpflanze, Rosettenpflanze, Kaktus, Sukkulente, Kraut, Strauch, Palme, Farn, Orchidee, Bromelie, Karnivore. Ist die Pflanze panaschiert, hänge das Wort panaschiert mit Komma an.
 SICHERHEIT: Nur genau eines dieser Wörter: hoch, mittel, niedrig
@@ -5847,6 +5848,7 @@ SO SIEHT EINE RICHTIGE ANTWORT AUS
 \`\`\`
 ART: Efeutute
 BOTANISCH: Epipremnum aureum
+MERKMALE: gelbgrün marmorierte Blätter, Zeichnung fein gesprenkelt, Blattstiel hellgrün
 SPEICHER: kein Speicher
 TYP: Kletterpflanze
 SICHERHEIT: mittel
@@ -5881,7 +5883,7 @@ PRÜFE VOR DEM ABSENDEN
 5. Ist in FEHLT beantwortet, ob Blattunterseiten, Blattachseln, Topf und Untersetzer erkennbar waren?
 6. Behandelt BEFUND alle drei Punkte — Schädlinge, Mangelerscheinungen, Krankheitszeichen — und steht bei jedem, ob wirklich nichts da ist oder die Stelle nur nicht sichtbar war?
 7. Enthält TOPF in Feld 1 und 3 nur die erlaubten Wörter, und passt das Urteil dazu, was auf dem Foto überhaupt zu sehen ist?
-8. Steht in BOTANISCH kein geratener Sortenname?`;
+8. Steht in BOTANISCH und MERKMALE kein Sortenname?`;
 
 /* ── Zwei Auftraege aus einem Text ────────────────────────
    Anlegen und Doktor brauchen verschiedene Felder: das Anlegen
@@ -5975,7 +5977,7 @@ function auftragFormat(namen, sonicht, pruefliste){
    Massnahmen, Topfurteil und der Giesssatz gehoeren zum Doktor und
    stehen hier nicht mehr. Jede Zeile weniger ist eine Stelle weniger,
    an der die Antwort ausschert. */
-const ANLEGEN_FELDER = ['ART','BOTANISCH','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
+const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
   'LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART','ABLAUF','FROST','WICHTIG',
   'KATZEN','VERMEHRUNG'];
 
@@ -5988,7 +5990,7 @@ const ANLEGEN_PRUEFLISTE = '1. Steht die gesamte Antwort in einem Codeblock und 
   + '2. Kommen alle Schl\u00fcsselw\u00f6rter genau einmal vor, in der Reihenfolge der Liste? Nur VERMEHRUNG darf mehrfach vorkommen.\n'
   + '3. Enthalten SICHERHEIT, LICHT, GIESSKLASSE, GIESSART, SUBSTRAT, TOPFART und ABLAUF nur eine der erlaubten Angaben?\n'
   + '4. Hat jede VERMEHRUNG-Zeile genau vier senkrechte Striche?\n'
-  + '5. Steht in BOTANISCH kein geratener Sortenname?\n'
+  + '5. Steht in BOTANISCH und MERKMALE kein Sortenname?\n'
   + '6. Steht irgendwo ein Urteil oder eine Empfehlung? Dann streich es.';
 
 /* Die Tierzeile richtet sich nach den eingetragenen Tieren. Wer keine
@@ -6125,6 +6127,7 @@ function kiOeffnen(dienst){
 const ANTWORT_SCHLUESSEL = [
   ['art',     ['art','deutscher name','name','deutsch','pflanze','pflanzenname','common name','german name']],
   ['bot',     ['botanisch','botanischer name','wissenschaftlich','wissenschaftlicher name','lateinisch','lateinischer name','gattung und art','botanical name','scientific name','species']],
+  ['sortenmerkmale',['merkmale','sortenmerkmale','sortenmerkmal','erkennungsmerkmale','panaschierung']],
   ['sicher',  ['sicherheit','sicherheit der bestimmung','confidence','gewissheit']],
   ['fehlt',   ['fehlt','fehlende angaben','was fehlt','unklar','zusatzfoto','weiteres foto','missing']],
   ['typ',     ['typ','wuchsform','wuchs','form','habitus','growth form','type']],
@@ -9001,6 +9004,8 @@ function bearbeitenInnenHTML(p){
       <label><span class="lab">Name</span><input data-e="name" data-p="${p.id}" value="${esc(p.name==='Name offen'?'':p.name||'')}" placeholder="z. B. Rudi"></label>
       <label><span class="lab">Art</span><input data-e="art" data-p="${p.id}" value="${esc(p.art||'')}"></label>
       <label><span class="lab">Botanisch</span><input data-e="botanisch" data-p="${p.id}" value="${esc(p.botanisch||'')}"></label>
+      <label><span class="lab">Sorte</span><input data-e="sorte" data-p="${p.id}" value="${esc(p.sorte||'')}" placeholder="z. B. Thai Constellation">
+        ${p.sortenmerkmale?`<span class="fhint">Die KI hat gesehen: ${esc(p.sortenmerkmale)}</span>`:''}</label>
       <label><span class="lab">Typ</span><input data-e="typ" data-p="${p.id}" value="${esc(p.typ||'')}"></label>
       <label><span class="lab">Gießklasse</span><select data-e="klasse" data-p="${p.id}">
         ${Object.keys(KLASSEN).map(k=>`<option value="${k}"${p.klasse===k?' selected':''}>${k} — ${esc(KLASSEN[k].name)}</option>`).join('')}</select></label>
@@ -9438,6 +9443,7 @@ function papierkorbRender(){
       <div id="dok-massnahmen"></div>
       <div id="dok-gift"></div>
       <div id="dok-art"></div>
+      <div id="dok-merkmale"></div>
       <details class="dok-mehr" id="dok-abgleich-auf" hidden>
         <summary><span id="dok-abgleich-zahl">Abgleich mit der Karte</span></summary>
         <div id="dok-abgleich"></div>
@@ -10856,6 +10862,11 @@ function papierkorbRender(){
           <input id="f-bot" placeholder="z. B. Epipremnum aureum">
         </div>
         <div class="al-feld">
+          <span class="lab">Sorte (falls bekannt)</span>
+          <input id="f-sorte" placeholder="z. B. Thai Constellation">
+          <span class="fhint" id="f-sorte-hint" hidden></span>
+        </div>
+        <div class="al-feld">
           <span class="lab">Zustand</span>
           <select id="f-zustand" hidden></select>
           <div class="al-knoepfe" id="f-zustand-knoepfe"></div>
@@ -11116,8 +11127,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.17.0';
+const FASSUNG = '3.18.0';
 const PATCHNOTES = [
+  {
+    nr: '3.18.0', datum: '2026-09-14', titel: 'Sorten',
+    kurz: [
+      'Jede Pflanze kann eine Sorte tragen. Sie steht hinter dem Artnamen — auf der Kachel, auf der Karte, im Grundriss und in der Pflanzenwahl.'
+    ],
+    neu: [
+      'Neues Feld „Sorte“ beim Anlegen und unter „Bearbeiten“. Die Sorte trägst du selbst ein.',
+      'Die Suche in der Sammlung findet eine Pflanze auch über ihren Sortennamen.',
+      'Ein Ableger erbt die Sorte seiner Mutter.',
+      'Die KI rät keinen Sortennamen mehr. Sie beschreibt stattdessen, was am Foto zu sehen ist — Panaschierung, Blattform, Farben.',
+      'Der Doktor zeigt diese Merkmale in einem eigenen Kasten mit Knopf. Übernommen wird nichts, solange du nichts antippst.'
+    ]
+  },
   {
     nr: '3.17.0', datum: '2026-09-14', titel: 'Jede Angabe weiß, woher sie kommt',
     kurz: [
@@ -12841,6 +12865,22 @@ const nice = p => {
 };
 const kurz = p => (!p.name || p.name==='Name offen') ? p.id : p.name;
 
+/* ── Sorte ───────────────────────────────────────────────────
+   Die Sorte steht hinter dem Artnamen, gaertnerisch in einfachen
+   Anfuehrungszeichen. Wer sie selbst mit Anfuehrungszeichen
+   eintraegt, soll sie nicht doppelt sehen — deshalb werden sie
+   beim Anzeigen abgeraeumt. */
+function sorteVon(p){
+  return String((p && p.sorte) || '')
+    .replace(/^[\s'"\u201e\u201c\u201a\u2018]+/, '')
+    .replace(/[\s'"\u201c\u201d\u2018\u2019]+$/, '').trim();
+}
+function mitSorte(text, p){
+  const t = String(text || '').trim();
+  const s = sorteVon(p);
+  return (t && s) ? t + " '" + s + "'" : t;
+}
+
 /* ══════════════════ Icons ══════════════════ */
 const SVG = {
   sonneVoll:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.6M12 19.4V22M2 12h2.6M19.4 12H22M4.9 4.9l1.9 1.9M17.2 17.2l1.9 1.9M19.1 4.9l-1.9 1.9M6.8 17.2l-1.9 1.9"/></svg>',
@@ -14369,10 +14409,10 @@ function kartenKopfHTML(p){
   const pf = profilFoto(p.id);
 
   const spitz = (p.name && p.name !== 'Name offen') ? p.name : '';
-  const titel = spitz || (p.botanisch || '').trim() || (p.art || '').trim() || p.id;
+  const titel = spitz || mitSorte((p.botanisch || '').trim() || (p.art || '').trim(), p) || p.id;
   /* Die interne Kennung (E-100) stand bis 3.11.0 mit im Untertitel.
      Sie hilft beim Erkennen der Pflanze nicht und fällt weg. */
-  const artTxt = spitz ? String(p.art || '').trim() : '';
+  const artTxt = spitz ? mitSorte(String(p.art || '').trim(), p) : '';
   const botTxt = String(p.botanisch || '').trim();
   const unter = [artTxt ? esc(artTxt) : '', botTxt ? `<i>${esc(botTxt)}</i>` : '']
     .filter(Boolean).join(' · ');
@@ -15228,9 +15268,9 @@ function cardHTML(p){
      das zwei Zeilen fuer denselben Gedanken. Die Unterzeile traegt
      dann nur noch, was oben nicht steht. */
   const spitz = (p.name && p.name !== 'Name offen') ? p.name : '';
-  const titel = spitz || (p.botanisch || '').trim() || (p.art || '').trim() || p.id;
+  const titel = spitz || mitSorte((p.botanisch || '').trim() || (p.art || '').trim(), p) || p.id;
   const unter = spitz
-    ? `${esc(p.art || '')}${p.botanisch ? ` · <i>${esc(p.botanisch)}</i>` : ''}`
+    ? `${esc(mitSorte(p.art, p))}${p.botanisch ? ` · <i>${esc(p.botanisch)}</i>` : ''}`
     : esc(p.art || '');
   /* Die Karte in der Liste ist nur noch Vorschau. Das Detail lebt im
      Fenster — darum hier kein `id`, sonst gaebe es die Kennung zweimal
@@ -16362,7 +16402,7 @@ function render(){
     if(filterPlatz === '__ohne' ? !!p.stellplatz : (filterPlatz && p.stellplatz !== filterPlatz)) return false;
     if(filterZustand.size && !zustandFilterPasst(p)) return false;
     if(!q) return true;
-    const felder = ['id','name','art','botanisch','familie','typ','merkmale','herkunft','folge','katzentext','notiz'];
+    const felder = ['id','name','art','botanisch','sorte','sortenmerkmale','familie','typ','merkmale','herkunft','folge','katzentext','notiz'];
     let hay = felder.map(f=>p[f]||'').join(' ') + ' ' + lageVon(p);
     ['bedingungen','pflege','probleme','beob','todo'].forEach(f=>{ if(p[f]) hay += ' '+JSON.stringify(p[f]); });
     return hay.toLowerCase().includes(q);
@@ -16623,7 +16663,7 @@ $('#btn-neu-cancel').onclick = ()=>{
    „Formular leeren“ auch von Hand auslösen — nützlich, wenn die
    eingefügte Antwort zur falschen Pflanze gehörte. */
 function formularLeeren(){
-  ['f-name','f-art','f-bot','f-typ','f-notiz','f-paste','f-wichtig'].forEach(x=>{
+  ['f-name','f-art','f-bot','f-sorte','f-typ','f-notiz','f-paste','f-wichtig'].forEach(x=>{
     if($('#'+x)) $('#'+x).value = '';
   });
   ['f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
@@ -19417,6 +19457,13 @@ $('#btn-paste-los').onclick = ()=>{
   if(vorbelegen('f-substrat', substratLesen(d.substrat))) uebernommen.push('Substrat vorbelegt');
   if(vorbelegen('f-ablauf', ablaufLesen(d.ablauf))) uebernommen.push('Abzugsloch vorbelegt');
   alTopfZeichnen();
+  /* Die Merkmale gehen nicht in die Sorte — die tippt der Mensch.
+     Sie stehen als Hinweis unter dem Feld. */
+  if(d.sortenmerkmale && !/^keine?$|^unbekannt$/.test(norm(d.sortenmerkmale))){
+    const sh = document.getElementById('f-sorte-hint');
+    if(sh){ sh.textContent = 'Die KI hat gesehen: ' + d.sortenmerkmale; sh.hidden = false; }
+    uebernommen.push('Sortenmerkmale gelesen');
+  }
   /* Für den Anlegen-Knopf merken: die Maßnahmen sollen gleich als
      Aufgaben mitkommen, sobald die Pflanze eine ID hat. */
   letzteKiAntwort = d;
@@ -19645,6 +19692,9 @@ async function alSpeichern(){
   const p = {
     id, eigen:true, name: name || 'Name offen', art: art || 'Unbestimmt',
     botanisch: $('#f-bot').value.trim() || (a ? a.bot : ''),
+    /* Die Sorte tippt der Mensch. Die KI liefert dazu nur Merkmale. */
+    sorte: $('#f-sorte').value.trim(),
+    sortenmerkmale: (letzteKiAntwort && letzteKiAntwort.sortenmerkmale) || '',
     familie: a ? a.fam : '', klasse: kl,
     gift: null,   /* gleich unten gesetzt, sobald Art und Familie stehen */
     raum: $('#f-raum').value || '',
@@ -20797,7 +20847,7 @@ function planKarteHTML(p){
   return `<div class="pk">
     <button class="pk-zu" data-do="karte-zu">×</button>
     <h4>${esc(nice(p))}</h4>
-    <p class="pk-art">${esc(p.art)}${p.botanisch?` · <i>${esc(p.botanisch)}</i>`:''}</p>
+    <p class="pk-art">${esc(mitSorte(p.art, p))}${p.botanisch?` · <i>${esc(p.botanisch)}</i>`:''}</p>
     <p class="pk-zeile">${esc(wo)} in ${esc(u&&u.hoehe?u.hoehe+' cm Höhe':'Bodenhöhe')} · ${esc(licht)}</p>
     <p class="pk-zeile">${esc(SONNE[p.sonne]?SONNE[p.sonne].text:'Licht offen')} · ${esc(wasser)}${z.code!=='gesund'?' · '+esc(z.def.name):''}</p>
     ${istGiftig(p,'katze')===true?`<p class="pk-warn">Giftig für Katzen${u&&u.katze?' — und hier erreichbar':''}</p>`:''}
@@ -24525,7 +24575,7 @@ function dokAbschliessen(){
   ['dok-paste','dok-frage-eigen','dok-such'].forEach(id=>{
     const f = document.getElementById(id); if(f) f.value = '';
   });
-  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-art','dok-massnahmen','dok-ergebnis']
+  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-art','dok-merkmale','dok-massnahmen','dok-ergebnis']
     .forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ''; });
   const auf = document.getElementById('dok-abgleich-auf');
   if(auf){ auf.hidden = true; auf.open = false; }
@@ -24624,14 +24674,14 @@ function mitDoktorZeilen(txt){
    Verlauf gehören auf die Karte, nicht in die Auswahl. */
 function pwahlPasst(p, suche){
   if(!suche) return true;
-  return [nice(p), p.art, p.botanisch, p.typ, p.raum, p.stellplatz]
+  return [nice(p), p.art, p.botanisch, p.sorte, p.typ, p.raum, p.stellplatz]
     .filter(Boolean).join(' ').toLowerCase().indexOf(suche) > -1;
 }
 function pwahlKachel(p, attr, gewaehlt, marke){
   const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
   const bot = String(p.botanisch || '').trim();
-  const zweit = bot && bot.toLowerCase() !== String(nice(p)).toLowerCase()
-    ? bot : String(p.art || '').trim();
+  const zweit = mitSorte(bot && bot.toLowerCase() !== String(nice(p)).toLowerCase()
+    ? bot : String(p.art || '').trim(), p);
   return '<button type="button" class="pwahl-k" ' + attr + '="' + esc(p.id) + '"'
     + ' aria-pressed="' + (p.id === gewaehlt ? 'true' : 'false') + '">'
     + '<span class="pwahl-bild">'
@@ -25135,6 +25185,22 @@ document.addEventListener('click', e=>{
     const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
     render(); return;
   }
+  if(btn.dataset.do === 'merk-nehmen'){
+    if(dokPflanze && dokMerkmalLage){
+      /* Ausdrücklich angetippt. `sortenmerkmale` trägt keinen Stempel —
+         es steht in keinem der sieben Felder aus Fassung 3.17.0. */
+      aenderungSetzen(dokPflanze, {sortenmerkmale: dokMerkmalLage}, 'ki', true);
+      dokKiHinweis('Sortenmerkmale übernommen.', 'ok');
+    }
+    dokMerkmalLage = null;
+    const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
+    render(); return;
+  }
+  if(btn.dataset.do === 'merk-lassen'){
+    dokMerkmalLage = null;
+    const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
+    return;
+  }
   if(btn.dataset.do === 'art-lassen'){
     dokArtLage = null;
     const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
@@ -25596,6 +25662,30 @@ function dokArtZeigen(d){
   </div>`;
 }
 
+/* ── Was an der Sorte zu sehen ist ───────────────────────────
+   Die Antwort nennt Merkmale, keinen Sortennamen. Der Kasten legt
+   nichts ab, solange niemand ihn antippt. */
+let dokMerkmalLage = null;
+
+function dokMerkmaleZeigen(d){
+  const ziel = document.getElementById('dok-merkmale'); if(!ziel) return;
+  dokMerkmalLage = null;
+  ziel.innerHTML = '';
+  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
+  if(!p || !d) return;
+  const neu = String(d.sortenmerkmale || '').trim();
+  if(!neu || /^keine?$|^unbekannt$/i.test(neu)) return;
+  if(norm(neu) === norm(p.sortenmerkmale || '')) return;
+  dokMerkmalLage = neu;
+  ziel.innerHTML = `<div class="giftblock">
+    <h4>Sortenmerkmale am Foto</h4>
+    <p>${esc(neu)} — das ist kein Sortenname. Wie die Sorte heißt, trägst du selbst
+      in der Karte unter „Bearbeiten“ ein. Solange du nichts antippst, ändert sich nichts.</p>
+    <div class="tools"><button class="haupt" data-do="merk-nehmen">Merkmale übernehmen</button>
+      <button data-do="merk-lassen">So lassen</button></div>
+  </div>`;
+}
+
 function dokAbgleichZeigen(d){
   const ziel = $('#dok-abgleich'); if(!ziel) return;
   dokVorschlaege = [];
@@ -25746,6 +25836,7 @@ $('#btn-dok-paste').onclick = ()=>{
     }
     dokGiftZeigen(d);
     dokArtZeigen(d);
+    dokMerkmaleZeigen(d);
     dokAbgleichZeigen(d);
     render();
   } else {
@@ -27320,6 +27411,8 @@ function ablegerAnlegen(mutterId, methodeId){
     id, eigen:true,
     name:'Ableger von ' + nice(mutter),
     art: mutter.art, botanisch: mutter.botanisch || (b ? b.bot : ''),
+    /* Ein Steckling ist dieselbe Sorte wie die Mutter. */
+    sorte: mutter.sorte || '', sortenmerkmale: mutter.sortenmerkmale || '',
     familie: mutter.familie || (b ? b.fam : ''),
     klasse: mutter.klasse, gift: giftVon(mutter),
     raum: mutter.raum || '', stellplatz: mutter.stellplatz || '', typ: mutter.typ, sonne: mutter.sonne,

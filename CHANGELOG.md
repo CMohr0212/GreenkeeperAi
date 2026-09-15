@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.18.0 — 14. September 2026
+**Sorten**
+
+### Neu
+- **Jede Pflanze kann eine Sorte tragen.** Neues Feld „Sorte“ beim Anlegen und unter „Bearbeiten“ — Freitext, den du selbst einträgst.
+- **Die Sorte steht hinter dem Artnamen**, in einfachen Anführungszeichen: auf der Kachel in der Sammlung, im Kopf der Karte, auf der Pflanzenkarte im Grundriss und in der Pflanzenwahl.
+- **Die Suche findet eine Pflanze über ihren Sortennamen.**
+- **Ein Ableger erbt die Sorte seiner Mutter.** Ein Steckling ist dieselbe Sorte.
+- **Die KI rät keinen Sortennamen mehr.** Der Auftrag verlangt stattdessen eine neue Zeile MERKMALE: was am Foto zu sehen ist — Muster und Farbe der Panaschierung, Blattform, Wuchs.
+- **Der Doktor zeigt diese Merkmale in einem eigenen Kasten** mit Knopf „Merkmale übernehmen“. Ohne Antippen ändert sich nichts an der Pflanze.
+
+### Bleibt wie es war
+- Der botanische Name bleibt, was er war. Wer dort schon eine Sorte stehen hat, behält sie dort — es wird nichts umgeschrieben.
+- Die Merkmale aus der Bibliothek im Reiter „Wissen“ sind etwas anderes und werden nicht angefasst.
+
+---
+
 ## 3.17.0 — 14. September 2026
 **Jede Angabe weiß, woher sie kommt**
 

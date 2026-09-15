@@ -126,7 +126,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.17.0', w.__T('FASSUNG') === '3.17.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.18.0', w.__T('FASSUNG') === '3.18.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -856,8 +856,9 @@ setTimeout(async () => {
   pruef('Der Doktorkopf spricht von Diagnose, nicht von Bestimmung',
     /keine Bestimmungsaufgabe/.test(dokP));
   /* Die Zahl im Prompt zaehlt die Feldzeilen — sie muss die zwei
-     neuen mitzaehlen, sonst zaehlt die KI selbst nach und stolpert. */
-  pruef('Die Zahl im Prompt stimmt', /neunzehn Schlüsselwörter/.test(dokP),
+     neuen mitzaehlen, sonst zaehlt die KI selbst nach und stolpert.
+     Seit 3.18.0 kommt MERKMALE dazu: zwanzig statt neunzehn. */
+  pruef('Die Zahl im Prompt stimmt', /zwanzig Schlüsselwörter/.test(dokP),
     (dokP.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
   const gel = JSON.parse(w.__T(
     "JSON.stringify(geminiLesen('ANTWORT: Sonnenbrand.\\nSTELLE: Blattmitte, trocken.\\nZUSTAND: gesund'))"));
@@ -6710,7 +6711,7 @@ setTimeout(async () => {
       /^TOPF: Vier Angaben, getrennt durch genau drei senkrechte Striche/m.test(mitIst)
       && /^TOPF: zu klein \| /m.test(mitIst));
     pruef('Die Schlüsselwortzahl bleibt unverändert',
-      /neunzehn Schlüsselwörter/.test(mitIst),
+      /zwanzig Schlüsselwörter/.test(mitIst),
       (mitIst.match(/Alle \S+ Schlüsselwörter/) || [''])[0]);
     pruef('Der Doktorkopf verlangt Sicherheit für eine andere Art',
       /Nenne in ART nur dann einen anderen Namen/.test(mitIst));
@@ -7020,7 +7021,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.17.0', e0.nr === '3.17.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.18.0', e0.nr === '3.18.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7581,6 +7582,184 @@ setTimeout(async () => {
       const z = document.getElementById('dok-abgleich'); if(z) z.innerHTML = '';
       S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'HQ'; });
       if(S.edits) delete S.edits.HQ1;
+      sichern();
+    })()`);
+  }
+
+  /* ══ Sorten ══════════════════════════════════════════════════
+     Die Sorte tippt der Mensch. Die KI liefert nur Merkmale und
+     schreibt nichts, solange niemand einen Knopf antippt. */
+  {
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'SO'; });
+      if(S.edits) delete S.edits.SO1;
+      S.eigene.push({id:'SO1', eigen:true, name:'Sortentest', art:'Fensterblatt',
+        botanisch:'Monstera deliciosa', sorte:'', sortenmerkmale:'', merkmale:'Aus der Bibliothek',
+        typ:'Kletterpflanze', klasse:'B', sonne:'hell', gift:null,
+        intervall:[8,12], notiz:'', todo:[], log:[], seit:'selbst angelegt'});
+      sichern();
+    })()`);
+    const so = c => w.__T(`(function(){ const p = allePflanzen().find(x=>x.id==='SO1'); return ${c}; })()`);
+
+    /* ── Das Feld ── */
+    w.__T(`aenderungSetzen('SO1', {sorte:'Thai Constellation'})`);
+    pruef('Die Sorte steht in der Karte',
+      so(`p.sorte`) === 'Thai Constellation', String(so(`p.sorte`)));
+    pruef('Die Sorte traegt keinen Stempel',
+      so(`!p.quellen || p.quellen.sorte === undefined`) === true,
+      String(so(`JSON.stringify(p.quellen||{})`)));
+    pruef('Die Sorte uebersteht Sichern und Laden',
+      w.__T(`(function(){
+        const z = JSON.parse(JSON.stringify(S));
+        const p = (z.eigene||[]).find(x=>x.id==='SO1');
+        return !!(p && p.sorte === 'Thai Constellation');
+      })()`) === true);
+
+    /* ── Anzeige hinter dem Artnamen ── */
+    pruef('Hinter dem Artnamen steht die Sorte',
+      so(`mitSorte(p.art, p)`) === "Fensterblatt 'Thai Constellation'",
+      String(so(`mitSorte(p.art, p)`)));
+    pruef('Ohne Sorte bleibt der Artname unveraendert',
+      w.__T(`mitSorte('Fensterblatt', {})`) === 'Fensterblatt',
+      String(w.__T(`mitSorte('Fensterblatt', {})`)));
+    pruef('Selbst getippte Anfuehrungszeichen stehen nicht doppelt',
+      w.__T(`mitSorte('Fensterblatt', {sorte:"'Albo'"})`) === "Fensterblatt 'Albo'",
+      String(w.__T(`mitSorte('Fensterblatt', {sorte:"'Albo'"})`)));
+    pruef('Die Kachel in der Sammlung zeigt die Sorte',
+      /Thai Constellation/.test(String(so(`cardHTML(p)`))));
+    pruef('Der Kartenkopf zeigt die Sorte',
+      /Thai Constellation/.test(String(so(`kartenKopfHTML(p)`))));
+    pruef('Die Pflanzenwahl zeigt die Sorte',
+      /Thai Constellation/.test(String(so(`pwahlKachel(p, 'data-pw', '', '')`))));
+    pruef('Die Karte im Grundriss zeigt die Sorte',
+      /Thai Constellation/.test(String(so(`(function(){
+        try { return planKarteHTML(p); } catch(e){ return 'FEHLER ' + e.message; }
+      })()`))));
+    pruef('Ohne Sorte steht keine leere Klammer in der Kachel',
+      !/''/.test(String(w.__T(`(function(){
+        const p = allePflanzen().find(x=>x.id==='SO1');
+        return cardHTML(Object.assign({}, p, {sorte:''}));
+      })()`))));
+
+    /* ── Suche ── */
+    pruef('Die Pflanzenwahl findet die Sorte',
+      so(`pwahlPasst(p, 'thai constellation')`) === true);
+    pruef('Die Suche der Sammlung findet ueber den Sortennamen',
+      w.__T(`(function(){
+        const feld = document.getElementById('q'); if(!feld) return 'kein Suchfeld';
+        const vorher = feld.value;
+        feld.value = 'thai constellation';
+        render();
+        const treffer = /SO1/.test(document.getElementById('out').innerHTML);
+        feld.value = vorher; render();
+        return treffer;
+      })()`) === true,
+      String(w.__T(`(function(){
+        const feld = document.getElementById('q'); if(!feld) return 'kein Suchfeld';
+        feld.value = 'thai constellation'; render();
+        const t = document.getElementById('out').innerHTML.length;
+        feld.value = ''; render(); return t;
+      })()`)));
+
+    /* ── Ableger erbt die Sorte ── */
+    {
+      const neuId = w.__T(`(function(){
+        const m = Object.keys(V_METHODEN)[0];
+        const p = ablegerAnlegen('SO1', m);
+        return p ? p.id : '';
+      })()`);
+      pruef('Der Ableger wurde angelegt', !!neuId, String(neuId));
+      pruef('Der Ableger erbt die Sorte',
+        w.__T(`(function(){
+          const k = allePflanzen().find(x=>x.id==='${neuId}');
+          return k ? k.sorte : 'keine Pflanze';
+        })()`) === 'Thai Constellation',
+        String(w.__T(`(function(){
+          const k = allePflanzen().find(x=>x.id==='${neuId}');
+          return k ? k.sorte : 'keine Pflanze';
+        })()`)));
+      w.__T(`(function(){
+        S.eigene = (S.eigene||[]).filter(function(p){ return p.id !== '${neuId}'; });
+        sichern();
+      })()`);
+    }
+
+    /* ── Eingabefelder ── */
+    pruef('Das Anlegen hat ein Feld fuer die Sorte', !!d.getElementById('f-sorte'));
+    pruef('Die Bearbeiten-Box hat ein Feld fuer die Sorte',
+      /data-e="sorte"/.test(String(so(`bearbeitenInnenHTML(p)`))));
+    pruef('Der gelesene Merkmalstext steht als Hinweis darunter',
+      /Die KI hat gesehen/.test(String(w.__T(`(function(){
+        const p = allePflanzen().find(x=>x.id==='SO1');
+        return bearbeitenInnenHTML(Object.assign({}, p, {sortenmerkmale:'gelb marmoriert'}));
+      })()`))));
+
+    /* ── Der Auftrag ── */
+    const anl = String(w.__T('anlegenFormat()'));
+    const dokS = String(w.__T('dokPromptBauen()'));
+    pruef('Der Anlegen-Auftrag verlangt MERKMALE', /\nMERKMALE: /.test(anl));
+    pruef('Der Doktor-Auftrag verlangt MERKMALE', /\nMERKMALE: /.test(dokS));
+    pruef('Die Beispielantwort zeigt eine MERKMALE-Zeile',
+      /\nMERKMALE: gelbgr/.test(anl));
+    pruef('BOTANISCH verlangt keinen Sortennamen mehr',
+      !/h(ä|ae)nge sie in einfachen Anf/.test(anl) && !/h(ä|ae)nge sie in einfachen Anf/.test(dokS));
+    pruef('Der Auftrag verbietet den geratenen Sortennamen ausdruecklich',
+      /Nenne keinen Sortennamen/.test(anl));
+    pruef('Die Pruefliste im Anlegen nennt MERKMALE',
+      /5\. Steht in BOTANISCH und MERKMALE kein Sortenname\?/.test(anl),
+      (anl.match(/^5\..*/m) || [''])[0]);
+    pruef('Die Pruefliste im Doktor nennt MERKMALE',
+      /8\. Steht in BOTANISCH und MERKMALE kein Sortenname\?/.test(dokS),
+      (dokS.match(/^8\..*/m) || [''])[0]);
+    pruef('Die Nummerierung bleibt ohne Topfzeile lueckenlos',
+      w.__T(`(function(){
+        const t = ohneTopf(mitDoktorZeilen(ANTWORT_FORMAT));
+        const n = (t.match(/^\\d+\\. /gm) || []).map(function(x){ return parseInt(x, 10); });
+        return n.join(',');
+      })()`) === '1,2,3,4,5,6,7', String(w.__T(`(function(){
+        const t = ohneTopf(mitDoktorZeilen(ANTWORT_FORMAT));
+        return (t.match(/^\\d+\\. /gm) || []).join('');
+      })()`)));
+
+    /* ── Der Leser ── */
+    pruef('Der Leser kennt MERKMALE',
+      w.__T(`(geminiLesen('ART: Fensterblatt\\nMERKMALE: gelb panaschiert, Blatt gewellt') || {}).sortenmerkmale`)
+        === 'gelb panaschiert, Blatt gewellt',
+      String(w.__T(`JSON.stringify(geminiLesen('ART: Fensterblatt\\nMERKMALE: gelb panaschiert, Blatt gewellt'))`)));
+
+    /* ── Der Kasten im Doktor ── */
+    w.__T(`(function(){
+      dokPflanze = 'SO1';
+      dokMerkmaleZeigen({sortenmerkmale:'weiss marmoriert, Blattstiel hell'});
+    })()`);
+    pruef('Die Doktor-Antwort ruft den Merkmalskasten auf',
+      /dokArtZeigen\(d\);\s*\n\s*dokMerkmaleZeigen\(d\);/.test(html));
+    pruef('Der Doktor zeigt die Merkmale',
+      /weiss marmoriert/.test(String(d.getElementById('dok-merkmale').innerHTML)));
+    pruef('Er schreibt sie nicht von selbst in die Karte',
+      so(`p.sortenmerkmale`) === '', String(so(`p.sortenmerkmale`)));
+    pruef('Die Bibliotheks-Merkmale bleiben dabei stehen',
+      so(`p.merkmale`) === 'Aus der Bibliothek', String(so(`p.merkmale`)));
+    {
+      /* Fehlt der Knopf, muss die Pruefung melden statt abzustuerzen. */
+      const b = d.querySelector('#dok-merkmale [data-do="merk-nehmen"]');
+      pruef('Der Knopf Merkmale uebernehmen ist da', !!b);
+      if(b){ b.click(); await tick(); }
+    }
+    pruef('Nach dem Antippen stehen die Merkmale in der Karte',
+      so(`p.sortenmerkmale`) === 'weiss marmoriert, Blattstiel hell',
+      String(so(`p.sortenmerkmale`)));
+    pruef('Die Sorte bleibt dabei unangetastet',
+      so(`p.sorte`) === 'Thai Constellation', String(so(`p.sorte`)));
+    pruef('Die Bibliotheks-Merkmale bleiben auch danach stehen',
+      so(`p.merkmale`) === 'Aus der Bibliothek', String(so(`p.merkmale`)));
+
+    /* Aufraeumen */
+    w.__T(`(function(){
+      dokPflanze = null; dokMerkmalLage = null;
+      const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'SO'; });
+      if(S.edits) delete S.edits.SO1;
       sichern();
     })()`);
   }
