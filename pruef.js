@@ -68,9 +68,29 @@ const dom = new JSDOM(html, {
     /* Wetter-Attrappe: kein echter Netzzugriff im Pruefstand. */
     w.__netz = true;
     w.__abrufe = [];
+    /* Attrappe fuer die Sammelpruefung: zaehlt, wie viele Anfragen
+       gleichzeitig unterwegs sind, und laesst sich auf Fehler stellen. */
+    w.__ki = {zaehler:0, jetzt:0, hoechst:0, verzug:40, fehler:null, antwort:''};
+    w.Notification = {permission:'default',
+      requestPermission(){ w.__ki.gefragt = true; return Promise.resolve('granted'); }};
     w.fetch = (u, o) => {
       w.__abrufe.push(String(u));
       if (!w.__netz) return Promise.reject(new Error('offline'));
+      if (String(u).indexOf('generativelanguage') !== -1) {
+        const k = w.__ki;
+        k.zaehler++;
+        k.jetzt++;
+        if (k.jetzt > k.hoechst) k.hoechst = k.jetzt;
+        const nr = k.zaehler;
+        return new Promise(res => setTimeout(() => {
+          k.jetzt--;
+          const f = typeof k.fehler === 'function' ? k.fehler(nr) : k.fehler;
+          if (f) return res({ok:false, status:f,
+            json:()=>Promise.resolve({error:{message:'Attrappe'}})});
+          res({ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP',
+            content:{parts:[{text:k.antwort}]}}]})});
+        }, k.verzug));
+      }
       const j = String(u).indexOf('geocoding') !== -1
         ? {results:[{name:'Leipzig', admin1:'Sachsen', country:'Deutschland', latitude:51.3397, longitude:12.3731}]}
         : (function(){
@@ -126,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.18.0', w.__T('FASSUNG') === '3.18.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.19.0', w.__T('FASSUNG') === '3.19.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -4236,9 +4256,9 @@ setTimeout(async () => {
     pruef('Jeder Menüpunkt liegt in einer Gruppe',
       alle.length === gruppiert.length,
       alle.filter(x=>gruppiert.indexOf(x) === -1).join(','));
-    pruef('Vierzehn Punkte in der Liste', alle.length === 14, String(alle.length));
+    pruef('Fünfzehn Punkte in der Liste', alle.length === 15, String(alle.length));
     pruef('Kein Punkt ist ersatzlos weg',
-      d.querySelectorAll('section[data-mh]').length === 25,
+      d.querySelectorAll('section[data-mh]').length === 26,
       String(d.querySelectorAll('section[data-mh]').length));
     /* Stillgelegt heisst nicht unerreichbar: der KI-Dienst steht
        nicht in der Liste, aber eine Zeile in den Einstellungen fuehrt
@@ -7021,7 +7041,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.18.0', e0.nr === '3.18.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.19.0', e0.nr === '3.19.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7761,6 +7781,352 @@ setTimeout(async () => {
       S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'SO'; });
       if(S.edits) delete S.edits.SO1;
       sichern();
+    })()`);
+  }
+
+  /* ══ Kartei auffrischen (Etappe E1) ══════════════════════
+     Die Pflanzen legt der Test selbst an, samt Foto. Die KI-Antwort
+     kommt aus der Attrappe oben, nichts geht ins Netz. */
+  {
+    /* Fruehere Bloecke haben window.fetch mehrfach ersetzt — hier
+       kommt eine eigene Attrappe hin, die mitzaehlt, wie viele
+       Anfragen gleichzeitig unterwegs sind. */
+    w.__netz = true;
+    w.fetch = (u) => {
+      const k = w.__ki;
+      k.zaehler++; k.jetzt++;
+      if(k.jetzt > k.hoechst) k.hoechst = k.jetzt;
+      const nr = k.zaehler;
+      return new Promise(res => setTimeout(() => {
+        k.jetzt--;
+        const f = typeof k.fehler === 'function' ? k.fehler(nr) : k.fehler;
+        if(f) return res({ok:false, status:f,
+          json:()=>Promise.resolve({error:{message:'Attrappe'}})});
+        res({ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP',
+          content:{parts:[{text:k.antwort}]}}]})});
+      }, k.verzug));
+    };
+    const BT3 = String.fromCharCode(96,96,96);
+    const ANTWORT = BT3 + '\nART: Efeutute\nBOTANISCH: Epipremnum aureum\n'
+      + 'ZUSTAND: gesund\nLICHT: indirekt\nFROST: 10\n' + BT3;
+    w.__ki.antwort = ANTWORT;
+
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KA'; });
+      S.fotos = S.fotos || {};
+      var bild = 'data:image/jpeg;base64,' + new Array(41).join('A');
+      S.eigene.push({id:'KA1', eigen:true, name:'Kartei Voll', art:'Efeutute',
+        botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'IV',
+        sonne:'indirekt', wichtig:'keine', frostMin:10});
+      S.eigene.push({id:'KA2', eigen:true, name:'Kartei Luecke', art:'Unbekannt', klasse:'IV'});
+      S.eigene.push({id:'KA3', eigen:true, name:'Kartei ohne Foto', art:'Bogenhanf',
+        botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
+        sonne:'hell', wichtig:'keine', frostMin:10});
+      /* Zwei weitere ohne Foto: erst mit mehr Pflanzen als Spuren in
+         der Schlange faellt auf, ob ein Fehlschlag den Rest mitreisst. */
+      S.eigene.push({id:'KA4', eigen:true, name:'Kartei vier', art:'Bogenhanf',
+        botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
+        sonne:'hell', wichtig:'keine', frostMin:10});
+      S.eigene.push({id:'KA5', eigen:true, name:'Kartei fuenf', art:'Bogenhanf',
+        botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
+        sonne:'hell', wichtig:'keine', frostMin:10});
+      S.fotos['KA1'] = [{key:'k1', src:bild, datum:'2026-09-01'}];
+      S.fotos['KA2'] = [{key:'k2', src:bild, datum:'2026-09-01'}];
+      S.kiModelle = [{id:'models/gemini-3-flash', anzeige:'3 flash', empfohlen:true}];
+      S.kiModell = 'models/gemini-3-flash';
+      sichern();
+      kiSchluesselSetzen('${ATTRAPPE_ECHT}');
+      return 1;
+    })()`);
+    const kp = c => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='${c}';}); return p; })()`);
+    const art = c => w.__T(`karteiArt(allePflanzen().find(function(x){return x.id==='${c}';}))`);
+
+    pruef('Vollstaendige Pflanze mit Foto bekommt den Abgleich', art('KA1') === 'teil', art('KA1'));
+    pruef('Pflanze mit Luecken bekommt den vollen Auftrag',     art('KA2') === 'voll', art('KA2'));
+    pruef('Pflanze ohne Foto bekommt den Textauftrag',          art('KA3') === 'text', art('KA3'));
+    pruef('Luecken werden erkannt',
+      w.__T(`karteiLuecken(allePflanzen().find(function(x){return x.id==='KA2';})).length`) > 0);
+    pruef('Bei voller Karte fehlt nichts',
+      w.__T(`karteiLuecken(allePflanzen().find(function(x){return x.id==='KA1';})).length`) === 0);
+
+    const auftrag = c => w.__T(`karteiAuftrag(allePflanzen().find(function(x){return x.id==='${c}';})).text`);
+    const aText = auftrag('KA3'), aVoll = auftrag('KA2'), aTeil = auftrag('KA1');
+    pruef('Ohne Foto keine ZUSTAND-Zeile',  !/^ZUSTAND:/m.test(aText));
+    pruef('Ohne Foto keine BEFUND-Zeile',   !/^BEFUND:/m.test(aText));
+    pruef('Ohne Foto keine MERKMALE-Zeile', !/^MERKMALE:/m.test(aText));
+    pruef('Ohne Foto keine TOPF-Zeile',     !/^TOPF:/m.test(aText));
+    pruef('Ohne Foto steht der Hinweis auf das fehlende Bild drin',
+      aText.indexOf('Es liegt kein Foto vor') > -1);
+    pruef('Der volle Auftrag fragt nach Zustand und Befund',
+      /^ZUSTAND:/m.test(aVoll) && /^BEFUND:/m.test(aVoll));
+    pruef('Der volle Auftrag nennt die fehlenden Angaben',
+      aVoll.indexOf('Diese Angaben fehlen mir') > -1);
+    pruef('Der Abgleich fragt nicht noch einmal nach dem botanischen Namen',
+      !/^BOTANISCH:/m.test(aTeil));
+    pruef('Der Abgleich nennt die eingetragene Art',
+      aTeil.indexOf('Epipremnum aureum') > -1);
+    {
+      /* Die Zahl im Auftrag zaehlt sich selbst nach — sie darf nicht
+         von der Zahl der Feldzeilen abweichen. */
+      const zahl = n => {
+        const m = n.match(/Alle (\S+) Schlüsselwörter/);
+        return m ? m[1] : '?';
+      };
+      /* Gezaehlt wird nur die Feldliste zwischen der Ueberschrift und
+         der Beispielantwort — sonst zaehlt das Beispiel doppelt. */
+      const felder = n => {
+        const a = n.indexOf('DIE ZEILEN');
+        const b = n.indexOf('SO SIEHT EINE RICHTIGE ANTWORT AUS');
+        const set = new Set();
+        n.slice(a, b > a ? b : undefined).split('\n').forEach(z=>{
+          const m = z.match(/^([A-ZÄÖÜ]{3,}):/);
+          if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') set.add(m[1]);
+        });
+        return set.size;
+      };
+      const wort = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
+        'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+      [['Text', aText], ['voll', aVoll], ['Abgleich', aTeil]].forEach(([n, t])=>{
+        pruef('Schlüsselwortzahl stimmt (' + n + ')',
+          zahl(t) === wort[felder(t)], zahl(t) + ' vs ' + felder(t));
+      });
+    }
+
+    /* ── Auswahl ── */
+    const menge = () => w.__T(`karteiMenge().map(function(p){return p.id;})`);
+    w.__T(`(function(){ KARTEI_ART = 'wahl'; KARTEI_WAHL = new Set(['KA1','KA3']); return 1; })()`);
+    pruef('Einzelauswahl liefert genau die angetippten',
+      menge().join(',') === 'KA1,KA3', menge().join(','));
+    w.__T(`KARTEI_ART = 'luecken'`);
+    pruef('Nur-mit-Lücken nimmt die unvollständige Pflanze',
+      menge().indexOf('KA2') > -1);
+    pruef('Nur-mit-Lücken nimmt auch die ohne Foto',
+      menge().indexOf('KA3') > -1);
+    pruef('Nur-mit-Lücken lässt die vollständige stehen',
+      menge().indexOf('KA1') === -1);
+    w.__T(`KARTEI_ART = 'alle'`);
+    pruef('Alle nimmt alle drei',
+      ['KA1','KA2','KA3'].every(id=>menge().indexOf(id) > -1));
+
+    /* ── Das Bildgitter mit Mehrfachauswahl ── */
+    w.__T(`(function(){ KARTEI_ART = 'wahl'; KARTEI_WAHL = new Set(['KA1']);
+      karteiAbschnitt(); return 1; })()`);
+    {
+      const k1 = d.querySelector('[data-karteip="KA1"]');
+      const k2 = d.querySelector('[data-karteip="KA2"]');
+      pruef('Das Gitter zeigt die Kacheln', !!k1 && !!k2);
+      pruef('Die gewählte Kachel ist gedrückt',
+        !!k1 && k1.getAttribute('aria-pressed') === 'true');
+      pruef('Die andere nicht',
+        !!k2 && k2.getAttribute('aria-pressed') === 'false');
+      pruef('Ohne Foto trägt die Kachel eine Marke',
+        /ohne Foto/.test(String((d.querySelector('[data-karteip=\"KA3\"]')||{}).textContent)));
+      if(k2){ k2.click(); await tick(); }
+      pruef('Antippen wählt eine zweite Pflanze dazu',
+        w.__T(`KARTEI_WAHL.has('KA2')`) === true);
+      if(k2){ k2.click(); await tick(); }
+      pruef('Noch einmal antippen nimmt sie wieder heraus',
+        w.__T(`KARTEI_WAHL.has('KA2')`) === false);
+      const leeren = d.querySelector('[data-do="kartei-keine"]');
+      pruef('Der Knopf Auswahl leeren ist da', !!leeren);
+      if(leeren){ leeren.click(); await tick(); }
+      pruef('Auswahl leeren räumt ab', w.__T(`KARTEI_WAHL.size`) === 0);
+    }
+
+    /* ── Der Lauf ── */
+    const warte = async (bed, ms) => {
+      const bis = Date.now() + (ms || 6000);
+      while(Date.now() < bis){ if(bed()) return true; await tick(); }
+      return bed();
+    };
+    const stand = c => w.__T(`(function(){ var k = karteiStand(); return k ? (${c}) : null; })()`);
+
+    w.__T(`(function(){ S.installiert = false; sichern(); return 1; })()`);
+    w.__ki.zaehler = 0; w.__ki.hoechst = 0; w.__ki.fehler = null; w.__ki.gefragt = false;
+    const vorher = w.__T(`JSON.stringify(allePflanzen().filter(function(p){
+      return String(p.id).slice(0,2)==='KA'; }))`);
+    const editsVorher = w.__T(`JSON.stringify(S.edits || {})`);
+
+    w.__T(`karteiStarten(['KA1','KA2','KA3'])`);
+    pruef('Der Lauf legt eine Schlange an', stand('k.gesamt') === 3, String(stand('k.gesamt')));
+    pruef('Die Leiste erscheint', !!d.getElementById('kartei-streifen'));
+    pruef('Im Browser wird nicht nach der Benachrichtigung gefragt', w.__ki.gefragt !== true);
+    await warte(()=>stand('k.aktiv') === false, 8000);
+    pruef('Der Lauf ist durch', stand('k.aktiv') === false);
+    pruef('Drei Antworten liegen vor',
+      stand('Object.keys(k.fertig).length') === 3, String(stand('Object.keys(k.fertig).length')));
+    pruef('Höchstens drei Anfragen gleichzeitig',
+      w.__ki.hoechst > 0 && w.__ki.hoechst <= 3, String(w.__ki.hoechst));
+    pruef('Es lief mehr als eine gleichzeitig', w.__ki.hoechst > 1, String(w.__ki.hoechst));
+    /* geminiLesen legt den botanischen Namen unter `bot` ab, nicht
+       unter `botanisch` — die Schluessel der Antwort sind nicht die
+       Feldnamen der Pflanze. Fuer E2 ist das die Stelle, an der die
+       Zuordnung gebaut werden muss. */
+    pruef('Die Antwort ist gelesen worden',
+      stand(`k.fertig['KA1'].felder.bot`) === 'Epipremnum aureum',
+      String(stand(`k.fertig['KA1'].felder.bot`)));
+    pruef('Auch der Zustand steht im Ergebnis',
+      stand(`k.fertig['KA1'].felder.zustand`) === 'gesund',
+      String(stand(`k.fertig['KA1'].felder.zustand`)));
+    pruef('Der Auftrag steht beim Ergebnis',
+      stand(`k.fertig['KA3'].art`) === 'text', String(stand(`k.fertig['KA3'].art`)));
+    pruef('Keine Pflanze ist verändert worden',
+      w.__T(`JSON.stringify(allePflanzen().filter(function(p){
+        return String(p.id).slice(0,2)==='KA'; }))`) === vorher);
+    pruef('Auch S.edits ist nicht gewachsen',
+      w.__T(`JSON.stringify(S.edits || {})`) === editsVorher);
+    pruef('Die Leiste meldet das Ende',
+      /aufgefrischt/.test(String((d.getElementById('kartei-streifen')||{}).textContent)));
+
+    /* Die Ergebnisliste */
+    w.__T(`(function(){ var kopf = document.querySelector('[data-mh-go=\"kartei\"]');
+      karteiAbschnitt(); return 1; })()`);
+    pruef('Die Ergebnisliste zeigt drei Zeilen',
+      d.querySelectorAll('[data-karteierg]').length === 3,
+      String(d.querySelectorAll('[data-karteierg]').length));
+    pruef('Der Abschnitt sagt, dass nichts geändert wurde',
+      /nichts geändert worden/.test(String((d.getElementById('kartei-innen')||{}).textContent)));
+
+    /* Noch einmal prüfen */
+    {
+      const haken = d.querySelector('[data-karteierg="KA2"]');
+      if(haken){ haken.checked = true; }
+      w.__ki.zaehler = 0;
+      const b = d.querySelector('[data-do="kartei-nochmal"]');
+      pruef('Der Knopf Noch einmal prüfen ist da', !!b);
+      if(b){ b.click(); await tick(); }
+      await warte(()=>stand('k.aktiv') === false, 6000);
+      pruef('Noch einmal prüfen startet genau eine Anfrage',
+        w.__ki.zaehler === 1, String(w.__ki.zaehler));
+      pruef('Und genau die angehakte Pflanze',
+        stand('Object.keys(k.fertig).join(",")') === 'KA2',
+        String(stand('Object.keys(k.fertig).join(",")')));
+    }
+
+    /* Fehlschlag reisst den Lauf nicht mit */
+    w.__ki.zaehler = 0;
+    w.__ki.fehler = nr => (nr === 1 ? 400 : null);
+    w.__T(`karteiVerwerfen()`);
+    /* Fuenf Pflanzen bei drei Spuren: die letzten beiden stehen noch in
+       der Schlange, wenn die erste scheitert. Nur so zeigt sich, ob ein
+       Fehlschlag den Rest des Laufs mitnimmt. */
+    w.__T(`karteiStarten(['KA1','KA2','KA3','KA4','KA5'])`);
+    await warte(()=>stand('k.aktiv') === false, 12000);
+    pruef('Ein Fehlschlag bricht den Lauf nicht ab',
+      stand('Object.keys(k.fertig).length') === 5,
+      String(stand('Object.keys(k.fertig).length')));
+    pruef('Die Pflanzen hinter dem Fehlschlag kommen trotzdem dran',
+      stand(`['KA4','KA5'].every(function(i){ return !!k.fertig[i]; })`) === true);
+    pruef('Der Fehlschlag steht als Fehlschlag in der Liste',
+      stand(`Object.keys(k.fertig).filter(function(i){return k.fertig[i].stand==='fehler';}).length`) === 1,
+      String(stand(`Object.keys(k.fertig).filter(function(i){return k.fertig[i].stand==='fehler';}).length`)));
+    pruef('Er nennt einen Grund',
+      String(stand(`Object.keys(k.fertig).map(function(i){return k.fertig[i].fehler||'';}).join('')`)).length > 5);
+    w.__ki.fehler = null;
+
+    /* Abbrechen */
+    w.__ki.verzug = 400;
+    w.__T(`karteiVerwerfen()`);
+    w.__T(`karteiStarten(['KA1','KA2','KA3'])`);
+    await tick();
+    w.__T(`karteiAbbrechen()`);
+    pruef('Abbrechen hält den Lauf an', stand('k.aktiv') === false);
+    pruef('Abbrechen leert die Warteschlange', stand('k.offen.length') === 0);
+    pruef('Das bis dahin Gesammelte bleibt', stand('k.gesamt') === 3);
+    w.__ki.verzug = 40;
+
+    /* Wiederaufnahme nach Unterbrechung */
+    await tick(); await tick();
+    w.__T(`(function(){
+      S.kartei = {start:Date.now(), gesamt:2, offen:['KA1'],
+                  fertig:{KA3:{stand:'ok', art:'text', felder:{}, anzahl:0}},
+                  versuch:{}, aktiv:true};
+      KARTEI_CTRL = {};
+      sichern(); return 1;
+    })()`);
+    w.__ki.zaehler = 0;
+    w.__T(`karteiWiederaufnehmen()`);
+    await warte(()=>stand('k.aktiv') === false, 6000);
+    pruef('Ein unterbrochener Lauf nimmt die offene Pflanze wieder auf',
+      w.__ki.zaehler === 1, String(w.__ki.zaehler));
+    pruef('Das vorher Gesammelte bleibt dabei stehen',
+      stand('Object.keys(k.fertig).length') === 2,
+      String(stand('Object.keys(k.fertig).length')));
+
+    /* Ein alter Lauf startet nicht von selbst */
+    w.__T(`(function(){
+      S.kartei = {start:Date.now() - (3*60*60*1000), gesamt:2, offen:['KA1'],
+                  fertig:{}, versuch:{}, aktiv:true};
+      KARTEI_CTRL = {}; sichern(); return 1;
+    })()`);
+    w.__ki.zaehler = 0;
+    w.__T(`karteiWiederaufnehmen()`);
+    await tick();
+    pruef('Ein alter Lauf startet nicht von selbst', w.__ki.zaehler === 0, String(w.__ki.zaehler));
+    pruef('Er bietet stattdessen das Fortsetzen an', stand('k.pausiert') === true);
+    pruef('Die Leiste zeigt den Fortsetzen-Knopf',
+      !!d.querySelector('#kartei-streifen [data-do="kartei-weiter"]'));
+
+    /* Verwerfen */
+    {
+      const weg = d.querySelector('#kartei-streifen [data-do="kartei-weg"]');
+      w.__T(`(function(){ var k = karteiStand(); k.aktiv = false; k.pausiert = false;
+        k.offen = []; sichern(); karteiLeiste(); return 1; })()`);
+      const weg2 = d.querySelector('#kartei-streifen [data-do="kartei-weg"]');
+      pruef('Der Verwerfen-Knopf ist da', !!weg2);
+      if(weg2){ weg2.click(); await tick(); }
+      pruef('Verwerfen leert das Zwischenlager', w.__T(`!S.kartei`) === true);
+      pruef('Und nimmt die Leiste weg', !d.getElementById('kartei-streifen'));
+    }
+
+    /* Der eigene Abbrecher — ohne ihn träfe kiAbbrechen die falsche Anfrage */
+    {
+      w.__ki.verzug = 300;
+      w.__T(`(function(){ KI_LAEUFT = null;
+        kiFragen('x', null, 'models/gemini-3-flash', new AbortController()); return 1; })()`);
+      await tick();
+      pruef('Mit eigenem Abbrecher bleibt KI_LAEUFT unberührt',
+        w.__T(`KI_LAEUFT`) === null, String(w.__T(`KI_LAEUFT`)));
+      w.__T(`(function(){ KI_LAEUFT = null;
+        kiFragen('x', null, 'models/gemini-3-flash'); return 1; })()`);
+      await tick();
+      pruef('Ohne eigenen Abbrecher wird KI_LAEUFT wie bisher gesetzt',
+        w.__T(`KI_LAEUFT !== null`) === true);
+      w.__T(`kiAbbrechen()`);
+      w.__ki.verzug = 40;
+      await tick(); await tick();
+    }
+
+    /* Ohne Schlüssel passiert nichts — außer einer Auskunft */
+    {
+      w.__T(`(function(){ kiSchluesselSetzen(''); KARTEI_ART='wahl';
+        KARTEI_WAHL = new Set(['KA1']); karteiAbschnitt(); return 1; })()`);
+      w.__ki.zaehler = 0;
+      const los = d.querySelector('[data-do="kartei-los"]');
+      pruef('Der Startknopf ist da', !!los);
+      pruef('Der Startknopf nennt die Zahl',
+        !!los && /\(1\)/.test(los.textContent), los ? los.textContent : '');
+      if(los){ los.click(); await tick(); }
+      pruef('Ohne Schlüssel startet kein Lauf', w.__ki.zaehler === 0, String(w.__ki.zaehler));
+      pruef('Stattdessen steht da, wo der Schlüssel herkommt',
+        /Schlüssel/.test(String((d.getElementById('kartei-meld')||{}).textContent)));
+    }
+
+    /* Der Menüpunkt selbst */
+    pruef('Der Punkt steht unter Mehr',
+      !!d.querySelector('section[data-mh="kartei"]'));
+    pruef('Er liegt in einer Gruppe',
+      !!d.querySelector('.mh-gruppe section[data-mh="kartei"]'));
+
+    /* Aufräumen */
+    w.__T(`(function(){
+      delete S.kartei;
+      KARTEI_CTRL = {}; KARTEI_ART = 'alle'; KARTEI_WAHL = new Set();
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KA'; });
+      ['KA1','KA2'].forEach(function(i){ delete S.fotos[i]; });
+      if(S.edits){ ['KA1','KA2','KA3','KA4','KA5'].forEach(function(i){ delete S.edits[i]; }); }
+      sichern(); karteiLeiste();
+      return 1;
     })()`);
   }
 

@@ -5,7 +5,7 @@
    nächsten Öffnen die neue Fassung.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'greenkeeperai-v112';
+const VERSION = 'greenkeeperai-v113';
 const DATEIEN = [
   './',
   './index.html',
@@ -36,6 +36,18 @@ self.addEventListener('activate', ev=>{
 /* Auf Zuruf sofort übernehmen, statt auf das Schließen aller Tabs zu warten */
 self.addEventListener('message', ev=>{
   if(ev.data === 'uebernehmen') self.skipWaiting();
+});
+
+/* Antippen der Benachrichtigung aus der Sammelprüfung: ein offenes
+   Fenster nach vorn holen, sonst eines öffnen. */
+self.addEventListener('notificationclick', ev=>{
+  ev.notification.close();
+  ev.waitUntil(
+    self.clients.matchAll({type:'window', includeUncontrolled:true}).then(liste=>{
+      for(const c of liste){ if('focus' in c) return c.focus(); }
+      if(self.clients.openWindow) return self.clients.openWindow('./index.html');
+    })
+  );
 });
 
 self.addEventListener('fetch', ev=>{

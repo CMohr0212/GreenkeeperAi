@@ -4,6 +4,25 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.19.0 — 15. September 2026
+**Kartei auffrischen**
+
+### Neu
+- **Neuer Punkt unter „Mehr“: Kartei auffrischen.** Die KI geht auf Zuruf über die Sammlung und beantwortet zu jeder Pflanze, was in der Karte fehlt — und sieht sich am Kachelbild an, wie es ihr geht.
+- **Drei Auswahlmöglichkeiten:** alle Pflanzen, nur die mit Lücken, oder einzeln angetippt. Die Einzelauswahl benutzt dasselbe Bildgitter wie der Pflanzendoktor, erweitert um Mehrfachauswahl mit „Alle anhaken“ und „Auswahl leeren“.
+- **Der Auftrag richtet sich nach der Pflanze.** Fehlt viel, wird vollständig gefragt; ist die Karte voll, geht es nur um Merkmale, Zustand und Maßnahmen; ohne Foto nur um das, was aus dem Namen folgt.
+- **Drei Anfragen gleichzeitig.** Meldet Google „zu schnell“, geht die Schlange von selbst auf eine herunter und wartet eine Minute, statt abzubrechen.
+- **Eine Leiste am unteren Rand** zeigt den Fortschritt und lässt sich jederzeit abbrechen. Die App bleibt währenddessen voll bedienbar.
+- **Ein unterbrochener Lauf macht weiter.** Wer die App mittendrin schließt, findet den Lauf beim nächsten Öffnen dort, wo er stand.
+- **Benachrichtigung am Ende** — in der installierten App und nur, wenn die Seite gerade nicht im Blick ist.
+- **Ergebnisliste** mit einer Zeile je Pflanze: wie viele Angaben kamen, welcher Auftrag lief, und bei Fehlschlägen der Grund. Einzelne Zeilen lassen sich anhaken und noch einmal durchlaufen lassen.
+
+### Bleibt wie es war
+- **An deinen Pflanzen ändert ein Lauf nichts.** Die Antworten liegen als Ergebnis bereit. Das Durchsehen und Übernehmen folgt in der nächsten Fassung — und auch dann nur mit einem Knopf je Angabe.
+- Der Pflanzendoktor, das Anlegen und die Herkunftsstempel aus 3.17.0 sind unverändert.
+
+---
+
 ## 3.18.0 — 14. September 2026
 **Sorten**
 

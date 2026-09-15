@@ -3407,6 +3407,35 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
   border:1px solid var(--paper);background:none;color:var(--paper);cursor:pointer}
 #update-streifen button.haupt{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
 @media(min-width:760px){#update-streifen{bottom:var(--a-4);left:auto;right:var(--a-4);max-width:420px}}
+
+/* ── Leiste der Sammelpruefung ────────────────────────────
+   Dieselbe Ebene wie der Update-Streifen: ueber den Reitern,
+   unter Modal (210) und Tour (300). Kein Modal — die App bleibt
+   waehrend des Laufs bedienbar. */
+#kartei-streifen{position:fixed;left:var(--a-3);right:var(--a-3);bottom:calc(76px + var(--a-3));z-index:90;
+  background:var(--ink);color:var(--paper);border-radius:var(--r-mittel);padding:var(--a-3) var(--a-4);
+  display:flex;align-items:center;gap:var(--a-2);flex-wrap:wrap;box-shadow:var(--sch-streifen)}
+#kartei-streifen span{flex:1 1 130px;font-size:var(--t-m)}
+#kartei-streifen button{font:inherit;font-size:var(--t-s);padding:8px 12px;border-radius:var(--r-klein);
+  border:1px solid var(--paper);background:none;color:var(--paper);cursor:pointer;min-height:var(--tap)}
+#kartei-streifen button.haupt{background:var(--paper);color:var(--ink);border-color:var(--paper);font-weight:600}
+#kartei-streifen .ks-balken{flex:1 0 100%;height:4px;border-radius:2px;background:var(--schleier);overflow:hidden}
+#kartei-streifen .ks-balken i{display:block;height:100%;background:var(--paper);
+  transition:width var(--dauer)}
+@media(min-width:760px){#kartei-streifen{bottom:var(--a-4);left:auto;right:var(--a-4);max-width:420px}}
+
+#kartei-gitter{margin:var(--a-3) 0}
+#kartei-such{width:100%;margin-bottom:var(--a-2)}
+.kartei-wahl button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.kartei-erg{display:grid;gap:6px;margin:var(--a-2) 0}
+.kartei-zeile{display:flex;align-items:center;gap:10px;padding:9px 11px;
+  border:1px solid var(--line);border-radius:var(--r-klein);min-height:var(--tap)}
+.kartei-zeile .kz-txt{display:flex;flex-direction:column;min-width:0}
+.kartei-zeile .kz-txt b{font-size:var(--t-m)}
+.kartei-zeile .kz-txt i{font-style:normal;font-size:var(--t-s);color:var(--matt)}
+.kartei-zeile.fehl{border-color:var(--warn-linie,var(--line))}
+.kartei-zeile.fehl .kz-txt i{color:var(--warn-text,var(--matt))}
+html[data-design="klartext"] .kartei-zeile{border-width:2px}
 #install-sec .install-hin{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
 
 /* ── Tutorial ─────────────────────────────────────────────
@@ -6004,10 +6033,15 @@ function tierZeileFuer(arten){
   return 'KATZEN: Giftig f\u00fcr ' + wort + '? Beginne mit giftig oder unbedenklich, danach ein kurzer Grund.';
 }
 
-function anlegenFormat(){
+/* Setzt einen Auftrag zusammen und ersetzt dabei die Katzenzeile
+   durch die Tiere, die wirklich eingetragen sind. Herausgezogen,
+   weil außer dem Anlegen inzwischen auch das Auffrischen der Kartei
+   eigene Feldlisten schickt — zwei Stellen mit derselben Dreherei
+   waren eine zu viel. */
+function auftragMitTieren(namen, sonicht, pruefliste){
   const tiere = (typeof meineTiere === 'function') ? meineTiere() : ['katze'];
   const zeile = tierZeileFuer(tiere);
-  const felder = ANLEGEN_FELDER.filter(n=>n !== 'KATZEN' || zeile);
+  const felder = namen.filter(n=>n !== 'KATZEN' || zeile);
   if(zeile) FELD_ZUSATZ.KATZEN = {text:zeile, bsp:'KATZEN: giftig, enth\u00e4lt Calciumoxalat-Kristalle'};
   else delete FELD_ZUSATZ.KATZEN;
   /* Der Zusatz gewinnt gegen die Standardzeile — deshalb wird sie aus
@@ -6016,9 +6050,13 @@ function anlegenFormat(){
   const merk = alt ? alt.name : null;
   if(alt && zeile) alt.name = 'KATZEN_ALT';
   let t;
-  try { t = auftragFormat(felder, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE); }
+  try { t = auftragFormat(felder, sonicht, pruefliste); }
   finally { if(alt && merk) alt.name = merk; }
   return promptZahlSetzen(t);
+}
+
+function anlegenFormat(){
+  return auftragMitTieren(ANLEGEN_FELDER, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE);
 }
 
 /* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
@@ -10520,6 +10558,19 @@ function papierkorbRender(){
     </div>
   </section>
 
+  <section data-ans="mehr" class="plan mh" id="kartei-sec" data-mh="kartei">
+    <h2 class="wz-h2">Kartei auffrischen</h2>
+    <div class="wz-kopfzeile">
+      <button class="wz-kopf" data-mh-go="kartei" aria-expanded="false" aria-controls="mh-in-kartei">
+        <span class="wz-t">Kartei auffrischen</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-mh-info="kartei" aria-expanded="false" aria-label="Wozu ist das Auffrischen da?">i</button>
+    </div>
+    <div class="wz-in" id="mh-in-kartei" hidden>
+      <p class="wz-hilfe" hidden>Die KI geht einmal über deine Sammlung und beantwortet zu jeder Pflanze, was in der Karte noch fehlt — und schaut sich am Kachelbild an, wie es ihr geht. Das läuft im Hintergrund weiter, während du die App normal benutzt; eine Leiste am unteren Rand zeigt, wie weit es ist. An deinen Pflanzen ändert sich dabei nichts: gesammelt wird zuerst, übernommen wird später und nur, was du selbst antippst. Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt.</p>
+      <div id="kartei-innen"></div>
+    </div>
+  </section>
+
   <section data-ans="mehr" class="plan mh" id="tour-sec" data-mh="tour">
     <h2 class="wz-h2">App Tour</h2>
     <div class="wz-kopfzeile">
@@ -11127,8 +11178,25 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.18.0';
+const FASSUNG = '3.19.0';
 const PATCHNOTES = [
+  {
+    nr: '3.19.0', datum: '2026-09-15', titel: 'Kartei auffrischen',
+    kurz: [
+      'Die KI geht auf Zuruf einmal über deine ganze Sammlung und beantwortet, was in den Karten noch fehlt. Das läuft im Hintergrund, während du die App weiter benutzt.'
+    ],
+    neu: [
+      'Neuer Punkt unter „Mehr“: Kartei auffrischen. Alle Pflanzen, nur die mit Lücken, oder einzeln angetippt — dasselbe Bildgitter wie im Pflanzendoktor, nur mit Mehrfachauswahl.',
+      'Drei Anfragen gleichzeitig. Ist Google voll, drosselt die Schlange von selbst und macht weiter, statt abzubrechen.',
+      'Eine Leiste am unteren Rand zeigt den Fortschritt und lässt sich jederzeit abbrechen. Die App bleibt dabei bedienbar.',
+      'Schließt du die App mittendrin, macht der Lauf beim nächsten Öffnen weiter.',
+      'Ist der Lauf durch, meldet sich die installierte App mit einer Benachrichtigung.',
+      'Pflanzen ohne Foto werden vorher genannt. Sie bekommen nur die Fragen, die sich aus dem Namen beantworten lassen — kein Zustand, kein Topfurteil.'
+    ],
+    besser: [
+      'An deinen Pflanzen ändert ein solcher Lauf nichts. Die Antworten liegen als Ergebnis bereit; das Durchsehen und Übernehmen kommt in der nächsten Fassung.'
+    ]
+  },
   {
     nr: '3.18.0', datum: '2026-09-14', titel: 'Sorten',
     kurz: [
@@ -18452,7 +18520,12 @@ function kiAusweichModelle(startId){
 
 function warte(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-async function kiFragen(prompt, bilder, modellId){
+/* `ctrl`: Wer mehrere Anfragen gleichzeitig laufen lässt — die
+   Sammelprüfung tut das —, bringt seinen eigenen Abbrecher mit.
+   Sonst überschriebe jede neue Anfrage KI_LAEUFT, und kiAbbrechen
+   träfe nur die zuletzt gestartete. Ohne Argument bleibt alles,
+   wie es war. */
+async function kiFragen(prompt, bilder, modellId, ctrl){
   const k = kiSchluessel();
   if(!k) throw new Error('Kein Schlüssel hinterlegt.');
   const m = modellId ? (kiModelle().find(x => x.id === modellId) || {id:modellId}) : kiModellAktiv();
@@ -18461,8 +18534,8 @@ async function kiFragen(prompt, bilder, modellId){
   (bilder || []).slice(0, KI_BILD_MAX).forEach(b => {
     teile.push({inline_data:{mime_type:b.mime || 'image/jpeg', data:b.daten}});
   });
-  const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  KI_LAEUFT = c;
+  const c = ctrl || ((typeof AbortController !== 'undefined') ? new AbortController() : null);
+  if(!ctrl) KI_LAEUFT = c;
   /* Die Frist bricht selbst ab. Damit der Aufrufer den Abbruch von
      einem Abbruch durch den Nutzer unterscheiden kann, wird er hier
      gemerkt und weiter unten in einen „voll"-Fehler uebersetzt. */
@@ -18492,7 +18565,7 @@ async function kiFragen(prompt, bilder, modellId){
     });
   }catch(e){
     if(uhr) clearTimeout(uhr);
-    KI_LAEUFT = null;
+    if(!ctrl) KI_LAEUFT = null;
     if(frist){
       const f = new Error('Das Modell hat nicht rechtzeitig geantwortet.');
       f.voll = true; f.modell = m.id;
@@ -18502,7 +18575,7 @@ async function kiFragen(prompt, bilder, modellId){
     throw new Error(KI_NETZ);
   }
   if(uhr) clearTimeout(uhr);
-  KI_LAEUFT = null;
+  if(!ctrl) KI_LAEUFT = null;
   if(!r.ok){
     const fehler = new Error(await kiFehlerText(r));
     /* Der Aufrufer muss 503 von 400 unterscheiden können: das eine
@@ -23101,6 +23174,9 @@ const MH_IKON = {
   kidienst:  '<path d="M12 3.5 4.5 7v5.5c0 4.2 3.1 7.4 7.5 8.5 4.4-1.1 7.5-4.3 7.5-8.5V7z"/>'
     + '<path d="M12 11.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM12 14.8V17"/>',
   sprot:     '<path d="M3 12h3l2.5-6 3 12 2.5-8 2 4h5"/>',
+  kartei:    '<path d="M4 6.5A1.5 1.5 0 0 1 5.5 5H10l1.5 2H19a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 18z"/>'
+    + '<path d="M9 13.5a3.2 3.2 0 0 1 5.6-2.1M15.4 13a3.2 3.2 0 0 1-5.6 2.1"/>'
+    + '<path d="M9 10.6V13h2.4M15.4 15.9V13.5H13"/>',
   einstell:  '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3.9a7.6 7.6 0 0 0-2.6-1.5L14 2.5h-4l-.5 2.5a7.6 7.6 0 0 0-2.6 1.5l-2.3-.9-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-.9a7.6 7.6 0 0 0 2.6 1.5l.5 2.5h4l.5-2.5a7.6 7.6 0 0 0 2.6-1.5l2.3.9 2-3.4z"/>'
 };
 
@@ -23154,7 +23230,16 @@ const MH_UNTER = {
              : 'Messung läuft, nichts Auffälliges';
   },
   kidienst:  ()=>(typeof kiBereit === 'function' && kiBereit())
-    ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel'
+    ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel',
+  kartei:    ()=>{
+    const k = (typeof karteiStand === 'function') ? karteiStand() : null;
+    if(k && k.aktiv) return 'Läuft gerade';
+    if(k) return 'Ergebnis liegt bereit';
+    const n = (typeof karteiLuecken === 'function')
+      ? allePflanzen().filter(p=>karteiLuecken(p).length).length : 0;
+    return n ? (n === 1 ? 'Eine Pflanze mit Lücken' : n + ' Pflanzen mit Lücken')
+             : 'Alles ausgefüllt';
+  }
 };
 
 /* Vier Gruppen statt einer Liste aus vierzehn. Die Reihenfolge im
@@ -23164,7 +23249,7 @@ const MH_STILL = ['ansicht','tiere','rundgang','kidienst','wasser','duenger','rh
 
 const MH_GRUPPEN = [
   {titel:'Sammlung', punkte:['aufgaben','wunsch','weg']},
-  {titel:'Pflege',   punkte:['giess','wetter','bibliothek']},
+  {titel:'Pflege',   punkte:['giess','wetter','kartei','bibliothek']},
   {titel:'App',      punkte:['sicherung','einstell','tour','install']},
   {titel:'Hilfe',    punkte:['patch','rueck','melde','sprot']}
 ];
@@ -24677,13 +24762,17 @@ function pwahlPasst(p, suche){
   return [nice(p), p.art, p.botanisch, p.sorte, p.typ, p.raum, p.stellplatz]
     .filter(Boolean).join(' ').toLowerCase().indexOf(suche) > -1;
 }
+/* `gewaehlt` ist entweder eine Kennung (eine Pflanze, wie im Doktor)
+   oder ein Set (mehrere, wie beim Auffrischen der Kartei). */
 function pwahlKachel(p, attr, gewaehlt, marke){
+  const an = (gewaehlt && typeof gewaehlt.has === 'function')
+    ? gewaehlt.has(p.id) : (p.id === gewaehlt);
   const f = (typeof profilFoto === 'function') ? profilFoto(p.id) : null;
   const bot = String(p.botanisch || '').trim();
   const zweit = mitSorte(bot && bot.toLowerCase() !== String(nice(p)).toLowerCase()
     ? bot : String(p.art || '').trim(), p);
   return '<button type="button" class="pwahl-k" ' + attr + '="' + esc(p.id) + '"'
-    + ' aria-pressed="' + (p.id === gewaehlt ? 'true' : 'false') + '">'
+    + ' aria-pressed="' + (an ? 'true' : 'false') + '">'
     + '<span class="pwahl-bild">'
     + (f && f.src ? '<img alt="" src="' + f.src + '">'
                   : '<span class="pwahl-leer" aria-hidden="true">\u2740</span>')
@@ -27779,6 +27868,517 @@ rgEinstellungenAufbau();
 rgKnopf();
 const _renderVorherRg = render;
 render = function(){ _renderVorherRg(); rgKnopf(); };
+
+/* ══════════════════════════════════════════════════════════════
+   PFLANZENKARTEI AUFFRISCHEN  (Etappe E1)
+   Ein Lauf über viele Pflanzen auf einmal. Drei Anfragen
+   gleichzeitig, die Schlange liegt in S und übersteht das
+   Schließen der App. Gesammelt wird nur — kein Wert an einer
+   Pflanze wird hier geschrieben. Das Durchsehen und Übernehmen
+   ist Etappe E2 und hat einen eigenen Knopf je Angabe.
+   ══════════════════════════════════════════════════════════════ */
+
+const KARTEI_PARALLEL = 3;
+/* Ein unterbrochener Lauf nimmt sich selbst wieder auf, solange er
+   frisch ist. Danach wäre es eine Überraschung: wer die App nach
+   zwei Tagen öffnet, erwartet keine fünfzig Anfragen. */
+const KARTEI_WIEDER = 2 * 60 * 60 * 1000;
+/* Googles Gratiskontingent zählt Anfragen je Minute. Ein 429 heißt
+   nicht „kaputt“, sondern „zu schnell“ — dann geht die Schlange auf
+   eine Anfrage herunter und bleibt dort. Lieber langsam durch als
+   auf halber Strecke stehen. */
+const KARTEI_BREMSE = 60000;
+const KARTEI_VERSUCHE = 2;
+
+const KARTEI_PFLICHT = ['botanisch', 'typ', 'klasse', 'sonne', 'frostMin', 'wichtig'];
+const KARTEI_PFLICHT_NAME = {
+  botanisch:'botanischer Name', typ:'Wuchsform', klasse:'Gießklasse',
+  sonne:'Lichtbedarf', frostMin:'Frostgrenze', wichtig:'wichtigster Pflegehinweis'
+};
+
+/* Drei Aufträge statt einem. Eine vollständige Pflanze noch einmal
+   von vorn bestimmen zu lassen kostet Zeit und liefert nichts, was
+   schon dasteht. */
+const KARTEI_FELD_VOLL = ['ART','BOTANISCH','MERKMALE','SPEICHER','TYP','SICHERHEIT','FEHLT',
+  'VERWECHSLUNG','ZUSTAND','BEFUND','LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART',
+  'ABLAUF','FROST','WICHTIG','KATZEN','TOPF','VERMEHRUNG','MASSNAHME'];
+const KARTEI_FELD_TEIL = ['MERKMALE','FEHLT','ZUSTAND','BEFUND','TOPF','MASSNAHME'];
+const KARTEI_FELD_TEXT = ['ART','BOTANISCH','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
+  'LICHT','GIESSKLASSE','GIESSART','FROST','WICHTIG','KATZEN','VERMEHRUNG'];
+
+const KARTEI_KOPF =
+  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung, '
+  + 'ich will meine Angaben dazu vervollständigen und überprüfen.\n'
+  + 'Das ist keine Bestimmungsaufgabe. Widersprich der unten genannten Art nur, wenn das Foto '
+  + 'eindeutig eine andere zeigt, und setze dann SICHERHEIT auf hoch.\n'
+  + 'Beschreibe, was auf dem Foto wirklich zu sehen ist. Allgemeine Pflegehinweise, die für '
+  + 'jede Zimmerpflanze gelten, helfen mir nicht.';
+
+const KARTEI_KOPF_OHNE =
+  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung, '
+  + 'ich will meine Angaben dazu vervollständigen.\n'
+  + 'Es liegt kein Foto vor. Beantworte ausschließlich, was sich aus Art und botanischem Namen '
+  + 'ergibt. Behaupte nichts über Zustand, Topf oder Aussehen genau dieses Exemplars.';
+
+const KARTEI_SONICHT = 'Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, '
+  + 'kein - ART:. Keine Zeile ohne Schlüsselwort. Kein "Ich hoffe, das hilft!". '
+  + 'Keine Werte wie "hell bis indirekt", wo nur ein Wort erlaubt ist.';
+
+function karteiPruefliste(mitFoto){
+  return '1. Steht die gesamte Antwort in einem Codeblock und außerhalb nichts?\n'
+    + '2. Kommen alle Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste? '
+    + 'Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.\n'
+    + '3. Enthalten die Zeilen mit fester Wortliste nur eines der erlaubten Wörter?\n'
+    + '4. Steht in BOTANISCH und MERKMALE kein Sortenname?\n'
+    + (mitFoto
+       ? '5. Behauptest du irgendwo etwas, das auf dem Foto gar nicht zu sehen ist?'
+       : '5. Steht irgendwo eine Aussage über den Zustand oder den Topf dieses Exemplars? Dann streich sie.');
+}
+
+/* ── Was fehlt, und welcher Auftrag daraus folgt ───────────── */
+function karteiFoto(p){
+  const f = (p && typeof profilFoto === 'function') ? profilFoto(p.id) : null;
+  return (f && f.src && String(f.src).slice(0, 11) === 'data:image/') ? f : null;
+}
+function karteiLuecken(p){
+  if(!p) return [];
+  return KARTEI_PFLICHT.filter(f=>{
+    const v = p[f];
+    return v === null || v === undefined || v === '';
+  });
+}
+function karteiArt(p){
+  if(!karteiFoto(p)) return 'text';
+  return karteiLuecken(p).length ? 'voll' : 'teil';
+}
+
+function karteiKontext(p){
+  const z = ['Es handelt sich um: ' + (p.art || nice(p))
+    + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.'];
+  if(p.sorte) z.push('Sorte laut meiner Karte: ' + p.sorte + '.');
+  if(typeof lageVon === 'function' && lageVon(p)) z.push('Steht: ' + lageVon(p) + '.');
+  if(typeof SONNE !== 'undefined' && SONNE[p.sonne])
+    z.push('Lichtbedarf laut meiner Karte: ' + SONNE[p.sonne].text + '.');
+  const ist = (typeof istWerteZeilen === 'function') ? istWerteZeilen(p) : [];
+  if(ist.length){
+    z.push('Das ist zu dieser Pflanze eingetragen:');
+    ist.forEach(s=>z.push('- ' + s));
+  }
+  const fehlt = karteiLuecken(p).map(f=>KARTEI_PFLICHT_NAME[f] || f);
+  if(fehlt.length) z.push('Diese Angaben fehlen mir: ' + fehlt.join(', ') + '.');
+  return z;
+}
+
+function karteiAuftrag(p){
+  const art = karteiArt(p);
+  const felder = art === 'voll' ? KARTEI_FELD_VOLL
+               : art === 'teil' ? KARTEI_FELD_TEIL : KARTEI_FELD_TEXT;
+  let format = auftragMitTieren(felder, KARTEI_SONICHT, karteiPruefliste(art !== 'text'));
+  if(art !== 'text' && typeof mitIstWerten === 'function') format = mitIstWerten(format, p);
+  return {art:art,
+          text:[art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, '']
+                 .concat(karteiKontext(p), ['', format]).join('\n')};
+}
+
+/* ── Das Bild ───────────────────────────────────────────────
+   Das Kachelbild liegt in Galeriegröße vor. Ungeschrumpft sind das
+   je Anfrage mehrere hundert Kilobyte — bei fünfzig Pflanzen der
+   Unterschied zwischen Minuten und einer Viertelstunde. Kann der
+   Browser nicht zeichnen, geht das Bild eben ungeschrumpft raus;
+   eine fehlende Leinwand darf keinen Lauf verhindern. */
+let KARTEI_LEINWAND = null;
+function karteiKleiner(u){
+  return new Promise(res=>{
+    if(KARTEI_LEINWAND === false) return res(u);
+    let fertig = false;
+    const uhr = setTimeout(()=>{ if(!fertig){ fertig = true; KARTEI_LEINWAND = false; res(u); } }, 2500);
+    try{
+      const bild = new Image();
+      bild.onload = ()=>{
+        if(fertig) return;
+        fertig = true; clearTimeout(uhr);
+        try{
+          const kante = KI_BILD_KANTE;
+          const f = Math.min(1, kante / Math.max(bild.width || kante, bild.height || kante));
+          const c = document.createElement('canvas');
+          c.width  = Math.max(1, Math.round((bild.width  || kante) * f));
+          c.height = Math.max(1, Math.round((bild.height || kante) * f));
+          const ctx = c.getContext('2d');
+          if(!ctx){ KARTEI_LEINWAND = false; return res(u); }
+          ctx.drawImage(bild, 0, 0, c.width, c.height);
+          const neu = c.toDataURL('image/jpeg', KI_BILD_GUETE);
+          KARTEI_LEINWAND = true;
+          res(neu && neu.length > 64 ? neu : u);
+        }catch(e){ KARTEI_LEINWAND = false; res(u); }
+      };
+      bild.onerror = ()=>{ if(!fertig){ fertig = true; clearTimeout(uhr); KARTEI_LEINWAND = false; res(u); } };
+      bild.src = u;
+    }catch(e){ if(!fertig){ fertig = true; clearTimeout(uhr); KARTEI_LEINWAND = false; res(u); } }
+  });
+}
+async function karteiBilder(p){
+  const f = karteiFoto(p);
+  if(!f) return null;
+  const u = await karteiKleiner(f.src);
+  const b = (typeof kiBildAusDataUrl === 'function') ? kiBildAusDataUrl(u) : null;
+  return b ? [b] : null;
+}
+
+/* ── Die Schlange ───────────────────────────────────────────── */
+let KARTEI_CTRL = {};
+let KARTEI_BREMSE_BIS = 0;
+let KARTEI_WARTET = false;
+
+function karteiStand(){ return (S && S.kartei) ? S.kartei : null; }
+function karteiLaufend(){ return Object.keys(KARTEI_CTRL).length; }
+
+function karteiStarten(ids){
+  const liste = (ids || []).filter(Boolean);
+  if(!liste.length) return false;
+  if(karteiLaufend()) return false;
+  S.kartei = {start:Date.now(), gesamt:liste.length, offen:liste.slice(),
+              fertig:{}, versuch:{}, aktiv:true};
+  sichern();
+  karteiErlaubnisFragen();
+  karteiLeiste();
+  karteiAbschnitt();
+  karteiPumpe();
+  return true;
+}
+
+function karteiAbbrechen(){
+  const k = karteiStand(); if(!k) return;
+  k.aktiv = false; k.pausiert = false; k.offen = [];
+  Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
+  KARTEI_CTRL = {};
+  sichern(); karteiLeiste(); karteiAbschnitt();
+}
+
+function karteiVerwerfen(){
+  const k = karteiStand(); if(!k) return;
+  Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
+  KARTEI_CTRL = {};
+  delete S.kartei;
+  sichern(); karteiLeiste(); karteiAbschnitt();
+}
+
+function karteiPumpe(){
+  const k = karteiStand();
+  if(!k || !k.aktiv) return;
+  if(!k.offen.length){ if(!karteiLaufend()) karteiFertig(); return; }
+  const rest = KARTEI_BREMSE_BIS - Date.now();
+  if(rest > 0){
+    if(!KARTEI_WARTET){
+      KARTEI_WARTET = true;
+      setTimeout(()=>{ KARTEI_WARTET = false; karteiPumpe(); }, rest + 50);
+    }
+    return;
+  }
+  /* Nach einem 429 bleibt es bei einer Anfrage gleichzeitig. Wer
+     einmal zu schnell war, ist es beim zweiten Anlauf wieder. */
+  const breite = KARTEI_BREMSE_BIS ? 1 : KARTEI_PARALLEL;
+  let platz = breite - karteiLaufend();
+  while(platz > 0 && k.offen.length){ karteiEine(k.offen.shift()); platz--; }
+}
+
+function karteiEintragen(id, erg){
+  delete KARTEI_CTRL[id];
+  const k = karteiStand();
+  if(!k) return;
+  k.fertig[id] = erg;
+  sichern();
+  karteiLeiste(); karteiAbschnitt();
+  karteiPumpe();
+}
+
+/* Ein voller Dienst oder ein 429 ist kein Fehlschlag, sondern ein
+   „gleich noch einmal“. Erst der dritte Anlauf gilt als gescheitert —
+   sonst reißt eine Lastspitze die halbe Sammlung mit. */
+function karteiNochmal(id, k){
+  k.versuch[id] = (k.versuch[id] || 0) + 1;
+  if(k.versuch[id] > KARTEI_VERSUCHE) return false;
+  k.offen.push(id);
+  return true;
+}
+
+async function karteiEine(id){
+  const k = karteiStand(); if(!k) return;
+  KARTEI_CTRL[id] = {abort(){}};
+  const p = allePflanzen().find(x=>x.id === id);
+  if(!p){ karteiEintragen(id, {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.'}); return; }
+  const auftrag = karteiAuftrag(p);
+  const t0 = Date.now();
+  let bilder = null;
+  try{ bilder = await karteiBilder(p); }catch(e){ bilder = null; }
+  const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  if(c) KARTEI_CTRL[id] = c;
+  try{
+    const txt = await kiFragen(auftrag.text, bilder, null, c);
+    const felder = (typeof geminiLesen === 'function') ? (geminiLesen(txt) || {}) : {};
+    karteiEintragen(id, {stand:'ok', art:auftrag.art, felder:felder,
+      anzahl:Object.keys(felder).length, dauer:Date.now() - t0});
+  }catch(e){
+    const st = karteiStand();
+    if(!st){ delete KARTEI_CTRL[id]; return; }
+    if(e && e.name === 'AbortError' && !st.aktiv){ delete KARTEI_CTRL[id]; return; }
+    if(e && e.status === 429) KARTEI_BREMSE_BIS = Date.now() + KARTEI_BREMSE;
+    if(e && (e.voll || e.status === 429) && karteiNochmal(id, st)){
+      delete KARTEI_CTRL[id];
+      karteiPumpe();
+      return;
+    }
+    karteiEintragen(id, {stand:'fehler', art:auftrag.art,
+      fehler:String((e && e.message) || 'Unbekannter Fehler'), dauer:Date.now() - t0});
+  }
+}
+
+function karteiFertig(){
+  const k = karteiStand(); if(!k) return;
+  k.aktiv = false; k.pausiert = false; k.ende = Date.now();
+  sichern();
+  karteiLeiste(); karteiAbschnitt();
+  karteiMelden(k);
+}
+
+/* ── Benachrichtigung ────────────────────────────────────────
+   Nur in der installierten App: wer sie im Browsertab offen hat,
+   sieht die Leiste. Und nur, wenn gerade niemand hinsieht. */
+function karteiErlaubnisFragen(){
+  try{
+    if(typeof Notification === 'undefined') return;
+    if(typeof eigenstaendigGestartet === 'function' && !eigenstaendigGestartet()) return;
+    if(Notification.permission === 'default') Notification.requestPermission();
+  }catch(e){}
+}
+function karteiMelden(k){
+  try{
+    if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    if(!document.hidden) return;
+    const n = Object.keys(k.fertig).filter(id=>k.fertig[id].stand === 'ok').length;
+    const text = n === 1 ? 'Eine Antwort liegt bereit.' : n + ' Antworten liegen bereit.';
+    if(navigator.serviceWorker && navigator.serviceWorker.ready)
+      navigator.serviceWorker.ready.then(reg=>{
+        if(reg && reg.showNotification)
+          reg.showNotification('Kartei aufgefrischt', {body:text, tag:'kartei', icon:'./icon-192.png'});
+      }).catch(()=>{});
+  }catch(e){}
+}
+
+function karteiWiederaufnehmen(){
+  const k = karteiStand();
+  if(!k) return;
+  karteiLeiste();
+  if(!k.aktiv || !k.offen.length) return;
+  if((Date.now() - k.start) < KARTEI_WIEDER && typeof kiBereit === 'function' && kiBereit()){
+    karteiPumpe();
+  } else {
+    k.aktiv = false; k.pausiert = true;
+    sichern(); karteiLeiste();
+  }
+}
+
+/* ── Die Leiste ─────────────────────────────────────────────── */
+function karteiLeiste(){
+  const k = karteiStand();
+  let s = document.getElementById('kartei-streifen');
+  if(!k){ if(s) s.remove(); return; }
+  if(!s){
+    s = document.createElement('div');
+    s.id = 'kartei-streifen';
+    document.body.appendChild(s);
+  }
+  const fertig = Object.keys(k.fertig).length;
+  const laeuft = !!k.aktiv && (k.offen.length > 0 || karteiLaufend() > 0);
+  const teil = k.gesamt ? Math.round(fertig / k.gesamt * 100) : 0;
+  const bei = Math.min(k.gesamt, fertig + 1);
+  s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + teil + '%"></i></div>'
+    + '<span>' + esc(laeuft ? 'Prüfe ' + bei + ' von ' + k.gesamt
+        : k.pausiert ? 'Angehalten bei ' + fertig + ' von ' + k.gesamt
+        : 'Kartei aufgefrischt · ' + fertig + ' von ' + k.gesamt) + '</span>'
+    + (laeuft ? '<button type="button" data-do="kartei-stopp">Abbrechen</button>'
+      : k.pausiert ? '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>'
+      : '<button type="button" class="haupt" data-do="kartei-ansehen">Ansehen</button>')
+    + (laeuft ? '' : '<button type="button" data-do="kartei-weg" aria-label="Ergebnis verwerfen">\u00d7</button>');
+}
+
+/* ── Der Abschnitt unter Mehr ───────────────────────────────── */
+let KARTEI_ART = 'alle';
+let KARTEI_WAHL = new Set();
+
+function karteiMenge(){
+  const alle = allePflanzen();
+  if(KARTEI_ART === 'luecken') return alle.filter(p=>karteiLuecken(p).length || !karteiFoto(p));
+  if(KARTEI_ART === 'wahl')    return alle.filter(p=>KARTEI_WAHL.has(p.id));
+  return alle;
+}
+
+function karteiGitter(q){
+  pwahlZeichnen('kartei-liste', {
+    attr:'data-karteip',
+    gewaehlt:KARTEI_WAHL,
+    suche:q,
+    marke:p=>karteiFoto(p) ? null : 'ohne Foto'
+  });
+}
+
+function karteiZeile(p, erg){
+  const e = erg || {};
+  const wort = e.stand === 'ok'
+    ? (e.anzahl === 1 ? 'eine Angabe' : e.anzahl + ' Angaben')
+      + (e.art === 'text' ? ' · ohne Foto' : e.art === 'teil' ? ' · Abgleich' : ' · vollständig')
+    : e.fehler || 'Fehlgeschlagen';
+  return '<label class="kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl') + '">'
+    + '<input type="checkbox" data-karteierg="' + esc(p.id) + '">'
+    + '<span class="kz-txt"><b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i></span></label>';
+}
+
+function karteiAbschnitt(){
+  const box = document.getElementById('kartei-innen');
+  if(!box) return;
+  const k = karteiStand();
+  const alle = allePflanzen();
+  const ohneFoto = alle.filter(p=>!karteiFoto(p));
+
+  if(k && !k.aktiv && Object.keys(k.fertig).length){
+    const ids = Object.keys(k.fertig);
+    const gut = ids.filter(id=>k.fertig[id].stand === 'ok');
+    const dauer = (k.ende && k.start) ? Math.round((k.ende - k.start) / 1000) : null;
+    const zeilen = ids.map(id=>{
+      const p = alle.find(x=>x.id === id);
+      return p ? karteiZeile(p, k.fertig[id]) : '';
+    }).filter(Boolean).join('');
+    box.innerHTML = '<p class="ein-abschnitt">Ergebnis</p>'
+      + '<p class="fhint">' + gut.length + ' von ' + ids.length + ' beantwortet'
+      + (k.pausiert || k.offen.length ? ' · Lauf abgebrochen' : '')
+      + (dauer != null ? ' · ' + (dauer < 90 ? dauer + ' Sekunden'
+          : Math.round(dauer / 60) + ' Minuten') : '') + '</p>'
+      + '<p class="fhint">An deinen Pflanzen ist dabei nichts geändert worden. '
+      + 'Das Durchsehen und Übernehmen der Angaben kommt in der nächsten Fassung.</p>'
+      + '<div class="kartei-erg">' + zeilen + '</div>'
+      + '<div class="tools"><button type="button" data-do="kartei-nochmal">Ausgewählte noch einmal prüfen</button>'
+      + '<button type="button" data-do="kartei-weg">Ergebnis verwerfen</button></div>'
+      + '<p class="kihinweis" id="kartei-meld"></p>';
+    return;
+  }
+
+  const menge = karteiMenge();
+  const luecken = alle.filter(p=>karteiLuecken(p).length).length;
+  const knopf = ['alle', 'luecken', 'wahl'].map(a=>
+    '<button type="button" data-do="kartei-art" data-karteiart="' + a + '"'
+    + ' aria-pressed="' + (KARTEI_ART === a ? 'true' : 'false') + '">'
+    + {alle:'Alle', luecken:'Nur mit Lücken', wahl:'Einzelne auswählen'}[a] + '</button>').join('');
+
+  box.innerHTML = '<p class="fhint">' + alle.length + ' Pflanzen · ' + luecken
+      + ' mit Lücken · ' + ohneFoto.length + ' ohne Foto</p>'
+    + '<div class="tools kartei-wahl">' + knopf + '</div>'
+    + '<div id="kartei-gitter"' + (KARTEI_ART === 'wahl' ? '' : ' hidden') + '>'
+    + '<input id="kartei-such" type="search" placeholder="Suchen" aria-label="Pflanze suchen">'
+    + '<div class="tools"><button type="button" data-do="kartei-alle">Alle anhaken</button>'
+    + '<button type="button" data-do="kartei-keine">Auswahl leeren</button></div>'
+    + '<div class="pwahl-gitter" id="kartei-liste"></div></div>'
+    + (ohneFoto.length
+       ? '<p class="fhint">Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt — kein Zustand, '
+         + 'kein Topfurteil, keine Merkmale. Betroffen: '
+         + esc(ohneFoto.slice(0, 8).map(nice).join(', '))
+         + (ohneFoto.length > 8 ? ' und ' + (ohneFoto.length - 8) + ' weitere' : '') + '.</p>'
+       : '')
+    + '<div class="tools"><button type="button" class="haupt" data-do="kartei-los">'
+    + 'Auffrischen starten (' + menge.length + ')</button></div>'
+    + '<p class="kihinweis" id="kartei-meld"></p>';
+  if(KARTEI_ART === 'wahl') karteiGitter('');
+}
+
+function karteiMeldung(txt, art){
+  const m = document.getElementById('kartei-meld');
+  if(!m) return;
+  m.textContent = txt || '';
+  m.className = 'kihinweis' + (art ? ' ' + art : '');
+}
+
+function karteiLos(ids){
+  if(typeof kiBereit === 'function' && !kiBereit()){
+    karteiMeldung('Dafür fehlt noch der Schlüssel. Er steht unter Mehr, KI-Dienst.', 'warn');
+    return;
+  }
+  const anb = (typeof kiAnbieter === 'function') ? kiAnbieter(kiSchluessel()) : null;
+  if(anb && !anb.kann){
+    karteiMeldung('Hinterlegt ist ein Schlüssel von ' + anb.name + '. Diese Fassung kann nur Gemini.', 'warn');
+    return;
+  }
+  if(!ids.length){ karteiMeldung('Keine Pflanze ausgewählt.', 'warn'); return; }
+  if(!karteiStarten(ids)) karteiMeldung('Es läuft bereits eine Prüfung.', 'warn');
+}
+
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-do]');
+  if(b){
+    const a = b.dataset.do;
+    if(a === 'kartei-art'){
+      KARTEI_ART = b.dataset.karteiart || 'alle';
+      karteiAbschnitt(); return;
+    }
+    if(a === 'kartei-alle'){
+      const q = (document.getElementById('kartei-such') || {}).value || '';
+      allePflanzen().filter(p=>pwahlPasst(p, String(q).trim().toLowerCase()))
+        .forEach(p=>KARTEI_WAHL.add(p.id));
+      karteiGitter(q); karteiZahlAuffrischen(); return;
+    }
+    if(a === 'kartei-keine'){
+      KARTEI_WAHL.clear();
+      karteiGitter((document.getElementById('kartei-such') || {}).value || '');
+      karteiZahlAuffrischen(); return;
+    }
+    if(a === 'kartei-los'){ karteiLos(karteiMenge().map(p=>p.id)); return; }
+    if(a === 'kartei-stopp'){ karteiAbbrechen(); return; }
+    if(a === 'kartei-weiter'){
+      const k = karteiStand();
+      if(k){ k.aktiv = true; k.pausiert = false; k.start = Date.now(); sichern(); karteiLeiste(); karteiPumpe(); }
+      return;
+    }
+    if(a === 'kartei-weg'){ karteiVerwerfen(); return; }
+    if(a === 'kartei-ansehen'){
+      if(typeof ansichtZeigen === 'function') ansichtZeigen('mehr');
+      const kopf = document.querySelector('[data-mh-go="kartei"]');
+      if(kopf && kopf.getAttribute('aria-expanded') !== 'true') kopf.click();
+      karteiAbschnitt();
+      const sec = document.getElementById('kartei-sec');
+      if(sec && sec.scrollIntoView) sec.scrollIntoView({block:'start'});
+      return;
+    }
+    if(a === 'kartei-nochmal'){
+      const ids = Array.prototype.slice
+        .call(document.querySelectorAll('[data-karteierg]:checked'))
+        .map(x=>x.dataset.karteierg);
+      if(!ids.length){ karteiMeldung('Hak zuerst an, was noch einmal laufen soll.', 'warn'); return; }
+      karteiLos(ids); return;
+    }
+    if(a === 'kartei-nichts') return;
+  }
+  const kachel = e.target.closest('[data-karteip]');
+  if(kachel){
+    const id = kachel.dataset.karteip;
+    if(!id) return;
+    if(KARTEI_WAHL.has(id)) KARTEI_WAHL.delete(id); else KARTEI_WAHL.add(id);
+    kachel.setAttribute('aria-pressed', KARTEI_WAHL.has(id) ? 'true' : 'false');
+    karteiZahlAuffrischen();
+  }
+  const kopf = e.target.closest('[data-mh-go="kartei"]');
+  if(kopf) setTimeout(karteiAbschnitt, 0);
+});
+
+/* Nur die Zahl im Startknopf nachziehen. Den ganzen Abschnitt neu zu
+   zeichnen würde bei jedem Antippen das Gitter zurückscrollen. */
+function karteiZahlAuffrischen(){
+  const b = document.querySelector('[data-do="kartei-los"]');
+  if(b) b.textContent = 'Auffrischen starten (' + karteiMenge().length + ')';
+}
+
+document.addEventListener('input', e=>{
+  if(e.target && e.target.id === 'kartei-such') karteiGitter(e.target.value);
+});
+
+karteiAbschnitt();
+karteiWiederaufnehmen();
 
 </script>
 <script>
