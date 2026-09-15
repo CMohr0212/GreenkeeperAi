@@ -1,71 +1,66 @@
 # PLAN — GreenkeeperAI
 
-Freigegeben am 15.09.2026 · Ausgangsfassung 3.18.0 · **Zielversion 3.19.0, sw.js greenkeeperai-v113**
+Stand 15.09.2026 · Ausgangsfassung 3.19.0 · **Zielversion 3.19.1, sw.js greenkeeperai-v114**
 
-Erledigt und nicht mehr hier: Etappe A (Anlegen), B (Doktor bewertet mit den Ist-Werten), C (Herkunft und Rangfolge), D (Sorten) — geliefert bis 3.18.0. Der Verlauf steht im CHANGELOG.
+Erledigt und nicht mehr hier: Etappe A bis D (bis 3.18.0) und E1 „Der Lauf" (3.19.0 — der erste Lauf läuft am Gerät, Chris ist bisher zufrieden, Hintergrund und Benachrichtigung noch unbestätigt). Der Verlauf steht im CHANGELOG.
 
-Offen sind: **E, F und T**. Etappe E ist am 15.09.2026 neu zugeschnitten worden: sie heißt jetzt **Sammelprüfung des Bestands**, nicht mehr Sammel-Anlegen. Das Sammel-Anlegen wird eine eigene Etappe und folgt demselben Prinzip — die Sammelprüfung ist dafür der Testschritt.
-
-Größe: **groß**. Aufteilung nach Regel 3.4 in **E1** und **E2**. Freigegeben und gebaut wird in dieser Sitzung E1.
+Offen sind: der Fix unten, danach **E2**, dann Sammel-Anlegen, **F** und **T**.
 
 ---
 
-# Freigegeben — Etappe E1 · Der Lauf
+# Freigegeben — Löschen einer Pflanze
 
-Freigabe von Chris am 15.09.2026.
+Freigabe von Chris am 15.09.2026. Die Ergebnisliste („Alle anhaken", Abschnitt während des Laufs) folgt danach und ist nicht Teil dieser Freigabe.
+
+Gemeldet von Chris am 15.09.2026: „Löschen funktioniert nicht, ich kann einen meiner Ableger nicht mehr löschen."
 
 ## Ziel
 
-Die KI läuft auf Zuruf über ausgewählte Pflanzen der Sammlung, sammelt ihre Antworten in einem Zwischenlager und meldet sich, wenn sie durch ist — ohne dass die App währenddessen blockiert ist und ohne dass ein einziger Wert an einer Pflanze geändert wird.
+„Pflanze löschen" und „Aus der Sammlung nehmen" wirken wieder, werden gespeichert, und das Kartenfenster schließt sich danach.
 
-## Was am Ist-Stand geprüft wurde
+## Befund
 
-- `kiFragen(prompt, bilder, modellId)` in index.html 18450 merkt den laufenden Abbruch in **einer** globalen Variablen `KI_LAEUFT`. Bei mehreren Anfragen gleichzeitig überschreibt jede die vorige — `kiAbbrechen()` träfe nur die letzte. Das ist die einzige Stelle, die für Parallelbetrieb angefasst werden muss.
-- `auftragFormat(namen, sonicht, pruefliste)` (index.html 5957) setzt aus einer Feldnamensliste einen vollständigen Auftrag zusammen. Anlegen und Doktor benutzen ihn bereits. Die Sammelprüfung braucht deshalb keinen eigenen Prompt-Text, nur drei Feldlisten.
-- `geminiLesen(txt)` (6248) liefert ein Objekt mit Feldnamen der App. Es wird unverändert benutzt.
-- Fotos liegen als Data-URL in `fotosVon(id)`; `profilFoto(id)` wählt das Kachelbild, nie eines aus dem Doktor. `kiBildAusDataUrl` macht daraus die Form, die `kiFragen` erwartet.
-- `S` wird über `sichern()` in localStorage abgelegt, Fotos gehen getrennt in IndexedDB. Das Zwischenlager muss deshalb klein bleiben.
-- Benachrichtigungen benutzt die App bisher nirgends. `eigenstaendigGestartet()` (27889) erkennt die installierte App.
-- Die Mehr-Seite baut sich aus `section[data-mh]`, `MH_IKON`, `MH_UNTER` und `MH_GRUPPEN` (23077 ff.).
+- **Belegt** (Prüfstand, 15.09.2026): Der Knopf löst `bearb-weg` aus (index.html 9113). Dort steht noch `offen.delete(id)` (9131). Die Variable `offen` gibt es nicht mehr — der Knopf wirft `ReferenceError: offen is not defined`.
+- **Belegt:** Der Fehler fliegt, nachdem die Pflanze im Speicher entfernt ist, aber vor `sichern()` und `render()`. Die Karte zeigt die Pflanze weiter, gespeichert wird nichts.
+- **Belegt:** Das betrifft jede Pflanze, nicht nur Ableger — eigene wie mitgelieferte.
+- **Belegt:** Auch ohne den Absturz bleibt das Kartenfenster offen und zeigt die gelöschte Pflanze weiter. `karteRumpfFuellen()` findet sie nicht mehr und lässt den alten Inhalt stehen.
+- **Belegt:** Kein Test in pruef.js tippt den Löschknopf an. Deshalb blieb der Prüfstand grün.
+- **Vermutet:** Kaputt seit 3.10.7. Dort wurde die Zuklapp-Mechanik entfernt, zu der `offen` gehörte. Erschlossen aus dem CHANGELOG, nicht aus der Git-Historie.
+- **Vermutet:** Speichert danach etwas anderes — etwa der laufende Abgleich nach jeder Antwort —, landet die halbe Löschung doch im Speicher. Der Ableger kann nach einem Neustart der App schon weg sein. Aus dem Code gelesen, nicht am Gerät geprüft.
 
 ## Änderungen
 
-- **Neuer Punkt unter Mehr: „Pflanzenkartei auffrischen"** (`data-mh="kartei"`), Gruppe Pflege. Nebenzeile nennt den Stand: wie viele Pflanzen Lücken haben, ob ein Ergebnis bereitliegt.
-- **Auswahl** in drei Möglichkeiten: *Alle*, *Nur mit Lücken*, *Einzelne auswählen*. Die dritte benutzt dasselbe Bildgitter wie der Pflanzendoktor (`pwahlZeichnen`), erweitert um Mehrfachauswahl. Dazu Suchfeld, „Alle" und „Keine".
-- **Eine Anfrage je Pflanze**, kein getrennter Textlauf. Der Auftrag richtet sich nach dem Stand der Pflanze:
-  - *voll* — botanischer Name fehlt oder mehrere Pflichtfelder sind leer: der vollständige Auftrag samt Zustand, Befund und Maßnahmen.
-  - *teil* — Pflanze ist vollständig: nur Merkmale, Zustand, Befund, Maßnahmen.
-  - *ohne Foto* — kein Bild hinterlegt: nur, was aus Art und botanischem Namen folgt. Kein Zustand, kein Topfurteil, keine Merkmale. Diese Pflanzen werden vor dem Start namentlich genannt.
-- **Warteschlange mit 3 gleichzeitigen Anfragen.** Bei 429 drosselt sie selbst auf eine Anfrage und wartet eine Minute, statt abzubrechen. Bei 503 gilt das bestehende Ausweichen auf ein Modell tiefer.
-- **`kiFragen` bekommt ein viertes Argument `ctrl`.** Wird ein eigener AbortController übergeben, benutzt die Funktion ihn und fasst `KI_LAEUFT` nicht an. Ohne das Argument bleibt alles wie bisher.
-- **Die Schlange liegt in `S.kartei`** und übersteht das Schließen der App. Beim Öffnen läuft ein unterbrochener Lauf von selbst weiter, wenn er weniger als zwei Stunden alt ist; ist er älter, steht ein Knopf „Fortsetzen" da. Gespeichert werden nur die gelesenen Felder, nicht der Rohtext.
-- **Leiste am unteren Rand** über allen Ansichten, nach dem Vorbild von `#update-streifen` (Ebene 90, über den Reitern, unter Modal und Tour). Zeigt „Prüfe 12 von 48", einen Balken und „Abbrechen". Kein Modal — die App bleibt bedienbar.
-- **Benachrichtigung am Ende**, nur in der installierten App und nur, wenn die Seite gerade nicht im Blick ist. Die Erlaubnis wird beim Start eines Laufs gefragt, nicht vorher. Antippen öffnet die App; dafür bekommt sw.js einen `notificationclick`-Behandler.
-- **Ergebnisliste zum Ansehen** im selben Abschnitt: je Pflanze, wie viele Angaben zurückkamen, welcher Auftrag lief, und bei Fehlschlägen der Grund. Auswählbar, dazu „Ausgewählte noch einmal prüfen" und „Ergebnis verwerfen". **Kein Übernehmen** — das ist E2. Der Abschnitt sagt das ausdrücklich.
-- **Kein Wert an einer Pflanze wird geschrieben.** Regel 10.8 gilt hier ohne Ausnahme, auch für Pflanzen ohne jede Angabe.
+- `offen.delete(id)` in `bearb-weg` entfernen.
+- Nach dem Löschen: Zeigt das Kartenfenster genau diese Pflanze, schließt es sich über `modalZu('karte-modal')`.
+- Pflichtpaket nach Regel 6.2: FASSUNG 3.19.1, sw.js greenkeeperai-v114, PATCHNOTES-Eintrag, CHANGELOG, Versionsnummer in pruef.js.
 
 ## Nicht angefasst
 
-`aenderungSetzen`, `herkunftVon`, die Rangfolge aus Etappe C, `giftEigenSetzen` und die Giftstatus, das Feld `merkmale` der Bibliothek, `sorte` und `sortenmerkmale`, `dokPromptBauen` und der gesamte Pflanzendoktor, `ANTWORT_FORMAT` im Wortlaut, das Anlegen-Formular, die Karte, der Grundriss, die Gieß- und Lernlogik, `TOUR_KAPITEL`, die Bibliothek. `kiFragen` wird nur um ein optionales Argument erweitert, sein bisheriges Verhalten bleibt.
+Was beim Löschen mit der Pflanze weggeht (Fotos, Gießverlauf, Aufgaben, Zustand, Orte, Änderungen), `papierkorbRender` und „zurückholen", der alte Behandler `pflanze-weg` (index.html 16617, kein Knopf ruft ihn mehr auf), `pfl-weg` im Grundriss, der gesamte Kartei-Lauf und `S.kartei`, Stammbaum und Verlauf der Mutterpflanze, alles aus „Nicht anfassen" der Übergabe.
 
 ## Risiken
 
-- **Der Hintergrundlauf ist beobachtet, nicht garantiert.** Friert Android die Seite ein, hält der Lauf an und macht beim Öffnen weiter — dann kommt keine Benachrichtigung, sondern die Leiste. Das ist gebaut, aber genau das ist am Gerät zu prüfen.
-- **Das Kontingent ist der Engpass, nicht das Gerät.** Bei 50 Pflanzen sind 50 Anfragen fällig. Ein 429 mitten im Lauf ist wahrscheinlicher als ein Netzfehler.
-- **Zwei Abbruchwege nebeneinander.** `KI_LAEUFT` für die Einzelanfrage, eigene Controller für die Schlange. Wer den einen liest, erwartet den anderen.
-- **localStorage.** Fünfzig Ergebnisse kosten geschätzt 25 bis 40 Kilobyte. Bei vollem Speicher scheitert `sichern()` — die Warnung dafür besteht bereits.
-- **Die Benachrichtigungserlaubnis ist eine Systemfrage.** Wer sie einmal ablehnt, bekommt sie in Chrome nicht wieder gestellt; dann bleibt die Leiste der einzige Weg.
-- **Ein halb gelaufener Lauf beim Hochladen einer neuen Fassung.** Der Service Worker tauscht die Datei, die Schlange steht in `S` und läuft weiter — die Felder können dann aus zwei Fassungen stammen.
+- `modalZu` geht über `history.back()`. Das Schließen verbraucht einen Schritt im Zurück-Verlauf — gewollt, aber nur am Handy wirklich prüfbar.
+- Ergebnisse im Kartei-Zwischenlager zu einer gelöschten Pflanze bleiben liegen. Die Ergebnisliste blendet sie schon aus, die Zeile „x von y beantwortet" zählt sie aber mit. Gehört zu E2.
+- Der Verlauf der Mutterpflanze („vermehrt") zeigt weiter auf den gelöschten Ableger. Im Prüfstand wirft das keinen Fehler; wie der Stammbaum es anzeigt, ist nicht geprüft.
+- Hochladen während eines laufenden Abgleichs ist ein bekanntes, ungelöstes Risiko. Erst hochladen, wenn die Leiste „Kartei aufgefrischt" zeigt.
 
 ## Prüfung
 
-pruef.js prüft: die Auswahl liefert bei *alle* alle Pflanzen, bei *Lücken* nur die unvollständigen, bei *Einzelne* genau die angetippten; Mehrfachauswahl setzt und löst; der Auftrag ist *voll*, *teil* oder *ohne Foto* nach dem Stand der Pflanze und enthält im Fall *ohne Foto* keine ZUSTAND-, BEFUND-, MERKMALE- und TOPF-Zeile; die Zahl der Schlüsselwörter im Auftrag stimmt mit der Zahl der Feldzeilen überein; die Schlange startet höchstens drei Anfragen gleichzeitig; eine fehlgeschlagene Anfrage bricht den Lauf nicht ab und steht danach als Fehlschlag in der Liste; nach dem Lauf sind die Werte aller beteiligten Pflanzen unverändert und `S.edits` ist nicht gewachsen; Abbrechen hält an und behält die bis dahin gesammelten Antworten; ein unterbrochener Lauf nimmt beim Neuaufbau die offenen Pflanzen wieder auf; „Ausgewählte noch einmal prüfen" startet genau die angehakten; „Ergebnis verwerfen" leert das Zwischenlager; `kiFragen` ohne viertes Argument setzt `KI_LAEUFT` wie bisher, mit Argument nicht; die Leiste erscheint während des Laufs und verschwindet nach dem Verwerfen.
+pruef.js prüft, mit selbst angelegter Mutter und selbst angelegtem Ableger:
 
-Nicht durch Tests abgedeckt — nur am Handy prüfbar: ob der Lauf bei zugeklappter App weiterläuft, ob die Benachrichtigung ankommt und sie beim Antippen die App öffnet, die Lage der Leiste über den Reitern und unter Modal und Tour, das Scrollen im Auswahlgitter, die Lesbarkeit der Ergebnisliste auf schmalem Gerät.
+- Karte öffnen → Bearbeiten → „Pflanze löschen" → der Ableger fehlt in `S.eigene` und bleibt nach `laden()` weg; Gießverlauf, Fotos, Aufgaben und Zustand sind entfernt.
+- Beim Löschen fliegt kein Laufzeitfehler. Gegenprobe: mit wieder eingesetztem `offen.delete(id)` schlägt die Prüfung fehl.
+- Das Kartenfenster ist danach zu. Gegenprobe: ohne das Schließen schlägt die Prüfung fehl.
+- Mitgelieferte Pflanze: „Aus der Sammlung nehmen" setzt `S.weg`, ist gespeichert, „zurückholen" bringt sie zurück.
+- Abbrechen im Bestätigungsdialog ändert nichts.
+- Löschen während eines laufenden Abgleichs: kein Fehler, der Lauf endet regulär, die gelöschte Pflanze steht nicht in der Ergebnisliste.
+
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: das Schließen des Kartenfensters samt Zurück-Geste, der Bestätigungsdialog in Chrome auf Android, die Sammlung nach dem Schließen.
 
 ## Größe
 
-Groß, deshalb geteilt. E1 ist mittel.
+Klein.
 
 ---
 

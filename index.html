@@ -9128,8 +9128,19 @@ document.addEventListener('click', e=>{
       if(!S.weg) S.weg = {};
       S.weg[id] = iso(HEUTE);
     }
-    offen.delete(id);
-    sichern(); render();
+    /* Hier stand `offen.delete(id)`. Die Menge `offen` ist mit der
+       Zuklapp-Mechanik in 3.10.7 weggefallen; der Aufruf warf und brach
+       das Löschen vor dem Speichern ab. */
+    sichern();
+    /* Das Kartenfenster fand die Pflanze danach nicht mehr und liess
+       den alten Inhalt stehen — die Löschung sah aus, als sei nichts
+       passiert. Zeigt es genau diese Pflanze, geht es zu. */
+    if(typeof modalOffen === 'function' && modalOffen('karte-modal')
+       && typeof _karteId !== 'undefined' && _karteId === id){
+      _karteListe = _karteListe.filter(x=>x !== id);
+      modalZu('karte-modal');
+    }
+    render();
   }
   if(a === 'zurueckholen'){
     if(S.weg) delete S.weg[id];
@@ -11178,8 +11189,17 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.19.0';
+const FASSUNG = '3.19.1';
 const PATCHNOTES = [
+  {
+    nr: '3.19.1', datum: '2026-09-15', titel: 'Löschen geht wieder',
+    kurz: [
+      'Pflanzen lassen sich wieder löschen oder aus der Sammlung nehmen.'
+    ],
+    behoben: [
+      '„Pflanze löschen“ und „Aus der Sammlung nehmen“ taten seit einigen Fassungen nichts Sichtbares: Der Knopf brach ab, bevor gespeichert wurde. Jetzt wird gelöscht, gespeichert, und die Karte schließt sich.'
+    ]
+  },
   {
     nr: '3.19.0', datum: '2026-09-15', titel: 'Kartei auffrischen',
     kurz: [

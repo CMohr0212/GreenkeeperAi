@@ -4,6 +4,15 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.19.1 — 15. September 2026
+**Löschen geht wieder**
+
+### Behoben
+- **„Pflanze löschen“ und „Aus der Sammlung nehmen“ wirken wieder.** Der Knopf brach seit einigen Fassungen ab, bevor gespeichert wurde — die Pflanze blieb stehen. Betroffen waren alle Pflanzen, eigene wie mitgelieferte.
+- **Die Karte schließt sich nach dem Löschen.** Vorher blieb sie offen und zeigte die gelöschte Pflanze weiter.
+
+---
+
 ## 3.19.0 — 15. September 2026
 **Kartei auffrischen**
 

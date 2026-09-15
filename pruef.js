@@ -146,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.19.0', w.__T('FASSUNG') === '3.19.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.19.1', w.__T('FASSUNG') === '3.19.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7041,7 +7041,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.19.0', e0.nr === '3.19.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.19.1', e0.nr === '3.19.1', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -8128,6 +8128,122 @@ setTimeout(async () => {
       sichern(); karteiLeiste();
       return 1;
     })()`);
+  }
+
+  /* ══════════ Löschen einer Pflanze (3.19.1) ══════════
+     Der Knopf warf seit 3.10.7 an `offen.delete(id)` und brach vor dem
+     Speichern ab. Kein Test hatte ihn je angetippt. Die Pflanzen legt
+     dieser Block selbst an. */
+  {
+    const gespeichert = () => JSON.parse(w.localStorage.getItem(w.__T('KEY')) || '{}');
+    const wegKnopf = id => d.querySelector('#karte-rumpf [data-do="bearb-weg"][data-p="' + id + '"]');
+    const oeffneBearbeiten = async id => {
+      w.__T(`karteOeffnen('${id}')`); await tick();
+      const auf = d.querySelector('#karte-rumpf [data-do="bearb-auf"][data-p="' + id + '"]');
+      if (auf) { auf.click(); await tick(); }
+      return wegKnopf(id);
+    };
+    const lf = () => fehler.filter(f => /^Laufzeit/.test(f)).length;
+    const vorherConfirm = w.confirm;
+
+    const lid = w.__T(`(function(){
+      S.eigene = S.eigene || [];
+      S.eigene.push({id:'LO1', eigen:true, name:'Loeschmutter', art:'Monstera',
+        botanisch:'Monstera deliciosa', klasse:Object.keys(KLASSEN)[0],
+        sonne:Object.keys(SONNE)[0], todo:[], log:[]});
+      sichern(); render();
+      return ablegerAnlegen('LO1', Object.keys(V_METHODEN)[0]).id;
+    })()`);
+    w.__T(`(function(){ S.water['${lid}'] = ['2026-09-01']; S.fotos['${lid}'] = [{key:'lo', src:'data:,', datum:'2026-09-01'}]; sichern(); return 1; })()`);
+    pruef('Löschprobe: Ableger ist angelegt', w.__T(`S.eigene.some(p=>p.id==='${lid}')`) === true);
+
+    /* Abbrechen im Dialog ändert nichts */
+    w.confirm = () => false;
+    let knopf = await oeffneBearbeiten(lid);
+    pruef('Der Löschknopf steht in der Karte', !!knopf && /Pflanze löschen/.test(knopf.textContent));
+    if (knopf) { knopf.click(); await tick(); }
+    pruef('Abbrechen im Dialog lässt den Ableger stehen',
+      w.__T(`S.eigene.some(p=>p.id==='${lid}')`) === true);
+    pruef('Abbrechen lässt die Karte offen', w.__T(`modalOffen('karte-modal')`) === true);
+
+    /* Löschen */
+    w.confirm = () => true;
+    const vorLf = lf();
+    knopf = wegKnopf(lid);
+    if (knopf) { knopf.click(); await tick(); await tick(); }
+    pruef('Löschen wirft keinen Laufzeitfehler', lf() === vorLf, fehler.slice(-1)[0]);
+    pruef('Der Ableger ist aus der Sammlung', w.__T(`S.eigene.some(p=>p.id==='${lid}')`) === false);
+    const g = gespeichert();
+    pruef('Die Löschung ist gespeichert',
+      Array.isArray(g.eigene) && !g.eigene.some(p => p.id === lid));
+    pruef('Gießverlauf und Fotos gehen mit',
+      w.__T(`!S.water['${lid}'] && !S.fotos['${lid}'] && !S.added['${lid}']`) === true);
+    pruef('Das Kartenfenster ist nach dem Löschen zu', w.__T(`modalOffen('karte-modal')`) === false);
+    w.__T(`S = LEERSTAND(); laden(); render();`);
+    pruef('Nach dem Neuladen bleibt der Ableger weg',
+      w.__T(`S.eigene.some(p=>p.id==='${lid}')`) === false);
+    pruef('Die Mutter bleibt stehen', w.__T(`S.eigene.some(p=>p.id==='LO1')`) === true);
+
+    /* Mitgelieferte Pflanze: aus der Sammlung nehmen und zurückholen */
+    /* Die App liefert derzeit keine Pflanzen mit — der Test legt sich
+       eine an und nimmt sie am Ende wieder heraus. */
+    const mid = w.__T(`(function(){
+      PFLANZEN.push({id:'LOM', name:'Loesch mitgeliefert', art:'Efeutute',
+        klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0], todo:[], log:[]});
+      render(); return 'LOM';
+    })()`);
+    knopf = await oeffneBearbeiten(mid);
+    pruef('Mitgelieferte Pflanze hat „Aus der Sammlung nehmen“',
+      !!knopf && /Aus der Sammlung nehmen/.test(knopf.textContent));
+    if (knopf) { knopf.click(); await tick(); await tick(); }
+    pruef('Aus der Sammlung nehmen setzt den Vermerk', w.__T(`!!(S.weg||{})['${mid}']`) === true);
+    pruef('Der Vermerk ist gespeichert', !!(gespeichert().weg || {})[mid]);
+    pruef('Auch dann schließt die Karte', w.__T(`modalOffen('karte-modal')`) === false);
+    w.__T(`papierkorbRender()`);
+    const zurueck = d.querySelector('[data-do="zurueckholen"][data-p="' + mid + '"]');
+    pruef('Zurückholen steht bereit', !!zurueck);
+    if (zurueck) { zurueck.click(); await tick(); }
+    pruef('Zurückholen bringt sie wieder', w.__T(`!(S.weg||{})['${mid}']`) === true);
+
+    /* Löschen während eines laufenden Abgleichs */
+    w.__T(`(function(){
+      S.eigene.push({id:'LO2', eigen:true, name:'Loeschlauf zwei', art:'Efeutute', klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0]});
+      S.eigene.push({id:'LO3', eigen:true, name:'Loeschlauf drei', art:'Efeutute', klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0]});
+      S.kiModelle = [{id:'models/gemini-3-flash', anzeige:'3 flash', empfohlen:true}];
+      S.kiModell = 'models/gemini-3-flash';
+      sichern(); render();
+      kiSchluesselSetzen('${ATTRAPPE_ECHT}');
+      return 1;
+    })()`);
+    w.__ki.fehler = null; w.__ki.verzug = 150; w.__ki.antwort = '```\nART: Efeutute\n```';
+    w.__T(`karteiStarten(['LO2','LO3'])`);
+    await new Promise(r => setTimeout(r, 30));
+    const vorLf2 = lf();
+    knopf = await oeffneBearbeiten('LO3');
+    if (knopf) { knopf.click(); await tick(); }
+    for (let i = 0; i < 20 && w.__T(`!!(S.kartei && S.kartei.aktiv)`); i++) await tick();
+    pruef('Löschen während des Laufs wirft nicht', lf() === vorLf2, fehler.slice(-1)[0]);
+    pruef('Der Lauf endet trotzdem', w.__T(`!!S.kartei && !S.kartei.aktiv`) === true);
+    w.__T(`karteiAbschnitt()`);
+    const erg = String((d.getElementById('kartei-innen') || {}).textContent);
+    pruef('Die gelöschte Pflanze steht nicht in der Ergebnisliste',
+      erg.indexOf('Loeschlauf drei') === -1 && erg.indexOf('Loeschlauf zwei') !== -1, erg.slice(0, 200));
+
+    /* Aufräumen */
+    w.confirm = vorherConfirm;
+    w.__ki.verzug = 40;
+    w.__T(`(function(){
+      if(modalOffen('karte-modal')) modalZu('karte-modal');
+      var mi = PFLANZEN.findIndex(function(p){ return p.id === 'LOM'; });
+      if(mi !== -1) PFLANZEN.splice(mi, 1);
+      if(S.weg) delete S.weg['LOM'];
+      delete S.kartei; KARTEI_CTRL = {};
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'LO'; });
+      kiSchluesselSetzen('');
+      sichern(); karteiLeiste(); render();
+      return 1;
+    })()`);
+    await tick();
   }
 
   console.log('\n── Ergebnis ──');
