@@ -4,6 +4,27 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.21.0 — 16. September 2026
+**Kartei: Abgleich Pflanze für Pflanze**
+
+### Neu
+- **Abgleich-Fenster.** Ein Tipp auf eine Pflanze im Ergebnis öffnet ein Fenster. Jede Zeile zeigt den alten und den neuen Wert, dazu „Übernehmen“ und ×. Einen Knopf für alles auf einmal gibt es nicht.
+- **Eigene Angaben zuerst.** Was du selbst eingetragen hast und die Antwort anders sieht, steht oben und ist mit „von dir gesetzt“ markiert.
+- **Offene Abweichungen zählen.** Die Ergebnisliste nennt je Pflanze, wie viel noch offen ist. Durchgesehene Pflanzen verschwinden; ist alles durch, ist das Ergebnis weg.
+- **Familie und Düngebedarf** fragt die Kartei neu ab.
+- **„Fertig — Rest verwerfen“** schließt eine Pflanze ab. Zurück und × schließen das Fenster, ohne etwas zu verwerfen.
+
+### Behoben
+- **„Ausgewählte noch einmal prüfen“ löschte die übrigen Ergebnisse.** Jetzt bleiben sie stehen, und wer den Nachlauf verwirft, behält das Ergebnis davor.
+
+### Anders
+- **Die Kartei fragt nur noch Artdaten ab:** Steckbrief, Gießklasse, Gießart, Licht, Frost, Düngebedarf, Wasserspeicher, Giftigkeit, Sortenmerkmale und Vermehrung. Zustand, Befund, Topf und Maßnahmen sind Sache des Doktors.
+- **Jede gewählte Pflanze wird ganz abgefragt,** nicht nur ihre Lücken.
+- **Der Doktor gleicht nicht mehr mit der Karte ab.** Die Kästen zu Abgleich, Art, Sortenmerkmalen und Giftigkeit sind weg, und er legt keine Vermehrungswege mehr ab.
+- **Die Giftfrage** gilt in der Kartei wie bisher im Doktor: verschärft wird, entwarnt nie.
+
+---
+
 ## 3.20.0 — 16. September 2026
 **Auffrischen: aufgeräumt und fortsetzbar**
 

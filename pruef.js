@@ -146,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.20.0', w.__T('FASSUNG') === '3.20.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.21.0', w.__T('FASSUNG') === '3.21.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -6761,48 +6761,34 @@ setTimeout(async () => {
 
     pruef('ANTWORT_FORMAT bleibt zeichengleich', w.__T('ANTWORT_FORMAT') === fmt0);
 
-    /* Der Artkasten: nur bei anderer Art UND ausdruecklicher Sicherheit,
-       und er aendert nichts ohne Antippen. */
-    pruef('Der Doktor hat einen Platz für den Artkasten', !!d.getElementById('dok-art'));
-    const artBox = () => {
-      const el = d.getElementById('dok-art');
-      return el ? (el.innerHTML || '') : 'KASTEN FEHLT';
-    };
+    /* Die Art prueft seit 3.21.0 die Kartei. Eine Zeile gibt es nur bei
+       anderer Art UND ausdruecklicher Sicherheit, und sie aendert nichts
+       ohne Antippen. */
+    pruef('Der Doktor hat keinen Artkasten mehr', !d.getElementById('dok-art'));
     const artVon = () => w.__T("allePflanzen().find(function(x){return x.id==='BT1';}).art");
-    w.__T("dokPflanze = 'BT1';");
-    w.__T("dokArtZeigen({art:'Efeutute', bot:'Epipremnum aureum', sicher:'hoch'})");
-    pruef('Gleiche Art zeigt keinen Kasten', artBox() === '');
-    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'mittel'})");
-    pruef('Ohne hohe Sicherheit zeigt er keinen Kasten', artBox() === '');
-    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'})");
-    pruef('Bei anderer Art und hoher Sicherheit steht der Kasten',
-      /data-do="art-nehmen"/.test(artBox()) && /data-do="art-lassen"/.test(artBox()),
-      artBox().slice(0, 100));
-    pruef('Der Kasten allein ändert nichts an der Pflanze', artVon() === 'Efeutute', artVon());
+    const artZeilen = (a, bot, sicher) => w.__T(`karteiAbweichungen(
+      allePflanzen().find(function(x){return x.id==='BT1';}),
+      {stand:'ok', felder:{art:'${a}', bot:'${bot}', sicher:'${sicher}'}})
+      .zeilen.filter(function(z){return z.key==='art';}).length`);
+    pruef('Gleiche Art ergibt keine Artzeile', artZeilen('Efeutute', 'Epipremnum aureum', 'hoch') === 0);
+    pruef('Ein anderer Name fuer denselben botanischen Namen ist keine andere Art',
+      artZeilen('Goldene Efeutute', 'Epipremnum aureum', 'hoch') === 0);
+    pruef('Ohne hohe Sicherheit keine Artzeile',
+      artZeilen('Herzblattphilodendron', 'Philodendron hederaceum', 'mittel') === 0);
+    pruef('Bei anderer Art und hoher Sicherheit steht die Zeile',
+      artZeilen('Herzblattphilodendron', 'Philodendron hederaceum', 'hoch') === 1);
+    pruef('Die Zeile allein aendert nichts an der Pflanze', artVon() === 'Efeutute', artVon());
 
-    d.querySelector('#dok-art [data-do="art-lassen"]')
-      .dispatchEvent(new w.Event('click', {bubbles:true}));
-    await tick();
-    pruef('„So lassen“ nimmt den Kasten weg und ändert nichts',
-      artBox() === '' && artVon() === 'Efeutute');
-
-    w.__T("dokArtZeigen({art:'Herzblattphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'})");
-    d.querySelector('#dok-art [data-do="art-nehmen"]')
-      .dispatchEvent(new w.Event('click', {bubbles:true}));
-    await tick();
+    w.__T("artUebernehmen('BT1', 'Herzblattphilodendron', 'Philodendron hederaceum')");
     pruef('„Art übernehmen“ setzt Art und botanischen Namen',
       artVon() === 'Herzblattphilodendron'
       && w.__T("allePflanzen().find(function(x){return x.id==='BT1';}).botanisch")
          === 'Philodendron hederaceum',
       artVon());
-    pruef('Und der Kasten ist danach weg', artBox() === '');
 
     /* Eine eigene Giftangabe ist kein KI-Ergebnis — sie ueberlebt. */
     w.__T("aenderungSetzen('BT1', {giftig:true});");
-    w.__T("dokArtZeigen({art:'Efeutute', bot:'Epipremnum aureum', sicher:'hoch'})");
-    d.querySelector('#dok-art [data-do="art-nehmen"]')
-      .dispatchEvent(new w.Event('click', {bubbles:true}));
-    await tick();
+    w.__T("artUebernehmen('BT1', 'Efeutute', 'Epipremnum aureum')");
     /* Auf den Status allein ist kein Verlass: eine Art aus der
        gepruefften Tabelle liefert ebenfalls „fest“. Die eigene Angabe
        erkennt man an der Quelle. */
@@ -6813,8 +6799,7 @@ setTimeout(async () => {
 
     /* Aufraeumen: die Testpflanzen gehoeren nicht in die Sammlung. */
     w.__T(`(function(){
-      dokPflanze = null; dokArtLage = null;
-      var z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
+      dokPflanze = null;
       S.eigene = S.eigene.filter(function(x){ return String(x.id).slice(0,2) !== 'BT'; });
       if(S.zustand){ delete S.zustand.BT1; delete S.zustand.BT2; }
       sichern(); render();
@@ -7041,7 +7026,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.20.0', e0.nr === '3.20.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.21.0', e0.nr === '3.21.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7550,56 +7535,62 @@ setTimeout(async () => {
         return !!(p && p.quellen && p.quellen.typ === 'ki' && p.quellen.botanisch === 'ki');
       })()`) === true);
 
-    /* ── Der Abgleich im Doktor ── */
+    /* ── Der Abgleich in der Kartei (3.21.0) ── */
     w.__T(`(function(){
       aenderungSetzen('HQ1', {klasse:'B'});           /* hand */
       aenderungSetzen('HQ1', {sonne:'hell'}, 'bib');  /* bib  */
-      dokPflanze = 'HQ1';
-      dokAbgleichZeigen({klasse:'C — durchtrocknen', licht:'volle Sonne'});
+      return 1;
     })()`);
-    pruef('Eine eigene Angabe steht weiter im Abgleich',
-      w.__T(`dokVorschlaege.some(v=>v.feld==='klasse' && v.hand === true)`) === true);
-    pruef('Ein Bibliothekswert steht ohne Vermerk da',
-      w.__T(`dokVorschlaege.some(v=>v.feld==='sonne' && !v.hand)`) === true);
-    pruef('Der Vermerk steht auch im Kasten',
-      /von dir gesetzt/.test(String(d.getElementById('dok-abgleich').innerHTML)));
-    pruef('Jede Zeile hat einen eigenen Uebernehmen-Knopf',
-      d.querySelectorAll('#dok-abgleich [data-do="ab-eins"]').length
-        === w.__T('dokVorschlaege.length'),
-      String(d.querySelectorAll('#dok-abgleich [data-do="ab-eins"]').length));
-    pruef('Das blosse Zeichnen aendert nichts',
-      hq(`p.klasse`) === 'B' && hq(`p.sonne`) === 'hell');
+    {
+      const zl = JSON.parse(w.__T(`JSON.stringify(karteiAbweichungen(
+        allePflanzen().find(function(x){return x.id==='HQ1';}),
+        {stand:'ok', felder:{klasse:'C — durchtrocknen', licht:'volle Sonne'}})
+        .zeilen.map(function(z){ return {k:z.key, h:!!z.hand}; }))`));
+      pruef('Eine eigene Angabe steht als Widerspruch im Abgleich',
+        zl.some(z=>z.k === 'klasse' && z.h), JSON.stringify(zl));
+      pruef('Ein Bibliothekswert steht ohne Vermerk da',
+        zl.some(z=>z.k === 'sonne' && !z.h), JSON.stringify(zl));
+      pruef('Der Widerspruch steht oben', zl.length === 2 && zl[0].k === 'klasse', JSON.stringify(zl));
+      pruef('Das blosse Lesen aendert nichts',
+        hq(`p.klasse`) === 'B' && hq(`p.sonne`) === 'hell');
+    }
 
-    /* Alles uebernehmen laesst die eigene Angabe stehen.
-       Fehlt ein Knopf, muss die Pruefung melden statt abzustuerzen —
-       eine Gegenprobe, die eine TypeError wirft, beweist nichts. */
-    const tipp = async sel => { const b = d.querySelector('#dok-abgleich ' + sel);
-      pruef('Der Knopf ' + sel + ' ist da', !!b);
-      if(b){ b.click(); await tick(); } };
-    await tipp('[data-do="ab-alle"]');
-    pruef('Alles uebernehmen laesst die eigene Angabe stehen',
-      hq(`p.klasse`) === 'B', String(hq(`p.klasse`)));
-    pruef('und schreibt die uebrigen',
-      hq(`p.sonne`) === 'voll', String(hq(`p.sonne`)));
-    pruef('Die eigene Zeile bleibt danach sichtbar',
-      w.__T(`dokVorschlaege.length === 1 && dokVorschlaege[0].feld === 'klasse'`) === true,
-      String(w.__T('JSON.stringify(dokVorschlaege.map(v=>v.feld))')));
-    pruef('Der Fusstext nennt sie',
-      /selbst gesetzt/.test(String(d.getElementById('dok-abgleich').innerHTML)));
-
-    /* Einzeln uebernehmen greift auch bei einer eigenen Angabe */
-    await tipp('[data-do="ab-eins"]');
-    pruef('Einzeln uebernehmen greift auch bei hand',
-      hq(`p.klasse`) === 'C', String(hq(`p.klasse`)));
-    pruef('und stempelt die Zeile auf ki',
-      hq(`herkunftVon(p, 'klasse')`) === 'ki', String(hq(`herkunftVon(p, 'klasse')`)));
-    pruef('Danach ist der Abgleich leer',
-      w.__T('dokVorschlaege.length') === 0, String(w.__T('dokVorschlaege.length')));
+    /* ── Der Doktor schreibt keine Steckbriefdaten mehr (3.21.0) ── */
+    {
+      const bild = `JSON.stringify({k:p.klasse, s:p.sonne, a:p.art, b:p.botanisch,
+        m:p.sortenmerkmale || '', v:p.vermehrungKi || null, g:p.gift || null, q:p.quellen || null})`;
+      const vorher = hq(bild);
+      w.__T(`(function(){
+        dokPflanze = 'HQ1';
+        document.getElementById('dok-paste').value = [
+          'ART: Herzblattphilodendron', 'BOTANISCH: Philodendron hederaceum', 'SICHERHEIT: hoch',
+          'MERKMALE: gelb gesprenkelt', 'ZUSTAND: ausgetrocknet', 'BEFUND: Die Blätter hängen.',
+          'LICHT: voll', 'GIESSKLASSE: kakteenmodus', 'KATZEN: giftig, enthält Oxalat',
+          'VERMEHRUNG: Kopfsteckling | 80 | Frühjahr | Wasserglas | 3 Wochen',
+          'MASSNAHME: Erde ausgetrocknet | Den Ballen gründlich tauchen | sofort | einmalig'].join('\\n');
+        document.getElementById('btn-dok-paste').click();
+        return 1;
+      })()`);
+      await tick();
+      const nachher = hq(bild);
+      pruef('Der Doktor ändert weder Steckbrief noch Merkmale, Giftangabe oder Vermehrungswege',
+        nachher === vorher, nachher);
+      pruef('Der Doktor zeigt keinen der vier Steckbrief-Kästen',
+        !d.getElementById('dok-abgleich') && !d.getElementById('dok-art')
+        && !d.getElementById('dok-gift') && !d.getElementById('dok-merkmale'));
+      pruef('Der Doktor setzt den Zustand weiter',
+        hq(`zustandVon(p).code`) === 'trocken', String(hq(`zustandVon(p).code`)));
+      pruef('Die Maßnahmen-Auswahl erscheint weiter',
+        !!d.querySelector('#dok-massnahmen [data-mnwahl]'));
+    }
 
     /* Aufraeumen */
     w.__T(`(function(){
-      dokPflanze = null; dokVorschlaege = [];
-      const z = document.getElementById('dok-abgleich'); if(z) z.innerHTML = '';
+      dokPflanze = null; dokKiDaten = null; dokSchritt = 1;
+      ['dok-massnahmen','dok-ergebnis','dok-abgleich-hinweis','dok-paste'].forEach(function(i){
+        var z = document.getElementById(i); if(!z) return;
+        if('value' in z && z.tagName === 'TEXTAREA') z.value = ''; else z.innerHTML = ''; });
+      if(S.zustand) delete S.zustand.HQ1;
       S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'HQ'; });
       if(S.edits) delete S.edits.HQ1;
       sichern();
@@ -7747,37 +7738,30 @@ setTimeout(async () => {
         === 'gelb panaschiert, Blatt gewellt',
       String(w.__T(`JSON.stringify(geminiLesen('ART: Fensterblatt\\nMERKMALE: gelb panaschiert, Blatt gewellt'))`)));
 
-    /* ── Der Kasten im Doktor ── */
-    w.__T(`(function(){
-      dokPflanze = 'SO1';
-      dokMerkmaleZeigen({sortenmerkmale:'weiss marmoriert, Blattstiel hell'});
-    })()`);
-    pruef('Die Doktor-Antwort ruft den Merkmalskasten auf',
-      /dokArtZeigen\(d\);\s*\n\s*dokMerkmaleZeigen\(d\);/.test(html));
-    pruef('Der Doktor zeigt die Merkmale',
-      /weiss marmoriert/.test(String(d.getElementById('dok-merkmale').innerHTML)));
+    /* ── Merkmale im Kartei-Abgleich (3.21.0) ── */
+    pruef('Der Doktor ruft keinen Merkmalskasten mehr auf', !/dokMerkmaleZeigen/.test(html));
+    const soAb = `karteiAbweichungen(allePflanzen().find(function(x){return x.id==='SO1';}),
+      {stand:'ok', felder:{sortenmerkmale:'weiss marmoriert, Blattstiel hell'}})`;
+    pruef('Der Abgleich zeigt die Merkmale',
+      w.__T(`${soAb}.zeilen.some(function(z){ return z.key === 'sortenmerkmale'; })`) === true);
     pruef('Er schreibt sie nicht von selbst in die Karte',
       so(`p.sortenmerkmale`) === '', String(so(`p.sortenmerkmale`)));
     pruef('Die Bibliotheks-Merkmale bleiben dabei stehen',
       so(`p.merkmale`) === 'Aus der Bibliothek', String(so(`p.merkmale`)));
-    {
-      /* Fehlt der Knopf, muss die Pruefung melden statt abzustuerzen. */
-      const b = d.querySelector('#dok-merkmale [data-do="merk-nehmen"]');
-      pruef('Der Knopf Merkmale uebernehmen ist da', !!b);
-      if(b){ b.click(); await tick(); }
-    }
-    pruef('Nach dem Antippen stehen die Merkmale in der Karte',
+    w.__T(`${soAb}.zeilen.find(function(z){ return z.key === 'sortenmerkmale'; }).nimm()`);
+    pruef('Nach dem Übernehmen stehen die Merkmale in der Karte',
       so(`p.sortenmerkmale`) === 'weiss marmoriert, Blattstiel hell',
       String(so(`p.sortenmerkmale`)));
     pruef('Die Sorte bleibt dabei unangetastet',
       so(`p.sorte`) === 'Thai Constellation', String(so(`p.sorte`)));
     pruef('Die Bibliotheks-Merkmale bleiben auch danach stehen',
       so(`p.merkmale`) === 'Aus der Bibliothek', String(so(`p.merkmale`)));
+    pruef('Gleiche Merkmale ergeben keine Zeile',
+      w.__T(`${soAb}.zeilen.length`) === 0, String(w.__T(`${soAb}.zeilen.length`)));
 
     /* Aufraeumen */
     w.__T(`(function(){
-      dokPflanze = null; dokMerkmalLage = null;
-      const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
+      dokPflanze = null;
       S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'SO'; });
       if(S.edits) delete S.edits.SO1;
       sichern();
@@ -7841,9 +7825,9 @@ setTimeout(async () => {
     const kp = c => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='${c}';}); return p; })()`);
     const art = c => w.__T(`karteiArt(allePflanzen().find(function(x){return x.id==='${c}';}))`);
 
-    pruef('Vollstaendige Pflanze mit Foto bekommt den Abgleich', art('KA1') === 'teil', art('KA1'));
-    pruef('Pflanze mit Luecken bekommt den vollen Auftrag',     art('KA2') === 'voll', art('KA2'));
-    pruef('Pflanze ohne Foto bekommt den Textauftrag',          art('KA3') === 'text', art('KA3'));
+    pruef('Vollstaendige Pflanze mit Foto bekommt den Fotoauftrag', art('KA1') === 'foto', art('KA1'));
+    pruef('Pflanze mit Luecken und Foto ebenso',                 art('KA2') === 'foto', art('KA2'));
+    pruef('Pflanze ohne Foto bekommt den Textauftrag',           art('KA3') === 'text', art('KA3'));
     pruef('Luecken werden erkannt',
       w.__T(`karteiLuecken(allePflanzen().find(function(x){return x.id==='KA2';})).length`) > 0);
     pruef('Bei voller Karte fehlt nichts',
@@ -7851,20 +7835,47 @@ setTimeout(async () => {
 
     const auftrag = c => w.__T(`karteiAuftrag(allePflanzen().find(function(x){return x.id==='${c}';})).text`);
     const aText = auftrag('KA3'), aVoll = auftrag('KA2'), aTeil = auftrag('KA1');
-    pruef('Ohne Foto keine ZUSTAND-Zeile',  !/^ZUSTAND:/m.test(aText));
-    pruef('Ohne Foto keine BEFUND-Zeile',   !/^BEFUND:/m.test(aText));
+    /* Seit 3.21.0 fragt die Kartei nur Artdaten (Chris, 16.09.2026). */
+    {
+      const ARTDATEN = ['ART','BOTANISCH','SICHERHEIT','FAMILIE','TYP','SPEICHER','LICHT',
+        'GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','VERMEHRUNG'];
+      const DOKTOR = ['ZUSTAND','BEFUND','TOPF','TOPFART','SUBSTRAT','ABLAUF','MASSNAHME',
+        'FEHLT','VERWECHSLUNG','GIESSEN'];
+      const hat = (t, n) => new RegExp('^' + n + ':', 'm').test(t);
+      [['ohne Foto', aText], ['mit Lücken', aVoll], ['ohne Lücken', aTeil]].forEach(([n, t])=>{
+        pruef('Der Auftrag ' + n + ' fragt alle Artdaten',
+          ARTDATEN.every(x=>hat(t, x)), ARTDATEN.filter(x=>!hat(t, x)).join(','));
+        pruef('Der Auftrag ' + n + ' fragt nichts, was dem Doktor gehört',
+          DOKTOR.every(x=>!hat(t, x)), DOKTOR.filter(x=>hat(t, x)).join(','));
+        pruef('Der Auftrag ' + n + ' kündigt keine MASSNAHME-Zeilen an',
+          t.indexOf('MASSNAHME') === -1);
+      });
+    }
     pruef('Ohne Foto keine MERKMALE-Zeile', !/^MERKMALE:/m.test(aText));
-    pruef('Ohne Foto keine TOPF-Zeile',     !/^TOPF:/m.test(aText));
+    pruef('Mit Foto eine MERKMALE-Zeile', /^MERKMALE:/m.test(aTeil));
     pruef('Ohne Foto steht der Hinweis auf das fehlende Bild drin',
       aText.indexOf('Es liegt kein Foto vor') > -1);
-    pruef('Der volle Auftrag fragt nach Zustand und Befund',
-      /^ZUSTAND:/m.test(aVoll) && /^BEFUND:/m.test(aVoll));
-    pruef('Der volle Auftrag nennt die fehlenden Angaben',
+    pruef('Der Auftrag mit Lücken nennt die fehlenden Angaben',
       aVoll.indexOf('Diese Angaben fehlen mir') > -1);
-    pruef('Der Abgleich fragt nicht noch einmal nach dem botanischen Namen',
-      !/^BOTANISCH:/m.test(aTeil));
-    pruef('Der Abgleich nennt die eingetragene Art',
+    pruef('Auch eine Pflanze ohne Lücken wird voll abgefragt',
+      /^BOTANISCH:/m.test(aTeil) && /^FROST:/m.test(aTeil) && /^GIESSKLASSE:/m.test(aTeil));
+    pruef('Der Auftrag nennt die eingetragene Art',
       aTeil.indexOf('Epipremnum aureum') > -1);
+    pruef('Die Werte der Karte stehen nicht im Auftrag',
+      aTeil.indexOf('laut meiner Karte:') === aTeil.indexOf('Sorte laut meiner Karte:')
+      && aTeil.indexOf('Das ist zu dieser Pflanze eingetragen') === -1);
+    pruef('Der Leser kennt FAMILIE',
+      w.__T(`geminiLesen('ART: Efeutute\\nFAMILIE: Aronstabgewächse').familie`) === 'Aronstabgewächse');
+    pruef('Der Leser kennt DUENGER',
+      w.__T(`geminiLesen('ART: Efeutute\\nDUENGER: sparsam').duenger`) === 'sparsam');
+    pruef('DUENGER nimmt nur die drei Wörter',
+      w.__T(`duengerLesen('Normal')`) === 'normal' && w.__T(`duengerLesen('reichlich')`) === null
+      && w.__T(`duengerLesen('Starkzehrer')`) === null);
+    pruef('giessartLesen liest wie bisher das Anlegen',
+      w.__T(`['Hydrokultur','Wasserglas','Anstau','tauchen','von unten','Schluck','durchdringend','irgendwie']
+        .map(giessartLesen).join(',')`) === 'hydro,wasser,anstau,tauchen,unten,schluck,durch,',
+      String(w.__T(`['Hydrokultur','Wasserglas','Anstau','tauchen','von unten','Schluck','durchdringend','irgendwie']
+        .map(giessartLesen).join(',')`)));
     {
       /* Die Zahl im Auftrag zaehlt sich selbst nach — sie darf nicht
          von der Zahl der Feldzeilen abweichen. */
@@ -8034,9 +8045,11 @@ setTimeout(async () => {
     pruef('Die Antwort ist gelesen worden',
       stand(`k.fertig['KA1'].felder.bot`) === 'Epipremnum aureum',
       String(stand(`k.fertig['KA1'].felder.bot`)));
-    pruef('Auch der Zustand steht im Ergebnis',
-      stand(`k.fertig['KA1'].felder.zustand`) === 'gesund',
-      String(stand(`k.fertig['KA1'].felder.zustand`)));
+    pruef('Ein Zustand in der Antwort erscheint nicht im Abgleich',
+      stand(`karteiAbweichungen(allePflanzen().find(function(x){return x.id==='KA1';}), k.fertig['KA1'])
+        .zeilen.every(function(z){ return z.key !== 'zustand'; })`) === true);
+    pruef('Jedes Ergebnis trägt seinen Zeitpunkt',
+      stand(`['KA1','KA2','KA3'].every(function(i){ return k.fertig[i].zeit > 0; })`) === true);
     pruef('Der Auftrag steht beim Ergebnis',
       stand(`k.fertig['KA3'].art`) === 'text', String(stand(`k.fertig['KA3'].art`)));
     pruef('Keine Pflanze ist verändert worden',
@@ -8053,11 +8066,15 @@ setTimeout(async () => {
     pruef('Die Ergebnisliste zeigt drei Zeilen',
       d.querySelectorAll('[data-karteierg]').length === 3,
       String(d.querySelectorAll('[data-karteierg]').length));
-    pruef('Der Abschnitt sagt, dass nichts geändert wurde',
-      /nichts geändert worden/.test(String((d.getElementById('kartei-innen')||{}).textContent)));
+    pruef('Der Abschnitt sagt, dass sich nur Übernommenes ändert',
+      /ändert sich nur, was du im Fenster selbst übernimmst/.test(String((d.getElementById('kartei-innen')||{}).textContent)));
+    pruef('Der Satz von der nächsten Fassung ist weg',
+      !/nächsten Fassung/.test(String((d.getElementById('kartei-innen')||{}).textContent)));
 
     /* Noch einmal prüfen */
     {
+      const zeitKA1 = stand(`k.fertig['KA1'].zeit`);
+      const zeitKA2 = stand(`k.fertig['KA2'].zeit`);
       const haken = d.querySelector('[data-karteierg="KA2"]');
       if(haken){ haken.checked = true; }
       w.__ki.zaehler = 0;
@@ -8067,9 +8084,28 @@ setTimeout(async () => {
       await warte(()=>stand('k.aktiv') === false, 6000);
       pruef('Noch einmal prüfen startet genau eine Anfrage',
         w.__ki.zaehler === 1, String(w.__ki.zaehler));
-      pruef('Und genau die angehakte Pflanze',
-        stand('Object.keys(k.fertig).join(",")') === 'KA2',
+      pruef('Die Ergebnisse der übrigen Pflanzen bleiben stehen',
+        stand('Object.keys(k.fertig).sort().join(",")') === 'KA1,KA2,KA3',
         String(stand('Object.keys(k.fertig).join(",")')));
+      pruef('Das Ergebnis der angehakten Pflanze ist ersetzt',
+        stand(`k.fertig['KA2'].zeit`) > zeitKA2 && stand(`k.fertig['KA1'].zeit`) === zeitKA1);
+      pruef('Die Leiste zählt nur den Nachlauf',
+        /1 von 1/.test(String((d.getElementById('kartei-streifen')||{}).textContent)),
+        String((d.getElementById('kartei-streifen')||{}).textContent));
+
+      /* Wer einen Nachlauf verwirft, behält das Ergebnis davor */
+      w.__ki.verzug = 400;
+      w.__T(`karteiLos(['KA3'], true)`);
+      await tick();
+      pruef('Der Nachlauf läuft', stand('k.aktiv') === true);
+      w.__T(`karteiVerwerfen()`);
+      pruef('Verwerfen des Nachlaufs lässt das Ergebnis davor stehen',
+        stand('k.aktiv') === false && stand('Object.keys(k.fertig).sort().join(",")') === 'KA1,KA2',
+        String(stand('Object.keys(k.fertig).join(",")')));
+      await new Promise(r => setTimeout(r, 500));
+      pruef('Die verworfene Antwort trägt nichts nach',
+        stand('Object.keys(k.fertig).sort().join(",")') === 'KA1,KA2');
+      w.__ki.verzug = 40;
     }
 
     /* Fehlschlag reisst den Lauf nicht mit */
@@ -8258,6 +8294,225 @@ setTimeout(async () => {
       pruef('Ohne Schlüssel startet kein Lauf', w.__ki.zaehler === 0, String(w.__ki.zaehler));
       pruef('Stattdessen steht da, wo der Schlüssel herkommt',
         /Schlüssel/.test(String((d.getElementById('kartei-meld')||{}).textContent)));
+    }
+
+    /* ══ Das Abgleich-Fenster (3.21.0) ══ */
+    {
+      const karteIst = () => w.__T(`JSON.stringify(allePflanzen().filter(function(p){
+        return String(p.id).slice(0,2)==='KB'; })) + JSON.stringify(S.zustand || {})`);
+      w.__T(`(function(){
+        delete S.kartei; KARTEI_CTRL = {};
+        S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KB'; });
+        S.eigene.push({id:'KB1', eigen:true, name:'Abgleich eins', art:'Efeutute',
+          botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'B', sonne:'indirekt',
+          wichtig:'keine', frostMin:10, duenger:'normal', merkmale:'Bib', notiz:'',
+          quellen:{art:'bib', botanisch:'bib', typ:'bib', klasse:'hand', sonne:'bib', wichtig:'bib', frostMin:'bib'}});
+        S.eigene.push({id:'KB2', eigen:true, name:'Abgleich zwei', art:'Bogenhanf',
+          botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'C', sonne:'hell',
+          wichtig:'keine', frostMin:10});
+        S.eigene.push({id:'KB3', eigen:true, name:'Abgleich drei', art:'Grünlilie',
+          botanisch:'Chlorophytum comosum', typ:'Rosettenpflanze', klasse:'B', sonne:'hell',
+          wichtig:'keine', frostMin:5});
+        var jetzt = Date.now();
+        S.kartei = {start:jetzt - 60000, ende:jetzt, gesamt:3, offen:[], alle:['KB1','KB2','KB3'],
+          versuch:{}, aktiv:false, fertig:{
+            KB3:{stand:'fehler', art:'text', fehler:'Attrappe', zeit:jetzt},
+            KB2:{stand:'ok', art:'text', zeit:jetzt, felder:{art:'Bogenhanf', bot:'Dracaena trifasciata',
+              typ:'Sukkulente', frost:'10'}},
+            KB1:{stand:'ok', art:'teil', zeit:jetzt - 30000, felder:{
+              art:'Efeutute', bot:'Epipremnum aureum', sicher:'hoch', klasse:'kakteenmodus', licht:'hell',
+              familie:'Testgewächse', duenger:'sparsam', sortenmerkmale:'gelb marmoriert',
+              zustand:'Wurzelfäule', befund:'Faulig.', topf:'zu klein | Kunststoff | Ablauf vorhanden | umtopfen',
+              schritte:'Erde nass | Austopfen | sofort | einmalig',
+              vermehrung:'Kopfsteckling | 90 | Frühjahr | Wasserglas | 3 Wochen',
+              speicher:'kein Speicher', giessart:'Wasserkultur'}}
+          }};
+        sichern(); karteiAbschnitt(); return 1;
+      })()`);
+      const zeile = id => d.querySelector('#kartei-innen [data-karteiauf="' + id + '"]');
+      const innen = () => String((d.getElementById('kartei-innen') || {}).textContent);
+      pruef('Die Ergebniszeile zählt die Abweichungen',
+        !!zeile('KB1') && /7 Abweichungen/.test(zeile('KB1').textContent),
+        zeile('KB1') ? zeile('KB1').textContent : 'fehlt');
+      pruef('Ohne Abweichung steht „Keine Abweichung“',
+        !!zeile('KB2') && /Keine Abweichung/.test(zeile('KB2').textContent));
+      pruef('Ein Fehlschlag öffnet kein Fenster, bleibt aber anhakbar',
+        !zeile('KB3') && !!d.querySelector('#kartei-innen [data-karteierg="KB3"]'));
+      {
+        const reihe = [...d.querySelectorAll('#kartei-innen [data-karteierg]')].map(x=>x.dataset.karteierg).join(',');
+        pruef('Offene Pflanzen oben, Fehlschläge unten', reihe === 'KB1,KB2,KB3', reihe);
+      }
+      pruef('Der Abschnitt nennt die Pflanzen mit Abweichungen',
+        /Eine Pflanze mit Abweichungen/.test(innen()), innen().slice(0, 200));
+
+      const vorher = karteIst();
+      if(zeile('KB1')){ zeile('KB1').click(); await tick(); }
+      pruef('Tipp auf den Namen öffnet das Fenster', w.__T(`modalOffen('kartei-abgleich')`) === true);
+      const fz = () => [...d.querySelectorAll('#ka-inhalt [data-kazeile]')].map(x=>x.dataset.kazeile);
+      const ka = () => String((d.getElementById('ka-inhalt') || {}).textContent);
+      pruef('Das Fenster zeigt genau die abweichenden Angaben',
+        fz().slice().sort().join(',') === 'duenger,familie,klasse,sonne,sortenmerkmale,speicher,vermehrung',
+        fz().join(','));
+      pruef('Kein Zustand, Befund, Topf und keine Maßnahme im Fenster',
+        !fz().some(k=>/zustand|befund|topf|schritte/.test(k))
+        && !/Wurzelfäule|Austopfen|umtopfen/.test(ka()));
+      pruef('Der Widerspruch steht oben und ist markiert',
+        fz()[0] === 'klasse'
+        && /von dir gesetzt/.test(String((d.querySelector('#ka-inhalt [data-kazeile="klasse"]') || {}).textContent)));
+      pruef('Wasserkultur steht nur als Hinweis', /Wasserkultur/.test(ka()) && fz().indexOf('giessart') === -1);
+      pruef('Das Fenster nennt das Datum der Antwort', /Antwort vom \d/.test(ka()), ka().slice(0, 80));
+      pruef('Ein leerer alter Wert heißt „leer“',
+        /leer/.test(String((d.querySelector('#ka-inhalt [data-kazeile="speicher"] .ka-leer') || {}).textContent)));
+      pruef('Ein leeres Feld zeigt den Wert der Bibliothek als alten Wert',
+        /Aronstabgewächse/.test(String((d.querySelector('#ka-inhalt [data-kazeile="familie"] .ab-alt') || {}).textContent)),
+        String((d.querySelector('#ka-inhalt [data-kazeile="familie"]') || {}).textContent));
+      pruef('Im Fenster gibt es keinen Knopf für alles auf einmal',
+        !/alles übernehmen/i.test(ka())
+        && d.querySelectorAll('#ka-inhalt [data-do="ka-nimm"]').length === fz().length
+        && d.querySelectorAll('#ka-inhalt button').length === fz().length * 2 + 1);
+
+      w.__T(`modalZu('kartei-abgleich')`);
+      await tick(); await tick();
+      pruef('Zurück schließt das Fenster', w.__T(`modalOffen('kartei-abgleich')`) === false);
+      pruef('Öffnen und Schließen ändert an der Pflanze nichts', karteIst() === vorher);
+      if(zeile('KB1')){ zeile('KB1').click(); await tick(); }
+      pruef('Nach dem Schließen stehen alle Zeilen noch da', fz().length === 7, fz().join(','));
+
+      const kb = c => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='KB1';}); return ${c}; })()`);
+      const tipp = async (was, key) => {
+        const b = d.querySelector('#ka-inhalt [data-do="' + was + '"]' + (key ? '[data-k="' + key + '"]' : ''));
+        pruef('Der Knopf ' + was + ' ' + (key || '') + ' ist da', !!b);
+        if(b){ b.click(); await tick(); }
+      };
+      await tipp('ka-nimm', 'sonne');
+      pruef('Übernehmen schreibt genau dieses Feld',
+        kb('p.sonne') === 'hell' && kb('p.klasse') === 'B' && !kb('p.familie') && kb('p.duenger') === 'normal',
+        kb('JSON.stringify([p.sonne, p.klasse, p.familie, p.duenger])'));
+      pruef('mit Stempel ki', kb(`herkunftVon(p, 'sonne')`) === 'ki');
+      pruef('Die Zeile ist danach weg', fz().indexOf('sonne') === -1 && fz().length === 6, fz().join(','));
+      pruef('Das Fenster meldet die Übernahme',
+        /Licht übernommen/.test(String((d.getElementById('ka-meld') || {}).textContent)));
+
+      await tipp('ka-weg', 'familie');
+      pruef('× entfernt die Zeile', fz().indexOf('familie') === -1);
+      pruef('und ändert die Pflanze nicht', !kb('p.familie'));
+      w.__T(`(function(){ laden(); karteiFensterZeichnen(); return 1; })()`);
+      pruef('Nach dem Neuladen bleiben übernommene und verworfene Zeilen weg',
+        fz().indexOf('familie') === -1 && fz().indexOf('sonne') === -1 && fz().length === 5, fz().join(','));
+
+      await tipp('ka-nimm', 'klasse');
+      pruef('Übernehmen greift auch bei einer eigenen Angabe',
+        kb('p.klasse') === 'C' && kb(`herkunftVon(p, 'klasse')`) === 'ki');
+      await tipp('ka-nimm', 'sortenmerkmale');
+      pruef('Sortenmerkmale landen in sortenmerkmale',
+        kb('p.sortenmerkmale') === 'gelb marmoriert' && kb('p.merkmale') === 'Bib');
+      await tipp('ka-nimm', 'speicher');
+      pruef('Der Wasserspeicher wird übernommen', kb('p.speicher') === 'kein speicher', String(kb('p.speicher')));
+      await tipp('ka-nimm', 'vermehrung');
+      pruef('Die Vermehrungswege werden übernommen',
+        kb('(vermehrungKiVon(p) || {wege:[]}).wege.length') === 1);
+      pruef('Der Zustand bleibt, wie er war', kb('zustandVon(p).code') !== 'wurzelfaeule');
+
+      await tipp('ka-fertig');
+      await tick();
+      pruef('„Fertig“ schließt das Fenster', w.__T(`modalOffen('kartei-abgleich')`) === false);
+      pruef('„Fertig“ verwirft den Rest', kb('p.duenger') === 'normal');
+      pruef('Die durchgesehene Pflanze ist aus der Liste',
+        !zeile('KB1') && !d.querySelector('#kartei-innen [data-karteierg="KB1"]'));
+      pruef('Mit einem Fehlschlag bleibt das Ergebnis stehen', w.__T(`!!S.kartei`) === true);
+
+      w.__T(`(function(){ S.eigene = S.eigene.filter(function(p){ return p.id !== 'KB2'; });
+        sichern(); karteiAbschnitt(); return 1; })()`);
+      pruef('Eine gelöschte Pflanze fällt aus dem Ergebnis',
+        w.__T(`!S.kartei.fertig.KB2`) === true && !d.querySelector('#kartei-innen [data-karteierg="KB2"]'));
+
+      /* Die letzte offene Zeile — und die Rückfrage bei Klasse S */
+      w.__T(`(function(){
+        S.eigene.push({id:'KB4', eigen:true, name:'Abgleich vier', art:'Venusfliegenfalle',
+          botanisch:'Dionaea muscipula', typ:'Karnivore', klasse:'S', sonne:'voll', wichtig:'keine', frostMin:-5});
+        S.kartei = {start:Date.UTC(2026, 0, 15, 12), ende:Date.now(), gesamt:1, offen:[], alle:['KB4'],
+          versuch:{}, aktiv:false, fertig:{KB4:{stand:'ok', art:'text', felder:{klasse:'normal'}}}};
+        sichern(); karteiAbschnitt(); return 1;
+      })()`);
+      if(zeile('KB4')){ zeile('KB4').click(); await tick(); }
+      pruef('Ohne Zeitpunkt zeigt das Fenster das Startdatum',
+        ka().indexOf(new Date(Date.UTC(2026, 0, 15, 12)).toLocaleDateString('de-DE')) > -1, ka().slice(0, 80));
+      const vorherConfirm = w.confirm;
+      w.confirm = () => false;
+      await tipp('ka-nimm', 'klasse');
+      pruef('Abgelehnte Rückfrage bei Klasse S schreibt nichts',
+        w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).klasse`) === 'S');
+      pruef('und die Zeile bleibt stehen', fz().indexOf('klasse') > -1);
+      w.confirm = () => true;
+      await tipp('ka-nimm', 'klasse');
+      await tick();
+      pruef('Nach der letzten Zeile ist das Ergebnis weg', w.__T(`!S.kartei`) === true);
+      pruef('und die Startansicht steht da', !!d.querySelector('#kartei-innen [data-do="kartei-los"]'));
+      pruef('Das Fenster ist zu', w.__T(`modalOffen('kartei-abgleich')`) === false);
+      w.confirm = vorherConfirm;
+
+      /* Die Giftfrage: verschärfen ja, entwarnen nie */
+      w.__T(`(function(){
+        S.eigene.push({id:'KB5', eigen:true, name:'Giftprobe unbekannt', art:'Testkraut',
+          botanisch:'Fictus probatus', typ:'Kraut', klasse:'B', sonne:'hell', wichtig:'keine', frostMin:5});
+        S.eigene.push({id:'KB6', eigen:true, name:'Giftprobe Efeutute', art:'Efeutute',
+          botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'keine', frostMin:10});
+        sichern(); return 1;
+      })()`);
+      const gz = (id, katzen) => JSON.parse(w.__T(`(function(){
+        var p = allePflanzen().find(function(x){return x.id==='${id}';});
+        var a = karteiAbweichungen(p, {stand:'ok', felder:{katzen:'${katzen}'}});
+        var z = a.zeilen.find(function(x){return x.key==='gift';});
+        return JSON.stringify({knopf: z ? z.knopf : null, hinweis: a.hinweise.join(' ')});
+      })()`));
+      const katze = id => w.__T(`giftVon(allePflanzen().find(function(x){return x.id==='${id}';})).tiere.katze`);
+      const status = id => w.__T(`giftVon(allePflanzen().find(function(x){return x.id==='${id}';})).status`);
+      pruef('Eine unbekannte Art ist zu Beginn ungeprüft', katze('KB5') === 'unklar', String(katze('KB5')));
+      pruef('„unbedenklich“ bei unbekannter Art ergibt keinen Knopf',
+        gz('KB5', 'unbedenklich, harmlos').knopf === null
+        && /Entwarnung/.test(gz('KB5', 'unbedenklich, harmlos').hinweis));
+      pruef('„giftig“ bei unbekannter Art bietet die Verschärfung an',
+        gz('KB5', 'giftig, enthält Oxalat').knopf === 'Als giftig übernehmen');
+      w.__T(`karteiAbweichungen(allePflanzen().find(function(x){return x.id==='KB5';}),
+        {stand:'ok', felder:{katzen:'giftig, enthält Oxalat'}}).zeilen
+        .find(function(x){return x.key==='gift';}).nimm()`);
+      pruef('Die Übernahme verschärft', katze('KB5') !== 'unklar' && katze('KB5') !== 'keine', String(katze('KB5')));
+      const k6 = katze('KB6');
+      pruef('Die Efeutute ist laut Tabelle giftig', k6 !== 'keine' && k6 !== 'unklar', String(k6));
+      pruef('„unbedenklich“ bei giftiger Art bietet nur „strittig“ an',
+        gz('KB6', 'unbedenklich, harmlos').knopf === 'Als strittig vermerken');
+      w.__T(`karteiAbweichungen(allePflanzen().find(function(x){return x.id==='KB6';}),
+        {stand:'ok', felder:{katzen:'unbedenklich, harmlos'}}).zeilen
+        .find(function(x){return x.key==='gift';}).nimm()`);
+      pruef('Strittig vermerkt, die Warnung bleibt', status('KB6') === 'strittig' && katze('KB6') === k6,
+        status('KB6') + ' ' + katze('KB6'));
+
+      /* Nicht zuordenbare Werte erscheinen nicht; zuordenbare schreiben genau ihr Feld */
+      {
+        const ab = felder => JSON.parse(w.__T(`JSON.stringify(karteiAbweichungen(
+          allePflanzen().find(function(x){return x.id==='KB5';}),
+          {stand:'ok', felder:${JSON.stringify(felder)}}).zeilen.map(function(z){return z.key;}))`));
+        pruef('Unbekannte Wörter ergeben keine Zeile',
+          ab({duenger:'reichlich', speicher:'großer Tank', giessart:'irgendwie'}).length === 0,
+          ab({duenger:'reichlich', speicher:'großer Tank', giessart:'irgendwie'}).join(','));
+        const gaAlt = w.__T(`giessartVon(allePflanzen().find(function(x){return x.id==='KB5';}))`);
+        const gaNeu = gaAlt === 'schluck' ? 'tauchen' : 'schluck';
+        pruef('Eine andere Gießart ergibt eine Zeile', ab({giessart:gaNeu}).join(',') === 'giessart');
+        w.__T(`karteiAbweichungen(allePflanzen().find(function(x){return x.id==='KB5';}),
+          {stand:'ok', felder:{giessart:'${gaNeu}', familie:'Probegewächse', duenger:'sparsam'}}).zeilen
+          .forEach(function(z){ z.nimm(); })`);
+        const kb5 = c => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='KB5';}); return ${c}; })()`);
+        pruef('Gießart, Familie und Düngebedarf werden geschrieben',
+          kb5('p.giessart') === gaNeu && kb5('p.familie') === 'Probegewächse' && kb5('p.duenger') === 'sparsam',
+          kb5('JSON.stringify([p.giessart, p.familie, p.duenger])'));
+      }
+
+      w.__T(`(function(){
+        delete S.kartei; KA_PFLANZE = null;
+        S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KB'; });
+        if(S.edits){ ['KB1','KB2','KB3','KB4','KB5','KB6'].forEach(function(i){ delete S.edits[i]; }); }
+        sichern(); karteiLeiste(); karteiAbschnitt(); return 1;
+      })()`);
     }
 
     /* Der Menüpunkt selbst */

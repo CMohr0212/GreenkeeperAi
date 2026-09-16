@@ -3442,6 +3442,17 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 .kartei-zeile.fehl{border-color:var(--warn-linie,var(--line))}
 .kartei-zeile.fehl .kz-txt i{color:var(--warn-text,var(--matt))}
 html[data-design="klartext"] .kartei-zeile{border-width:2px}
+.kartei-zeile .kz-auf{flex:1;background:none;border:0;padding:0;margin:0;text-align:left;
+  font:inherit;color:inherit;cursor:pointer;min-height:var(--tap);justify-content:center}
+.kartei-zeile .kz-auf b::after{content:' ›';font-weight:400;color:var(--matt)}
+#kartei-abgleich .modal-box{max-height:calc(100dvh - 44px);overflow-y:auto}
+.ka-kopf{display:flex;align-items:flex-start;gap:8px}
+.ka-kopf h3{flex:1;min-width:0}
+.ka-zu{flex:0 0 auto;background:none;border:0;font:inherit;font-size:var(--t-xl);line-height:1;
+  color:var(--peat);min-width:44px;min-height:44px;cursor:pointer}
+.ka-bild{display:block;width:72px;height:72px;object-fit:cover;border-radius:var(--r-klein);margin:0 0 8px}
+.modal-box p.ka-hinweis{font-size:var(--t-s);line-height:1.5;color:var(--peat);margin:0 0 8px}
+.ab-alt.ka-leer{text-decoration:none;font-style:italic}
 #install-sec .install-hin{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
 
 /* ── Tutorial ─────────────────────────────────────────────
@@ -6174,6 +6185,8 @@ const ANTWORT_SCHLUESSEL = [
   ['sortenmerkmale',['merkmale','sortenmerkmale','sortenmerkmal','erkennungsmerkmale','panaschierung']],
   ['sicher',  ['sicherheit','sicherheit der bestimmung','confidence','gewissheit']],
   ['fehlt',   ['fehlt','fehlende angaben','was fehlt','unklar','zusatzfoto','weiteres foto','missing']],
+  ['familie', ['familie','pflanzenfamilie','family']],
+  ['duenger', ['duenger','dunger','duengebedarf','dungebedarf','duengung','dungung','fertilizer']],
   ['typ',     ['typ','wuchsform','wuchs','form','habitus','growth form','type']],
   ['speicher',['speicher','wasserspeicher','speicherorgan','storage']],
   ['klasse',  ['giessklasse','gießklasse','wasserbedarf klasse','klasse','bedarf','watering class']],
@@ -9496,13 +9509,6 @@ function papierkorbRender(){
       <div id="dok-abgleich-hinweis"></div>
       <div id="dok-ergebnis"></div>
       <div id="dok-massnahmen"></div>
-      <div id="dok-gift"></div>
-      <div id="dok-art"></div>
-      <div id="dok-merkmale"></div>
-      <details class="dok-mehr" id="dok-abgleich-auf" hidden>
-        <summary><span id="dok-abgleich-zahl">Abgleich mit der Karte</span></summary>
-        <div id="dok-abgleich"></div>
-      </details>
       <details class="dok-rueck" id="dok-rueck">
         <summary>Vier Rückfragen — sie trennen ähnliche Ursachen</summary>
         <div id="dok-fragen"></div>
@@ -10583,7 +10589,7 @@ function papierkorbRender(){
       <button class="wz-i" data-mh-info="kartei" aria-expanded="false" aria-label="Wozu ist das Auffrischen da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-kartei" hidden>
-      <p class="wz-hilfe" hidden>Die KI geht einmal über deine Sammlung und beantwortet zu jeder Pflanze, was in der Karte noch fehlt — und schaut sich am Kachelbild an, wie es ihr geht. Das läuft im Hintergrund weiter, während du die App normal benutzt; eine Leiste am unteren Rand zeigt, wie weit es ist. An deinen Pflanzen ändert sich dabei nichts: gesammelt wird zuerst, übernommen wird später und nur, was du selbst antippst. Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt.</p>
+      <p class="wz-hilfe" hidden>Die KI geht einmal über deine Sammlung und gleicht die Artdaten jeder Karte ab: Steckbrief, Gießklasse, Licht, Frost, Düngebedarf, Giftigkeit und Vermehrung. Zustand, Topf und Befund sind Sache des Doktors. Das läuft weiter, während du die App normal benutzt; eine Leiste am unteren Rand zeigt, wie weit es ist. An deinen Pflanzen ändert sich dabei nichts: danach siehst du jede Pflanze in einem Fenster durch und übernimmst nur, was du selbst antippst. Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt.</p>
       <div id="kartei-innen"></div>
     </div>
   </section>
@@ -11162,6 +11168,16 @@ function papierkorbRender(){
   </div>
 </div>
 
+<div id="kartei-abgleich" class="modal" role="dialog" aria-modal="true" aria-labelledby="ka-titel" hidden>
+  <div class="modal-box ka-box">
+    <div class="ka-kopf">
+      <h3 id="ka-titel">Abgleich</h3>
+      <button type="button" class="ka-zu" data-do="ka-zu" aria-label="Fenster schließen">×</button>
+    </div>
+    <div id="ka-inhalt"></div>
+  </div>
+</div>
+
 <div id="neu-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="neu-titel" hidden>
   <div class="modal-box neu-box">
     <h3 id="neu-titel">Was ist neu</h3>
@@ -11195,8 +11211,30 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.20.0';
+const FASSUNG = '3.21.0';
 const PATCHNOTES = [
+  {
+    nr: '3.21.0', datum: '2026-09-16', titel: 'Kartei: Abgleich Pflanze für Pflanze',
+    kurz: [
+      'Die Kartei gleicht jetzt nur noch die Artdaten deiner Karten ab. Das Ergebnis siehst du Pflanze für Pflanze in einem Fenster durch — jede Angabe mit eigenem Knopf.'
+    ],
+    neu: [
+      'Ein Tipp auf eine Pflanze im Ergebnis öffnet das Abgleich-Fenster. Jede Zeile zeigt den alten und den neuen Wert, dazu „Übernehmen“ und ×.',
+      'Was du selbst eingetragen hast und was die Antwort anders sieht, steht oben und ist mit „von dir gesetzt“ markiert.',
+      'Die Ergebnisliste zählt die offenen Abweichungen. Durchgesehene Pflanzen verschwinden, und ist alles durch, ist das Ergebnis weg.',
+      'Die Kartei fragt neu nach Pflanzenfamilie und Düngebedarf.',
+      '„Fertig — Rest verwerfen“ schließt eine Pflanze ab. Zurück und × schließen das Fenster, ohne etwas zu verwerfen.'
+    ],
+    behoben: [
+      '„Ausgewählte noch einmal prüfen“ löschte die Ergebnisse aller anderen Pflanzen. Jetzt bleiben sie stehen.'
+    ],
+    besser: [
+      'Die Kartei fragt nicht mehr nach Zustand, Befund, Topf und Maßnahmen. Das ist Sache des Doktors.',
+      'Jede gewählte Pflanze wird ganz abgefragt, nicht nur ihre Lücken.',
+      'Der Doktor zeigt keinen Abgleich mit der Karte mehr, keinen Kasten zu Art, Sortenmerkmalen oder Giftigkeit, und er legt keine Vermehrungswege mehr ab. Das macht jetzt die Kartei.',
+      'Die Giftfrage gilt in der Kartei wie bisher im Doktor: verschärft wird, entwarnt nie.'
+    ]
+  },
   {
     nr: '3.20.0', datum: '2026-09-16', titel: 'Auffrischen: aufgeräumt und fortsetzbar',
     kurz: [
@@ -19526,17 +19564,8 @@ $('#btn-paste-los').onclick = ()=>{
   /* Gießart und Besonderheit wandern direkt in die neuen Felder, damit
      sie später ohne Nacharbeit auf dem Urlaubszettel stehen. */
   if(d.giessart){
-    const g = norm(d.giessart);
-    /* Wasser- und Hydrokultur zuerst: sie sind keine Art zu gießen,
-       sondern der Grund, gar nicht zu gießen. Stünden sie weiter
-       unten, schluckte eine der anderen Regeln sie weg. */
-    const treffer3 = /hydrokultur|blähton|blaehton|seramis|\bpon\b|lechuza/.test(g) ? 'hydro'
-      : /wasserkultur|wasserglas|nur wasser|in wasser/.test(g) ? 'wasser'
-      : /anstau|staun|dauerhaft nass/.test(g) ? 'anstau'
-      : /tauch|wasserbad|eintauch/.test(g) ? 'tauchen'
-      : /unten|untersetz/.test(g) ? 'unten'
-      : /schluck|sparsam|wenig|klein/.test(g) ? 'schluck'
-      : /durchdring|durchtrank|reichlich|kraftig/.test(g) ? 'durch' : null;
+    /* Gelesen wird in giessartLesen — dieselbe Regel wie in der Kartei. */
+    const treffer3 = giessartLesen(d.giessart);
     if(treffer3){
       $('#f-giessart').value = treffer3;
       /* Erkennt die KI ein Wasserglas, muss die Kulturform mitziehen —
@@ -19693,25 +19722,10 @@ document.addEventListener('click', e=>{
   if(b.dataset.do !== 'uns-weiter') return;
   const box = b.closest('.dok-unsicher');
   if(b.dataset.q === 'dok'){
-    /* Was noch offen war, wandert jetzt bewusst in die Karte. */
-    let n = 0;
-    if(typeof dokVorschlaege !== 'undefined' && dokVorschlaege.length && dokPflanze){
-      const felder = {};
-      dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
-      aenderungSetzen(dokPflanze, felder, 'ki');
-      n = dokVorschlaege.length;
-      dokVorschlaege = [];
-      if(typeof dokAbgleichZeichnen === 'function') dokAbgleichZeichnen();
-      const ziel = document.getElementById('dok-abgleich');
-      if(ziel) ziel.innerHTML = `<p class="allgut">${n}
-        ${n === 1 ? 'Angabe wurde' : 'Angaben wurden'} in die Karte geschrieben.</p>`;
-      render();
-    }
+    /* Steckbriefdaten schreibt der Doktor seit 3.21.0 nicht mehr —
+       das ist Sache der Kartei. */
     if(typeof dokKiHinweis === 'function') dokKiHinweis(
-      n ? ('Trotz unklarer Bestimmung übernommen — ' + n
-           + (n === 1 ? ' Angabe steht' : ' Angaben stehen')
-           + ' jetzt in der Karte. Bitte kurz kontrollieren.')
-        : 'Trotz unklarer Bestimmung übernommen. Zustand, Befund und Maßnahmen stehen in der Karte — bitte kurz kontrollieren.', 'ok');
+      'Trotz unklarer Bestimmung übernommen. Zustand, Befund und Maßnahmen stehen in der Karte — bitte kurz kontrollieren.', 'ok');
     if(typeof dokWeiterZurEinschaetzung === 'function') dokWeiterZurEinschaetzung();
   } else {
     const meld = document.getElementById('paste-meld');
@@ -24701,15 +24715,11 @@ function dokAbschliessen(){
   dokPflanze = null;
   dokSymptome.clear();
   dokAntworten = {};
-  dokVorschlaege = [];
-  dokArtLage = null;
   ['dok-paste','dok-frage-eigen','dok-such'].forEach(id=>{
     const f = document.getElementById(id); if(f) f.value = '';
   });
-  ['dok-abgleich','dok-abgleich-hinweis','dok-gift','dok-art','dok-merkmale','dok-massnahmen','dok-ergebnis']
+  ['dok-abgleich-hinweis','dok-massnahmen','dok-ergebnis']
     .forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = ''; });
-  const auf = document.getElementById('dok-abgleich-auf');
-  if(auf){ auf.hidden = true; auf.open = false; }
   if(typeof dokKiHinweis === 'function') dokKiHinweis('');
   if(typeof dokAufbau === 'function') dokAufbau();
   if(typeof dokZeigen === 'function') dokZeigen();
@@ -25271,94 +25281,8 @@ document.addEventListener('click', e=>{
       : 'Der Text steht jetzt als Befund in den Notizen.', 'ok');
     render(); dokWeiterZurEinschaetzung(); return;
   }
-  if(btn.dataset.do === 'ab-weg'){
-    dokVorschlaege.splice(parseInt(btn.dataset.i, 10), 1);
-    dokAbgleichZeichnen(); return;
-  }
-  /* Eine einzelne Zeile, ausdrücklich angetippt: sie schreibt auch
-     über eine eigene Angabe — der Stempel bleibt trotzdem `ki`. */
-  if(btn.dataset.do === 'ab-eins'){
-    const i = parseInt(btn.dataset.i, 10);
-    const v = dokVorschlaege[i];
-    if(!dokPflanze || !v) return;
-    if(v.feld === 'klasse' && !klasseSBestaetigt(dokPflanze, v.wert)) return;
-    aenderungSetzen(dokPflanze, {[v.feld]: v.wert}, 'ki', true);
-    dokVorschlaege.splice(i, 1);
-    dokAbgleichZeichnen();
-    dokKiHinweis(v.name + ' übernommen.', 'ok');
-    render(); return;
-  }
-  if(btn.dataset.do === 'gift-nehmen' || btn.dataset.do === 'gift-strittig'){
-    if(dokPflanze && dokGiftLage && dokGiftLage.gift)
-      aenderungSetzen(dokPflanze, {gift: dokGiftLage.gift});
-    dokGiftLage = null;
-    const z = document.getElementById('dok-gift'); if(z) z.innerHTML = '';
-    dokKiHinweis('Giftangabe aktualisiert.', 'ok');
-    render(); return;
-  }
-  if(btn.dataset.do === 'gift-lassen'){
-    dokGiftLage = null;
-    const z = document.getElementById('dok-gift'); if(z) z.innerHTML = '';
-    return;
-  }
-  if(btn.dataset.do === 'art-nehmen'){
-    if(dokPflanze && dokArtLage){
-      const felder = {art: dokArtLage.art};
-      if(dokArtLage.bot) felder.botanisch = dokArtLage.bot;
-      /* Ausdrücklich angetippt — schreibt auch über eine eigene Angabe. */
-      aenderungSetzen(dokPflanze, felder, 'ki', true);
-      /* Die Giftangabe haengt an der Art. Eine eigene oder strittige
-         Angabe bleibt stehen — sie zu ueberschreiben waere eine
-         Entwarnung, die niemand gegeben hat. */
-      const pn = allePflanzen().find(x=>x.id === dokPflanze);
-      const gn = pn ? giftVon(pn) : null;
-      if(pn && gn && gn.status !== 'fest' && gn.status !== 'strittig')
-        aenderungSetzen(dokPflanze, {gift: giftErmitteln(pn)});
-      dokKiHinweis('Art übernommen: ' + dokArtLage.art + '.', 'ok');
-    }
-    dokArtLage = null;
-    const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
-    render(); return;
-  }
-  if(btn.dataset.do === 'merk-nehmen'){
-    if(dokPflanze && dokMerkmalLage){
-      /* Ausdrücklich angetippt. `sortenmerkmale` trägt keinen Stempel —
-         es steht in keinem der sieben Felder aus Fassung 3.17.0. */
-      aenderungSetzen(dokPflanze, {sortenmerkmale: dokMerkmalLage}, 'ki', true);
-      dokKiHinweis('Sortenmerkmale übernommen.', 'ok');
-    }
-    dokMerkmalLage = null;
-    const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
-    render(); return;
-  }
-  if(btn.dataset.do === 'merk-lassen'){
-    dokMerkmalLage = null;
-    const z = document.getElementById('dok-merkmale'); if(z) z.innerHTML = '';
-    return;
-  }
-  if(btn.dataset.do === 'art-lassen'){
-    dokArtLage = null;
-    const z = document.getElementById('dok-art'); if(z) z.innerHTML = '';
-    return;
-  }
-  if(btn.dataset.do === 'ab-alle'){
-    if(!dokPflanze || !dokVorschlaege.length) return;
-    const felder = {};
-    dokVorschlaege.forEach(v=>{ felder[v.feld] = v.wert; });
-    /* Weg von Klasse S heißt: keine Anstau-Texte, kein Karnivoren-
-       Rhythmus mehr. Das darf keine KI-Antwort nebenbei erledigen. */
-    if(!klasseSBestaetigt(dokPflanze, felder.klasse)) delete felder.klasse;
-    /* Ohne `erzwungen`: die Rangfolge lässt eigene Angaben stehen. */
-    const eigenE = dokVorschlaege.filter(v=>v.hand).length;
-    const anzahl = dokVorschlaege.length - eigenE;
-    aenderungSetzen(dokPflanze, felder, 'ki');
-    dokVorschlaege = dokVorschlaege.filter(v=>v.hand);
-    dokAbgleichZeichnen();
-    dokKiHinweis(anzahl + (anzahl === 1 ? ' Angabe' : ' Angaben') + ' in die Karte übernommen.'
-      + (eigenE ? ' ' + eigenE + (eigenE === 1 ? ' Angabe hast' : ' Angaben hast')
-                + ' du selbst gesetzt — die bleiben stehen, bis du sie einzeln übernimmst.' : ''), 'ok');
-    render(); return;
-  }
+  /* Die Kästen „Abgleich“, „andere Art“, „Sortenmerkmale“ und die
+     Giftfrage sind mit 3.21.0 in die Kartei gezogen. */
   if(btn.dataset.do === 'dok-tasks'){
     const d = DIAGNOSEN.find(x=>x.id===btn.dataset.d);
     if(!d || !dokPflanze) return;
@@ -25412,7 +25336,7 @@ document.addEventListener('click', e=>{
     dokSchritt = 2; dokWeg = null; dokKiFertig = false; dokKiDaten = null;
     dokSymptome.clear(); dokAntworten = {};
     const f = document.getElementById('dok-paste'); if(f) f.value = '';
-    ['dok-abgleich','dok-abgleich-hinweis'].forEach(id=>{
+    ['dok-abgleich-hinweis'].forEach(id=>{
       const el = document.getElementById(id); if(el) el.innerHTML = '';
     });
     dokKiHinweis(''); dokAufbau(); dokZeigen(); dokErgebnis();
@@ -25553,11 +25477,9 @@ $('#dok-dienst').onchange = ()=>{
 if(typeof kiModusZeigen === 'function') kiModusZeigen();
 
 /* ── Steckbrief gegen die KI-Antwort halten ────────────────
-   Gezeigt wird ausschließlich, was in der Karte fehlt oder von der
-   Antwort abweicht. Steht alles schon richtig drin, erscheint gar
-   nichts — das hält die Rückmeldung kurz. */
-let dokVorschlaege = [];
-/* Einzelübernahme geht durch dieselbe Rückfrage. */
+   Seit 3.21.0 liest nur noch die Kartei damit. Jede Angabe: wie sie
+   aus der Antwort gelesen, wie sie in der Karte steht, wie sie
+   angezeigt wird. */
 const AB_FELDER = [
   {feld:'botanisch', name:'Botanisch', lies:d=>d.bot,
    ist:p=>p.botanisch || '', zeig:v=>v},
@@ -25695,174 +25617,6 @@ function dokMassnahmenZeigen(d){
   if(kasten){ kasten.dataset.pfl = dokPflanze; kasten.dataset.quelle = 'doktor'; }
 }
 
-/* Die Giftfrage läuft nicht über den normalen Abgleich. Sie kann nicht
-   einfach übernommen werden wie eine Gießklasse: eine Auskunft am Foto
-   darf verschärfen, aber nie entwarnen. Das Ergebnis steht deshalb in
-   einem eigenen Kasten mit eigenem Text. */
-let dokGiftLage = null;
-
-function dokGiftZeigen(d){
-  const ziel = document.getElementById('dok-gift');
-  if(!ziel) return;
-  dokGiftLage = null;
-  const p = dokPflanze ? allePflanzen().find(x => x.id === dokPflanze) : null;
-  if(!p){ ziel.innerHTML = ''; return; }
-  const g = giftVon(p);
-  const neu = giftRaten(d.katzen);
-  const lage = giftAbgleichen(p, neu, 'ki');
-
-  /* Steht die Angabe fest und die Nachfrage bestätigt sie, gibt es
-     nichts zu zeigen. */
-  if(g.status === 'fest' && (!lage || lage.ergebnis === 'bestaetigt')){
-    ziel.innerHTML = ''; return;
-  }
-
-  let ton = 'unklar', kopf = '', text = '', knopf = '';
-
-  if(!lage){
-    /* Keine verwertbare Aussage in der Antwort. */
-    if(g.status === 'fest'){ ziel.innerHTML = ''; return; }
-    kopf = 'Die Giftfrage ist für diese Pflanze noch offen';
-    text = g.grund + ' Die Antwort hat dazu nichts Verwertbares gesagt. '
-         + 'Du kannst die Frage in der Karte unter „Bearbeiten“ selbst beantworten.';
-  } else if(lage.ergebnis === 'verschaerft'){
-    ton = 'warn';
-    kopf = 'Neu: diese Pflanze ist giftig';
-    text = 'Bisher lag dazu nichts Belastbares vor. Die Nachfrage sagt, dass sie giftig ist — '
-         + 'das wird übernommen, weil eine Warnung nie schaden kann. Bitte bei Gelegenheit '
-         + 'an einer zweiten Stelle gegenprüfen.';
-    knopf = 'gift-nehmen';
-  } else if(lage.ergebnis === 'strittig'){
-    ton = 'warn';
-    kopf = 'Zwei Quellen widersprechen sich';
-    text = 'Die Nachfrage nennt diese Pflanze unbedenklich, der hinterlegte Stand sagt etwas '
-         + 'anderes. Eine Einschätzung am Foto darf keine Entwarnung geben — deshalb bleibt '
-         + 'es bei der strengeren Angabe. Wenn du sicher bist, dass sie unbedenklich ist, '
-         + 'trag das in der Karte unter „Bearbeiten“ ein.';
-    knopf = 'gift-strittig';
-  } else if(lage.ergebnis === 'bleibtOffen'){
-    kopf = 'Die Giftfrage bleibt offen';
-    text = 'Die Nachfrage nennt diese Pflanze unbedenklich, aber eine Einschätzung am Foto '
-         + 'ist keine Quelle für eine Entwarnung. Für diese Art liegt weiterhin nichts '
-         + 'Belastbares vor — sie wird bis auf Weiteres wie giftig behandelt. Wenn du es '
-         + 'nachgeschlagen hast, trag es in der Karte unter „Bearbeiten“ ein.';
-  } else {
-    ton = 'ok';
-    kopf = 'Die Giftangabe ist bestätigt';
-    text = 'Die Nachfrage kommt zum selben Ergebnis wie der hinterlegte Stand. Damit gilt die '
-         + 'Angabe ab jetzt als geprüft.';
-    knopf = 'gift-nehmen';
-  }
-
-  dokGiftLage = lage;
-  ziel.innerHTML = `<div class="giftblock ${esc(ton)}">
-    <h4>${esc(kopf)}</h4>
-    <p>${esc(text)}</p>
-    ${knopf ? `<div class="tools"><button class="haupt" data-do="${esc(knopf)}">Übernehmen</button>
-      <button data-do="gift-lassen">So lassen</button></div>` : ''}
-  </div>`;
-}
-
-/* ── Der Doktor sieht eine andere Art ────────────────────────
-   Ein Widerspruch zur hinterlegten Art ist keine Kleinigkeit: an ihr
-   haengen Giftangabe, Pflegedaten und die Bibliothek. Deshalb nur ein
-   Kasten mit Knopf, und nur, wenn der Doktor sich ausdruecklich sicher
-   nennt. Uebernommen wird nichts ohne Antippen. */
-let dokArtLage = null;
-
-function dokArtZeigen(d){
-  const ziel = document.getElementById('dok-art'); if(!ziel) return;
-  dokArtLage = null;
-  ziel.innerHTML = '';
-  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
-  if(!p || !d) return;
-  const neu = String(d.art || '').trim();
-  if(!neu || /^unbekannt$/i.test(neu)) return;
-  if(norm(neu) === norm(p.art || '')) return;
-  if(norm(String(d.sicher || '')) !== 'hoch') return;
-  const bot = String(d.bot || '').trim();
-  const g = giftVon(p) || {};
-  const giftEigen = g.status === 'fest' || g.status === 'strittig';
-  dokArtLage = {art: neu, bot: (bot && !/^unbekannt$/i.test(bot)) ? bot : ''};
-  ziel.innerHTML = `<div class="giftblock warn">
-    <h4>Der Doktor sieht eine andere Art</h4>
-    <p>In der Karte steht „${esc(p.art || 'Unbestimmt')}“, die Antwort nennt
-      „${esc(neu)}“${dokArtLage.bot ? ' (' + esc(dokArtLage.bot) + ')' : ''} und gibt sich dabei als sicher an.
-      ${giftEigen
-        ? 'Deine eigene Giftangabe bleibt beim Übernehmen stehen.'
-        : 'Beim Übernehmen wird die Giftangabe für die neue Art neu ermittelt.'}
-      Solange du nichts antippst, ändert sich nichts.</p>
-    <div class="tools"><button class="haupt" data-do="art-nehmen">Art übernehmen</button>
-      <button data-do="art-lassen">So lassen</button></div>
-  </div>`;
-}
-
-/* ── Was an der Sorte zu sehen ist ───────────────────────────
-   Die Antwort nennt Merkmale, keinen Sortennamen. Der Kasten legt
-   nichts ab, solange niemand ihn antippt. */
-let dokMerkmalLage = null;
-
-function dokMerkmaleZeigen(d){
-  const ziel = document.getElementById('dok-merkmale'); if(!ziel) return;
-  dokMerkmalLage = null;
-  ziel.innerHTML = '';
-  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
-  if(!p || !d) return;
-  const neu = String(d.sortenmerkmale || '').trim();
-  if(!neu || /^keine?$|^unbekannt$/i.test(neu)) return;
-  if(norm(neu) === norm(p.sortenmerkmale || '')) return;
-  dokMerkmalLage = neu;
-  ziel.innerHTML = `<div class="giftblock">
-    <h4>Sortenmerkmale am Foto</h4>
-    <p>${esc(neu)} — das ist kein Sortenname. Wie die Sorte heißt, trägst du selbst
-      in der Karte unter „Bearbeiten“ ein. Solange du nichts antippst, ändert sich nichts.</p>
-    <div class="tools"><button class="haupt" data-do="merk-nehmen">Merkmale übernehmen</button>
-      <button data-do="merk-lassen">So lassen</button></div>
-  </div>`;
-}
-
-function dokAbgleichZeigen(d){
-  const ziel = $('#dok-abgleich'); if(!ziel) return;
-  dokVorschlaege = [];
-  const p = dokPflanze ? allePflanzen().find(x=>x.id === dokPflanze) : null;
-  if(!p){ ziel.innerHTML = ''; return; }
-  AB_FELDER.forEach(f=>{
-    const neu = f.lies(d);
-    if(neu === null || neu === undefined || neu === '') return;
-    const alt = f.ist(p);
-    if(String(alt) === String(neu)) return;
-    dokVorschlaege.push({feld:f.feld, name:f.name, wert:neu,
-      hand: herkunftVon(p, f.feld) === 'hand',
-      altText: alt === '' ? '' : f.zeig(alt), neuText: f.zeig(neu)});
-  });
-  dokAbgleichZeichnen();
-}
-function dokAbgleichZeichnen(){
-  const ziel = $('#dok-abgleich'); if(!ziel) return;
-  const auf = document.getElementById('dok-abgleich-auf');
-  const zahl = document.getElementById('dok-abgleich-zahl');
-  if(auf) auf.hidden = !dokVorschlaege.length;
-  if(zahl) zahl.textContent = dokVorschlaege.length === 1
-    ? 'Eine Angabe steht noch anders in der Karte'
-    : dokVorschlaege.length + ' Angaben stehen noch anders in der Karte';
-  if(!dokVorschlaege.length){ ziel.innerHTML = ''; return; }
-  /* Eigene Angaben stehen weiter in der Liste — wer sich einmal
-     vertippt hat, soll den Widerspruch sehen. Nur der Sammelknopf
-     lässt sie aus, damit ein Tipp nicht mehrere davon wegräumt. */
-  const eigenE = dokVorschlaege.filter(v=>v.hand).length;
-  ziel.innerHTML = `<div class="abgleich">
-    <h4>Das steht noch nicht so in der Karte</h4>
-    ${dokVorschlaege.map((v,i)=>`<div class="ab-zeile${v.hand?' ab-eigen':''}">
-      <span class="ab-feld">${esc(v.name)}${v.hand?'<i class="ab-herkunft">von dir gesetzt</i>':''}</span>
-      <span class="ab-wert">${v.altText?`<span class="ab-alt">${esc(v.altText)}</span> → `:''}${esc(v.neuText)}</span>
-      <button class="ab-nimm" data-do="ab-eins" data-i="${i}" aria-label="Diese Angabe übernehmen">Übernehmen</button>
-      <button class="ab-weg" data-do="ab-weg" data-i="${i}" aria-label="Diese Zeile verwerfen">×</button>
-    </div>`).join('')}
-    <div class="tools"><button class="haupt" data-do="ab-alle">Alles übernehmen</button></div>
-    ${eigenE?`<p class="ab-fuss">${eigenE === 1 ? 'Eine Angabe hast du selbst gesetzt. Sie bleibt' : eigenE + ' Angaben hast du selbst gesetzt. Sie bleiben'} beim Sammelknopf stehen — einzeln übernehmen geht.</p>`:''}
-  </div>`;
-}
-
 /* Fotos aus dem Doktor zeigen meist Schäden. Sie landen in der
    Galerie, werden aber nicht von selbst zum Profilbild. */
 /* Zwei Felder, ein Weg: das eine geht in die Galerie des Telefons,
@@ -25964,15 +25718,8 @@ $('#btn-dok-paste').onclick = ()=>{
     /* Die Maßnahmen wandern nicht mehr von selbst auf die Liste,
        sondern stehen unten mit einem Haken zur Auswahl. */
     dokMassnahmenZeigen(d);
-    if(d.vermehrung){
-      const n = vermehrungUebernehmen(dokPflanze, d.vermehrung,
-        (KI_DIENSTE[$('#dok-dienst').value] || {}).name);
-      if(n) teile.push(n + (n === 1 ? ' Vermehrungsweg' : ' Vermehrungswege') + ' gemerkt');
-    }
-    dokGiftZeigen(d);
-    dokArtZeigen(d);
-    dokMerkmaleZeigen(d);
-    dokAbgleichZeigen(d);
+    /* Vermehrung, Art, Merkmale, Giftfrage und Steckbrief gleicht seit
+       3.21.0 die Kartei ab. */
     render();
   } else {
     teile.push('Keine Pflanze gewählt — die Antwort steht nur hier');
@@ -27916,12 +27663,15 @@ const _renderVorherRg = render;
 render = function(){ _renderVorherRg(); rgKnopf(); };
 
 /* ══════════════════════════════════════════════════════════════
-   PFLANZENKARTEI AUFFRISCHEN  (Etappe E1)
+   PFLANZENKARTEI AUFFRISCHEN  (Etappe E1, E2)
    Ein Lauf über viele Pflanzen auf einmal. Drei Anfragen
    gleichzeitig, die Schlange liegt in S und übersteht das
    Schließen der App. Gesammelt wird nur — kein Wert an einer
-   Pflanze wird hier geschrieben. Das Durchsehen und Übernehmen
-   ist Etappe E2 und hat einen eigenen Knopf je Angabe.
+   Pflanze wird im Lauf geschrieben. Durchgesehen wird danach im
+   Abgleich-Fenster, jede Angabe mit eigenem Knopf (E2).
+   Seit 3.21.0 fragt die Kartei nur Artdaten ab, die in der
+   Pflanzenkarte stehen. Zustand, Befund, Topf und Maßnahmen
+   gehören dem Doktor (Chris, 16.09.2026).
    ══════════════════════════════════════════════════════════════ */
 
 const KARTEI_PARALLEL = 3;
@@ -27942,29 +27692,38 @@ const KARTEI_PFLICHT_NAME = {
   sonne:'Lichtbedarf', frostMin:'Frostgrenze', wichtig:'wichtigster Pflegehinweis'
 };
 
-/* Drei Aufträge statt einem. Eine vollständige Pflanze noch einmal
-   von vorn bestimmen zu lassen kostet Zeit und liefert nichts, was
-   schon dasteht. */
-const KARTEI_FELD_VOLL = ['ART','BOTANISCH','MERKMALE','SPEICHER','TYP','SICHERHEIT','FEHLT',
-  'VERWECHSLUNG','ZUSTAND','BEFUND','LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART',
-  'ABLAUF','FROST','WICHTIG','KATZEN','TOPF','VERMEHRUNG','MASSNAHME'];
-const KARTEI_FELD_TEIL = ['MERKMALE','FEHLT','ZUSTAND','BEFUND','TOPF','MASSNAHME'];
-const KARTEI_FELD_TEXT = ['ART','BOTANISCH','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
-  'LICHT','GIESSKLASSE','GIESSART','FROST','WICHTIG','KATZEN','VERMEHRUNG'];
+/* Zwei Aufträge: mit Foto und ohne. Jede gewählte Pflanze bekommt den
+   vollen Abgleich der Artdaten, nicht nur ihre Lücken — die Kartei soll
+   auch prüfen, was schon dasteht. */
+const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SICHERHEIT','FAMILIE','TYP','SPEICHER',
+  'LICHT','GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','KATZEN','VERMEHRUNG'];
+const KARTEI_FELD_TEXT = KARTEI_FELD_FOTO.filter(n=>n !== 'MERKMALE');
+
+/* Zwei Felder, die nur die Kartei fragt. Das Anlegen lässt sie ohne
+   Bibliothekstreffer leer. */
+FELD_ZUSATZ.FAMILIE = {
+  text:'FAMILIE: Pflanzenfamilie auf Deutsch, etwa Aronstabgew\u00e4chse. Kennst du sie nicht sicher, schreib genau: unbekannt',
+  bsp:'FAMILIE: Aronstabgew\u00e4chse'
+};
+FELD_ZUSATZ.DUENGER = {
+  text:'DUENGER: Wie viel D\u00fcnger diese Art braucht. Nur genau eines dieser W\u00f6rter: nie, sparsam, normal',
+  bsp:'DUENGER: normal'
+};
 
 const KARTEI_KOPF =
-  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung, '
-  + 'ich will meine Angaben dazu vervollständigen und überprüfen.\n'
-  + 'Das ist keine Bestimmungsaufgabe. Widersprich der unten genannten Art nur, wenn das Foto '
-  + 'eindeutig eine andere zeigt, und setze dann SICHERHEIT auf hoch.\n'
-  + 'Beschreibe, was auf dem Foto wirklich zu sehen ist. Allgemeine Pflegehinweise, die für '
-  + 'jede Zimmerpflanze gelten, helfen mir nicht.';
+  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung. '
+  + 'Ich gleiche die Artdaten in meiner Pflanzenkarte ab — was für diese Art gilt, nicht für genau dieses Exemplar.\n'
+  + 'Das ist keine Bestimmung und keine Diagnose. Widersprich der unten genannten Art nur, wenn das Foto '
+  + 'eindeutig eine andere zeigt, und setze dann SICHERHEIT auf hoch. Zustand, Topf und Pflegefehler '
+  + 'dieses Exemplars gehören nicht in die Antwort.\n'
+  + 'Allgemeine Pflegehinweise, die für jede Zimmerpflanze gelten, helfen mir nicht.';
 
 const KARTEI_KOPF_OHNE =
-  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung, '
-  + 'ich will meine Angaben dazu vervollständigen.\n'
-  + 'Es liegt kein Foto vor. Beantworte ausschließlich, was sich aus Art und botanischem Namen '
-  + 'ergibt. Behaupte nichts über Zustand, Topf oder Aussehen genau dieses Exemplars.';
+  'Du bist ein erfahrener Gärtner. Diese Zimmerpflanze steht bereits in meiner Sammlung. '
+  + 'Ich gleiche die Artdaten in meiner Pflanzenkarte ab — was für diese Art gilt.\n'
+  + 'Das ist keine Bestimmung und keine Diagnose. Es liegt kein Foto vor. Beantworte alles aus Art '
+  + 'und botanischem Namen. SICHERHEIT sagt, wie eindeutig der Name die Art festlegt.\n'
+  + 'Allgemeine Pflegehinweise, die für jede Zimmerpflanze gelten, helfen mir nicht.';
 
 const KARTEI_SONICHT = 'Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, '
   + 'kein - ART:. Keine Zeile ohne Schlüsselwort. Kein "Ich hoffe, das hilft!". '
@@ -27973,12 +27732,10 @@ const KARTEI_SONICHT = 'Kein Text vor oder nach dem Codeblock. Kein **ART:**, ke
 function karteiPruefliste(mitFoto){
   return '1. Steht die gesamte Antwort in einem Codeblock und außerhalb nichts?\n'
     + '2. Kommen alle Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste? '
-    + 'Nur MASSNAHME und VERMEHRUNG dürfen mehrfach vorkommen.\n'
+    + 'Nur VERMEHRUNG darf mehrfach vorkommen.\n'
     + '3. Enthalten die Zeilen mit fester Wortliste nur eines der erlaubten Wörter?\n'
-    + '4. Steht in BOTANISCH und MERKMALE kein Sortenname?\n'
-    + (mitFoto
-       ? '5. Behauptest du irgendwo etwas, das auf dem Foto gar nicht zu sehen ist?'
-       : '5. Steht irgendwo eine Aussage über den Zustand oder den Topf dieses Exemplars? Dann streich sie.');
+    + '4. Steht in BOTANISCH' + (mitFoto ? ' und MERKMALE' : '') + ' kein Sortenname?\n'
+    + '5. Steht irgendwo eine Aussage über Zustand, Topf oder Pflegefehler dieses Exemplars? Dann streich sie.';
 }
 
 /* ── Was fehlt, und welcher Auftrag daraus folgt ───────────── */
@@ -27994,33 +27751,29 @@ function karteiLuecken(p){
   });
 }
 function karteiArt(p){
-  if(!karteiFoto(p)) return 'text';
-  return karteiLuecken(p).length ? 'voll' : 'teil';
+  return karteiFoto(p) ? 'foto' : 'text';
 }
 
+/* Mitgegeben werden nur Name und Sorte. Die Werte aus der Karte stehen
+   bewusst nicht drin — die Antwort soll sie prüfen, nicht abschreiben. */
 function karteiKontext(p){
   const z = ['Es handelt sich um: ' + (p.art || nice(p))
     + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.'];
   if(p.sorte) z.push('Sorte laut meiner Karte: ' + p.sorte + '.');
-  if(typeof lageVon === 'function' && lageVon(p)) z.push('Steht: ' + lageVon(p) + '.');
-  if(typeof SONNE !== 'undefined' && SONNE[p.sonne])
-    z.push('Lichtbedarf laut meiner Karte: ' + SONNE[p.sonne].text + '.');
-  const ist = (typeof istWerteZeilen === 'function') ? istWerteZeilen(p) : [];
-  if(ist.length){
-    z.push('Das ist zu dieser Pflanze eingetragen:');
-    ist.forEach(s=>z.push('- ' + s));
-  }
   const fehlt = karteiLuecken(p).map(f=>KARTEI_PFLICHT_NAME[f] || f);
-  if(fehlt.length) z.push('Diese Angaben fehlen mir: ' + fehlt.join(', ') + '.');
+  if(fehlt.length) z.push('Diese Angaben fehlen mir noch: ' + fehlt.join(', ') + '.');
   return z;
 }
 
 function karteiAuftrag(p){
   const art = karteiArt(p);
-  const felder = art === 'voll' ? KARTEI_FELD_VOLL
-               : art === 'teil' ? KARTEI_FELD_TEIL : KARTEI_FELD_TEXT;
-  let format = auftragMitTieren(felder, KARTEI_SONICHT, karteiPruefliste(art !== 'text'));
-  if(art !== 'text' && typeof mitIstWerten === 'function') format = mitIstWerten(format, p);
+  const felder = art === 'foto' ? KARTEI_FELD_FOTO : KARTEI_FELD_TEXT;
+  let format = auftragMitTieren(felder, KARTEI_SONICHT, karteiPruefliste(art === 'foto'));
+  /* Die Regelzeile im Format kündigt MASSNAHME-Zeilen an. Die fragt
+     die Kartei nicht. */
+  format = format.replace(' und ein bis drei MASSNAHME-Zeilen', '');
+  if(art === 'text' && typeof formatZeileErgaenzen === 'function')
+    format = formatZeileErgaenzen(format, 'SPEICHER', 'Ohne Foto: beurteile es nach der Art.');
   return {art:art,
           text:[art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, '']
                  .concat(karteiKontext(p), ['', format]).join('\n')};
@@ -28093,7 +27846,10 @@ function karteiNachbauen(k){
 
 /* Wie weit ist der Lauf? Leiste und Abschnitt zeigen dieselben Zahlen. */
 function karteiFortschritt(k){
-  const fertig = Object.keys(k.fertig || {}).length;
+  /* Nach einem Nachlauf stehen auch die älteren Ergebnisse in `fertig`.
+     Gezählt wird nur, was zu diesem Lauf gehört. */
+  const ids = Object.keys(k.fertig || {});
+  const fertig = Array.isArray(k.alle) ? ids.filter(i=>k.alle.indexOf(i) > -1).length : ids.length;
   const teil = k.gesamt ? Math.min(100, Math.round(fertig / k.gesamt * 100)) : 0;
   const laeuft = !!k.aktiv && (k.offen.length > 0 || karteiLaufend() > 0);
   const bei = Math.min(k.gesamt, fertig + 1);
@@ -28104,13 +27860,27 @@ function karteiFortschritt(k){
 }
 function karteiLaufend(){ return Object.keys(KARTEI_CTRL).length; }
 
-function karteiStarten(ids){
+/* `behalten`: „Ausgewählte noch einmal prüfen“. Die Ergebnisse der
+   übrigen Pflanzen bleiben in `frueher` liegen und kommen am Ende des
+   Nachlaufs zurück. Vorher legte jeder Start das Zwischenlager neu an. */
+function karteiStarten(ids, behalten){
   const liste = (ids || []).filter(Boolean);
   if(!liste.length) return false;
   if(karteiLaufend()) return false;
+  const vorher = karteiStand();
+  let frueher = null;
+  if(behalten && vorher && !vorher.aktiv){
+    const da = new Set(allePflanzen().map(p=>p.id));
+    const alt = Object.assign({}, vorher.frueher || {}, vorher.fertig || {});
+    frueher = {};
+    Object.keys(alt).forEach(id=>{
+      if(liste.indexOf(id) < 0 && da.has(id)) frueher[id] = alt[id];
+    });
+  }
   KARTEI_GEN++;
   S.kartei = {start:Date.now(), gesamt:liste.length, offen:liste.slice(),
               alle:liste.slice(), fertig:{}, versuch:{}, aktiv:true};
+  if(frueher && Object.keys(frueher).length) S.kartei.frueher = frueher;
   sichern();
   karteiErlaubnisFragen();
   karteiLeiste();
@@ -28129,7 +27899,7 @@ function karteiAbbrechen(){
   k.aktiv = false;
   karteiNachbauen(k);
   if(k.offen.length){ k.pausiert = true; }
-  else { k.pausiert = false; k.ende = Date.now(); }
+  else { k.pausiert = false; k.ende = Date.now(); karteiZusammen(k); }
   sichern(); karteiLeiste(); karteiAbschnitt();
 }
 
@@ -28142,11 +27912,27 @@ function karteiFortsetzen(){
   sichern(); karteiLeiste(); karteiAbschnitt(); karteiPumpe();
 }
 
+/* Ein Nachlauf gibt beim Ende die älteren Ergebnisse zurück. */
+function karteiZusammen(k){
+  if(!k || !k.frueher) return;
+  k.fertig = Object.assign({}, k.frueher, k.fertig);
+  delete k.frueher;
+}
+
 function karteiVerwerfen(){
   const k = karteiStand(); if(!k) return;
   KARTEI_GEN++;
   Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
   KARTEI_CTRL = {};
+  /* Wer einen Nachlauf verwirft, verwirft nur den Nachlauf. Das
+     Ergebnis davor bleibt stehen. */
+  if(k.frueher && Object.keys(k.frueher).length && (k.aktiv || k.pausiert)){
+    const ids = Object.keys(k.frueher);
+    S.kartei = {start:k.start, ende:Date.now(), gesamt:ids.length, offen:[], alle:ids,
+                fertig:k.frueher, versuch:{}, aktiv:false};
+    sichern(); karteiLeiste(); karteiAbschnitt();
+    return;
+  }
   delete S.kartei;
   sichern(); karteiLeiste(); karteiAbschnitt();
 }
@@ -28195,7 +27981,7 @@ async function karteiEine(id){
   const gen = KARTEI_GEN;
   KARTEI_CTRL[id] = {abort(){}};
   const p = allePflanzen().find(x=>x.id === id);
-  if(!p){ karteiEintragen(id, {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.'}); return; }
+  if(!p){ karteiEintragen(id, {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.', zeit:Date.now()}); return; }
   const auftrag = karteiAuftrag(p);
   const t0 = Date.now();
   let bilder = null;
@@ -28208,7 +27994,7 @@ async function karteiEine(id){
     if(gen !== KARTEI_GEN) return;
     const felder = (typeof geminiLesen === 'function') ? (geminiLesen(txt) || {}) : {};
     karteiEintragen(id, {stand:'ok', art:auftrag.art, felder:felder,
-      anzahl:Object.keys(felder).length, dauer:Date.now() - t0});
+      anzahl:Object.keys(felder).length, dauer:Date.now() - t0, zeit:Date.now()});
   }catch(e){
     if(gen !== KARTEI_GEN) return;
     const st = karteiStand();
@@ -28221,13 +28007,14 @@ async function karteiEine(id){
       return;
     }
     karteiEintragen(id, {stand:'fehler', art:auftrag.art,
-      fehler:String((e && e.message) || 'Unbekannter Fehler'), dauer:Date.now() - t0});
+      fehler:String((e && e.message) || 'Unbekannter Fehler'), dauer:Date.now() - t0, zeit:Date.now()});
   }
 }
 
 function karteiFertig(){
   const k = karteiStand(); if(!k) return;
   k.aktiv = false; k.pausiert = false; k.ende = Date.now();
+  karteiZusammen(k);
   sichern();
   karteiLeiste(); karteiAbschnitt();
   karteiMelden(k);
@@ -28247,7 +28034,8 @@ function karteiMelden(k){
   try{
     if(typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     if(!document.hidden) return;
-    const n = Object.keys(k.fertig).filter(id=>k.fertig[id].stand === 'ok').length;
+    const n = Object.keys(k.fertig).filter(id=>k.fertig[id].stand === 'ok'
+      && (!Array.isArray(k.alle) || k.alle.indexOf(id) > -1)).length;
     const text = n === 1 ? 'Eine Antwort liegt bereit.' : n + ' Antworten liegen bereit.';
     if(navigator.serviceWorker && navigator.serviceWorker.ready)
       navigator.serviceWorker.ready.then(reg=>{
@@ -28342,16 +28130,340 @@ function karteiGitter(q){
   });
 }
 
+/* ── Der Abgleich (Etappe E2) ────────────────────────────────
+   Aus einer Antwort werden Zeilen „alt → neu“. Gezeigt wird nur, was
+   fehlt oder abweicht. Jede Zeile hat ihren eigenen Knopf; geschrieben
+   wird ausschließlich dort. Was erledigt ist — übernommen oder
+   verworfen —, steht in `erledigt` am Ergebnis und kommt nach einem
+   Neustart nicht wieder. */
+
+/* Nur die drei Wörter aus dem Auftrag. Alles andere ist keine Auskunft. */
+function duengerLesen(t){
+  if(!t) return null;
+  const m = norm(t).match(/^(nie|sparsam|normal)\b/);
+  return m ? m[1] : null;
+}
+
+/* Die Gießart aus dem Klartext. Bis 3.20.0 stand das mitten im
+   Anlegen; jetzt lesen Anlegen und Kartei hier. */
+function giessartLesen(t){
+  if(!t) return null;
+  const g = norm(t);
+  /* Wasser- und Hydrokultur zuerst: sie sind keine Art zu gießen,
+     sondern der Grund, gar nicht zu gießen. Stünden sie weiter
+     unten, schluckte eine der anderen Regeln sie weg. */
+  return /hydrokultur|blähton|blaehton|seramis|\bpon\b|lechuza/.test(g) ? 'hydro'
+    : /wasserkultur|wasserglas|nur wasser|in wasser/.test(g) ? 'wasser'
+    : /anstau|staun|dauerhaft nass/.test(g) ? 'anstau'
+    : /tauch|wasserbad|eintauch/.test(g) ? 'tauchen'
+    : /unten|untersetz/.test(g) ? 'unten'
+    : /schluck|sparsam|wenig|klein/.test(g) ? 'schluck'
+    : /durchdring|durchtrank|reichlich|kraftig/.test(g) ? 'durch' : null;
+}
+
+/* Die Art übernehmen. Die Giftangabe hängt an der Art und wird neu
+   ermittelt — außer sie ist eigen oder strittig: sie zu überschreiben
+   wäre eine Entwarnung, die niemand gegeben hat. Bis 3.20.0 stand das
+   im Doktor. */
+function artUebernehmen(id, art, bot){
+  const felder = {art: art};
+  if(bot && !/^unbekannt$/i.test(bot)) felder.botanisch = bot;
+  aenderungSetzen(id, felder, 'ki', true);
+  const pn = allePflanzen().find(x=>x.id === id);
+  const gn = pn ? giftVon(pn) : null;
+  if(pn && gn && gn.status !== 'fest' && gn.status !== 'strittig')
+    aenderungSetzen(id, {gift: giftErmitteln(pn)});
+}
+
+function karteiLeer(v){ return v === null || v === undefined || String(v).trim() === ''; }
+
+/* Was die Bibliothek zu einem leeren Feld sagt. Die Karte zeigt diesen
+   Wert an — verglichen wird deshalb auch mit ihm. */
+function karteiBibWert(p, feld){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(!b) return null;
+  if(feld === 'frostMin') return b.frost != null ? b.frost : null;
+  if(feld === 'familie')  return b.fam || null;
+  if(feld === 'duenger')  return b.duenger || null;
+  if(feld === 'typ')      return b.typ || null;
+  return null;
+}
+
+function karteiGiftWort(g){
+  if(!g || !g.tiere) return '';
+  const st = GIFT_STUFEN[g.tiere.katze];
+  return st ? st.wort : '';
+}
+
+function karteiAbweichungen(p, erg){
+  const zeilen = [], hinweise = [];
+  if(!p || !erg || erg.stand !== 'ok') return {zeilen:zeilen, hinweise:hinweise};
+  const d = erg.felder || {};
+  const hand = f => herkunftVon(p, f) === 'hand';
+  const id = p.id;
+
+  /* Art: nur bei hoher Sicherheit. Ein anderer deutscher Name für
+     denselben botanischen Namen ist keine andere Art. */
+  const artNeu = String(d.art || '').trim();
+  const botNeu = String(d.bot || '').trim();
+  const sicher = norm(d.sicher || '');
+  const gleicheArt = botNeu && p.botanisch && norm(botNeu) === norm(p.botanisch);
+  if(artNeu && norm(artNeu) !== norm(p.art || '') && !gleicheArt){
+    if(sicher === 'hoch'){
+      zeilen.push({key:'art', name:'Art', hand:hand('art'), alt:p.art || '',
+        neu:artNeu + (botNeu ? ' (' + botNeu + ')' : ''), knopf:'Art übernehmen',
+        nimm:()=>artUebernehmen(id, artNeu, botNeu)});
+    } else {
+      hinweise.push('Die Antwort nennt eine andere Art („' + artNeu + '“), ist sich aber nicht sicher. '
+        + 'Eine Art wird nur bei hoher Sicherheit zur Übernahme angeboten.');
+    }
+  }
+  if(sicher === 'niedrig')
+    hinweise.push('Die Antwort ist sich bei dieser Pflanze unsicher. Prüf die Angaben besonders genau.');
+
+  /* Die sechs Steckbrieffelder, gelesen wie bisher im Doktor */
+  AB_FELDER.forEach(f=>{
+    const neu = f.lies(d);
+    if(karteiLeer(neu)) return;
+    let alt = f.ist(p);
+    if(f.feld === 'frostMin' && karteiLeer(alt)){
+      const b = karteiBibWert(p, 'frostMin'); if(b != null) alt = b;
+    }
+    if(f.feld === 'typ' && (karteiLeer(alt) || alt === 'Ohne Angabe')) alt = karteiBibWert(p, 'typ') || '';
+    if(String(alt) === String(neu)) return;
+    zeilen.push({key:f.feld, name:f.name, hand:hand(f.feld), wert:neu,
+      alt:karteiLeer(alt) ? '' : f.zeig(alt), neu:f.zeig(neu),
+      nimm:()=>aenderungSetzen(id, {[f.feld]: neu}, 'ki', true)});
+  });
+
+  const famNeu = String(d.familie || '').trim();
+  if(famNeu){
+    const famAlt = String(p.familie || karteiBibWert(p, 'familie') || '').trim();
+    if(norm(famNeu) !== norm(famAlt))
+      zeilen.push({key:'familie', name:'Familie', alt:famAlt, neu:famNeu,
+        nimm:()=>aenderungSetzen(id, {familie: famNeu}, 'ki', true)});
+  }
+
+  const duNeu = duengerLesen(d.duenger);
+  if(duNeu && DUENGER[duNeu]){
+    const duAlt = p.duenger || karteiBibWert(p, 'duenger') || '';
+    if(duNeu !== duAlt)
+      zeilen.push({key:'duenger', name:'Düngebedarf',
+        alt:DUENGER[duAlt] ? DUENGER[duAlt].text : '', neu:DUENGER[duNeu].text,
+        nimm:()=>aenderungSetzen(id, {duenger: duNeu}, 'ki', true)});
+  }
+
+  const merkNeu = String(d.sortenmerkmale || '').trim();
+  if(merkNeu && !/^keine?$|^unbekannt$/.test(norm(merkNeu))
+     && norm(merkNeu) !== norm(p.sortenmerkmale || ''))
+    /* Nie nach `merkmale` — das Feld gehört der Bibliothek. */
+    zeilen.push({key:'sortenmerkmale', name:'Sortenmerkmale', alt:p.sortenmerkmale || '', neu:merkNeu,
+      nimm:()=>aenderungSetzen(id, {sortenmerkmale: merkNeu}, 'ki', true)});
+
+  const gaNeu = giessartLesen(d.giessart);
+  if(gaNeu === 'wasser' || gaNeu === 'hydro'){
+    hinweise.push('Die Antwort sieht ' + (gaNeu === 'wasser' ? 'Wasserkultur' : 'Hydrokultur')
+      + '. Die Kulturform stellst du in der Karte um.');
+  } else if(gaNeu && GIESSARTEN[gaNeu] && gaNeu !== giessartVon(p)){
+    const gaAlt = (p.giessart && GIESSARTEN[p.giessart]) ? GIESSARTEN[p.giessart].name
+      : GIESSARTEN[giessartVon(p)].name + ' (geschätzt)';
+    zeilen.push({key:'giessart', name:'Gießart', alt:gaAlt, neu:GIESSARTEN[gaNeu].name,
+      nimm:()=>aenderungSetzen(id, {giessart: gaNeu}, 'ki', true)});
+  }
+
+  const spNeu = String(d.speicher || '').toLowerCase().trim();
+  if(spNeu && SPEICHER_GRUPPE[spNeu] && spNeu !== String(p.speicher || '').toLowerCase().trim())
+    zeilen.push({key:'speicher', name:'Wasserspeicher', alt:p.speicher || '', neu:String(d.speicher).trim(),
+      nimm:()=>aenderungSetzen(id, {speicher: spNeu}, 'ki', true)});
+
+  /* Die Giftfrage: verschärfen ja, entwarnen nie. */
+  if(d.katzen){
+    const g = giftVon(p);
+    const lage = giftAbgleichen(p, giftRaten(d.katzen), 'ki');
+    const eigen = !!(g && g.quelle === 'nutzer');
+    const nimm = ()=>{ if(lage && lage.gift) aenderungSetzen(id, {gift: lage.gift}); };
+    if(!lage){
+      if(g && g.status !== 'fest') hinweise.push('Zur Giftfrage hat die Antwort nichts Verwertbares gesagt.');
+    } else if(lage.ergebnis === 'verschaerft'){
+      zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g), neu:'giftig',
+        knopf:'Als giftig übernehmen', nimm:nimm});
+    } else if(lage.ergebnis === 'strittig'){
+      if(g && g.status !== 'strittig')
+        zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g),
+          neu:'Antwort sagt unbedenklich — es bleibt bei der strengeren Angabe',
+          knopf:'Als strittig vermerken', nimm:nimm});
+    } else if(lage.ergebnis === 'bestaetigt'){
+      if(g && g.status !== 'fest')
+        zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g) + ' (ungeprüft)',
+          neu:karteiGiftWort(lage.gift) + ' (bestätigt)', knopf:'Als bestätigt vermerken', nimm:nimm});
+    } else if(lage.ergebnis === 'bleibtOffen'){
+      hinweise.push('Die Antwort nennt sie unbedenklich. Eine Entwarnung übernimmt die App nicht — die Giftfrage bleibt offen.');
+    }
+  }
+
+  const ver = vermehrungLesen(d.vermehrung, 'Gemini');
+  if(ver){
+    const bis = vermehrungKiVon(p);
+    const wege = v => v.wege.map(x=>x.methode).join('; ');
+    if(!bis || norm(wege(bis)) !== norm(wege(ver)))
+      zeilen.push({key:'vermehrung', name:'Vermehrung', alt:bis ? wege(bis) : '',
+        neu:wege(ver) + (bis ? ' — ersetzt die bisherigen Wege' : ''),
+        nimm:()=>vermehrungUebernehmen(id, d.vermehrung, 'Gemini')});
+  }
+
+  /* Widersprüche zuerst: was du selbst eingetragen hast. */
+  const vorn = zeilen.filter(z=>z.hand), hinten = zeilen.filter(z=>!z.hand);
+  return {zeilen:vorn.concat(hinten), hinweise:hinweise};
+}
+
+function karteiOffeneZeilen(p, erg){
+  if(!erg || erg.fertig) return [];
+  const e = erg.erledigt || {};
+  return karteiAbweichungen(p, erg).zeilen.filter(z=>!e[z.key]);
+}
+
 function karteiZeile(p, erg, ohneHaken){
   const e = erg || {};
-  const wort = e.stand === 'ok'
-    ? (e.anzahl === 1 ? 'eine Angabe' : e.anzahl + ' Angaben')
-      + (e.art === 'text' ? ' · ohne Foto' : e.art === 'teil' ? ' · Abgleich' : ' · vollständig')
-    : e.fehler || 'Fehlgeschlagen';
-  return '<label class="kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl') + '">'
-    + (ohneHaken ? '' : '<input type="checkbox" data-karteierg="' + esc(p.id) + '">')
-    + '<span class="kz-txt"><b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i></span></label>';
+  let wort;
+  if(e.stand !== 'ok') wort = e.fehler || 'Fehlgeschlagen';
+  else {
+    const n = karteiOffeneZeilen(p, e).length;
+    wort = (n === 0 ? 'Keine Abweichung' : n === 1 ? 'Eine Abweichung' : n + ' Abweichungen')
+      + (e.art === 'text' ? ' · ohne Foto' : '');
+  }
+  const txt = '<b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i>';
+  const kl = 'kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl');
+  if(ohneHaken) return '<div class="' + kl + '"><span class="kz-txt">' + txt + '</span></div>';
+  return '<div class="' + kl + '">'
+    + '<input type="checkbox" data-karteierg="' + esc(p.id) + '" aria-label="' + esc(nice(p)) + ' noch einmal prüfen">'
+    + (e.stand === 'ok'
+       ? '<button type="button" class="kz-txt kz-auf" data-karteiauf="' + esc(p.id) + '">' + txt + '</button>'
+       : '<span class="kz-txt">' + txt + '</span>')
+    + '</div>';
 }
+
+/* Pflanzen, die es nicht mehr gibt, fallen aus dem Ergebnis. */
+function karteiAufraeumen(k){
+  if(!k || k.aktiv || !k.fertig) return;
+  const da = new Set(allePflanzen().map(p=>p.id));
+  let weg = false;
+  Object.keys(k.fertig).forEach(id=>{ if(!da.has(id)){ delete k.fertig[id]; weg = true; } });
+  if(weg) sichern();
+}
+
+/* Ist nichts mehr offen? Pflanzen ohne Abweichung zählen nicht, ein
+   Fehlschlag schon — sonst verschwindet er, bevor man ihn noch einmal
+   prüfen lassen kann. */
+function karteiAllesDurch(k){
+  if(!k || k.aktiv || !k.fertig) return false;
+  const alle = allePflanzen();
+  return Object.keys(k.fertig).every(id=>{
+    const p = alle.find(x=>x.id === id);
+    if(!p) return true;
+    if(k.fertig[id].stand !== 'ok') return false;
+    return !karteiOffeneZeilen(p, k.fertig[id]).length;
+  });
+}
+
+/* ── Das Fenster ──────────────────────────────────────────── */
+let KA_PFLANZE = null;
+
+function karteiFensterAuf(id, ausloeser){
+  const k = karteiStand();
+  if(!k || !k.fertig || !k.fertig[id]) return false;
+  KA_PFLANZE = id;
+  karteiFensterZeichnen();
+  if(typeof modalAuf === 'function') modalAuf('kartei-abgleich', ausloeser);
+  return true;
+}
+
+function karteiFensterZeichnen(meldung, art){
+  const box = document.getElementById('ka-inhalt');
+  if(!box) return;
+  const k = karteiStand();
+  const erg = (k && KA_PFLANZE && k.fertig) ? k.fertig[KA_PFLANZE] : null;
+  const p = KA_PFLANZE ? allePflanzen().find(x=>x.id === KA_PFLANZE) : null;
+  const titel = document.getElementById('ka-titel');
+  if(!p || !erg){ box.innerHTML = ''; if(titel) titel.textContent = 'Abgleich'; return; }
+  if(titel) titel.textContent = nice(p);
+  const ab = karteiAbweichungen(p, erg);
+  const zeilen = karteiOffeneZeilen(p, erg);
+  const zeit = erg.zeit || k.start;
+  const foto = karteiFoto(p);
+  box.innerHTML = (foto ? '<img class="ka-bild" src="' + esc(foto.src) + '" alt="">' : '')
+    + '<p class="fhint">Antwort vom ' + esc(new Date(zeit).toLocaleDateString('de-DE')) + '</p>'
+    + ab.hinweise.map(h=>'<p class="ka-hinweis">' + esc(h) + '</p>').join('')
+    + (zeilen.length
+       ? '<div class="abgleich ka-liste">' + zeilen.map(z=>
+           '<div class="ab-zeile' + (z.hand ? ' ab-eigen' : '') + '" data-kazeile="' + esc(z.key) + '">'
+           + '<span class="ab-feld">' + esc(z.name)
+           + (z.hand ? '<i class="ab-herkunft">von dir gesetzt</i>' : '') + '</span>'
+           + '<span class="ab-wert">'
+           + (z.alt ? '<span class="ab-alt">' + esc(z.alt) + '</span>' : '<span class="ab-alt ka-leer">leer</span>')
+           + ' → ' + esc(z.neu) + '</span>'
+           + '<button type="button" class="ab-nimm" data-do="ka-nimm" data-k="' + esc(z.key) + '">'
+           + esc(z.knopf || 'Übernehmen') + '</button>'
+           + '<button type="button" class="ab-weg" data-do="ka-weg" data-k="' + esc(z.key) + '"'
+           + ' aria-label="' + esc(z.name) + ' verwerfen">×</button>'
+           + '</div>').join('') + '</div>'
+       : '<p class="allgut">Keine Abweichung zur Karte.</p>')
+    + '<p class="kihinweis' + (art ? ' ' + art : '') + '" id="ka-meld">' + esc(meldung || '') + '</p>'
+    + '<div class="tools"><button type="button" data-do="ka-fertig">Fertig — Rest verwerfen</button></div>';
+}
+
+function karteiAktion(was, key){
+  const id = KA_PFLANZE;
+  const k = karteiStand();
+  const erg = (k && id && k.fertig) ? k.fertig[id] : null;
+  const p = id ? allePflanzen().find(x=>x.id === id) : null;
+  if(!erg || !p){
+    if(typeof modalZu === 'function') modalZu('kartei-abgleich');
+    karteiAbschnitt(); return;
+  }
+  erg.erledigt = erg.erledigt || {};
+  let meld = '';
+  if(was === 'nimm'){
+    const z = karteiOffeneZeilen(p, erg).find(x=>x.key === key);
+    if(!z) return;
+    /* Weg von Klasse S nimmt Anstau und Karnivorenrhythmus — das
+       fragt die App wie bisher nach. */
+    if(z.key === 'klasse' && !klasseSBestaetigt(id, z.wert)) return;
+    z.nimm();
+    erg.erledigt[key] = 'nimm';
+    meld = z.name + ' übernommen.';
+  } else if(was === 'weg'){
+    if(!key) return;
+    erg.erledigt[key] = 'weg';
+  } else if(was === 'fertig'){
+    karteiAbweichungen(p, erg).zeilen.forEach(z=>{ if(!erg.erledigt[z.key]) erg.erledigt[z.key] = 'weg'; });
+    erg.fertig = true;
+  }
+  if(!erg.fertig && !karteiOffeneZeilen(p, erg).length) erg.fertig = true;
+  sichern();
+  if(was === 'nimm' && typeof render === 'function') render();
+  if(karteiAllesDurch(k)){
+    delete S.kartei;
+    sichern();
+    KA_PFLANZE = null;
+    karteiLeiste();
+    if(typeof modalZu === 'function') modalZu('kartei-abgleich');
+    karteiAbschnitt();
+    karteiMeldung((meld ? meld + ' ' : '') + 'Alle Abweichungen sind durchgesehen.', 'ok');
+    return;
+  }
+  if(erg.fertig){
+    if(typeof modalZu === 'function') modalZu('kartei-abgleich');
+    karteiAbschnitt();
+    karteiMeldung((meld ? meld + ' ' : '') + nice(p) + ' ist durchgesehen.', 'ok');
+    return;
+  }
+  karteiFensterZeichnen(meld, meld ? 'ok' : '');
+  karteiAbschnitt();
+}
+
+if(typeof modalAnmelden === 'function')
+  modalAnmelden('kartei-abgleich', {groesse:'blatt',
+    nachZu: ()=>{ KA_PFLANZE = null; karteiAbschnitt(); }});
 
 function karteiAbschnitt(){
   const box = document.getElementById('kartei-innen');
@@ -28384,21 +28496,40 @@ function karteiAbschnitt(){
     }
   }
 
+  if(k && !k.aktiv) karteiAufraeumen(k);
+  if(k && !k.aktiv && !k.pausiert && !Object.keys(k.fertig).length && Array.isArray(k.alle)){
+    /* Alle Pflanzen des Ergebnisses sind gelöscht. */
+    delete S.kartei; sichern(); karteiLeiste();
+    karteiAbschnitt(); return;
+  }
   if(k && !k.aktiv && Object.keys(k.fertig).length){
     const ids = Object.keys(k.fertig);
     const gut = ids.filter(id=>k.fertig[id].stand === 'ok');
     const dauer = (k.ende && k.start) ? Math.round((k.ende - k.start) / 1000) : null;
-    const zeilen = ids.map(id=>{
+    /* Durchgesehene Pflanzen verschwinden. Oben steht, was noch offen
+       ist, darunter die ohne Abweichung, zuletzt die Fehlschläge. */
+    const rang = id => {
+      const e = k.fertig[id];
+      if(e.stand !== 'ok') return 2;
+      const p = alle.find(x=>x.id === id);
+      return p && karteiOffeneZeilen(p, e).length ? 0 : 1;
+    };
+    const sichtbar = ids.filter(id=>!k.fertig[id].fertig);
+    const offen = sichtbar.filter(id=>rang(id) === 0);
+    const zeilen = [0, 1, 2].map(r=>sichtbar.filter(id=>rang(id) === r).map(id=>{
       const p = alle.find(x=>x.id === id);
       return p ? karteiZeile(p, k.fertig[id]) : '';
-    }).filter(Boolean).join('');
+    }).join('')).join('');
     box.innerHTML = '<p class="ein-abschnitt">Ergebnis</p>'
       + '<p class="fhint">' + gut.length + ' von ' + ids.length + ' beantwortet'
       + (k.pausiert || k.offen.length ? ' · Lauf abgebrochen' : '')
       + (dauer != null ? ' · ' + (dauer < 90 ? dauer + ' Sekunden'
           : Math.round(dauer / 60) + ' Minuten') : '') + '</p>'
-      + '<p class="fhint">An deinen Pflanzen ist dabei nichts geändert worden. '
-      + 'Das Durchsehen und Übernehmen der Angaben kommt in der nächsten Fassung.</p>'
+      + '<p class="fhint">' + (offen.length
+          ? (offen.length === 1 ? 'Eine Pflanze' : offen.length + ' Pflanzen')
+            + ' mit Abweichungen. Tipp auf einen Namen zum Durchsehen.'
+          : 'Keine offenen Abweichungen.')
+      + ' An deinen Pflanzen ändert sich nur, was du im Fenster selbst übernimmst.</p>'
       + '<div class="kartei-erg">' + zeilen + '</div>'
       + '<div class="tools"><button type="button" data-do="kartei-nochmal">Ausgewählte noch einmal prüfen</button>'
       + '<button type="button" data-do="kartei-weg">Ergebnis verwerfen</button></div>'
@@ -28443,7 +28574,7 @@ function karteiMeldung(txt, art){
   m.className = 'kihinweis' + (art ? ' ' + art : '');
 }
 
-function karteiLos(ids){
+function karteiLos(ids, behalten){
   if(typeof kiBereit === 'function' && !kiBereit()){
     karteiMeldung('Dafür fehlt noch der Schlüssel. Er steht unter Mehr, KI-Dienst.', 'warn');
     return;
@@ -28454,7 +28585,7 @@ function karteiLos(ids){
     return;
   }
   if(!ids.length){ karteiMeldung('Keine Pflanze ausgewählt.', 'warn'); return; }
-  if(!karteiStarten(ids)) karteiMeldung('Es läuft bereits eine Prüfung.', 'warn');
+  if(!karteiStarten(ids, behalten)) karteiMeldung('Es läuft bereits eine Prüfung.', 'warn');
 }
 
 document.addEventListener('click', e=>{
@@ -28479,10 +28610,16 @@ document.addEventListener('click', e=>{
         .call(document.querySelectorAll('[data-karteierg]:checked'))
         .map(x=>x.dataset.karteierg);
       if(!ids.length){ karteiMeldung('Hak zuerst an, was noch einmal laufen soll.', 'warn'); return; }
-      karteiLos(ids); return;
+      karteiLos(ids, true); return;
     }
+    if(a === 'ka-nimm'){ karteiAktion('nimm', b.dataset.k); return; }
+    if(a === 'ka-weg'){ karteiAktion('weg', b.dataset.k); return; }
+    if(a === 'ka-fertig'){ karteiAktion('fertig'); return; }
+    if(a === 'ka-zu'){ if(typeof modalZu === 'function') modalZu('kartei-abgleich'); return; }
     if(a === 'kartei-nichts') return;
   }
+  const aufKnopf = e.target.closest('[data-karteiauf]');
+  if(aufKnopf){ karteiFensterAuf(aufKnopf.dataset.karteiauf, aufKnopf); return; }
   const kachel = e.target.closest('[data-karteip]');
   if(kachel){
     const id = kachel.dataset.karteip;

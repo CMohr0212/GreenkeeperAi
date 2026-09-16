@@ -1,113 +1,201 @@
 # PLAN — GreenkeeperAI
 
-Stand 16.09.2026 · Ausgangsfassung 3.19.1 · **Zielversion 3.20.0, sw.js greenkeeperai-v115**
+Stand 16.09.2026 · Ausgangsfassung 3.20.0 · **Zielversion 3.21.0, sw.js greenkeeperai-v116**
 
-Erledigt und nicht mehr hier: Etappe A bis D, E1 „Der Lauf" (3.19.0) und der Lösch-Fix (3.19.1). Der Verlauf steht im CHANGELOG.
+Erledigt und nicht mehr hier: Etappe A bis D, E1 „Der Lauf“ (3.19.0), Lösch-Fix (3.19.1), Kartei-Seite (3.20.0). Der Verlauf steht im CHANGELOG.
 
-Offen sind: der Plan unten, danach **E2**, dann Sammel-Anlegen, **F** und **T**.
+Verworfen am 16.09.2026: die Pläne E2a und E2 „Abgleich-Fenster mit allen Angaben“. Chris hat den Zweck der Kartei neu gesetzt (siehe unten).
+
+Offen sind: **E2** (unten, freigegeben), **E3** Pflegetexte, **E4** Sorte, danach Sammel-Anlegen, **F** und **T**.
+
+## Zweck der Kartei, von Chris am 16.09.2026 gesetzt
+
+- Die Kartei hält die Pflanzenkarten auf dem neuesten Stand: Steckbriefdaten, die Sorte und art- oder sortenspezifische Pflegetexte.
+- Nichts, was jede Pflanze braucht. Keine Töpfe, kein Zustand, kein Befund, keine Maßnahmen — das bleibt beim Doktor.
+- Geprüft werden feste Daten wie Frost und Felder, die das Anlegen leer gelassen hat.
+- Pflegetexte wie bei der Venusfliegenfalle („Pflegeschritte“, „Winterruhe“): die KI schreibt sie, wo keine da sind, und gleicht sie ab, wo welche da sind.
+- Die Sorte ermittelt die KI, am besten schon beim Anlegen.
+- Der Doktor verliert den Abgleich der Steckbriefdaten, den übernimmt die Kartei.
+
+## Aufteilung (Regel 3.4, Regel 4.1)
+
+Alles zusammen sind drei Themen und ist groß. Vorschlag: drei Sitzungen, je eine Version.
+
+- **E2** (3.21.0): Kartei fragt nur noch Steckbriefdaten, Abgleich-Fenster, Doktor ohne Steckbrief-Abgleich.
+- **E3** (3.22.0): Pflegetexte durch die KI.
+- **E4** (3.23.0): Sorte durch die KI, im Anlegen und in der Kartei.
+
+E2 zuerst, weil E3 und E4 das Fenster aus E2 benutzen.
 
 ---
 
-# Freigegeben — Kartei auffrischen: Auswahl, Laufansicht, Fortsetzen
+# Freigegeben — Etappe E2 · Steckbrief-Abgleich
 
-Freigabe von Chris am 16.09.2026 · Zielversion 3.20.0, sw.js greenkeeperai-v115.
-
-Gewünscht von Chris am 16.09.2026, mit Screenshot vom Ist-Stand. Nimmt die Backlog-Punkte „Alle anhaken" und „Abschnitt während des Laufs" vom 15.09. auf.
+Freigabe von Chris am 16.09.2026 · Zielversion 3.21.0, sw.js greenkeeperai-v116.
 
 ## Ziel
 
-Die Seite „Kartei auffrischen" zeigt die Auswahl sofort als Gitter mit zwei Kästchen, während eines Laufs nur den Fortschritt, und ein angehaltener Lauf lässt sich lückenlos fortsetzen.
+Die Kartei fragt nur noch Steckbriefdaten ab, ein Fenster je Pflanze zeigt jede abweichende Angabe als „alt → neu“ mit eigenem Knopf, und der Doktor zeigt keinen Steckbrief-Abgleich mehr.
 
 ## Befund
 
-- **Belegt** (Screenshot 16.09.): Die Leiste zeigt „Prüfe 1 von 4" mit leerem Balken, der Abschnitt zeigt gleichzeitig die Startauswahl für 51 Pflanzen.
-- **Belegt** (Code): „Abbrechen" leert die Warteschlange (`k.offen = []`) und setzt nicht `pausiert`. Nach einem Abbruch gibt es deshalb nie „Fortsetzen".
-- **Belegt** (Code): Eine Pflanze wird beim Start ihrer Anfrage aus `k.offen` genommen. Wird die App währenddessen geschlossen oder die Anfrage abgebrochen, steht sie weder in `offen` noch in `fertig`. Der Lauf erreicht dann nie „x von x".
-- **Vermutet, nicht am Gerät geprüft:** Das ist einer der Gründe, warum bei Chris kein Lauf durchkommt. Ob es der einzige ist, ist offen.
-- **Belegt** (Code): `karteiBilder` (Foto verkleinern) läuft vor der Frist von `kiFragen` und hat kein eigenes Zeitlimit. Ob es hängen kann, ist nicht geprüft.
+- **Belegt** (Code): Der Auftrag „teil“ (Foto, keine Lücken) fragt nur MERKMALE, FEHLT, ZUSTAND, BEFUND, TOPF und MASSNAHME. Laut Mehr („Alles ausgefüllt“) trifft das bei Chris auf jede Pflanze mit Foto zu. Der Lauf ist heute im Kern ein Doktor für die Sammlung.
+- **Belegt** (Code): Der Auftrag „voll“ fragt zusätzlich ZUSTAND, BEFUND, SUBSTRAT, TOPFART, ABLAUF, TOPF und MASSNAHME.
+- **Belegt** (Code): Das Anlegen ohne Bibliothekstreffer lässt Familie, Frostgrenze und Düngebedarf leer. Die Frostangabe der KI landet dort nur als Satz in der Notiz.
+- **Belegt** (Code): Bei Arten aus der Bibliothek liest die Karte Familie, Wuchsform und Frostgrenze bei jedem Öffnen frisch aus der Bibliothek, wenn das Feld an der Pflanze leer ist.
+- **Belegt** (Code): „Ausgewählte noch einmal prüfen“ legt `S.kartei` neu an. Die Ergebnisse aller nicht angehakten Pflanzen gehen verloren.
+- **Belegt** (Code): Der Doktor zeigt vier Steckbrief-Kästen: Abgleich (`AB_FELDER`), andere Art, Sortenmerkmale, Giftangabe. Die Vermehrungswege legt er ohne Knopf ab.
+- **Belegt** (Code): Die Gießart wird im Anlegen mitten im Code gelesen, es gibt keine eigene Funktion. Die Art-Übernahme samt Gift-Neuberechnung steht nur im Klick-Code des Doktors.
+- **Belegt** (Code): Ein Ergebnis speichert keinen Zeitpunkt je Pflanze.
+- **Belegt** (Code): Fenster über `modalAuf` legen einen Verlaufseintrag an. Zurück am Gerät schließt das Fenster.
 
 ## Änderungen
 
-**Startansicht**
-- Das Suchfeld und das Bildgitter stehen sofort da. Der Knopf „Einzelne auswählen" entfällt, ebenso „Alle anhaken" und „Auswahl leeren".
-- Statt der Knöpfe „Alle" und „Nur mit Lücken" gibt es zwei Kästchen zum Anhaken: „Alle (n)" und „Nur mit Lücken (n)". Die Zahl zählt dieselbe Menge, die das Kästchen anhakt.
-- „Alle" anhaken hakt jede Pflanze an. Abhaken leert die Auswahl.
-- „Nur mit Lücken" anhaken setzt die Auswahl auf genau die Pflanzen mit Lücken oder ohne Foto (Menge wie heute). Abhaken nimmt diese Pflanzen aus der Auswahl.
-- Ein Tipp auf eine Kachel hakt sie an oder ab. Die Kästchen ziehen nach: „Alle" ist angehakt, wenn alle gewählt sind; „Nur mit Lücken" ist angehakt, wenn die Auswahl genau der Lücken-Menge entspricht.
-- Die Suche filtert nur die Anzeige. Die Kästchen wirken immer auf alle Pflanzen.
-- Beim ersten Öffnen nach dem App-Start sind alle Pflanzen angehakt. Danach bleibt die Auswahl bis zum nächsten App-Start stehen.
-- „Auffrischen starten (n)" zählt die angehakten Pflanzen.
+**Auftrag an die KI**
+- Es gibt nur noch zwei Aufträge: mit Foto und ohne Foto. Jede gewählte Pflanze bekommt ihn, auch ohne Lücken (Annahme A6).
+- Gefragt wird: ART, BOTANISCH, SICHERHEIT, FAMILIE (neu), TYP, SPEICHER, LICHT, GIESSKLASSE, GIESSART, DUENGER (neu), FROST, WICHTIG, KATZEN, VERMEHRUNG. Mit Foto zusätzlich MERKMALE.
+- Nicht mehr gefragt: ZUSTAND, BEFUND, TOPF, TOPFART, SUBSTRAT, ABLAUF, MASSNAHME, FEHLT, VERWECHSLUNG.
+- FAMILIE und DUENGER bekommen eine Zeile im Format und einen Schlüssel im Leser. DUENGER nur mit einem der Wörter „nie“, „sparsam“, „normal“.
+- Der Kopf sagt: Das ist ein Abgleich der Artdaten, keine Bestimmung und keine Diagnose.
 
-**Laufansicht** (solange ein Lauf läuft oder angehalten ist und noch Pflanzen offen sind)
-- Auswahl, Suche, Gitter und Startknopf sind weg.
-- Sichtbar: Fortschrittsbalken, darunter „Prüfe x von y · n %" beziehungsweise „Angehalten bei x von y · n %".
-- Läuft der Lauf: Knopf „Anhalten". Ist er angehalten: Knopf „Fortsetzen" und Knopf „Lauf verwerfen".
-- Darunter die bis dahin fertigen Pflanzen als Zeilen, ohne Kästchen.
-- Nach dem Ende erscheint die Ergebnisansicht wie heute.
+**Ergebnisliste** (Ansicht nach dem Lauf)
+- Jede Zeile nennt die Zahl der offenen Abweichungen: „3 Abweichungen“, „Keine Abweichung“. Bei einem Fehler steht wie bisher der Fehlertext.
+- Ein Tipp auf den Namen öffnet das Abgleich-Fenster. Das Kästchen links dient nur „Ausgewählte noch einmal prüfen“.
+- Der Satz „kommt in der nächsten Fassung“ entfällt. Stattdessen: „n Pflanzen mit Abweichungen. Tipp auf einen Namen zum Durchsehen.“
+- Pflanzen, die es nicht mehr gibt, fallen aus dem Ergebnis.
+- Eine Pflanze ohne offene Zeile verschwindet aus der Liste (A2). Ist keine mehr offen, wird das Ergebnis gelöscht und die Startansicht erscheint.
+- Ergebnisse aus 3.20.0 werden gelesen. Angaben, die nicht mehr zur Kartei gehören (Zustand, Befund, Topf, Maßnahmen), werden nicht angezeigt.
 
-**Anhalten und Fortsetzen**
-- Der Lauf merkt sich beim Start die vollständige Liste (`alle`).
-- „Anhalten" bricht laufende Anfragen ab, lässt die Warteschlange stehen und setzt den Lauf auf angehalten.
-- „Fortsetzen" und die Wiederaufnahme nach einem Neustart bauen die Warteschlange neu: alle Pflanzen aus `alle`, die noch nicht in `fertig` stehen.
-- „Lauf verwerfen" und das × in der Leiste löschen den Lauf samt bisherigen Ergebnissen, danach steht wieder die Startansicht da.
-- Ein Lauf aus 3.19.x ohne `alle` wird nicht nachgebaut. Er lässt sich nur verwerfen.
+**Abgleich-Fenster** (eine Pflanze)
+- Kopf: Name, Kachelbild falls vorhanden, Datum der Antwort.
+- Zuerst die Widersprüche: Felder mit Stempel `hand`, markiert mit „von dir gesetzt“. Danach der Rest.
+- Jede Zeile: Feldname, alter Wert (oder „leer“), Pfeil, neuer Wert, Knopf „Übernehmen“, Knopf „×“ zum Verwerfen.
+- Gezeigt wird nur, was fehlt oder abweicht.
+- Kein Knopf für alles auf einmal (A3).
+- Nach „Übernehmen“ verschwindet die Zeile, darunter steht „[Feld] übernommen.“, die Karte wird neu gezeichnet.
+- Unten „Fertig — Rest verwerfen“: verwirft die offenen Zeilen dieser Pflanze und schließt das Fenster (A1).
+- Zurück am Gerät und das × oben schließen ohne Verlust (A1).
+- Hinweise ohne Knopf (Sicherheit niedrig, Giftfrage bleibt offen, Wasser- oder Hydrokultur) stehen unter dem Kopf und zählen nicht als Abweichung.
 
-**Leiste unten**
-- Der Text bekommt die Prozentzahl: „Prüfe 12 von 51 · 23 %", „Angehalten bei 12 von 51 · 23 %". Die Prozentzahl zählt fertige Pflanzen.
-- Der Knopf heißt „Anhalten" statt „Abbrechen".
+**Angaben im Fenster**
+- Botanisch, Wuchsform, Gießklasse, Licht, Wichtig, Frost: über `AB_FELDER`, geschrieben mit `aenderungSetzen(…, 'ki', erzwungen)`. Gießklasse weg von S fragt über `klasseSBestaetigt` nach.
+- Art: nur bei SICHERHEIT „hoch“ und abweichender Art. Knopf „Art übernehmen“ schreibt Art und botanischen Namen. Die Giftangabe wird danach neu ermittelt, außer sie ist `fest` oder `strittig`. Die Logik zieht aus dem Doktor in eine eigene Funktion.
+- Familie: FAMILIE nach `familie`.
+- Düngebedarf: DUENGER nach `duenger`, nur mit einem der drei Wörter.
+- Sortenmerkmale: MERKMALE nach `sortenmerkmale`, nie nach `merkmale`.
+- Gießart: über eine neue Funktion `giessartLesen`. Der bisherige Code im Anlegen zieht dorthin und ruft sie auf, das Anlegen verhält sich wie bisher. Wasser- und Hydrokultur nur als Hinweis.
+- Speicher: nach `speicher`, nur mit einer der sechs Angaben aus `SPEICHER_GRUPPE`.
+- Giftangabe: über `giftRaten` und `giftAbgleichen` (A5). „verschärft“ → „Als giftig übernehmen“. „strittig“ → „Als strittig vermerken“. „bestätigt“ → „Als bestätigt vermerken“, nur wenn die Angabe noch nicht `fest` ist. „bleibt offen“ → Hinweis. Eine Entwarnung wird nie übernommen.
+- Vermehrung: über `vermehrungLesen`. Die Zeile nennt die Wege, „Übernehmen“ ersetzt vorhandene Wege, die Zeile sagt das dazu.
 
-**Pflichtpaket** nach Regel 6.2: FASSUNG 3.20.0, sw.js greenkeeperai-v115, PATCHNOTES-Eintrag, CHANGELOG, Versionsnummer in pruef.js.
+**Noch einmal prüfen**
+- Nur die angehakten Pflanzen laufen neu. Ihre alten Ergebnisse werden ersetzt, die übrigen bleiben.
+- Die Laufansicht zählt dabei nur die neu laufenden Pflanzen.
+
+**Speicherung**
+- Jedes neue Ergebnis bekommt den Zeitpunkt der Antwort. Ältere zeigen das Startdatum des Laufs.
+- Übernommene und verworfene Zeilen werden in `S.kartei` vermerkt und tauchen nach einem Neustart nicht wieder auf.
+- `S.kartei` schreibt nie von selbst in eine Pflanze.
+
+**Doktor** (A4)
+- Die Kästen „Das steht noch nicht so in der Karte“, „Der Doktor sieht eine andere Art“, „Sortenmerkmale am Foto“ und der Giftkasten entfallen samt ihren Knöpfen.
+- Der Doktor legt keine Vermehrungswege mehr ab.
+- Diagnose, Zustand, Befund, Topf und Maßnahmen bleiben wie sie sind.
+- Der Auftrag des Doktors bleibt unverändert.
+
+**Reihenfolge beim Bauen**
+- Zuerst Auftrag, Liste, Fenster, Speicherung, „noch einmal prüfen“, dann `node pruef.js`. Danach der Doktor-Teil, dann wieder `node pruef.js`.
+- Reicht der Kontext vor dem Doktor-Teil nicht sicher, gilt Regel 7.1. Die Kartei allein wird nur als 3.21.0 geliefert, wenn Chris das bestätigt.
+
+**Pflichtpaket** nach Regel 6.2: FASSUNG 3.21.0, sw.js greenkeeperai-v116, PATCHNOTES-Eintrag, CHANGELOG, Versionsnummer in pruef.js.
+
+## Annahmen — ohne Einwand gelten sie mit der Freigabe
+
+- **A1** Zurück und × schließen das Fenster ohne Verlust. Weg sind offene Zeilen erst mit „Fertig — Rest verwerfen“ oder „Ergebnis verwerfen“. Weicht vom Zuschnitt vom 15.09. ab („kein Später“).
+- **A2** Pflanzen ohne offene Zeile verschwinden aus der Ergebnisliste.
+- **A3** Kein Sammelknopf.
+- **A4** Der Doktor verliert alle vier Steckbrief-Kästen, auch den Giftkasten und den Art-Kasten.
+- **A5** Die Giftangabe gehört zum Steckbrief. Die Kartei darf verschärfen, nie entwarnen, wie bisher der Doktor.
+- **A6** Jede gewählte Pflanze wird voll abgefragt, nicht nur ihre Lücken. Das macht jede Antwort länger.
 
 ## Nicht angefasst
 
-`kiFragen`, Aufträge und Prompts, Parallelität und Bremse bei 429, Wiederholungen, `karteiBilder`, die Benachrichtigung am Laufende, die Ergebnisansicht nach dem Ende samt „Ausgewählte noch einmal prüfen", das Bildgitter des Doktors (`pwahlZeichnen` wird nur aufgerufen, nicht geändert), E2, alles aus „Nicht anfassen" der Übergabe. Benachrichtigungen fürs Gießen und der Schalter unter Einstellungen gehören nicht in diesen Plan (Backlog).
+Pflegetexte (E3). Sorte und alles am Anlegen außer dem Herausziehen der Gießart (E4). Diagnose, Zustand, Befund, Topf und Maßnahmen im Doktor, sein Auftrag und sein stilles Schreiben von Zustand und Notiz (Backlog). `kiFragen`, Parallelität und Bremse, Anhalten und Fortsetzen, die Leiste, die Startansicht samt Kästchen, die Benachrichtigung. `aenderungSetzen`, `Q_RANG`, `giftEigenSetzen`, `fest`/`strittig`, `merkmale`, die Bibliothek. Die Statuszeile unter Mehr (Backlog).
 
 ## Risiken
 
-- Der Plan behebt eine belegte Lücke beim Fortsetzen. Ob danach ein Lauf bei Chris durchkommt, ist nicht gesichert — die Ursache am Gerät ist weiter nur vermutet.
-- Der laufende Lauf auf Chris' Gerät stammt aus 3.19.x und hat kein `alle`. Vor dem Hochladen verwerfen.
-- Das Gitter lädt jetzt beim Öffnen gleich alle Vorschaubilder. Die Seite kann spürbar langsamer aufgehen.
-- „Anhalten" wirft Antworten weg, die gerade unterwegs sind. Diese Anfragen zählen trotzdem gegen das Google-Kontingent.
-- Die Laufansicht wird nach jeder Antwort neu gezeichnet. Ob die Seite dabei springt, zeigt nur das Handy.
-- Die Leiste wird durch die Prozentzahl breiter. Ob der Text neben dem Knopf noch in eine Zeile passt, zeigt nur das Handy.
+- Größe: groß. Ein Abbruch mitten im Bau ist wahrscheinlicher als bei einer mittleren Etappe. Abgefangen durch die Reihenfolge oben. Eine Aufteilung in Kartei und Doktor ist möglich.
+- Die Prüfungen zum Doktor-Abgleich (12 Stellen in pruef.js) fallen weg oder ziehen in die Kartei um. Dabei darf keine Prüfung verloren gehen, die sichert, dass eine KI nie entwarnt.
+- Wuchsform und Wichtig sind Freitext, verglichen wird wortgleich (belegt). Vermutet: Die Antwort formuliert fast immer anders, dann erscheinen Zeilen ohne echten Unterschied.
+- A6 macht jede Anfrage länger. Vermutet: Ein Lauf dauert spürbar länger und das Kontingent reicht für weniger Pflanzen.
+- Der Doktor-Auftrag fragt die Steckbrief-Felder weiter ab, zeigt sie aber nicht mehr. Das kostet Antwortlänge ohne Nutzen (Backlog).
+- Das Fenster vergleicht mit dem heutigen Stand der Karte, nicht mit dem Stand beim Lauf.
+- „Noch einmal prüfen“ ändert `karteiStarten`, das auch der normale Start benutzt.
+- Das Herausziehen der Gießart berührt das Anlegen.
+- Die Rückfrage zur Gießklasse ist ein Systemdialog über dem Fenster. Nur am Handy prüfbar.
+- Ob Zurück nur das Fenster schließt und nicht auch die Mehr-Unterseite, zeigt nur das Handy.
 
 ## Prüfung
 
-pruef.js prüft, mit selbst angelegten Pflanzen (mit und ohne Foto, mit und ohne Lücken) und gestubbtem `fetch`:
+pruef.js prüft, mit selbst angelegten Pflanzen und selbst eingetragenen Ergebnissen (gestubbtes `fetch` für Lauf und „noch einmal prüfen“):
 
-- Startansicht: Gitter sichtbar ohne weiteren Tipp; kein Knopf „Einzelne auswählen", kein „Alle anhaken", kein „Auswahl leeren"; zwei Kästchen mit Zahl.
-- „Alle" an → alle gewählt, Startknopf zählt alle; „Alle" ab → nichts gewählt.
-- „Nur mit Lücken" an → genau die Lücken-Menge gewählt; ab → diese Pflanzen raus.
-- Kachel antippen → Kästchen ziehen richtig nach.
-- Suche aktiv, „Alle" an → trotzdem alle gewählt.
-- Start → Auswahl und Startknopf weg, Balken und „· n %" im Abschnitt und in der Leiste.
-- „Anhalten" mit laufenden Anfragen → angehalten, „Fortsetzen" in Leiste und Abschnitt; „Fortsetzen" → jede Pflanze landet in `fertig`, der Lauf endet mit „y von y". Gegenprobe: ohne Nachbau der Warteschlange schlägt die Prüfung fehl.
-- Neustart (`laden()`) mit Anfragen, die beim Schließen liefen → sie werden nachgeholt. Gegenprobe wie oben.
-- „Lauf verwerfen" → Startansicht zurück, `S.kartei` weg.
-- Nach dem Ende → Ergebnisansicht wie bisher.
+- Auftrag mit und ohne Foto enthält die neuen Felder und keines der gestrichenen, auch bei einer Pflanze ohne Lücken.
+- Der Leser erkennt FAMILIE und DUENGER. DUENGER mit einem anderen Wort wird nicht übernommen.
+- Ergebniszeile zählt die Abweichungen, ohne Abweichung steht „Keine Abweichung“.
+- Ein Ergebnis aus 3.20.0 mit ZUSTAND und TOPF zeigt diese nicht.
+- Tipp auf den Namen öffnet das Fenster. Öffnen und Schließen ändert an der Pflanze nichts (Regel 10.8).
+- Nur fehlende oder abweichende Felder erscheinen. Ein Feld mit Stempel `hand` steht oben mit „von dir gesetzt“.
+- „Übernehmen“ schreibt genau dieses Feld mit Stempel `ki`, alles andere bleibt. Gegenprobe.
+- „×“ entfernt die Zeile, die Pflanze bleibt gleich, nach `laden()` bleibt die Zeile weg. Gegenprobe.
+- Art nur bei SICHERHEIT „hoch“. Übernehmen schreibt Art und botanischen Namen, eine `fest`e Giftangabe bleibt. Gegenprobe.
+- Gift: „giftig“ bei ungeprüfter Art → Knopf, Übernahme verschärft. „unbedenklich“ → nie Entwarnung, bei giftiger Art strittig. Gegenprobe.
+- Gießklasse weg von S mit abgelehnter Rückfrage schreibt nichts.
+- Sortenmerkmale landen in `sortenmerkmale`, `merkmale` bleibt gleich.
+- `giessartLesen` liefert dieselben Werte wie der bisherige Anlegen-Code. Anlegen mit „Wasserglas“ setzt weiter die Kulturform. In der Kartei nur Hinweis.
+- Familie, Düngebedarf, Speicher, Vermehrung: Übernehmen schreibt genau das Feld. Ein nicht zuordenbarer Wert erscheint nicht.
+- „Fertig — Rest verwerfen“ nimmt die Pflanze aus der Liste. Bei der letzten ist `S.kartei` weg und die Startansicht da.
+- Schließen über Zurück lässt die Zeilen stehen.
+- Eine gelöschte Pflanze fällt aus dem Ergebnis.
+- „Noch einmal prüfen“ mit einer von drei Pflanzen: zwei Ergebnisse bleiben, eines wird ersetzt. Gegenprobe.
+- Im Fenster kein Knopf für alles auf einmal.
+- Doktor: Nach einer Antwort mit abweichenden Steckbriefdaten, anderer Art, Merkmalen, Giftaussage und Vermehrung erscheint keiner der vier Kästen, und an der Pflanze ändern sich weder Steckbrief noch Vermehrungswege. Gegenprobe.
+- Doktor: Diagnose, Zustand und Maßnahmen-Auswahl erscheinen weiter.
 
-Nicht durch Tests abgedeckt — nur am Handy prüfbar: Aussehen der Kästchen und des Gitters, Scrollen im Gitter, Springen der Laufansicht, Breite der Leiste mit Prozentzahl, Ladezeit der Seite, alles in Chrome auf Android.
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: Aussehen des Fensters, Scrollen im Fenster, Zurück-Geste, Rückfrage-Dialog über dem Fenster, Lesbarkeit langer Werte, echte Gemini-Antworten mit dem neuen Auftrag, alles in Chrome auf Android.
 
 ## Größe
 
-Mittel.
+Groß.
 
 ---
 
-# Freigegeben im Zuschnitt, noch nicht im Detail — Etappe E2 · Prüfen und übernehmen
+# Zuschnitt, nicht freigegeben — Etappe E3 · Pflegetexte durch die KI
 
-Wird zu Beginn der nächsten Sitzung als eigener Plan ausgeschrieben.
+Wird nach E2 als eigener Plan ausgeschrieben.
 
-## Ziel
+- **Belegt** (Code): „Pflegeschritte“ (`pflege`, Liste) und „Winterruhe“ (`winterruhe`, ja/nein) gibt es nur an Pflanzen aus dem alten, von Hand geschriebenen Bestand, etwa Viktor. Das Anlegen schreibt beide nie.
+- **Belegt** (Code): Der Winterruhe-Text steht fest im Code und beschreibt die Venusfliegenfalle (3–4 Monate, 0–10 °C). Jede Pflanze mit `winterruhe` bekäme wortgleich denselben Text.
+- Die Kartei fragt zusätzlich PFLEGESCHRITTE (mehrere Zeilen) und RUHEPHASE (ein Absatz oder „keine“). Nur art- oder sortenspezifisch. Allgemeines wie „bei Trockenheit gießen“ ist im Auftrag ausdrücklich verboten.
+- Fehlen die Texte, zeigt das Fenster sie als neu. Sind sie da, zeigt es alt und neu nebeneinander. Übernahme je Block per Knopf, Stempel `ki`.
+- Die Ruhephase bekommt ein eigenes Textfeld. Der feste Venusfliegenfallen-Text bleibt nur für Pflanzen ohne eigenes Textfeld.
+- Offen: ob einzelne Pflegeschritte statt des ganzen Blocks übernehmbar sein sollen.
+- Nicht in E3: Herkunft, Lebensumstände, „Wenn etwas nicht stimmt“, Beobachtungen (Backlog).
 
-Das Ergebnis eines Laufs wird Zeile für Zeile durchgesehen und einzeln übernommen.
+Größe: mittel.
 
-## Zuschnitt, von Chris am 15.09.2026 gesetzt
+---
 
-- Kein blindes Sammelübernehmen. Jede Angabe wird vor der Übernahme angezeigt: Pflanze, Feld, alt → neu.
-- Auswählen und einzeln übernehmen. Was nicht übernommen wird, fällt weg — ein „Später" gibt es nicht.
-- Angaben, bei denen Chris unsicher ist, lassen sich anhaken und per Knopf noch einmal durchlaufen lassen. Der Weg dafür steht seit E1.
-- Die Rangfolge aus Etappe C entscheidet, was als Widerspruch gilt: ein Feld mit Stempel `hand` ist immer einer.
+# Zuschnitt, nicht freigegeben — Etappe E4 · Sorte durch die KI
+
+Wird nach E3 als eigener Plan ausgeschrieben.
+
+- **Belegt** (Code): Bisher nennt die KI absichtlich keinen Sortennamen, der Prüfauftrag verbietet ihn. Die Sorte tippt der Mensch. Chris hebt das am 16.09.2026 auf.
+- Anlegen und Kartei fragen SORTE mit eigener Sicherheit. Die Merkmale bleiben als Begründung.
+- Anlegen: Das Sortenfeld wird vorbelegt und als KI-Vorschlag gekennzeichnet. Gespeichert wird erst mit „Anlegen“.
+- Kartei: Die Sorte erscheint im Fenster als Zeile mit Knopf. Eine selbst eingetragene Sorte gilt als Widerspruch.
+- Risiko: Viele Sorten sind am Foto nicht sicher zu unterscheiden. Eine niedrige Sicherheit wird angezeigt, nie verschwiegen.
+
+Größe: mittel.
 
 ---
 
