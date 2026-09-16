@@ -146,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.21.0', w.__T('FASSUNG') === '3.21.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.22.0', w.__T('FASSUNG') === '3.22.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7026,7 +7026,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.21.0', e0.nr === '3.21.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.22.0', e0.nr === '3.22.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7910,7 +7910,20 @@ setTimeout(async () => {
       menge().join(',') === 'KA1,KA3', menge().join(','));
     const lueMenge = () => w.__T(`karteiLueckenMenge().map(function(p){return p.id;})`);
     pruef('Die Lücken-Menge nimmt die unvollständige Pflanze', lueMenge().indexOf('KA2') > -1);
-    pruef('Die Lücken-Menge nimmt auch die ohne Foto', lueMenge().indexOf('KA3') > -1);
+    /* Seit 3.22.0 ist ein fehlendes Foto keine Lücke. */
+    pruef('Eine Pflanze ohne Foto und ohne Lücke ist nicht in der Lücken-Menge', lueMenge().indexOf('KA3') === -1,
+      lueMenge().join(','));
+    {
+      const lu = o => w.__T(`karteiLuecken(${JSON.stringify(o)}).join(',')`);
+      pruef('Frostgrenze und Wuchsform aus der Bibliothek sind keine Lücke',
+        lu({id:'LX1', art:'Efeutute', botanisch:'Epipremnum aureum', typ:'', klasse:'B',
+            sonne:'hell', wichtig:'x', frostMin:null}) === '',
+        lu({id:'LX1', art:'Efeutute', botanisch:'Epipremnum aureum', typ:'', klasse:'B',
+            sonne:'hell', wichtig:'x', frostMin:null}));
+      pruef('Ohne Bibliothek bleibt die leere Frostgrenze eine Lücke',
+        lu({id:'LX2', art:'Testkraut', botanisch:'Fictus probatus', typ:'Kraut', klasse:'B',
+            sonne:'hell', wichtig:'x', frostMin:null}) === 'frostMin');
+    }
     pruef('Die Lücken-Menge lässt die vollständige stehen', lueMenge().indexOf('KA1') === -1);
 
     /* ── Startansicht mit zwei Kästchen (3.20.0) ── */
@@ -7932,6 +7945,11 @@ setTimeout(async () => {
       pruef('Zwei Kästchen zum Anhaken', !!kA() && !!kL()
         && kA().type === 'checkbox' && kL().type === 'checkbox');
       const nL = w.__T(`karteiLueckenMenge().length`);
+      {
+        const kopf = String((d.querySelector('#kartei-innen .fhint') || {}).textContent);
+        const m = kopf.match(/(\d+) mit Lücken/);
+        pruef('Kopfzeile und Kästchen nennen dieselbe Lückenzahl', !!m && Number(m[1]) === nL, kopf + ' / ' + nL);
+      }
       pruef('Die Kästchen tragen ihre Zahl',
         /\(\d+\)/.test(kA().parentNode.textContent)
         && kL().parentNode.textContent.indexOf('(' + nL + ')') > -1, kL().parentNode.textContent);
@@ -8366,10 +8384,27 @@ setTimeout(async () => {
       pruef('Ein leeres Feld zeigt den Wert der Bibliothek als alten Wert',
         /Aronstabgewächse/.test(String((d.querySelector('#ka-inhalt [data-kazeile="familie"] .ab-alt') || {}).textContent)),
         String((d.querySelector('#ka-inhalt [data-kazeile="familie"]') || {}).textContent));
-      pruef('Im Fenster gibt es keinen Knopf für alles auf einmal',
-        !/alles übernehmen/i.test(ka())
-        && d.querySelectorAll('#ka-inhalt [data-do="ka-nimm"]').length === fz().length
-        && d.querySelectorAll('#ka-inhalt button').length === fz().length * 2 + 1);
+      /* Seit 3.22.0: Kästchen je Zeile, Sammelknöpfe unten */
+      const kAus = () => d.querySelector('#ka-inhalt [data-do="ka-auswahl"]');
+      const kAlle = () => d.querySelector('#ka-inhalt [data-do="ka-alle"]');
+      const haken = key => {
+        const c = d.querySelector('#ka-inhalt [data-kahaken="' + key + '"]');
+        if(c) c.click();
+        return !!c;
+      };
+      pruef('Jede Zeile hat ein Kästchen und keinen eigenen Übernehmen-Knopf',
+        d.querySelectorAll('#ka-inhalt [data-kahaken]').length === fz().length
+        && !d.querySelector('#ka-inhalt [data-do="ka-nimm"]')
+        && d.querySelectorAll('#ka-inhalt .ka-zeile button').length === fz().length);
+      pruef('Beim Öffnen ist kein Kästchen angehakt',
+        d.querySelectorAll('#ka-inhalt [data-kahaken]:checked').length === 0);
+      pruef('„Ausgewählte übernehmen“ ist bei 0 gesperrt und nennt die Zahl',
+        !!kAus() && kAus().disabled === true && /\(0\)/.test(kAus().textContent), kAus() ? kAus().textContent : 'fehlt');
+      pruef('„Alle übernehmen“ nennt die Zahl',
+        !!kAlle() && kAlle().textContent.indexOf('(' + fz().length + ')') > -1, kAlle() ? kAlle().textContent : 'fehlt');
+      haken('familie'); haken('duenger');
+      pruef('Der Knopf zählt die Haken mit',
+        !!kAus() && kAus().disabled === false && /\(2\)/.test(kAus().textContent), kAus() ? kAus().textContent : '');
 
       w.__T(`modalZu('kartei-abgleich')`);
       await tick(); await tick();
@@ -8384,14 +8419,24 @@ setTimeout(async () => {
         pruef('Der Knopf ' + was + ' ' + (key || '') + ' ist da', !!b);
         if(b){ b.click(); await tick(); }
       };
-      await tipp('ka-nimm', 'sonne');
-      pruef('Übernehmen schreibt genau dieses Feld',
+      const nimmAus = async keys => {
+        keys.forEach(k => pruef('Das Kästchen ' + k + ' ist da', haken(k)));
+        const b = kAus();
+        pruef('„Ausgewählte übernehmen“ ist frei (' + keys.join(',') + ')', !!b && !b.disabled);
+        if(b){ b.click(); await tick(); }
+      };
+      pruef('Nach dem Schließen ist kein Kästchen mehr angehakt',
+        d.querySelectorAll('#ka-inhalt [data-kahaken]:checked').length === 0);
+      haken('sonne'); haken('duenger'); haken('duenger');
+      pruef('Ein zweiter Tipp nimmt den Haken wieder weg', !!kAus() && /\(1\)/.test(kAus().textContent));
+      await nimmAus([]);
+      pruef('Übernommen wird nur, was angehakt ist',
         kb('p.sonne') === 'hell' && kb('p.klasse') === 'B' && !kb('p.familie') && kb('p.duenger') === 'normal',
         kb('JSON.stringify([p.sonne, p.klasse, p.familie, p.duenger])'));
       pruef('mit Stempel ki', kb(`herkunftVon(p, 'sonne')`) === 'ki');
       pruef('Die Zeile ist danach weg', fz().indexOf('sonne') === -1 && fz().length === 6, fz().join(','));
       pruef('Das Fenster meldet die Übernahme',
-        /Licht übernommen/.test(String((d.getElementById('ka-meld') || {}).textContent)));
+        /Eine Angabe übernommen/.test(String((d.getElementById('ka-meld') || {}).textContent)));
 
       await tipp('ka-weg', 'familie');
       pruef('× entfernt die Zeile', fz().indexOf('familie') === -1);
@@ -8400,15 +8445,18 @@ setTimeout(async () => {
       pruef('Nach dem Neuladen bleiben übernommene und verworfene Zeilen weg',
         fz().indexOf('familie') === -1 && fz().indexOf('sonne') === -1 && fz().length === 5, fz().join(','));
 
-      await tipp('ka-nimm', 'klasse');
+      await nimmAus(['klasse', 'sortenmerkmale']);
       pruef('Übernehmen greift auch bei einer eigenen Angabe',
         kb('p.klasse') === 'C' && kb(`herkunftVon(p, 'klasse')`) === 'ki');
-      await tipp('ka-nimm', 'sortenmerkmale');
       pruef('Sortenmerkmale landen in sortenmerkmale',
         kb('p.sortenmerkmale') === 'gelb marmoriert' && kb('p.merkmale') === 'Bib');
-      await tipp('ka-nimm', 'speicher');
+      pruef('Zwei angehakt: der Rest bleibt offen und unverändert',
+        fz().join(',') === 'duenger,speicher,vermehrung' && !kb('p.speicher') && kb('p.duenger') === 'normal',
+        fz().join(','));
+      pruef('Die Meldung zählt die Übernahmen',
+        /2 Angaben übernommen/.test(String((d.getElementById('ka-meld') || {}).textContent)));
+      await nimmAus(['speicher', 'vermehrung']);
       pruef('Der Wasserspeicher wird übernommen', kb('p.speicher') === 'kein speicher', String(kb('p.speicher')));
-      await tipp('ka-nimm', 'vermehrung');
       pruef('Die Vermehrungswege werden übernommen',
         kb('(vermehrungKiVon(p) || {wege:[]}).wege.length') === 1);
       pruef('Der Zustand bleibt, wie er war', kb('zustandVon(p).code') !== 'wurzelfaeule');
@@ -8431,7 +8479,7 @@ setTimeout(async () => {
         S.eigene.push({id:'KB4', eigen:true, name:'Abgleich vier', art:'Venusfliegenfalle',
           botanisch:'Dionaea muscipula', typ:'Karnivore', klasse:'S', sonne:'voll', wichtig:'keine', frostMin:-5});
         S.kartei = {start:Date.UTC(2026, 0, 15, 12), ende:Date.now(), gesamt:1, offen:[], alle:['KB4'],
-          versuch:{}, aktiv:false, fertig:{KB4:{stand:'ok', art:'text', felder:{klasse:'normal'}}}};
+          versuch:{}, aktiv:false, fertig:{KB4:{stand:'ok', art:'text', felder:{klasse:'normal', licht:'hell'}}}};
         sichern(); karteiAbschnitt(); return 1;
       })()`);
       if(zeile('KB4')){ zeile('KB4').click(); await tick(); }
@@ -8439,17 +8487,67 @@ setTimeout(async () => {
         ka().indexOf(new Date(Date.UTC(2026, 0, 15, 12)).toLocaleDateString('de-DE')) > -1, ka().slice(0, 80));
       const vorherConfirm = w.confirm;
       w.confirm = () => false;
-      await tipp('ka-nimm', 'klasse');
+      await tipp('ka-alle');
       pruef('Abgelehnte Rückfrage bei Klasse S schreibt nichts',
         w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).klasse`) === 'S');
-      pruef('und die Zeile bleibt stehen', fz().indexOf('klasse') > -1);
+      pruef('und nur diese Zeile bleibt stehen', fz().join(',') === 'klasse', fz().join(','));
+      pruef('Die übrige Zeile ist übernommen',
+        w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).sonne`) === 'hell');
+      pruef('Die Meldung nennt, was offen bleibt',
+        /Gießklasse bleibt offen/.test(String((d.getElementById('ka-meld') || {}).textContent)),
+        String((d.getElementById('ka-meld') || {}).textContent));
       w.confirm = () => true;
-      await tipp('ka-nimm', 'klasse');
+      await nimmAus(['klasse']);
       await tick();
       pruef('Nach der letzten Zeile ist das Ergebnis weg', w.__T(`!S.kartei`) === true);
       pruef('und die Startansicht steht da', !!d.querySelector('#kartei-innen [data-do="kartei-los"]'));
       pruef('Das Fenster ist zu', w.__T(`modalOffen('kartei-abgleich')`) === false);
       w.confirm = vorherConfirm;
+
+      /* „Alle übernehmen“: alles, die Art zuerst (3.22.0) */
+      w.__T(`(function(){
+        S.eigene.push({id:'KB7', eigen:true, name:'Abgleich sieben', art:'Efeutute',
+          botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'B', sonne:'indirekt',
+          wichtig:'keine', frostMin:12, quellen:{klasse:'hand'}});
+        S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['KB7'],
+          versuch:{}, aktiv:false, fertig:{KB7:{stand:'ok', art:'teil', zeit:Date.now(), felder:{
+            art:'Grünlilie', bot:'Chlorophytum comosum', sicher:'hoch', klasse:'kakteenmodus', licht:'hell'}}}};
+        window.__reihe = [];
+        var a0 = artUebernehmen, s0 = aenderungSetzen;
+        artUebernehmen = function(){ __reihe.push('ART'); return a0.apply(this, arguments); };
+        aenderungSetzen = function(id, f){ __reihe.push(Object.keys(f || {}).join('+')); return s0.apply(this, arguments); };
+        window.__zurueck = function(){ artUebernehmen = a0; aenderungSetzen = s0; };
+        sichern(); karteiAbschnitt(); return 1;
+      })()`);
+      if(zeile('KB7')){ zeile('KB7').click(); await tick(); }
+      pruef('Die Art steht nicht oben, die eigene Angabe schon', fz()[0] === 'klasse' && fz().indexOf('art') > 0, fz().join(','));
+      await tipp('ka-alle');
+      const reihe7 = w.__T(`__reihe.join(',')`);
+      w.__T(`__zurueck()`);
+      const kb7 = c => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='KB7';}); return ${c}; })()`);
+      pruef('„Alle übernehmen“ schreibt jede Zeile',
+        kb7('p.art') === 'Grünlilie' && kb7('p.botanisch') === 'Chlorophytum comosum'
+        && kb7('p.klasse') === 'C' && kb7('p.sonne') === 'hell',
+        kb7('JSON.stringify([p.art, p.botanisch, p.klasse, p.sonne])'));
+      pruef('Die Art wird zuerst übernommen', reihe7.split(',')[0] === 'ART', reihe7);
+      pruef('Danach ist das Ergebnis weg und das Fenster zu',
+        w.__T(`!S.kartei`) === true && w.__T(`modalOffen('kartei-abgleich')`) === false);
+
+      /* Sortenschutz: ein längerer alter Name mit gleicher Gattung und Art */
+      {
+        w.__T(`(function(){
+          S.eigene.push({id:'KB8', eigen:true, name:'Jimmini Probe', art:'Dreifarbiger Kletterphilodendron',
+            botanisch:'Philodendron hederaceum Brasil (Dreifarbiger Kletterphilodendron)', typ:'Kletterpflanze',
+            klasse:'B', sonne:'indirekt', wichtig:'keine', frostMin:12});
+          sichern(); return 1; })()`);
+        const ab8 = felder => w.__T(`karteiAbweichungen(allePflanzen().find(function(x){return x.id==='KB8';}),
+          {stand:'ok', felder:${JSON.stringify(felder)}}).zeilen.map(function(z){return z.key;}).join(',')`);
+        const kurz8 = ab8({art:'Kletterphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'});
+        pruef('Eine Sorte im botanischen Namen ergibt keine Zeile Botanisch', kurz8.split(',').indexOf('botanisch') === -1, kurz8);
+        pruef('und keine Zeile Art', kurz8.split(',').indexOf('art') === -1, kurz8);
+        const anders8 = ab8({art:'Dreifarbiger Kletterphilodendron', bot:'Philodendron erubescens', sicher:'hoch'});
+        pruef('Eine andere Art im botanischen Namen ergibt weiter eine Zeile', anders8.split(',').indexOf('botanisch') > -1, anders8);
+      }
 
       /* Die Giftfrage: verschärfen ja, entwarnen nie */
       w.__T(`(function(){
@@ -8510,7 +8608,7 @@ setTimeout(async () => {
       w.__T(`(function(){
         delete S.kartei; KA_PFLANZE = null;
         S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KB'; });
-        if(S.edits){ ['KB1','KB2','KB3','KB4','KB5','KB6'].forEach(function(i){ delete S.edits[i]; }); }
+        if(S.edits){ ['KB1','KB2','KB3','KB4','KB5','KB6','KB7','KB8'].forEach(function(i){ delete S.edits[i]; }); }
         sichern(); karteiLeiste(); karteiAbschnitt(); return 1;
       })()`);
     }
@@ -8647,6 +8745,68 @@ setTimeout(async () => {
       return 1;
     })()`);
     await tick();
+  }
+
+  /* ══════════ Ableger erben alles Erbbare (3.22.0) ══════════ */
+  {
+    const q = (id, c) => w.__T(`(function(){ var p = allePflanzen().find(function(x){return x.id==='${id}';}); return ${c}; })()`);
+    const kid = w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'AE'; });
+      S.eigene.push({id:'AE1', eigen:true, name:'Erbmutter', art:'Testranke', botanisch:'Fictus rankens',
+        sorte:'Silber', sortenmerkmale:'silbrig gefleckt', familie:'Probegewächse', klasse:'B',
+        typ:'Kletterpflanze', sonne:'hell', frostMin:7, duenger:'sparsam', giessart:'tauchen',
+        wichtig:'Nie ins Herz gießen', speicher:'kein speicher',
+        vermehrungKi:{quelle:'Gemini', wege:[{methode:'Kopfsteckling'}]},
+        pflege:['Im Sommer auf den Balkon'], winterruhe:true,
+        topf:'12', topfform:'rund', substrat:'aroid', ablauf:'ja', kulturform:'erde', notiz:'Mutternotiz',
+        quellen:{wichtig:'hand', frostMin:'ki'}, todo:[], log:[]});
+      sichern();
+      return ablegerAnlegen('AE1', Object.keys(V_METHODEN)[0]).id;
+    })()`);
+    const erbe = w.__T(`JSON.stringify(ABLEGER_ERBE)`);
+    const felder = JSON.parse(erbe);
+    const js = f => `JSON.stringify(p['${f}'] === undefined ? null : p['${f}'])`;
+    const falsch = felder.filter(f => q(kid, js(f)) !== q('AE1', f === 'gift' ? 'JSON.stringify(giftVon(p))' : js(f)));
+    pruef('Ein neuer Ableger erbt jedes erbbare Feld', falsch.length === 0, falsch.join(','));
+    pruef('Die Liste nennt Wichtig, Speicher, Gießart und Frostgrenze',
+      ['wichtig','speicher','giessart','frostMin','sorte','gift'].every(f => felder.indexOf(f) > -1));
+    pruef('Nicht Erbbares bleibt beim Exemplar',
+      !q(kid, 'p.topf') && !q(kid, 'p.topfform') && !q(kid, 'p.substrat') && !q(kid, 'p.ablauf')
+      && !q(kid, 'p.kulturform') && !/Mutternotiz/.test(q(kid, 'p.notiz')));
+    pruef('Die Herkunft der geerbten Felder wandert mit',
+      q(kid, `herkunftVon(p, 'wichtig')`) === 'hand' && q(kid, `herkunftVon(p, 'frostMin')`) === 'ki');
+
+    /* Nachtrag für bestehende Ableger */
+    w.__T(`(function(){
+      S.eigene.push({id:'AE2', eigen:true, name:'Alter Ableger', art:'Testranke', klasse:'B',
+        eltern:'AE1', wichtig:'', frostMin:null, todo:[], log:[]});
+      S.eigene.push({id:'AE3', eigen:true, name:'Eigener Ableger', art:'Testranke', klasse:'B',
+        eltern:'AE1', wichtig:'Eigener Hinweis', todo:[], log:[]});
+      S.eigene.push({id:'AE4', eigen:true, name:'Waise', art:'Testranke', klasse:'B',
+        eltern:'AE-GIBTSNICHT', todo:[], log:[]});
+      S.eigene.push({id:'AE5', eigen:true, name:'Enkel', art:'Testranke', klasse:'B',
+        eltern:'AE2', todo:[], log:[]});
+      S.ablegerErbe = 0;
+      sichern(); laden(); return 1;
+    })()`);
+    pruef('Ein bestehender Ableger bekommt leere Felder von der Mutter',
+      q('AE2', 'p.wichtig') === 'Nie ins Herz gießen' && q('AE2', 'p.frostMin') === 7 && q('AE2', 'p.sorte') === 'Silber',
+      q('AE2', 'JSON.stringify([p.wichtig, p.frostMin, p.sorte])'));
+    pruef('Ein eigener Wert bleibt', q('AE3', 'p.wichtig') === 'Eigener Hinweis');
+    pruef('Ohne Mutter bleibt das Feld leer', !q('AE4', 'p.wichtig'));
+    pruef('Der Enkel erbt über den Ableger', q('AE5', 'p.wichtig') === 'Nie ins Herz gießen', String(q('AE5', 'p.wichtig')));
+    pruef('Der Ableger zählt danach nicht mehr als Lücke', q('AE2', 'karteiLuecken(p).join(",")') === '',
+      q('AE2', 'karteiLuecken(p).join(",")'));
+    w.__T(`(function(){
+      var p = S.eigene.find(function(x){ return x.id === 'AE2'; });
+      p.wichtig = ''; sichern(); laden(); return 1;
+    })()`);
+    pruef('Der Nachtrag läuft nur einmal', !q('AE2', 'p.wichtig'), String(q('AE2', 'p.wichtig')));
+
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'AE'; });
+      sichern(); render(); return 1;
+    })()`);
   }
 
   console.log('\n── Ergebnis ──');

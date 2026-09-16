@@ -4,6 +4,26 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.22.0 — 16. September 2026
+**Kartei: Kästchen statt Knöpfe**
+
+### Neu
+- **Kästchen im Abgleich-Fenster.** Jede Zeile hat ein Kästchen. Unten stehen „Ausgewählte übernehmen“ und „Alle übernehmen“, jeweils mit Anzahl. Die Art wird immer zuerst übernommen.
+- **Ableger erben alles Erbbare:** Art, botanischer Name, Sorte, Sortenmerkmale, Familie, Gießklasse, Giftigkeit, Wuchsform, Licht, Frostgrenze, Düngebedarf, Gießart, Wichtig, Wasserspeicher, Vermehrungswege, Pflegeschritte und Winterruhe. Bestehende Ableger bekommen leere Felder einmalig von der Mutter.
+
+### Behoben
+- **Knopf über dem Text.** Der Übernehmen-Knopf lag über dem alten Wert, der neue stand als schmale Spalte da. Jetzt steht der Wert in voller Breite unter dem Feldnamen.
+- **„Nur mit Lücken“ nahm jede Pflanze ohne Foto mit** und damit fast alle Ableger. Ein fehlendes Foto ist keine Lücke mehr.
+- **Ableger zählten als lückenhaft,** weil sie den wichtigen Hinweis der Mutter nicht erbten.
+- **Sorte im botanischen Namen.** Die Kartei bot an, etwa „Brasil“ zu streichen. Stimmen Gattung und Art, gilt ein längerer Name nicht mehr als Abweichung, und es erscheint keine Zeile „andere Art“.
+
+### Anders
+- **Lücken aus der Bibliothek:** Frostgrenze und Wuchsform, die die Karte aus der Bibliothek zeigt, zählen nicht mehr als Lücke.
+- **Eine Zahl für Lücken:** Kopfzeile und Kästchen zählen gleich.
+- **Gießklasse beim Sammelübernehmen:** Wer die Rückfrage ablehnt, behält nur diese Zeile offen.
+
+---
+
 ## 3.21.0 — 16. September 2026
 **Kartei: Abgleich Pflanze für Pflanze**
 

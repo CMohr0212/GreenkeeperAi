@@ -3453,6 +3453,25 @@ html[data-design="klartext"] .kartei-zeile{border-width:2px}
 .ka-bild{display:block;width:72px;height:72px;object-fit:cover;border-radius:var(--r-klein);margin:0 0 8px}
 .modal-box p.ka-hinweis{font-size:var(--t-s);line-height:1.5;color:var(--peat);margin:0 0 8px}
 .ab-alt.ka-leer{text-decoration:none;font-style:italic}
+/* Kartei-Fenster ab 3.22.0: Kästchen statt Knopf je Zeile. Der Wert
+   steht in voller Breite unter dem Feldnamen — in der Flex-Zeile des
+   Doktors schrumpfte er neben dem Knopf auf eine Wortbreite. */
+.ka-zeile{display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-top:1px solid var(--line);
+  font-size:var(--t-m)}
+.ka-zeile:first-child{border-top:0}
+.ka-zeile.ka-eigen{background:color-mix(in srgb, var(--peat) 6%, transparent)}
+.ka-wahl{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+  min-height:var(--tap);margin:0}
+.ka-wahl input[type="checkbox"]{flex:0 0 auto;width:22px;height:22px;margin:2px 0 0;
+  accent-color:var(--moss)}
+.ka-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ka-feld{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
+  text-transform:uppercase;color:var(--peat)}
+.ka-wert{overflow-wrap:anywhere;line-height:1.45}
+.ka-wirkung{font-size:var(--t-s);color:var(--peat);line-height:1.4}
+.ka-knoepfe{display:flex;flex-direction:column;gap:8px;margin-top:var(--a-3)}
+.ka-knoepfe button{width:100%}
+.ka-knoepfe button:disabled{opacity:.45;cursor:default}
 #install-sec .install-hin{margin:0 0 var(--a-3);font-size:var(--t-m);line-height:1.6}
 
 /* ── Tutorial ─────────────────────────────────────────────
@@ -11211,8 +11230,29 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.21.0';
+const FASSUNG = '3.22.0';
 const PATCHNOTES = [
+  {
+    nr: '3.22.0', datum: '2026-09-16', titel: 'Kartei: Kästchen statt Knöpfe',
+    kurz: [
+      'Im Abgleich-Fenster hakst du die Angaben an und übernimmst sie gesammelt. „Nur mit Lücken“ wählt nur noch Pflanzen, denen wirklich etwas fehlt.'
+    ],
+    neu: [
+      'Jede Zeile im Abgleich-Fenster hat ein Kästchen. Unten stehen „Ausgewählte übernehmen“ und „Alle übernehmen“, jeweils mit Anzahl.',
+      'Ableger erben alles, was für Art und Sorte gilt: auch Wichtig, Gießart, Wasserspeicher, Vermehrungswege und Pflegeschritte. Bestehende Ableger bekommen leere Felder einmalig von der Mutter.'
+    ],
+    behoben: [
+      'Der Übernehmen-Knopf lag über dem alten Wert, der neue Wert stand als schmale Spalte da. Jetzt steht der Wert in voller Breite unter dem Feldnamen.',
+      '„Nur mit Lücken“ nahm jede Pflanze ohne Foto mit, und damit fast alle Ableger. Ein fehlendes Foto ist keine Lücke mehr.',
+      'Ableger zählten als lückenhaft, weil sie den wichtigen Hinweis der Mutter nicht erbten.',
+      'Die Kartei bot an, eine Sorte aus dem botanischen Namen zu streichen, etwa „Brasil“. Stimmen Gattung und Art, gilt ein längerer Name nicht mehr als Abweichung.'
+    ],
+    besser: [
+      'Frostgrenze und Wuchsform aus der Bibliothek zählen nicht mehr als Lücke.',
+      'Kopfzeile und Kästchen nennen dieselbe Zahl an Pflanzen mit Lücken.',
+      'Lehnst du beim gesammelten Übernehmen die Rückfrage zur Gießklasse ab, bleibt nur diese Zeile offen.'
+    ]
+  },
   {
     nr: '3.21.0', datum: '2026-09-16', titel: 'Kartei: Abgleich Pflanze für Pflanze',
     kurz: [
@@ -12829,6 +12869,9 @@ function laden(){
   try{ const roh = localStorage.getItem(KEY); if(roh) S = Object.assign(S, JSON.parse(roh)); }
   catch(e){ SPEICHER_OK = false; }
   grundwerteErgaenzen();
+  /* Beim allerersten Laden kann noch nicht alles bereitstehen. Dann
+     holt der Aufruf hinter ablegerAnlegen den Nachtrag nach. */
+  try{ ablegerNachtrag(); }catch(e){}
 }
 
 /* ══════════════════ Fotospeicher ══════════════════
@@ -27282,6 +27325,70 @@ document.addEventListener('click', e=>{
 }
 
 /* Aus dem Leitfaden direkt einen Ableger in die Sammlung legen */
+/* Was ein Ableger von der Mutter erbt: alles, was für Art und Sorte
+   gilt. Topf, Substrat, Kulturform, Zustand, Notiz und Fotos gehören
+   zum Exemplar und bleiben aussen vor. */
+const ABLEGER_ERBE = ['art', 'botanisch', 'sorte', 'sortenmerkmale', 'familie', 'klasse', 'gift',
+  'typ', 'sonne', 'frostMin', 'duenger', 'bib', 'giessart', 'wichtig', 'speicher',
+  'vermehrungKi', 'pflege', 'winterruhe'];
+
+function ablegerLeer(v){
+  return v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);
+}
+
+function ablegerErbe(mutter, b){
+  const erbe = {};
+  const kopie = v => (v && typeof v === 'object') ? JSON.parse(JSON.stringify(v)) : v;
+  ABLEGER_ERBE.forEach(f=>{
+    let v = f === 'gift' ? giftVon(mutter) : mutter[f];
+    if(ablegerLeer(v) && b){
+      if(f === 'botanisch' || f === 'bib') v = b.bot;
+      else if(f === 'familie') v = b.fam;
+    }
+    if(!ablegerLeer(v)) erbe[f] = kopie(v);
+  });
+  /* Die Herkunft der geerbten Steckbrieffelder wandert mit. */
+  const q = mutter.quellen;
+  if(q && typeof q === 'object' && !Array.isArray(q)){
+    const qq = {};
+    Q_FELDER.forEach(f=>{ if(q[f] && Object.prototype.hasOwnProperty.call(erbe, f)) qq[f] = q[f]; });
+    if(Object.keys(qq).length) erbe.quellen = qq;
+  }
+  return erbe;
+}
+
+/* Einmalig: bestehende Ableger bekommen leere erbbare Felder von der
+   Mutter. Enkel erben über den Ableger, deshalb mehrere Runden.
+   Gespeichert wird mit dem nächsten sichern(). */
+function ablegerNachtrag(){
+  if(!S || S.ablegerErbe) return false;
+  const eigene = Array.isArray(S.eigene) ? S.eigene : [];
+  let geaendert = false;
+  for(let runde = 0; runde < 6; runde++){
+    let neu = false;
+    const alle = allePflanzen();
+    eigene.forEach(p=>{
+      if(!p || !p.eltern || p.eltern === p.id) return;
+      const m = alle.find(x=>x.id === p.eltern);
+      if(!m) return;
+      const erbe = ablegerErbe(m, bibVon(m));
+      Object.keys(erbe).forEach(f=>{
+        if(f === 'quellen' || !ablegerLeer(p[f])) return;
+        p[f] = erbe[f];
+        neu = true;
+        if(erbe.quellen && erbe.quellen[f]){
+          const q = (p.quellen && typeof p.quellen === 'object' && !Array.isArray(p.quellen)) ? p.quellen : {};
+          p.quellen = Object.assign({}, q, {[f]: erbe.quellen[f]});
+        }
+      });
+    });
+    if(!neu) break;
+    geaendert = true;
+  }
+  S.ablegerErbe = 1;
+  return geaendert;
+}
+
 function ablegerAnlegen(mutterId, methodeId){
   const mutter = allePflanzen().find(x=>x.id===mutterId);
   const m = V_METHODEN[methodeId];
@@ -27292,23 +27399,22 @@ function ablegerAnlegen(mutterId, methodeId){
   const p = {
     id, eigen:true,
     name:'Ableger von ' + nice(mutter),
-    art: mutter.art, botanisch: mutter.botanisch || (b ? b.bot : ''),
-    /* Ein Steckling ist dieselbe Sorte wie die Mutter. */
-    sorte: mutter.sorte || '', sortenmerkmale: mutter.sortenmerkmale || '',
-    familie: mutter.familie || (b ? b.fam : ''),
-    klasse: mutter.klasse, gift: giftVon(mutter),
-    raum: mutter.raum || '', stellplatz: mutter.stellplatz || '', typ: mutter.typ, sonne: mutter.sonne,
-    frostMin: mutter.frostMin, duenger: mutter.duenger,
+    art: mutter.art, botanisch: '', sorte: '', sortenmerkmale: '', familie: '',
+    klasse: mutter.klasse,
+    raum: mutter.raum || '', stellplatz: mutter.stellplatz || '',
     /* Nur ein von Hand gesetzter Rhythmus wandert mit. Sonst gilt der
        Klassenwert, den der Zustand „Steckling“ zusätzlich verkürzt. */
     intervall: (mutter.intervallEigen && mutter.intervall) ? mutter.intervall.slice() : undefined,
     intervallEigen: !!mutter.intervallEigen,
-    bib: mutter.bib || (b ? b.bot : null),
+    bib: null,
     eltern: mutterId, linie:null, seit: heute,
     notiz: m.name + ' am ' + heute + ', genommen von ' + nice(mutter) + '.\n'
          + 'Erwartete Bewurzelung in etwa ' + Math.round(m.dauer/7) + ' Wochen.',
     todo:[], log:[]
   };
+  /* Ein Steckling ist dieselbe Art und Sorte wie die Mutter — er erbt
+     alles, was dafür gilt. */
+  Object.assign(p, ablegerErbe(mutter, b));
   S.eigene = S.eigene || [];
   S.eigene.push(p);
   /* Zustand „Steckling“ mit Stichtag, damit die App nachfragt */
@@ -27327,6 +27433,10 @@ function ablegerAnlegen(mutterId, methodeId){
   sichern();
   return p;
 }
+
+/* Nachtrag für bestehende Ableger. Der Aufruf in laden() kommt beim
+   Start zu früh — ABLEGER_ERBE steht erst hier. */
+try{ ablegerNachtrag(); }catch(e){}
 
 document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]'); if(!b) return;
@@ -27747,7 +27857,14 @@ function karteiLuecken(p){
   if(!p) return [];
   return KARTEI_PFLICHT.filter(f=>{
     const v = p[f];
-    return v === null || v === undefined || v === '';
+    if(!(v === null || v === undefined || v === '')) return false;
+    /* Frostgrenze und Wuchsform zeigt die Karte aus der Bibliothek an,
+       wenn die Pflanze selbst nichts hat. Dann ist das keine Lücke. */
+    if(f === 'frostMin' || f === 'typ'){
+      const b = karteiBibWert(p, f);
+      if(b !== null && b !== undefined && b !== '') return false;
+    }
+    return true;
   });
 }
 function karteiArt(p){
@@ -28094,8 +28211,10 @@ let KARTEI_WAHL = new Set();
    bleibt die Auswahl stehen, bis die App neu startet. */
 let KARTEI_WAHL_BEREIT = false;
 
+/* Nur Pflanzen mit echter Lücke. Ein fehlendes Foto ist keine — bis
+   3.21.0 zählte es mit, und so landeten alle Ableger in der Auswahl. */
 function karteiLueckenMenge(){
-  return allePflanzen().filter(p=>karteiLuecken(p).length || !karteiFoto(p));
+  return allePflanzen().filter(p=>karteiLuecken(p).length);
 }
 
 function karteiMenge(){
@@ -28195,6 +28314,22 @@ function karteiGiftWort(g){
   return st ? st.wort : '';
 }
 
+/* Gattung und Art, ohne Sorte oder Zusatz dahinter */
+function karteiGattungArt(b){
+  return norm(String(b || '')).split(/\s+/).filter(Boolean).slice(0, 2).join(' ');
+}
+function karteiWortzahl(b){
+  return String(b || '').trim().split(/\s+/).filter(Boolean).length;
+}
+/* Der alte Name ist nur länger, Gattung und Art stimmen: dann steht dort
+   eine Sorte oder ein Zusatz, den die Antwort nicht nennen darf. Das ist
+   keine Abweichung — „Übernehmen“ würde die Sorte löschen. */
+function karteiNurKuerzer(alt, neu){
+  const ga = karteiGattungArt(neu);
+  return !!ga && ga.indexOf(' ') > 0 && ga === karteiGattungArt(alt)
+    && karteiWortzahl(alt) > karteiWortzahl(neu);
+}
+
 function karteiAbweichungen(p, erg){
   const zeilen = [], hinweise = [];
   if(!p || !erg || erg.stand !== 'ok') return {zeilen:zeilen, hinweise:hinweise};
@@ -28207,11 +28342,14 @@ function karteiAbweichungen(p, erg){
   const artNeu = String(d.art || '').trim();
   const botNeu = String(d.bot || '').trim();
   const sicher = norm(d.sicher || '');
-  const gleicheArt = botNeu && p.botanisch && norm(botNeu) === norm(p.botanisch);
+  const gleicheArt = botNeu && p.botanisch && (norm(botNeu) === norm(p.botanisch)
+    || (karteiGattungArt(botNeu).indexOf(' ') > 0
+        && karteiGattungArt(botNeu) === karteiGattungArt(p.botanisch)));
   if(artNeu && norm(artNeu) !== norm(p.art || '') && !gleicheArt){
     if(sicher === 'hoch'){
       zeilen.push({key:'art', name:'Art', hand:hand('art'), alt:p.art || '',
         neu:artNeu + (botNeu ? ' (' + botNeu + ')' : ''), knopf:'Art übernehmen',
+        wirkung:'Setzt Art und botanischen Namen.',
         nimm:()=>artUebernehmen(id, artNeu, botNeu)});
     } else {
       hinweise.push('Die Antwort nennt eine andere Art („' + artNeu + '“), ist sich aber nicht sicher. '
@@ -28231,6 +28369,7 @@ function karteiAbweichungen(p, erg){
     }
     if(f.feld === 'typ' && (karteiLeer(alt) || alt === 'Ohne Angabe')) alt = karteiBibWert(p, 'typ') || '';
     if(String(alt) === String(neu)) return;
+    if(f.feld === 'botanisch' && karteiNurKuerzer(alt, neu)) return;
     zeilen.push({key:f.feld, name:f.name, hand:hand(f.feld), wert:neu,
       alt:karteiLeer(alt) ? '' : f.zeig(alt), neu:f.zeig(neu),
       nimm:()=>aenderungSetzen(id, {[f.feld]: neu}, 'ki', true)});
@@ -28286,16 +28425,17 @@ function karteiAbweichungen(p, erg){
       if(g && g.status !== 'fest') hinweise.push('Zur Giftfrage hat die Antwort nichts Verwertbares gesagt.');
     } else if(lage.ergebnis === 'verschaerft'){
       zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g), neu:'giftig',
-        knopf:'Als giftig übernehmen', nimm:nimm});
+        knopf:'Als giftig übernehmen', wirkung:'Wird als giftig übernommen.', nimm:nimm});
     } else if(lage.ergebnis === 'strittig'){
       if(g && g.status !== 'strittig')
         zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g),
           neu:'Antwort sagt unbedenklich — es bleibt bei der strengeren Angabe',
-          knopf:'Als strittig vermerken', nimm:nimm});
+          knopf:'Als strittig vermerken', wirkung:'Wird als strittig vermerkt.', nimm:nimm});
     } else if(lage.ergebnis === 'bestaetigt'){
       if(g && g.status !== 'fest')
         zeilen.push({key:'gift', name:'Giftigkeit', hand:eigen, alt:karteiGiftWort(g) + ' (ungeprüft)',
-          neu:karteiGiftWort(lage.gift) + ' (bestätigt)', knopf:'Als bestätigt vermerken', nimm:nimm});
+          neu:karteiGiftWort(lage.gift) + ' (bestätigt)', knopf:'Als bestätigt vermerken',
+          wirkung:'Wird als bestätigt vermerkt.', nimm:nimm});
     } else if(lage.ergebnis === 'bleibtOffen'){
       hinweise.push('Die Antwort nennt sie unbedenklich. Eine Entwarnung übernimmt die App nicht — die Giftfrage bleibt offen.');
     }
@@ -28395,20 +28535,41 @@ function karteiFensterZeichnen(meldung, art){
     + ab.hinweise.map(h=>'<p class="ka-hinweis">' + esc(h) + '</p>').join('')
     + (zeilen.length
        ? '<div class="abgleich ka-liste">' + zeilen.map(z=>
-           '<div class="ab-zeile' + (z.hand ? ' ab-eigen' : '') + '" data-kazeile="' + esc(z.key) + '">'
-           + '<span class="ab-feld">' + esc(z.name)
+           '<div class="ka-zeile' + (z.hand ? ' ka-eigen' : '') + '" data-kazeile="' + esc(z.key) + '">'
+           + '<label class="ka-wahl">'
+           + '<input type="checkbox" data-kahaken="' + esc(z.key) + '">'
+           + '<span class="ka-text">'
+           + '<span class="ka-feld">' + esc(z.name)
            + (z.hand ? '<i class="ab-herkunft">von dir gesetzt</i>' : '') + '</span>'
-           + '<span class="ab-wert">'
+           + '<span class="ka-wert">'
            + (z.alt ? '<span class="ab-alt">' + esc(z.alt) + '</span>' : '<span class="ab-alt ka-leer">leer</span>')
            + ' → ' + esc(z.neu) + '</span>'
-           + '<button type="button" class="ab-nimm" data-do="ka-nimm" data-k="' + esc(z.key) + '">'
-           + esc(z.knopf || 'Übernehmen') + '</button>'
+           + (z.wirkung ? '<span class="ka-wirkung">' + esc(z.wirkung) + '</span>' : '')
+           + '</span></label>'
            + '<button type="button" class="ab-weg" data-do="ka-weg" data-k="' + esc(z.key) + '"'
            + ' aria-label="' + esc(z.name) + ' verwerfen">×</button>'
            + '</div>').join('') + '</div>'
        : '<p class="allgut">Keine Abweichung zur Karte.</p>')
     + '<p class="kihinweis' + (art ? ' ' + art : '') + '" id="ka-meld">' + esc(meldung || '') + '</p>'
-    + '<div class="tools"><button type="button" data-do="ka-fertig">Fertig — Rest verwerfen</button></div>';
+    + '<div class="ka-knoepfe">'
+    + (zeilen.length
+       ? '<button type="button" data-do="ka-auswahl" disabled>Ausgewählte übernehmen (0)</button>'
+         + '<button type="button" data-do="ka-alle">Alle übernehmen (' + zeilen.length + ')</button>'
+       : '')
+    + '<button type="button" data-do="ka-fertig">Fertig — Rest verwerfen</button></div>';
+}
+
+/* Die Zahl im Knopf folgt den Haken, ohne das Fenster neu zu zeichnen. */
+function karteiHakenZaehlen(){
+  const n = document.querySelectorAll('#ka-inhalt [data-kahaken]:checked').length;
+  const b = document.querySelector('#ka-inhalt [data-do="ka-auswahl"]');
+  if(b){ b.disabled = n === 0; b.textContent = 'Ausgewählte übernehmen (' + n + ')'; }
+  return n;
+}
+function karteiHaken(){
+  return Array.prototype.slice
+    .call(document.querySelectorAll('#ka-inhalt [data-kahaken]:checked'))
+    .map(x=>x.dataset.kahaken);
 }
 
 function karteiAktion(was, key){
@@ -28423,14 +28584,26 @@ function karteiAktion(was, key){
   erg.erledigt = erg.erledigt || {};
   let meld = '';
   if(was === 'nimm'){
-    const z = karteiOffeneZeilen(p, erg).find(x=>x.key === key);
-    if(!z) return;
-    /* Weg von Klasse S nimmt Anstau und Karnivorenrhythmus — das
-       fragt die App wie bisher nach. */
-    if(z.key === 'klasse' && !klasseSBestaetigt(id, z.wert)) return;
-    z.nimm();
-    erg.erledigt[key] = 'nimm';
-    meld = z.name + ' übernommen.';
+    /* key ist eine Liste. Die Zeilen werden vorher einmal bestimmt, die
+       Art geht zuerst — sie setzt auch den botanischen Namen. */
+    const keys = Array.isArray(key) ? key : (key ? [key] : []);
+    const offen = karteiOffeneZeilen(p, erg);
+    const wahl = offen.filter(z=>keys.indexOf(z.key) > -1)
+      .sort((a, b)=>(a.key === 'art' ? 0 : 1) - (b.key === 'art' ? 0 : 1));
+    if(!wahl.length) return;
+    let n = 0;
+    const liegen = [];
+    wahl.forEach(z=>{
+      /* Weg von Klasse S nimmt Anstau und Karnivorenrhythmus — das
+         fragt die App wie bisher nach. Abgelehnt bleibt nur diese Zeile. */
+      if(z.key === 'klasse' && !klasseSBestaetigt(id, z.wert)){ liegen.push(z.name); return; }
+      z.nimm();
+      erg.erledigt[z.key] = 'nimm';
+      n++;
+    });
+    meld = (n === 0 ? 'Nichts übernommen.' : n === 1 ? 'Eine Angabe übernommen.' : n + ' Angaben übernommen.')
+      + (liegen.length ? ' ' + liegen.join(', ') + ' bleibt offen.' : '');
+    if(!n){ karteiFensterZeichnen(meld, 'warn'); return; }
   } else if(was === 'weg'){
     if(!key) return;
     erg.erledigt[key] = 'weg';
@@ -28542,8 +28715,8 @@ function karteiAbschnitt(){
     KARTEI_WAHL_BEREIT = true;
   }
   const menge = karteiMenge();
-  const luecken = alle.filter(p=>karteiLuecken(p).length).length;
   const lueMenge = karteiLueckenMenge().length;
+  const luecken = lueMenge;
 
   box.innerHTML = '<p class="fhint">' + alle.length + ' Pflanzen · ' + luecken
       + ' mit Lücken · ' + ohneFoto.length + ' ohne Foto</p>'
@@ -28612,7 +28785,18 @@ document.addEventListener('click', e=>{
       if(!ids.length){ karteiMeldung('Hak zuerst an, was noch einmal laufen soll.', 'warn'); return; }
       karteiLos(ids, true); return;
     }
-    if(a === 'ka-nimm'){ karteiAktion('nimm', b.dataset.k); return; }
+    if(a === 'ka-auswahl'){
+      const keys = karteiHaken();
+      if(keys.length) karteiAktion('nimm', keys);
+      return;
+    }
+    if(a === 'ka-alle'){
+      const p = allePflanzen().find(x=>x.id === KA_PFLANZE);
+      const k = karteiStand();
+      const erg = (p && k && k.fertig) ? k.fertig[p.id] : null;
+      if(p && erg) karteiAktion('nimm', karteiOffeneZeilen(p, erg).map(z=>z.key));
+      return;
+    }
     if(a === 'ka-weg'){ karteiAktion('weg', b.dataset.k); return; }
     if(a === 'ka-fertig'){ karteiAktion('fertig'); return; }
     if(a === 'ka-zu'){ if(typeof modalZu === 'function') modalZu('kartei-abgleich'); return; }
@@ -28636,6 +28820,7 @@ document.addEventListener('click', e=>{
    sie filtert nur, was im Gitter zu sehen ist. Nur das Gitter wird neu
    gezeichnet — der ganze Abschnitt wuerde zurueckscrollen. */
 document.addEventListener('change', e=>{
+  if(e.target && e.target.closest && e.target.closest('[data-kahaken]')){ karteiHakenZaehlen(); return; }
   const kasten = e.target && e.target.closest && e.target.closest('[data-karteikasten]');
   if(!kasten) return;
   const an = !!kasten.checked;
