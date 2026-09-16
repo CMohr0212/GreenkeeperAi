@@ -3426,7 +3426,13 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 
 #kartei-gitter{margin:var(--a-3) 0}
 #kartei-such{width:100%;margin-bottom:var(--a-2)}
-.kartei-wahl button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.kartei-kaesten{display:flex;flex-wrap:wrap;gap:var(--a-2) var(--a-4);margin:var(--a-3) 0 var(--a-2)}
+.kartei-kaesten label{display:flex;align-items:center;gap:9px;min-height:var(--tap);font-size:var(--t-m);cursor:pointer}
+.kartei-kaesten input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--moss)}
+.kartei-kaesten input[type=checkbox]:disabled + span{color:var(--matt)}
+.kartei-balken{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:var(--a-3) 0 var(--a-2)}
+.kartei-balken i{display:block;height:100%;background:var(--moss);transition:width var(--dauer)}
+.kartei-stand{font-size:var(--t-m)}
 .kartei-erg{display:grid;gap:6px;margin:var(--a-2) 0}
 .kartei-zeile{display:flex;align-items:center;gap:10px;padding:9px 11px;
   border:1px solid var(--line);border-radius:var(--r-klein);min-height:var(--tap)}
@@ -11189,8 +11195,28 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.19.1';
+const FASSUNG = '3.20.0';
 const PATCHNOTES = [
+  {
+    nr: '3.20.0', datum: '2026-09-16', titel: 'Auffrischen: aufgeräumt und fortsetzbar',
+    kurz: [
+      'Die Seite „Kartei auffrischen“ zeigt die Auswahl sofort, während eines Laufs nur den Fortschritt — und ein angehaltener Lauf macht dort weiter, wo er stand.'
+    ],
+    neu: [
+      'Das Bildgitter steht gleich da. Statt drei Knöpfen gibt es zwei Kästchen: „Alle“ und „Nur mit Lücken“, jeweils mit Anzahl. Einzelne Pflanzen hakst du direkt im Gitter an oder ab.',
+      'Während eines Laufs verschwindet die Auswahl. Der Abschnitt zeigt einen Fortschrittsbalken und die Pflanzen, die schon fertig sind.',
+      'Die Leiste unten nennt jetzt auch die Prozentzahl.',
+      'Aus „Abbrechen“ wird „Anhalten“. Danach stehen „Fortsetzen“ und „Lauf verwerfen“ bereit.'
+    ],
+    behoben: [
+      'Pflanzen, deren Anfrage beim Schließen der App oder beim Abbrechen gerade lief, gingen verloren — der Lauf kam dadurch nie auf „alle fertig“. Jetzt werden sie nachgeholt.',
+      'Nach „Abbrechen“ ließ sich ein Lauf nicht fortsetzen.'
+    ],
+    besser: [
+      'Die Suche im Gitter filtert nur die Anzeige. „Alle“ hakt immer alle Pflanzen an.',
+      'Ein Lauf aus der Vorfassung lässt sich nicht fortsetzen, nur verwerfen.'
+    ]
+  },
   {
     nr: '3.19.1', datum: '2026-09-15', titel: 'Löschen geht wieder',
     kurz: [
@@ -28050,14 +28076,41 @@ let KARTEI_BREMSE_BIS = 0;
 let KARTEI_WARTET = false;
 
 function karteiStand(){ return (S && S.kartei) ? S.kartei : null; }
+/* Jeder Start, jedes Anhalten und jedes Verwerfen zaehlt hoch. Eine
+   Anfrage, die unter einer aelteren Nummer losgelaufen ist, schreibt
+   nichts mehr — sonst traegt eine abgebrochene Antwort nach dem
+   Fortsetzen die neue Anfrage derselben Pflanze aus. */
+let KARTEI_GEN = 0;
+
+/* Die Warteschlange neu aus der vollstaendigen Liste bauen: alles,
+   was noch kein Ergebnis hat. Anfragen, die beim Schliessen der App
+   oder beim Anhalten unterwegs waren, stehen sonst nirgends mehr. */
+function karteiNachbauen(k){
+  if(!k || !Array.isArray(k.alle)) return false;
+  k.offen = k.alle.filter(id=>!k.fertig[id]);
+  return true;
+}
+
+/* Wie weit ist der Lauf? Leiste und Abschnitt zeigen dieselben Zahlen. */
+function karteiFortschritt(k){
+  const fertig = Object.keys(k.fertig || {}).length;
+  const teil = k.gesamt ? Math.min(100, Math.round(fertig / k.gesamt * 100)) : 0;
+  const laeuft = !!k.aktiv && (k.offen.length > 0 || karteiLaufend() > 0);
+  const bei = Math.min(k.gesamt, fertig + 1);
+  const text = laeuft ? 'Prüfe ' + bei + ' von ' + k.gesamt + ' · ' + teil + ' %'
+    : k.pausiert ? 'Angehalten bei ' + fertig + ' von ' + k.gesamt + ' · ' + teil + ' %'
+    : 'Kartei aufgefrischt · ' + fertig + ' von ' + k.gesamt;
+  return {fertig:fertig, teil:teil, laeuft:laeuft, text:text};
+}
 function karteiLaufend(){ return Object.keys(KARTEI_CTRL).length; }
 
 function karteiStarten(ids){
   const liste = (ids || []).filter(Boolean);
   if(!liste.length) return false;
   if(karteiLaufend()) return false;
+  KARTEI_GEN++;
   S.kartei = {start:Date.now(), gesamt:liste.length, offen:liste.slice(),
-              fertig:{}, versuch:{}, aktiv:true};
+              alle:liste.slice(), fertig:{}, versuch:{}, aktiv:true};
   sichern();
   karteiErlaubnisFragen();
   karteiLeiste();
@@ -28066,16 +28119,32 @@ function karteiStarten(ids){
   return true;
 }
 
+/* Anhalten: laufende Anfragen fallen weg, die Warteschlange bleibt.
+   „Fortsetzen" holt nach, was noch kein Ergebnis hat. */
 function karteiAbbrechen(){
   const k = karteiStand(); if(!k) return;
-  k.aktiv = false; k.pausiert = false; k.offen = [];
+  KARTEI_GEN++;
   Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
   KARTEI_CTRL = {};
+  k.aktiv = false;
+  karteiNachbauen(k);
+  if(k.offen.length){ k.pausiert = true; }
+  else { k.pausiert = false; k.ende = Date.now(); }
   sichern(); karteiLeiste(); karteiAbschnitt();
+}
+
+function karteiFortsetzen(){
+  const k = karteiStand(); if(!k || !Array.isArray(k.alle)) return;
+  karteiNachbauen(k);
+  if(!k.offen.length){ karteiFertig(); return; }
+  KARTEI_GEN++;
+  k.aktiv = true; k.pausiert = false; k.start = Date.now();
+  sichern(); karteiLeiste(); karteiAbschnitt(); karteiPumpe();
 }
 
 function karteiVerwerfen(){
   const k = karteiStand(); if(!k) return;
+  KARTEI_GEN++;
   Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
   KARTEI_CTRL = {};
   delete S.kartei;
@@ -28123,6 +28192,7 @@ function karteiNochmal(id, k){
 
 async function karteiEine(id){
   const k = karteiStand(); if(!k) return;
+  const gen = KARTEI_GEN;
   KARTEI_CTRL[id] = {abort(){}};
   const p = allePflanzen().find(x=>x.id === id);
   if(!p){ karteiEintragen(id, {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.'}); return; }
@@ -28130,14 +28200,17 @@ async function karteiEine(id){
   const t0 = Date.now();
   let bilder = null;
   try{ bilder = await karteiBilder(p); }catch(e){ bilder = null; }
+  if(gen !== KARTEI_GEN) return;
   const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   if(c) KARTEI_CTRL[id] = c;
   try{
     const txt = await kiFragen(auftrag.text, bilder, null, c);
+    if(gen !== KARTEI_GEN) return;
     const felder = (typeof geminiLesen === 'function') ? (geminiLesen(txt) || {}) : {};
     karteiEintragen(id, {stand:'ok', art:auftrag.art, felder:felder,
       anzahl:Object.keys(felder).length, dauer:Date.now() - t0});
   }catch(e){
+    if(gen !== KARTEI_GEN) return;
     const st = karteiStand();
     if(!st){ delete KARTEI_CTRL[id]; return; }
     if(e && e.name === 'AbortError' && !st.aktiv){ delete KARTEI_CTRL[id]; return; }
@@ -28187,8 +28260,17 @@ function karteiMelden(k){
 function karteiWiederaufnehmen(){
   const k = karteiStand();
   if(!k) return;
+  /* Ein Lauf aus 3.19.x kennt seine vollstaendige Liste nicht. Er
+     laesst sich nicht nachbauen und darum nur noch verwerfen. */
+  if(k.aktiv && !Array.isArray(k.alle)){
+    k.aktiv = false; k.pausiert = true;
+    sichern(); karteiLeiste(); karteiAbschnitt();
+    return;
+  }
+  if(k.aktiv) karteiNachbauen(k);
   karteiLeiste();
-  if(!k.aktiv || !k.offen.length) return;
+  if(!k.aktiv) return;
+  if(!k.offen.length){ karteiFertig(); return; }
   if((Date.now() - k.start) < KARTEI_WIEDER && typeof kiBereit === 'function' && kiBereit()){
     karteiPumpe();
   } else {
@@ -28207,29 +28289,48 @@ function karteiLeiste(){
     s.id = 'kartei-streifen';
     document.body.appendChild(s);
   }
-  const fertig = Object.keys(k.fertig).length;
-  const laeuft = !!k.aktiv && (k.offen.length > 0 || karteiLaufend() > 0);
-  const teil = k.gesamt ? Math.round(fertig / k.gesamt * 100) : 0;
-  const bei = Math.min(k.gesamt, fertig + 1);
-  s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + teil + '%"></i></div>'
-    + '<span>' + esc(laeuft ? 'Prüfe ' + bei + ' von ' + k.gesamt
-        : k.pausiert ? 'Angehalten bei ' + fertig + ' von ' + k.gesamt
-        : 'Kartei aufgefrischt · ' + fertig + ' von ' + k.gesamt) + '</span>'
-    + (laeuft ? '<button type="button" data-do="kartei-stopp">Abbrechen</button>'
-      : k.pausiert ? '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>'
+  const f = karteiFortschritt(k);
+  const laeuft = f.laeuft;
+  s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + f.teil + '%"></i></div>'
+    + '<span>' + esc(f.text) + '</span>'
+    + (laeuft ? '<button type="button" data-do="kartei-stopp">Anhalten</button>'
+      : k.pausiert ? (Array.isArray(k.alle)
+          ? '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>' : '')
       : '<button type="button" class="haupt" data-do="kartei-ansehen">Ansehen</button>')
     + (laeuft ? '' : '<button type="button" data-do="kartei-weg" aria-label="Ergebnis verwerfen">\u00d7</button>');
 }
 
 /* ── Der Abschnitt unter Mehr ───────────────────────────────── */
-let KARTEI_ART = 'alle';
 let KARTEI_WAHL = new Set();
+/* Beim ersten Zeichnen nach dem App-Start ist alles angehakt. Danach
+   bleibt die Auswahl stehen, bis die App neu startet. */
+let KARTEI_WAHL_BEREIT = false;
+
+function karteiLueckenMenge(){
+  return allePflanzen().filter(p=>karteiLuecken(p).length || !karteiFoto(p));
+}
 
 function karteiMenge(){
+  return allePflanzen().filter(p=>KARTEI_WAHL.has(p.id));
+}
+
+/* Die zwei Kaestchen zeigen nur an, was gerade gewaehlt ist:
+   „Alle" wenn jede Pflanze drin ist, „Nur mit Luecken" wenn die
+   Auswahl genau die Luecken-Menge ist. */
+function karteiKaestchen(){
   const alle = allePflanzen();
-  if(KARTEI_ART === 'luecken') return alle.filter(p=>karteiLuecken(p).length || !karteiFoto(p));
-  if(KARTEI_ART === 'wahl')    return alle.filter(p=>KARTEI_WAHL.has(p.id));
-  return alle;
+  const lue = karteiLueckenMenge();
+  const menge = karteiMenge();
+  const ka = document.querySelector('[data-karteikasten="alle"]');
+  const kl = document.querySelector('[data-karteikasten="luecken"]');
+  if(ka) ka.checked = alle.length > 0 && menge.length === alle.length;
+  if(kl){
+    kl.disabled = !lue.length;
+    kl.checked = lue.length > 0 && menge.length === lue.length
+      && lue.every(p=>KARTEI_WAHL.has(p.id));
+  }
+  const b = document.querySelector('[data-do="kartei-los"]');
+  if(b) b.textContent = 'Auffrischen starten (' + menge.length + ')';
 }
 
 function karteiGitter(q){
@@ -28241,14 +28342,14 @@ function karteiGitter(q){
   });
 }
 
-function karteiZeile(p, erg){
+function karteiZeile(p, erg, ohneHaken){
   const e = erg || {};
   const wort = e.stand === 'ok'
     ? (e.anzahl === 1 ? 'eine Angabe' : e.anzahl + ' Angaben')
       + (e.art === 'text' ? ' · ohne Foto' : e.art === 'teil' ? ' · Abgleich' : ' · vollständig')
     : e.fehler || 'Fehlgeschlagen';
   return '<label class="kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl') + '">'
-    + '<input type="checkbox" data-karteierg="' + esc(p.id) + '">'
+    + (ohneHaken ? '' : '<input type="checkbox" data-karteierg="' + esc(p.id) + '">')
     + '<span class="kz-txt"><b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i></span></label>';
 }
 
@@ -28258,6 +28359,30 @@ function karteiAbschnitt(){
   const k = karteiStand();
   const alle = allePflanzen();
   const ohneFoto = alle.filter(p=>!karteiFoto(p));
+
+  /* Laufansicht: solange etwas laeuft oder angehalten ist. */
+  if(k){
+    const f = karteiFortschritt(k);
+    if(f.laeuft || k.pausiert){
+      const alt = !Array.isArray(k.alle);
+      const zeilen = Object.keys(k.fertig).map(id=>{
+        const p = alle.find(x=>x.id === id);
+        return p ? karteiZeile(p, k.fertig[id], true) : '';
+      }).filter(Boolean).join('');
+      box.innerHTML = '<div class="kartei-balken" role="progressbar" aria-valuemin="0" aria-valuemax="100"'
+        + ' aria-valuenow="' + f.teil + '"><i style="width:' + f.teil + '%"></i></div>'
+        + '<p class="fhint kartei-stand">' + esc(f.text) + '</p>'
+        + (alt ? '<p class="fhint">Dieser Lauf stammt aus einer älteren Fassung und lässt sich nicht fortsetzen.</p>' : '')
+        + '<div class="tools">'
+        + (f.laeuft ? '<button type="button" data-do="kartei-stopp">Anhalten</button>'
+          : (alt ? '' : '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>')
+            + '<button type="button" data-do="kartei-weg">Lauf verwerfen</button>')
+        + '</div>'
+        + (zeilen ? '<div class="kartei-erg">' + zeilen + '</div>' : '')
+        + '<p class="kihinweis" id="kartei-meld"></p>';
+      return;
+    }
+  }
 
   if(k && !k.aktiv && Object.keys(k.fertig).length){
     const ids = Object.keys(k.fertig);
@@ -28281,20 +28406,22 @@ function karteiAbschnitt(){
     return;
   }
 
+  if(!KARTEI_WAHL_BEREIT && alle.length){
+    KARTEI_WAHL = new Set(alle.map(p=>p.id));
+    KARTEI_WAHL_BEREIT = true;
+  }
   const menge = karteiMenge();
   const luecken = alle.filter(p=>karteiLuecken(p).length).length;
-  const knopf = ['alle', 'luecken', 'wahl'].map(a=>
-    '<button type="button" data-do="kartei-art" data-karteiart="' + a + '"'
-    + ' aria-pressed="' + (KARTEI_ART === a ? 'true' : 'false') + '">'
-    + {alle:'Alle', luecken:'Nur mit Lücken', wahl:'Einzelne auswählen'}[a] + '</button>').join('');
+  const lueMenge = karteiLueckenMenge().length;
 
   box.innerHTML = '<p class="fhint">' + alle.length + ' Pflanzen · ' + luecken
       + ' mit Lücken · ' + ohneFoto.length + ' ohne Foto</p>'
-    + '<div class="tools kartei-wahl">' + knopf + '</div>'
-    + '<div id="kartei-gitter"' + (KARTEI_ART === 'wahl' ? '' : ' hidden') + '>'
+    + '<div class="kartei-kaesten">'
+    + '<label><input type="checkbox" data-karteikasten="alle"><span>Alle (' + alle.length + ')</span></label>'
+    + '<label><input type="checkbox" data-karteikasten="luecken"><span>Nur mit Lücken (' + lueMenge + ')</span></label>'
+    + '</div>'
+    + '<div id="kartei-gitter">'
     + '<input id="kartei-such" type="search" placeholder="Suchen" aria-label="Pflanze suchen">'
-    + '<div class="tools"><button type="button" data-do="kartei-alle">Alle anhaken</button>'
-    + '<button type="button" data-do="kartei-keine">Auswahl leeren</button></div>'
     + '<div class="pwahl-gitter" id="kartei-liste"></div></div>'
     + (ohneFoto.length
        ? '<p class="fhint">Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt — kein Zustand, '
@@ -28305,7 +28432,8 @@ function karteiAbschnitt(){
     + '<div class="tools"><button type="button" class="haupt" data-do="kartei-los">'
     + 'Auffrischen starten (' + menge.length + ')</button></div>'
     + '<p class="kihinweis" id="kartei-meld"></p>';
-  if(KARTEI_ART === 'wahl') karteiGitter('');
+  karteiGitter('');
+  karteiKaestchen();
 }
 
 function karteiMeldung(txt, art){
@@ -28333,28 +28461,9 @@ document.addEventListener('click', e=>{
   const b = e.target.closest('[data-do]');
   if(b){
     const a = b.dataset.do;
-    if(a === 'kartei-art'){
-      KARTEI_ART = b.dataset.karteiart || 'alle';
-      karteiAbschnitt(); return;
-    }
-    if(a === 'kartei-alle'){
-      const q = (document.getElementById('kartei-such') || {}).value || '';
-      allePflanzen().filter(p=>pwahlPasst(p, String(q).trim().toLowerCase()))
-        .forEach(p=>KARTEI_WAHL.add(p.id));
-      karteiGitter(q); karteiZahlAuffrischen(); return;
-    }
-    if(a === 'kartei-keine'){
-      KARTEI_WAHL.clear();
-      karteiGitter((document.getElementById('kartei-such') || {}).value || '');
-      karteiZahlAuffrischen(); return;
-    }
     if(a === 'kartei-los'){ karteiLos(karteiMenge().map(p=>p.id)); return; }
     if(a === 'kartei-stopp'){ karteiAbbrechen(); return; }
-    if(a === 'kartei-weiter'){
-      const k = karteiStand();
-      if(k){ k.aktiv = true; k.pausiert = false; k.start = Date.now(); sichern(); karteiLeiste(); karteiPumpe(); }
-      return;
-    }
+    if(a === 'kartei-weiter'){ karteiFortsetzen(); return; }
     if(a === 'kartei-weg'){ karteiVerwerfen(); return; }
     if(a === 'kartei-ansehen'){
       if(typeof ansichtZeigen === 'function') ansichtZeigen('mehr');
@@ -28380,18 +28489,29 @@ document.addEventListener('click', e=>{
     if(!id) return;
     if(KARTEI_WAHL.has(id)) KARTEI_WAHL.delete(id); else KARTEI_WAHL.add(id);
     kachel.setAttribute('aria-pressed', KARTEI_WAHL.has(id) ? 'true' : 'false');
-    karteiZahlAuffrischen();
+    karteiKaestchen();
   }
   const kopf = e.target.closest('[data-mh-go="kartei"]');
   if(kopf) setTimeout(karteiAbschnitt, 0);
 });
 
-/* Nur die Zahl im Startknopf nachziehen. Den ganzen Abschnitt neu zu
-   zeichnen würde bei jedem Antippen das Gitter zurückscrollen. */
-function karteiZahlAuffrischen(){
-  const b = document.querySelector('[data-do="kartei-los"]');
-  if(b) b.textContent = 'Auffrischen starten (' + karteiMenge().length + ')';
-}
+/* Die Kaestchen setzen die Auswahl. Die Suche bleibt dabei aussen vor:
+   sie filtert nur, was im Gitter zu sehen ist. Nur das Gitter wird neu
+   gezeichnet — der ganze Abschnitt wuerde zurueckscrollen. */
+document.addEventListener('change', e=>{
+  const kasten = e.target && e.target.closest && e.target.closest('[data-karteikasten]');
+  if(!kasten) return;
+  const an = !!kasten.checked;
+  if(kasten.dataset.karteikasten === 'alle'){
+    KARTEI_WAHL = an ? new Set(allePflanzen().map(p=>p.id)) : new Set();
+  } else {
+    const lue = karteiLueckenMenge().map(p=>p.id);
+    if(an) KARTEI_WAHL = new Set(lue);
+    else lue.forEach(id=>KARTEI_WAHL.delete(id));
+  }
+  karteiGitter((document.getElementById('kartei-such') || {}).value || '');
+  karteiKaestchen();
+});
 
 document.addEventListener('input', e=>{
   if(e.target && e.target.id === 'kartei-such') karteiGitter(e.target.value);

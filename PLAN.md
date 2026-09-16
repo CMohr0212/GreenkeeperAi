@@ -1,66 +1,96 @@
 # PLAN — GreenkeeperAI
 
-Stand 15.09.2026 · Ausgangsfassung 3.19.0 · **Zielversion 3.19.1, sw.js greenkeeperai-v114**
+Stand 16.09.2026 · Ausgangsfassung 3.19.1 · **Zielversion 3.20.0, sw.js greenkeeperai-v115**
 
-Erledigt und nicht mehr hier: Etappe A bis D (bis 3.18.0) und E1 „Der Lauf" (3.19.0 — der erste Lauf läuft am Gerät, Chris ist bisher zufrieden, Hintergrund und Benachrichtigung noch unbestätigt). Der Verlauf steht im CHANGELOG.
+Erledigt und nicht mehr hier: Etappe A bis D, E1 „Der Lauf" (3.19.0) und der Lösch-Fix (3.19.1). Der Verlauf steht im CHANGELOG.
 
-Offen sind: der Fix unten, danach **E2**, dann Sammel-Anlegen, **F** und **T**.
+Offen sind: der Plan unten, danach **E2**, dann Sammel-Anlegen, **F** und **T**.
 
 ---
 
-# Freigegeben — Löschen einer Pflanze
+# Freigegeben — Kartei auffrischen: Auswahl, Laufansicht, Fortsetzen
 
-Freigabe von Chris am 15.09.2026. Die Ergebnisliste („Alle anhaken", Abschnitt während des Laufs) folgt danach und ist nicht Teil dieser Freigabe.
+Freigabe von Chris am 16.09.2026 · Zielversion 3.20.0, sw.js greenkeeperai-v115.
 
-Gemeldet von Chris am 15.09.2026: „Löschen funktioniert nicht, ich kann einen meiner Ableger nicht mehr löschen."
+Gewünscht von Chris am 16.09.2026, mit Screenshot vom Ist-Stand. Nimmt die Backlog-Punkte „Alle anhaken" und „Abschnitt während des Laufs" vom 15.09. auf.
 
 ## Ziel
 
-„Pflanze löschen" und „Aus der Sammlung nehmen" wirken wieder, werden gespeichert, und das Kartenfenster schließt sich danach.
+Die Seite „Kartei auffrischen" zeigt die Auswahl sofort als Gitter mit zwei Kästchen, während eines Laufs nur den Fortschritt, und ein angehaltener Lauf lässt sich lückenlos fortsetzen.
 
 ## Befund
 
-- **Belegt** (Prüfstand, 15.09.2026): Der Knopf löst `bearb-weg` aus (index.html 9113). Dort steht noch `offen.delete(id)` (9131). Die Variable `offen` gibt es nicht mehr — der Knopf wirft `ReferenceError: offen is not defined`.
-- **Belegt:** Der Fehler fliegt, nachdem die Pflanze im Speicher entfernt ist, aber vor `sichern()` und `render()`. Die Karte zeigt die Pflanze weiter, gespeichert wird nichts.
-- **Belegt:** Das betrifft jede Pflanze, nicht nur Ableger — eigene wie mitgelieferte.
-- **Belegt:** Auch ohne den Absturz bleibt das Kartenfenster offen und zeigt die gelöschte Pflanze weiter. `karteRumpfFuellen()` findet sie nicht mehr und lässt den alten Inhalt stehen.
-- **Belegt:** Kein Test in pruef.js tippt den Löschknopf an. Deshalb blieb der Prüfstand grün.
-- **Vermutet:** Kaputt seit 3.10.7. Dort wurde die Zuklapp-Mechanik entfernt, zu der `offen` gehörte. Erschlossen aus dem CHANGELOG, nicht aus der Git-Historie.
-- **Vermutet:** Speichert danach etwas anderes — etwa der laufende Abgleich nach jeder Antwort —, landet die halbe Löschung doch im Speicher. Der Ableger kann nach einem Neustart der App schon weg sein. Aus dem Code gelesen, nicht am Gerät geprüft.
+- **Belegt** (Screenshot 16.09.): Die Leiste zeigt „Prüfe 1 von 4" mit leerem Balken, der Abschnitt zeigt gleichzeitig die Startauswahl für 51 Pflanzen.
+- **Belegt** (Code): „Abbrechen" leert die Warteschlange (`k.offen = []`) und setzt nicht `pausiert`. Nach einem Abbruch gibt es deshalb nie „Fortsetzen".
+- **Belegt** (Code): Eine Pflanze wird beim Start ihrer Anfrage aus `k.offen` genommen. Wird die App währenddessen geschlossen oder die Anfrage abgebrochen, steht sie weder in `offen` noch in `fertig`. Der Lauf erreicht dann nie „x von x".
+- **Vermutet, nicht am Gerät geprüft:** Das ist einer der Gründe, warum bei Chris kein Lauf durchkommt. Ob es der einzige ist, ist offen.
+- **Belegt** (Code): `karteiBilder` (Foto verkleinern) läuft vor der Frist von `kiFragen` und hat kein eigenes Zeitlimit. Ob es hängen kann, ist nicht geprüft.
 
 ## Änderungen
 
-- `offen.delete(id)` in `bearb-weg` entfernen.
-- Nach dem Löschen: Zeigt das Kartenfenster genau diese Pflanze, schließt es sich über `modalZu('karte-modal')`.
-- Pflichtpaket nach Regel 6.2: FASSUNG 3.19.1, sw.js greenkeeperai-v114, PATCHNOTES-Eintrag, CHANGELOG, Versionsnummer in pruef.js.
+**Startansicht**
+- Das Suchfeld und das Bildgitter stehen sofort da. Der Knopf „Einzelne auswählen" entfällt, ebenso „Alle anhaken" und „Auswahl leeren".
+- Statt der Knöpfe „Alle" und „Nur mit Lücken" gibt es zwei Kästchen zum Anhaken: „Alle (n)" und „Nur mit Lücken (n)". Die Zahl zählt dieselbe Menge, die das Kästchen anhakt.
+- „Alle" anhaken hakt jede Pflanze an. Abhaken leert die Auswahl.
+- „Nur mit Lücken" anhaken setzt die Auswahl auf genau die Pflanzen mit Lücken oder ohne Foto (Menge wie heute). Abhaken nimmt diese Pflanzen aus der Auswahl.
+- Ein Tipp auf eine Kachel hakt sie an oder ab. Die Kästchen ziehen nach: „Alle" ist angehakt, wenn alle gewählt sind; „Nur mit Lücken" ist angehakt, wenn die Auswahl genau der Lücken-Menge entspricht.
+- Die Suche filtert nur die Anzeige. Die Kästchen wirken immer auf alle Pflanzen.
+- Beim ersten Öffnen nach dem App-Start sind alle Pflanzen angehakt. Danach bleibt die Auswahl bis zum nächsten App-Start stehen.
+- „Auffrischen starten (n)" zählt die angehakten Pflanzen.
+
+**Laufansicht** (solange ein Lauf läuft oder angehalten ist und noch Pflanzen offen sind)
+- Auswahl, Suche, Gitter und Startknopf sind weg.
+- Sichtbar: Fortschrittsbalken, darunter „Prüfe x von y · n %" beziehungsweise „Angehalten bei x von y · n %".
+- Läuft der Lauf: Knopf „Anhalten". Ist er angehalten: Knopf „Fortsetzen" und Knopf „Lauf verwerfen".
+- Darunter die bis dahin fertigen Pflanzen als Zeilen, ohne Kästchen.
+- Nach dem Ende erscheint die Ergebnisansicht wie heute.
+
+**Anhalten und Fortsetzen**
+- Der Lauf merkt sich beim Start die vollständige Liste (`alle`).
+- „Anhalten" bricht laufende Anfragen ab, lässt die Warteschlange stehen und setzt den Lauf auf angehalten.
+- „Fortsetzen" und die Wiederaufnahme nach einem Neustart bauen die Warteschlange neu: alle Pflanzen aus `alle`, die noch nicht in `fertig` stehen.
+- „Lauf verwerfen" und das × in der Leiste löschen den Lauf samt bisherigen Ergebnissen, danach steht wieder die Startansicht da.
+- Ein Lauf aus 3.19.x ohne `alle` wird nicht nachgebaut. Er lässt sich nur verwerfen.
+
+**Leiste unten**
+- Der Text bekommt die Prozentzahl: „Prüfe 12 von 51 · 23 %", „Angehalten bei 12 von 51 · 23 %". Die Prozentzahl zählt fertige Pflanzen.
+- Der Knopf heißt „Anhalten" statt „Abbrechen".
+
+**Pflichtpaket** nach Regel 6.2: FASSUNG 3.20.0, sw.js greenkeeperai-v115, PATCHNOTES-Eintrag, CHANGELOG, Versionsnummer in pruef.js.
 
 ## Nicht angefasst
 
-Was beim Löschen mit der Pflanze weggeht (Fotos, Gießverlauf, Aufgaben, Zustand, Orte, Änderungen), `papierkorbRender` und „zurückholen", der alte Behandler `pflanze-weg` (index.html 16617, kein Knopf ruft ihn mehr auf), `pfl-weg` im Grundriss, der gesamte Kartei-Lauf und `S.kartei`, Stammbaum und Verlauf der Mutterpflanze, alles aus „Nicht anfassen" der Übergabe.
+`kiFragen`, Aufträge und Prompts, Parallelität und Bremse bei 429, Wiederholungen, `karteiBilder`, die Benachrichtigung am Laufende, die Ergebnisansicht nach dem Ende samt „Ausgewählte noch einmal prüfen", das Bildgitter des Doktors (`pwahlZeichnen` wird nur aufgerufen, nicht geändert), E2, alles aus „Nicht anfassen" der Übergabe. Benachrichtigungen fürs Gießen und der Schalter unter Einstellungen gehören nicht in diesen Plan (Backlog).
 
 ## Risiken
 
-- `modalZu` geht über `history.back()`. Das Schließen verbraucht einen Schritt im Zurück-Verlauf — gewollt, aber nur am Handy wirklich prüfbar.
-- Ergebnisse im Kartei-Zwischenlager zu einer gelöschten Pflanze bleiben liegen. Die Ergebnisliste blendet sie schon aus, die Zeile „x von y beantwortet" zählt sie aber mit. Gehört zu E2.
-- Der Verlauf der Mutterpflanze („vermehrt") zeigt weiter auf den gelöschten Ableger. Im Prüfstand wirft das keinen Fehler; wie der Stammbaum es anzeigt, ist nicht geprüft.
-- Hochladen während eines laufenden Abgleichs ist ein bekanntes, ungelöstes Risiko. Erst hochladen, wenn die Leiste „Kartei aufgefrischt" zeigt.
+- Der Plan behebt eine belegte Lücke beim Fortsetzen. Ob danach ein Lauf bei Chris durchkommt, ist nicht gesichert — die Ursache am Gerät ist weiter nur vermutet.
+- Der laufende Lauf auf Chris' Gerät stammt aus 3.19.x und hat kein `alle`. Vor dem Hochladen verwerfen.
+- Das Gitter lädt jetzt beim Öffnen gleich alle Vorschaubilder. Die Seite kann spürbar langsamer aufgehen.
+- „Anhalten" wirft Antworten weg, die gerade unterwegs sind. Diese Anfragen zählen trotzdem gegen das Google-Kontingent.
+- Die Laufansicht wird nach jeder Antwort neu gezeichnet. Ob die Seite dabei springt, zeigt nur das Handy.
+- Die Leiste wird durch die Prozentzahl breiter. Ob der Text neben dem Knopf noch in eine Zeile passt, zeigt nur das Handy.
 
 ## Prüfung
 
-pruef.js prüft, mit selbst angelegter Mutter und selbst angelegtem Ableger:
+pruef.js prüft, mit selbst angelegten Pflanzen (mit und ohne Foto, mit und ohne Lücken) und gestubbtem `fetch`:
 
-- Karte öffnen → Bearbeiten → „Pflanze löschen" → der Ableger fehlt in `S.eigene` und bleibt nach `laden()` weg; Gießverlauf, Fotos, Aufgaben und Zustand sind entfernt.
-- Beim Löschen fliegt kein Laufzeitfehler. Gegenprobe: mit wieder eingesetztem `offen.delete(id)` schlägt die Prüfung fehl.
-- Das Kartenfenster ist danach zu. Gegenprobe: ohne das Schließen schlägt die Prüfung fehl.
-- Mitgelieferte Pflanze: „Aus der Sammlung nehmen" setzt `S.weg`, ist gespeichert, „zurückholen" bringt sie zurück.
-- Abbrechen im Bestätigungsdialog ändert nichts.
-- Löschen während eines laufenden Abgleichs: kein Fehler, der Lauf endet regulär, die gelöschte Pflanze steht nicht in der Ergebnisliste.
+- Startansicht: Gitter sichtbar ohne weiteren Tipp; kein Knopf „Einzelne auswählen", kein „Alle anhaken", kein „Auswahl leeren"; zwei Kästchen mit Zahl.
+- „Alle" an → alle gewählt, Startknopf zählt alle; „Alle" ab → nichts gewählt.
+- „Nur mit Lücken" an → genau die Lücken-Menge gewählt; ab → diese Pflanzen raus.
+- Kachel antippen → Kästchen ziehen richtig nach.
+- Suche aktiv, „Alle" an → trotzdem alle gewählt.
+- Start → Auswahl und Startknopf weg, Balken und „· n %" im Abschnitt und in der Leiste.
+- „Anhalten" mit laufenden Anfragen → angehalten, „Fortsetzen" in Leiste und Abschnitt; „Fortsetzen" → jede Pflanze landet in `fertig`, der Lauf endet mit „y von y". Gegenprobe: ohne Nachbau der Warteschlange schlägt die Prüfung fehl.
+- Neustart (`laden()`) mit Anfragen, die beim Schließen liefen → sie werden nachgeholt. Gegenprobe wie oben.
+- „Lauf verwerfen" → Startansicht zurück, `S.kartei` weg.
+- Nach dem Ende → Ergebnisansicht wie bisher.
 
-Nicht durch Tests abgedeckt — nur am Handy prüfbar: das Schließen des Kartenfensters samt Zurück-Geste, der Bestätigungsdialog in Chrome auf Android, die Sammlung nach dem Schließen.
+Nicht durch Tests abgedeckt — nur am Handy prüfbar: Aussehen der Kästchen und des Gitters, Scrollen im Gitter, Springen der Laufansicht, Breite der Leiste mit Prozentzahl, Ladezeit der Seite, alles in Chrome auf Android.
 
 ## Größe
 
-Klein.
+Mittel.
 
 ---
 

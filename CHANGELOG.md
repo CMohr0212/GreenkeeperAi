@@ -4,6 +4,26 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.20.0 — 16. September 2026
+**Auffrischen: aufgeräumt und fortsetzbar**
+
+### Neu
+- **Die Auswahl steht sofort da.** Unter „Kartei auffrischen“ erscheint das Bildgitter gleich beim Öffnen. Der Knopf „Einzelne auswählen“ entfällt.
+- **Zwei Kästchen statt drei Knöpfen:** „Alle“ und „Nur mit Lücken“, jeweils mit Anzahl. Einzelne Pflanzen hakst du im Gitter an oder ab, die Kästchen ziehen nach.
+- **Laufansicht.** Während eines Laufs verschwindet die Auswahl. Zu sehen sind ein Fortschrittsbalken mit Prozentzahl und die Pflanzen, die schon fertig sind.
+- **Prozentzahl in der Leiste** am unteren Rand.
+- **Anhalten und Fortsetzen.** Aus „Abbrechen“ wird „Anhalten“. Danach stehen „Fortsetzen“ und „Lauf verwerfen“ bereit.
+
+### Behoben
+- **Kein Lauf kam auf „alle fertig“.** Pflanzen, deren Anfrage beim Schließen der App oder beim Abbrechen gerade lief, fielen aus dem Lauf heraus. Jetzt werden sie nachgeholt.
+- **Nach „Abbrechen“ ging es nicht weiter.** Die Warteschlange wurde geleert, einen Fortsetzen-Knopf gab es nie.
+
+### Anders
+- **Die Suche im Gitter filtert nur die Anzeige.** „Alle“ hakt immer alle Pflanzen an.
+- **Ein Lauf aus 3.19.x lässt sich nur verwerfen**, nicht fortsetzen.
+
+---
+
 ## 3.19.1 — 15. September 2026
 **Löschen geht wieder**
 

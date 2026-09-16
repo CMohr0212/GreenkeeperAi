@@ -1,34 +1,48 @@
-Fassung 3.19.1 · sw.js greenkeeperai-v114 · 15.09.2026
+Fassung 3.20.0 · sw.js greenkeeperai-v115 · 16.09.2026
 
 ## Kurz
-Version: 3.19.1 (index.html), greenkeeperai-v114 (sw.js) — Löschen repariert, am Handy noch unbestätigt. Erst hochladen, wenn der laufende Abgleich fertig ist.
-Nächster Schritt: Etappe E2 als Detailplan (Zuschnitt in PLAN.md) samt der zwei Wünsche zur Ergebnisliste — oder vorher der Gießcenter-Fehler. Chris entscheidet.
-Offen oder kaputt: Gießcenter zeigt „2 überfällig“, nach dem Antippen nicht mehr (ungeprüft). Fettkraut im Winter falsch berechnet (belegt, siehe Backlog). 3.19.0: Hintergrundlauf und Benachrichtigung unbestätigt, der erste Lauf läuft, Chris ist bisher zufrieden. Gerätekontrollen 3.13.0–3.17.0 unbestätigt.
+Version: 3.20.0 (index.html), greenkeeperai-v115 (sw.js). Kartei-Seite neu (Kästchen, Laufansicht, Anhalten/Fortsetzen, Prozent), am Handy noch unbestätigt. Vor dem Hochladen den laufenden Lauf über das × in der Leiste verwerfen.
+Nächster Schritt: am Handy prüfen, ob ein Lauf jetzt bis „x von x“ durchkommt. Kommt er nicht durch: Screenshot Leiste und Mehr › KI-Dienst, dann Messung nach Regel 5.6. Danach E2, Gießcenter, Meldungen, Benachrichtigungen. Chris entscheidet die Reihenfolge.
+Offen oder kaputt: Kartei-Lauf nie durchgekommen (eine belegte Ursache in 3.20.0 behoben, weitere möglich). Gießcenter „2 überfällig“ (ungeprüft). Fettkraut im Winter (belegt). 3.19.0 Hintergrund/Benachrichtigung und Gerätekontrollen 3.13.0–3.19.1 unbestätigt.
 Nicht anfassen: Gift über `giftEigenSetzen` und `fest`/`strittig`. `merkmale` gehört der Bibliothek, die KI schreibt nur nach `sortenmerkmale`. `S.kartei` schreibt nie von selbst in eine Pflanze.
-Offener Plan: ja (PLAN.md) — Lösch-Fix erledigt, E2 im Zuschnitt freigegeben, Detailplan fehlt.
+Offener Plan: ja (PLAN.md) — Kartei-Seite erledigt, E2 im Zuschnitt freigegeben, Detailplan fehlt.
 
 ## Gescheiterte Versuche
-- Der erste Test für „Aus der Sammlung nehmen“ suchte sich eine mitgelieferte Pflanze aus `PFLANZEN`. Die Liste ist in der App leer (`const PFLANZEN = []`), der Test fand nichts. Er legt sich jetzt selbst eine an und entfernt sie am Ende wieder.
+- Die erste Fassung des Tests „Fortsetzen lässt den Lauf wieder laufen“ prüfte `k.aktiv` nach einem Tick. Bei 40 ms Verzug war der Lauf da schon durch. Der Test prüft jetzt `pausiert` und die Zahl der Anfragen.
+- Alle Gegenproben in einem Befehl überschritten das Zeitlimit des Werkzeugs (300 s) und ließen eine veränderte index.html liegen. Ein Lauf im Hintergrund (nohup) wurde nach Befehlsende beendet. Was funktioniert: höchstens zwei Gegenproben je Befehl im Vordergrund, je rund 90 s, danach `cmp` gegen die gesicherte Datei.
 
 ## Entscheidungen
-- Die Ursache war `offen.delete(id)` in `bearb-weg`: ein Rest der Zuklapp-Mechanik aus 3.10.7, der das Löschen vor dem Speichern abbrach. Die Zeile ist ersatzlos weg, weil die Menge nirgends mehr existiert.
-- Die Karte schließt sich nach dem Löschen nur, wenn sie genau diese Pflanze zeigt. Sonst würde ein Löschen aus einer anderen Ansicht ein fremdes Fenster schließen.
-- Der alte Behandler `pflanze-weg` (index.html ~16630) bleibt stehen. Kein Knopf ruft ihn auf, und Aufräumen war nicht Teil des Plans.
-- „Freigabe“ vom 15.09. galt nur dem Lösch-Fix. Die Wünsche zur Ergebnisliste gehören nach E2, weil E2 denselben Abschnitt umbaut.
+- `KARTEI_GEN` zählt bei Start, Anhalten und Verwerfen hoch. Sonst trägt eine abgebrochene Antwort nach dem Fortsetzen ein Ergebnis ein oder löscht den Abbrecher der neuen Anfrage.
+- Die Warteschlange wird aus `k.alle` minus `k.fertig` neu gebaut, statt laufende Anfragen einzeln zu merken. Damit ist auch ein Abbruch durch Schließen der App abgedeckt.
+- Ein Lauf ohne `alle` (aus 3.19.x) wird beim Start auf angehalten gesetzt und lässt sich nur verwerfen. Seine vollständige Liste ist nicht rekonstruierbar.
+- Der Knopf heißt „Anhalten“, weil der Lauf danach fortsetzbar ist. Chris hat dem im Plan nicht widersprochen.
+- `KARTEI_ART` ist entfernt. Die Auswahl ist nur noch `KARTEI_WAHL`, die Kästchen sind Kurzwege darauf.
 
 ## Backlog-Zuwachs
-- **„Alle anhaken“ in der Ergebnisliste** (von Chris, 15.09.2026). Die Ergebnisliste unter „Kartei auffrischen“ bekommt „Alle anhaken“ und „Auswahl leeren“, wie das Auswahlgitter.
-- **Abschnitt während des Laufs** (von Chris, 15.09.2026). Solange ein Lauf läuft, zeigt der Abschnitt statt der Startauswahl den Fortschrittsbalken und die bis dahin fertigen Ergebnisse. Belegt: Heute steht dort die Startauswahl, und „Starten“ meldet nur „läuft bereits“.
-- **Gießcenter: „2 überfällig“ verschwindet beim Antippen** (von Chris, 15.09.2026). Nicht untersucht. Vor einem Plan braucht es einen Screenshot vor und nach dem Antippen und die Angabe, welche zwei Pflanzen gemeint sein könnten.
-- **Fettkraut im Winter** (von Chris, 15.09.2026). Belegt im Prüfstand: Pinguicula steht in Klasse S (Anstau) und bekommt ganzjährig einen täglichen Blick (Intervall 1). Der wählbare Zustand „Winterruhe“ ändert daran nichts, weil Klasse S nur auf „Winterruhe der Karnivore“ umschaltet (dann 14 Tage). Diesen Zustand bietet die Karte beim Fettkraut aber nicht an, und sein Text (0–10 °C, Fallen werden schwarz) passt nicht zu mexikanischen Fettkräutern. Gewünscht: eine Winterrosette als eigener Zustand für mexikanische Pinguicula, mit trockenem Stand und etwa 2–4 Wochen Abstand, ohne kühlen Standort vorauszusetzen. Heimische Arten (P. vulgaris, P. grandiflora) brauchen dagegen Kälte. Zu klären ist, woran die App die beiden unterscheidet.
-- **Gelöschte Pflanzen im Kartei-Zwischenlager** (15.09.2026). Ihre Ergebnisse bleiben in `S.kartei.fertig` liegen. Die Liste blendet sie aus, „x von y beantwortet“ zählt sie mit. In E2 mit erledigen.
-- Weiter offen aus der Übergabe vom 15.09. (3.19.0):
-  - **Für E2 wichtig:** `geminiLesen` liefert nicht die Feldnamen der Pflanze, der botanische Name kommt als `bot`, nicht als `botanisch`. Die Zuordnung von Antwortschlüssel zu Pflanzenfeld muss in E2 gebaut und geprüft werden.
-  - **Zeit messen:** Der erste echte Lauf sagt, wie lange fünfzig Pflanzen brauchen.
-  - **Doktor bestimmt eine fehlende Sorte** (14.09.2026). Das Rateverhalten bei panaschierten Sorten ist zu klären.
-  - **Alte Sorten aus dem botanischen Namen holen:** als Vorschlag mit Knopf, nicht von selbst.
-  - **Foto nachtragen aus der Kartei heraus:** Ein Tipp auf den Namen öffnet die Karte.
-  - **Ein Lauf über eine neue Fassung hinweg:** ungelöst.
+- **Gießerinnerung als Benachrichtigung** (von Chris, 16.09.2026). Einziger Weg ohne Server: Periodic Background Sync. Er geht nur in der installierten App, ohne feste Uhrzeit und höchstens etwa täglich; Chrome entscheidet nach Nutzung. Die Fälligkeiten müssen dafür nach IndexedDB gespiegelt werden, weil der Service Worker localStorage nicht lesen kann. Größe: groß.
+- **Schalter für Benachrichtigungen unter Mehr › Einstellungen** (von Chris, 16.09.2026). Je Art ein Schalter (Kartei fertig, Gießen, weitere). Gehört zum Gieß-Plan.
+- **Frostwarnung und Sicherungserinnerung** (Vorschlag Claude, 16.09.2026). Frost über die Open-Meteo-Vorhersage und `frostMin` der Pflanzen draußen. Noch nicht von Chris gewünscht.
+- **Kartei-Lauf im Hintergrund** (von Chris, 16.09.2026). Chris möchte eine Erlaubnis anfragen, damit der Lauf im Hintergrund weiterläuft.
+  - Belegt: Eine Web-App hat unter Android keine Erlaubnis für Hintergrundausführung, die sie anfragen könnte.
+  - Vermutet, nicht geprüft: Chrome drosselt oder friert die Seite ein, sobald sie nicht mehr im Vordergrund ist.
+  - Machbar: Wake Lock („Bildschirm bleibt an, solange ein Lauf läuft“), gilt nur bei sichtbarer App.
+  - Ungeklärt: ob Background Fetch POST-Anfragen an Gemini zulässt. Vor einem Plan prüfen.
+- **Zeitlimit für `karteiBilder`** (16.09.2026). Belegt: Das Verkleinern des Fotos hat keine Frist. Vermutet: Es kann einen Lauf festhalten.
+- **Statuszeile „Kartei auffrischen“ unter Mehr** (16.09.2026). Belegt: Ein angehaltener Lauf zeigt dort „Ergebnis liegt bereit“, weil nur `aktiv` abgefragt wird. Richtig wäre „Angehalten“.
+- **Zahl „mit Lücken“ in der Kopfzeile** (16.09.2026). Die Kopfzeile zählt nur Pflanzen mit Lücken, das Kästchen „Nur mit Lücken“ zählt auch die ohne Foto. Die beiden Zahlen weichen voneinander ab.
+- Weiter offen aus der Übergabe vom 15.09.:
+  - Gießcenter „2 überfällig“ verschwindet beim Antippen. Braucht Screenshots vor und nach dem Antippen.
+  - Fettkraut im Winter: eigener Zustand „Winterrosette“ für mexikanische Pinguicula.
+  - Eigene Modellwahl für den Kartei-Lauf.
+  - Weniger Meldungen auf den Reitern. Braucht einen Screenshot.
+  - Gelöschte Pflanzen im Kartei-Zwischenlager: in E2 erledigen.
+  - `geminiLesen` liefert `bot` statt `botanisch`. Die Zuordnung zu den Pflanzenfeldern gehört in E2.
+  - Zeit für fünfzig Pflanzen messen.
+  - Doktor bestimmt eine fehlende Sorte.
+  - Alte Sorten aus dem botanischen Namen holen, als Vorschlag mit Knopf.
+  - Foto nachtragen aus der Kartei heraus.
+  - Ein Lauf über eine neue Fassung hinweg.
 
 ## Offene Regeländerungen
 - Regel 10.10 (neu, siehe Antwort vom 15.09.2026) — noch nicht als eingetragen bestätigt.
+- Formfehler in der Datei (16.09.2026): Nach 10.7 steht ein roher Änderungsblock, obwohl die Kopfzeile „Stand 2“ nennt. Regel 5.8 trägt das Präfix „Regel:“. Beides beim nächsten Eintragen bereinigen.

@@ -146,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.19.1', w.__T('FASSUNG') === '3.19.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.20.0', w.__T('FASSUNG') === '3.20.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7041,7 +7041,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.19.1', e0.nr === '3.19.1', e0.nr);
+    pruef('Der oberste Eintrag ist 3.20.0', e0.nr === '3.20.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7894,22 +7894,80 @@ setTimeout(async () => {
 
     /* ── Auswahl ── */
     const menge = () => w.__T(`karteiMenge().map(function(p){return p.id;})`);
-    w.__T(`(function(){ KARTEI_ART = 'wahl'; KARTEI_WAHL = new Set(['KA1','KA3']); return 1; })()`);
-    pruef('Einzelauswahl liefert genau die angetippten',
+    w.__T(`(function(){ KARTEI_WAHL = new Set(['KA1','KA3']); return 1; })()`);
+    pruef('Die Auswahl liefert genau die angehakten',
       menge().join(',') === 'KA1,KA3', menge().join(','));
-    w.__T(`KARTEI_ART = 'luecken'`);
-    pruef('Nur-mit-Lücken nimmt die unvollständige Pflanze',
-      menge().indexOf('KA2') > -1);
-    pruef('Nur-mit-Lücken nimmt auch die ohne Foto',
-      menge().indexOf('KA3') > -1);
-    pruef('Nur-mit-Lücken lässt die vollständige stehen',
-      menge().indexOf('KA1') === -1);
-    w.__T(`KARTEI_ART = 'alle'`);
-    pruef('Alle nimmt alle drei',
-      ['KA1','KA2','KA3'].every(id=>menge().indexOf(id) > -1));
+    const lueMenge = () => w.__T(`karteiLueckenMenge().map(function(p){return p.id;})`);
+    pruef('Die Lücken-Menge nimmt die unvollständige Pflanze', lueMenge().indexOf('KA2') > -1);
+    pruef('Die Lücken-Menge nimmt auch die ohne Foto', lueMenge().indexOf('KA3') > -1);
+    pruef('Die Lücken-Menge lässt die vollständige stehen', lueMenge().indexOf('KA1') === -1);
+
+    /* ── Startansicht mit zwei Kästchen (3.20.0) ── */
+    w.__T(`(function(){ delete S.kartei; KARTEI_WAHL = new Set(); KARTEI_WAHL_BEREIT = false;
+      karteiAbschnitt(); return 1; })()`);
+    {
+      const alleIds = w.__T(`allePflanzen().map(function(p){return p.id;}).sort().join(',')`);
+      const wahl = () => w.__T(`Array.from(KARTEI_WAHL).sort().join(',')`);
+      const kA = () => d.querySelector('[data-karteikasten="alle"]');
+      const kL = () => d.querySelector('[data-karteikasten="luecken"]');
+      const los = () => String((d.querySelector('[data-do="kartei-los"]') || {}).textContent);
+      const gitter = d.getElementById('kartei-gitter');
+      pruef('Das Gitter steht ohne weiteren Tipp da', !!gitter && !gitter.hidden
+        && !!d.querySelector('#kartei-liste [data-karteip="KA1"]'));
+      pruef('Kein Knopf „Einzelne auswählen“ mehr',
+        !d.querySelector('[data-karteiart]') && !/Einzelne auswählen/.test(String(d.getElementById('kartei-innen').textContent)));
+      pruef('Kein „Alle anhaken“ und kein „Auswahl leeren“ mehr',
+        !d.querySelector('[data-do="kartei-alle"]') && !d.querySelector('[data-do="kartei-keine"]'));
+      pruef('Zwei Kästchen zum Anhaken', !!kA() && !!kL()
+        && kA().type === 'checkbox' && kL().type === 'checkbox');
+      const nL = w.__T(`karteiLueckenMenge().length`);
+      pruef('Die Kästchen tragen ihre Zahl',
+        /\(\d+\)/.test(kA().parentNode.textContent)
+        && kL().parentNode.textContent.indexOf('(' + nL + ')') > -1, kL().parentNode.textContent);
+      pruef('Beim ersten Öffnen ist alles angehakt', wahl() === alleIds);
+      pruef('Dann ist „Alle“ angehakt', kA().checked === true);
+      pruef('Der Startknopf zählt alle',
+        los().indexOf('(' + w.__T(`allePflanzen().length`) + ')') > -1, los());
+
+      kA().click(); await tick();
+      pruef('„Alle“ abhaken leert die Auswahl', w.__T(`KARTEI_WAHL.size`) === 0);
+      pruef('Der Startknopf zählt null', /\(0\)/.test(los()), los());
+      pruef('Die Kacheln sind nicht mehr gedrückt',
+        d.querySelector('[data-karteip="KA1"]').getAttribute('aria-pressed') === 'false');
+
+      kL().click(); await tick();
+      pruef('„Nur mit Lücken“ wählt genau die Lücken-Menge',
+        wahl() === lueMenge().slice().sort().join(','), wahl());
+      pruef('„Nur mit Lücken“ ist angehakt, „Alle“ nicht', kL().checked === true && kA().checked === false);
+
+      d.querySelector('[data-karteip="KA1"]').click(); await tick();
+      pruef('Eine Kachel dazu hakt „Nur mit Lücken“ ab', kL().checked === false);
+      pruef('Die Kachel ist gewählt', w.__T(`KARTEI_WAHL.has('KA1')`) === true);
+      d.querySelector('[data-karteip="KA1"]').click(); await tick();
+      pruef('Wieder heraus: „Nur mit Lücken“ ist wieder angehakt', kL().checked === true);
+
+      kL().click(); await tick();
+      pruef('„Nur mit Lücken“ abhaken nimmt diese Pflanzen heraus',
+        lueMenge().every(id=>w.__T("KARTEI_WAHL.has('" + id + "')") === false));
+
+      /* Suche aktiv: die Kästchen wirken trotzdem auf alles */
+      const such = d.getElementById('kartei-such');
+      such.value = 'Kartei Voll';
+      such.dispatchEvent(new w.Event('input', {bubbles:true})); await tick();
+      pruef('Die Suche filtert das Gitter',
+        !d.querySelector('#kartei-liste [data-karteip="KA2"]') && !!d.querySelector('#kartei-liste [data-karteip="KA1"]'));
+      kA().click(); await tick();
+      pruef('„Alle“ bei aktiver Suche hakt trotzdem alle an', wahl() === alleIds);
+      pruef('Die Suche bleibt dabei stehen',
+        !d.querySelector('#kartei-liste [data-karteip="KA2"]'));
+
+      /* Die Auswahl bleibt bis zum Neustart stehen */
+      w.__T(`(function(){ KARTEI_WAHL = new Set(['KA2']); karteiAbschnitt(); return 1; })()`);
+      pruef('Neu zeichnen setzt die Auswahl nicht zurück', wahl() === 'KA2', wahl());
+    }
 
     /* ── Das Bildgitter mit Mehrfachauswahl ── */
-    w.__T(`(function(){ KARTEI_ART = 'wahl'; KARTEI_WAHL = new Set(['KA1']);
+    w.__T(`(function(){ KARTEI_WAHL = new Set(['KA1']);
       karteiAbschnitt(); return 1; })()`);
     {
       const k1 = d.querySelector('[data-karteip="KA1"]');
@@ -7927,10 +7985,6 @@ setTimeout(async () => {
       if(k2){ k2.click(); await tick(); }
       pruef('Noch einmal antippen nimmt sie wieder heraus',
         w.__T(`KARTEI_WAHL.has('KA2')`) === false);
-      const leeren = d.querySelector('[data-do="kartei-keine"]');
-      pruef('Der Knopf Auswahl leeren ist da', !!leeren);
-      if(leeren){ leeren.click(); await tick(); }
-      pruef('Auswahl leeren räumt ab', w.__T(`KARTEI_WAHL.size`) === 0);
     }
 
     /* ── Der Lauf ── */
@@ -7950,6 +8004,21 @@ setTimeout(async () => {
     w.__T(`karteiStarten(['KA1','KA2','KA3'])`);
     pruef('Der Lauf legt eine Schlange an', stand('k.gesamt') === 3, String(stand('k.gesamt')));
     pruef('Die Leiste erscheint', !!d.getElementById('kartei-streifen'));
+    pruef('Die Leiste zeigt eine Prozentzahl',
+      /· \d+ %/.test(String((d.getElementById('kartei-streifen')||{}).textContent)),
+      String((d.getElementById('kartei-streifen')||{}).textContent));
+    pruef('Der Lauf merkt sich die ganze Liste', stand('k.alle.join(",")') === 'KA1,KA2,KA3');
+    {
+      const innen = d.getElementById('kartei-innen');
+      pruef('Während des Laufs ist die Auswahl weg',
+        !innen.querySelector('[data-karteikasten]') && !innen.querySelector('#kartei-liste')
+        && !innen.querySelector('#kartei-such'));
+      pruef('Und der Startknopf auch', !innen.querySelector('[data-do="kartei-los"]'));
+      pruef('Stattdessen ein Fortschrittsbalken', !!innen.querySelector('.kartei-balken'));
+      pruef('Mit Prozentzahl im Abschnitt', /Prüfe \d+ von 3 · \d+ %/.test(innen.textContent), innen.textContent);
+      pruef('Und dem Knopf Anhalten', !!innen.querySelector('[data-do="kartei-stopp"]')
+        && /Anhalten/.test(innen.querySelector('[data-do="kartei-stopp"]').textContent));
+    }
     pruef('Im Browser wird nicht nach der Benachrichtigung gefragt', w.__ki.gefragt !== true);
     await warte(()=>stand('k.aktiv') === false, 8000);
     pruef('Der Lauf ist durch', stand('k.aktiv') === false);
@@ -8024,21 +8093,58 @@ setTimeout(async () => {
       String(stand(`Object.keys(k.fertig).map(function(i){return k.fertig[i].fehler||'';}).join('')`)).length > 5);
     w.__ki.fehler = null;
 
-    /* Abbrechen */
+    /* Anhalten und Fortsetzen (3.20.0) */
     w.__ki.verzug = 400;
     w.__T(`karteiVerwerfen()`);
-    w.__T(`karteiStarten(['KA1','KA2','KA3'])`);
+    w.__ki.zaehler = 0;
+    w.__T(`karteiStarten(['KA1','KA2','KA3','KA4','KA5'])`);
     await tick();
-    w.__T(`karteiAbbrechen()`);
-    pruef('Abbrechen hält den Lauf an', stand('k.aktiv') === false);
-    pruef('Abbrechen leert die Warteschlange', stand('k.offen.length') === 0);
-    pruef('Das bis dahin Gesammelte bleibt', stand('k.gesamt') === 3);
+    pruef('Drei Anfragen sind unterwegs', w.__T(`karteiLaufend()`) === 3, String(w.__T(`karteiLaufend()`)));
+    {
+      const stopp = d.querySelector('#kartei-streifen [data-do="kartei-stopp"]');
+      pruef('Die Leiste heißt Anhalten', !!stopp && /Anhalten/.test(stopp.textContent));
+      if(stopp){ stopp.click(); await tick(); }
+    }
+    pruef('Anhalten hält den Lauf an', stand('k.aktiv') === false);
+    pruef('Der Lauf gilt als angehalten', stand('k.pausiert') === true);
+    pruef('Die laufenden Anfragen stehen wieder in der Warteschlange',
+      stand('k.offen.slice().sort().join(",")') === 'KA1,KA2,KA3,KA4,KA5',
+      String(stand('k.offen.join(",")')));
+    pruef('Das bis dahin Gesammelte bleibt', stand('k.gesamt') === 5);
+    pruef('Die Leiste bietet Fortsetzen',
+      !!d.querySelector('#kartei-streifen [data-do="kartei-weiter"]'));
+    pruef('Die Leiste nennt die Prozentzahl beim Anhalten',
+      /Angehalten bei 0 von 5 · 0 %/.test(String(d.getElementById('kartei-streifen').textContent)));
+    {
+      const innen = d.getElementById('kartei-innen');
+      pruef('Der Abschnitt zeigt Fortsetzen und Verwerfen',
+        !!innen.querySelector('[data-do="kartei-weiter"]') && !!innen.querySelector('[data-do="kartei-weg"]'));
+      pruef('Der Abschnitt zeigt keine Auswahl', !innen.querySelector('[data-karteikasten]'));
+    }
+    /* Die abgebrochenen Antworten kommen spaeter an — sie duerfen nichts eintragen */
+    await new Promise(r => setTimeout(r, 500));
+    pruef('Abgebrochene Antworten tragen nichts ein', stand('Object.keys(k.fertig).length') === 0,
+      String(stand('Object.keys(k.fertig).length')));
     w.__ki.verzug = 40;
+    {
+      const weiter = d.querySelector('#kartei-innen [data-do="kartei-weiter"]');
+      if(weiter){ weiter.click(); await tick(); }
+    }
+    pruef('Fortsetzen lässt den Lauf wieder laufen',
+      stand('k.pausiert') === false && w.__ki.zaehler > 5, String(w.__ki.zaehler));
+    await warte(()=>stand('k.aktiv') === false, 12000);
+    pruef('Nach dem Fortsetzen hat jede Pflanze ein Ergebnis',
+      stand('Object.keys(k.fertig).sort().join(",")') === 'KA1,KA2,KA3,KA4,KA5',
+      String(stand('Object.keys(k.fertig).join(",")')));
+    pruef('Die Leiste meldet 5 von 5',
+      /5 von 5/.test(String((d.getElementById('kartei-streifen')||{}).textContent)));
+    pruef('Nach dem Ende steht die Ergebnisansicht',
+      d.querySelectorAll('#kartei-innen [data-karteierg]').length === 5);
 
     /* Wiederaufnahme nach Unterbrechung */
     await tick(); await tick();
     w.__T(`(function(){
-      S.kartei = {start:Date.now(), gesamt:2, offen:['KA1'],
+      S.kartei = {start:Date.now(), gesamt:2, offen:['KA1'], alle:['KA1','KA3'],
                   fertig:{KA3:{stand:'ok', art:'text', felder:{}, anzahl:0}},
                   versuch:{}, aktiv:true};
       KARTEI_CTRL = {};
@@ -8053,9 +8159,51 @@ setTimeout(async () => {
       stand('Object.keys(k.fertig).length') === 2,
       String(stand('Object.keys(k.fertig).length')));
 
+    /* Anfragen, die beim Schliessen unterwegs waren, werden nachgeholt */
+    w.__T(`(function(){
+      S.kartei = {start:Date.now(), gesamt:3, offen:[], alle:['KA1','KA2','KA3'],
+                  fertig:{KA3:{stand:'ok', art:'text', felder:{}, anzahl:0}},
+                  versuch:{}, aktiv:true};
+      KARTEI_CTRL = {}; sichern(); laden(); return 1;
+    })()`);
+    w.__ki.zaehler = 0;
+    w.__T(`karteiWiederaufnehmen()`);
+    await warte(()=>stand('k.aktiv') === false, 6000);
+    pruef('Nach dem Neustart werden verlorene Anfragen nachgeholt',
+      w.__ki.zaehler === 2, String(w.__ki.zaehler));
+    pruef('Der Lauf endet mit allen drei',
+      stand('Object.keys(k.fertig).length') === 3, String(stand('Object.keys(k.fertig).length')));
+
+    /* Ein Lauf aus 3.19.x ohne vollständige Liste lässt sich nur verwerfen */
+    w.__T(`(function(){
+      S.kartei = {start:Date.now(), gesamt:4, offen:['KA1'],
+                  fertig:{}, versuch:{}, aktiv:true};
+      KARTEI_CTRL = {}; sichern(); return 1;
+    })()`);
+    w.__ki.zaehler = 0;
+    w.__T(`karteiWiederaufnehmen()`);
+    await tick();
+    pruef('Ein alter Lauf ohne Liste startet nicht', w.__ki.zaehler === 0, String(w.__ki.zaehler));
+    pruef('Er steht als angehalten da', stand('k.pausiert') === true && stand('k.aktiv') === false);
+    pruef('Die Leiste bietet kein Fortsetzen',
+      !d.querySelector('#kartei-streifen [data-do="kartei-weiter"]')
+      && !!d.querySelector('#kartei-streifen [data-do="kartei-weg"]'));
+    {
+      const innen = d.getElementById('kartei-innen');
+      pruef('Der Abschnitt bietet nur Verwerfen',
+        !innen.querySelector('[data-do="kartei-weiter"]') && !!innen.querySelector('[data-do="kartei-weg"]')
+        && /älteren Fassung/.test(innen.textContent));
+      const weg = innen.querySelector('[data-do="kartei-weg"]');
+      if(weg){ weg.click(); await tick(); }
+      pruef('Lauf verwerfen im Abschnitt leert das Zwischenlager', w.__T(`!S.kartei`) === true);
+      pruef('Danach steht die Startansicht wieder da',
+        !!d.querySelector('#kartei-innen [data-karteikasten="alle"]')
+        && !!d.querySelector('#kartei-innen [data-do="kartei-los"]'));
+    }
+
     /* Ein alter Lauf startet nicht von selbst */
     w.__T(`(function(){
-      S.kartei = {start:Date.now() - (3*60*60*1000), gesamt:2, offen:['KA1'],
+      S.kartei = {start:Date.now() - (3*60*60*1000), gesamt:2, offen:['KA1'], alle:['KA1','KA3'],
                   fertig:{}, versuch:{}, aktiv:true};
       KARTEI_CTRL = {}; sichern(); return 1;
     })()`);
@@ -8099,7 +8247,7 @@ setTimeout(async () => {
 
     /* Ohne Schlüssel passiert nichts — außer einer Auskunft */
     {
-      w.__T(`(function(){ kiSchluesselSetzen(''); KARTEI_ART='wahl';
+      w.__T(`(function(){ kiSchluesselSetzen('');
         KARTEI_WAHL = new Set(['KA1']); karteiAbschnitt(); return 1; })()`);
       w.__ki.zaehler = 0;
       const los = d.querySelector('[data-do="kartei-los"]');
@@ -8121,7 +8269,7 @@ setTimeout(async () => {
     /* Aufräumen */
     w.__T(`(function(){
       delete S.kartei;
-      KARTEI_CTRL = {}; KARTEI_ART = 'alle'; KARTEI_WAHL = new Set();
+      KARTEI_CTRL = {}; KARTEI_WAHL = new Set(); KARTEI_WAHL_BEREIT = false;
       S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KA'; });
       ['KA1','KA2'].forEach(function(i){ delete S.fotos[i]; });
       if(S.edits){ ['KA1','KA2','KA3','KA4','KA5'].forEach(function(i){ delete S.edits[i]; }); }
