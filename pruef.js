@@ -146,7 +146,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.22.0', w.__T('FASSUNG') === '3.22.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.23.0', w.__T('FASSUNG') === '3.23.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7026,7 +7026,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.22.0', e0.nr === '3.22.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.23.0', e0.nr === '3.23.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7714,10 +7714,13 @@ setTimeout(async () => {
       /\nMERKMALE: gelbgr/.test(anl));
     pruef('BOTANISCH verlangt keinen Sortennamen mehr',
       !/h(ä|ae)nge sie in einfachen Anf/.test(anl) && !/h(ä|ae)nge sie in einfachen Anf/.test(dokS));
-    pruef('Der Auftrag verbietet den geratenen Sortennamen ausdruecklich',
-      /Nenne keinen Sortennamen/.test(anl));
-    pruef('Die Pruefliste im Anlegen nennt MERKMALE',
-      /5\. Steht in BOTANISCH und MERKMALE kein Sortenname\?/.test(anl),
+    pruef('Der Anlegen-Auftrag schickt den Sortennamen in SORTE (3.23.0)',
+      /Den Sortennamen nennst du nur in SORTE\./.test(anl) && !/Nenne keinen Sortennamen/.test(anl)
+      && /Häng keinen Sortennamen an, der gehört in SORTE\./.test(anl));
+    pruef('Der Doktor-Auftrag verbietet den Sortennamen weiter',
+      /Nenne keinen Sortennamen/.test(dokS) && !/\nSORTE: /.test(dokS));
+    pruef('Die Pruefliste im Anlegen nennt SORTE',
+      /5\. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH oder MERKMALE\?/.test(anl),
       (anl.match(/^5\..*/m) || [''])[0]);
     pruef('Die Pruefliste im Doktor nennt MERKMALE',
       /8\. Steht in BOTANISCH und MERKMALE kein Sortenname\?/.test(dokS),
@@ -8033,8 +8036,9 @@ setTimeout(async () => {
     w.__T(`karteiStarten(['KA1','KA2','KA3'])`);
     pruef('Der Lauf legt eine Schlange an', stand('k.gesamt') === 3, String(stand('k.gesamt')));
     pruef('Die Leiste erscheint', !!d.getElementById('kartei-streifen'));
-    pruef('Die Leiste zeigt eine Prozentzahl',
-      /· \d+ %/.test(String((d.getElementById('kartei-streifen')||{}).textContent)),
+    pruef('Die Leiste zeigt den Stand ohne Prozentzahl (3.23.0)',
+      /Prüfe \d+ von 3/.test(String((d.getElementById('kartei-streifen')||{}).textContent))
+      && !/%/.test(String((d.getElementById('kartei-streifen')||{}).textContent)),
       String((d.getElementById('kartei-streifen')||{}).textContent));
     pruef('Der Lauf merkt sich die ganze Liste', stand('k.alle.join(",")') === 'KA1,KA2,KA3');
     {
@@ -8044,7 +8048,8 @@ setTimeout(async () => {
         && !innen.querySelector('#kartei-such'));
       pruef('Und der Startknopf auch', !innen.querySelector('[data-do="kartei-los"]'));
       pruef('Stattdessen ein Fortschrittsbalken', !!innen.querySelector('.kartei-balken'));
-      pruef('Mit Prozentzahl im Abschnitt', /Prüfe \d+ von 3 · \d+ %/.test(innen.textContent), innen.textContent);
+      pruef('Im Abschnitt der Stand ohne Prozentzahl', /Prüfe \d+ von 3/.test(innen.textContent)
+        && !/%/.test(innen.querySelector('.kartei-stand').textContent), innen.textContent);
       pruef('Und dem Knopf Anhalten', !!innen.querySelector('[data-do="kartei-stopp"]')
         && /Anhalten/.test(innen.querySelector('[data-do="kartei-stopp"]').textContent));
     }
@@ -8082,8 +8087,10 @@ setTimeout(async () => {
     w.__T(`(function(){ var kopf = document.querySelector('[data-mh-go=\"kartei\"]');
       karteiAbschnitt(); return 1; })()`);
     pruef('Die Ergebnisliste zeigt drei Zeilen',
-      d.querySelectorAll('[data-karteierg]').length === 3,
-      String(d.querySelectorAll('[data-karteierg]').length));
+      d.querySelectorAll('#kartei-innen .kartei-zeile').length === 3,
+      String(d.querySelectorAll('#kartei-innen .kartei-zeile').length));
+    pruef('Die Ergebnisliste zeigt ohne Auswahl keine Kästchen',
+      d.querySelectorAll('#kartei-innen [data-karteierg]').length === 0);
     pruef('Der Abschnitt sagt, dass sich nur Übernommenes ändert',
       /ändert sich nur, was du im Fenster selbst übernimmst/.test(String((d.getElementById('kartei-innen')||{}).textContent)));
     pruef('Der Satz von der nächsten Fassung ist weg',
@@ -8093,11 +8100,15 @@ setTimeout(async () => {
     {
       const zeitKA1 = stand(`k.fertig['KA1'].zeit`);
       const zeitKA2 = stand(`k.fertig['KA2'].zeit`);
+      const wahlKnopf = d.querySelector('#kartei-innen [data-do="kartei-wahl"]');
+      pruef('Der Knopf Noch einmal prüfen ist da', !!wahlKnopf);
+      if(wahlKnopf){ wahlKnopf.click(); await tick(); }
       const haken = d.querySelector('[data-karteierg="KA2"]');
-      if(haken){ haken.checked = true; }
+      if(haken){ haken.checked = true; haken.dispatchEvent(new w.Event('change', {bubbles:true})); }
       w.__ki.zaehler = 0;
       const b = d.querySelector('[data-do="kartei-nochmal"]');
-      pruef('Der Knopf Noch einmal prüfen ist da', !!b);
+      pruef('Der Knopf Ausgewählte prüfen ist da und nennt die Zahl',
+        !!b && !b.disabled && /Ausgewählte prüfen \(1\)/.test(b.textContent), b ? b.textContent : 'fehlt');
       if(b){ b.click(); await tick(); }
       await warte(()=>stand('k.aktiv') === false, 6000);
       pruef('Noch einmal prüfen startet genau eine Anfrage',
@@ -8167,8 +8178,9 @@ setTimeout(async () => {
     pruef('Das bis dahin Gesammelte bleibt', stand('k.gesamt') === 5);
     pruef('Die Leiste bietet Fortsetzen',
       !!d.querySelector('#kartei-streifen [data-do="kartei-weiter"]'));
-    pruef('Die Leiste nennt die Prozentzahl beim Anhalten',
-      /Angehalten bei 0 von 5 · 0 %/.test(String(d.getElementById('kartei-streifen').textContent)));
+    pruef('Die Leiste nennt den Stand beim Anhalten, ohne Prozentzahl',
+      /Angehalten bei 0 von 5/.test(String(d.getElementById('kartei-streifen').textContent))
+      && !/%/.test(String(d.getElementById('kartei-streifen').textContent)));
     {
       const innen = d.getElementById('kartei-innen');
       pruef('Der Abschnitt zeigt Fortsetzen und Verwerfen',
@@ -8193,7 +8205,8 @@ setTimeout(async () => {
     pruef('Die Leiste meldet 5 von 5',
       /5 von 5/.test(String((d.getElementById('kartei-streifen')||{}).textContent)));
     pruef('Nach dem Ende steht die Ergebnisansicht',
-      d.querySelectorAll('#kartei-innen [data-karteierg]').length === 5);
+      d.querySelectorAll('#kartei-innen .kartei-zeile').length === 5
+      && !!d.querySelector('#kartei-innen [data-do="kartei-wahl"]'));
 
     /* Wiederaufnahme nach Unterbrechung */
     await tick(); await tick();
@@ -8354,12 +8367,49 @@ setTimeout(async () => {
         zeile('KB1') ? zeile('KB1').textContent : 'fehlt');
       pruef('Ohne Abweichung steht „Keine Abweichung“',
         !!zeile('KB2') && /Keine Abweichung/.test(zeile('KB2').textContent));
+      const wahl = async an => {
+        const b = d.querySelector('#kartei-innen [data-do="' + (an ? 'kartei-wahl' : 'kartei-wahl-zu') + '"]');
+        if(b){ b.click(); await tick(); }
+        return !!b;
+      };
+      pruef('„Durchsehen ›“ nur an der Zeile mit Abweichungen',
+        [...d.querySelectorAll('#kartei-innen .kz-durch')].map(x=>x.dataset.karteiauf).join(',') === 'KB1',
+        [...d.querySelectorAll('#kartei-innen .kz-durch')].map(x=>x.dataset.karteiauf).join(','));
+      pruef('Ohne Auswahl keine Kästchen in der Ergebnisliste',
+        !d.querySelector('#kartei-innen [data-karteierg]'));
+      pruef('In die Auswahl geht es über „Noch einmal prüfen“', await wahl(true));
       pruef('Ein Fehlschlag öffnet kein Fenster, bleibt aber anhakbar',
         !zeile('KB3') && !!d.querySelector('#kartei-innen [data-karteierg="KB3"]'));
       {
         const reihe = [...d.querySelectorAll('#kartei-innen [data-karteierg]')].map(x=>x.dataset.karteierg).join(',');
         pruef('Offene Pflanzen oben, Fehlschläge unten', reihe === 'KB1,KB2,KB3', reihe);
       }
+      pruef('In der Auswahl ist nichts angehakt und kein „Durchsehen ›“ zu sehen',
+        !d.querySelector('#kartei-innen [data-karteierg]:checked') && !d.querySelector('#kartei-innen .kz-durch')
+        && !zeile('KB1'));
+      {
+        const b = d.querySelector('#kartei-innen [data-do="kartei-nochmal"]');
+        pruef('„Ausgewählte prüfen“ ist bei 0 gesperrt',
+          !!b && b.disabled && /Ausgewählte prüfen \(0\)/.test(b.textContent), b ? b.textContent : 'fehlt');
+        const name = d.querySelector('#kartei-innen [data-karteierg="KB1"]');
+        const txt = name ? name.closest('label').querySelector('.kz-txt') : null;
+        if(txt){ txt.click(); await tick(); }
+        pruef('Tipp auf den Namen hakt an und öffnet kein Fenster',
+          !!name && name.checked && w.__T(`modalOffen('kartei-abgleich')`) === false
+          && /\(1\)/.test(b.textContent), b ? b.textContent : 'fehlt');
+      }
+      {
+        const vorKB = w.__T(`JSON.stringify(S.kartei)`);
+        pruef('„Abbrechen“ verlässt die Auswahl', await wahl(false)
+          && !d.querySelector('#kartei-innen [data-karteierg]') && !!zeile('KB1'));
+        pruef('„Abbrechen“ ändert nichts am Ergebnis', w.__T(`JSON.stringify(S.kartei)`) === vorKB);
+      }
+      if(d.querySelector('#kartei-innen .kz-durch')){
+        d.querySelector('#kartei-innen .kz-durch').click(); await tick();
+        pruef('„Durchsehen ›“ öffnet das Fenster der richtigen Pflanze',
+          w.__T(`modalOffen('kartei-abgleich') && KA_PFLANZE === 'KB1'`) === true);
+        w.__T(`modalZu('kartei-abgleich')`); await tick();
+      } else pruef('„Durchsehen ›“ öffnet das Fenster der richtigen Pflanze', false, 'Knopf fehlt');
       pruef('Der Abschnitt nennt die Pflanzen mit Abweichungen',
         /Eine Pflanze mit Abweichungen/.test(innen()), innen().slice(0, 200));
 
@@ -8465,14 +8515,21 @@ setTimeout(async () => {
       await tick();
       pruef('„Fertig“ schließt das Fenster', w.__T(`modalOffen('kartei-abgleich')`) === false);
       pruef('„Fertig“ verwirft den Rest', kb('p.duenger') === 'normal');
+      await wahl(true);
       pruef('Die durchgesehene Pflanze ist aus der Liste',
-        !zeile('KB1') && !d.querySelector('#kartei-innen [data-karteierg="KB1"]'));
+        !d.querySelector('#kartei-innen [data-karteierg="KB1"]')
+        && !!d.querySelector('#kartei-innen [data-karteierg="KB3"]'));
+      await wahl(false);
+      pruef('Sie ist auch ohne Auswahl weg', !zeile('KB1') && d.querySelectorAll('#kartei-innen .kartei-zeile').length === 2);
       pruef('Mit einem Fehlschlag bleibt das Ergebnis stehen', w.__T(`!!S.kartei`) === true);
 
       w.__T(`(function(){ S.eigene = S.eigene.filter(function(p){ return p.id !== 'KB2'; });
         sichern(); karteiAbschnitt(); return 1; })()`);
+      await wahl(true);
       pruef('Eine gelöschte Pflanze fällt aus dem Ergebnis',
-        w.__T(`!S.kartei.fertig.KB2`) === true && !d.querySelector('#kartei-innen [data-karteierg="KB2"]'));
+        w.__T(`!S.kartei.fertig.KB2`) === true && !d.querySelector('#kartei-innen [data-karteierg="KB2"]')
+        && !!d.querySelector('#kartei-innen [data-karteierg="KB3"]'));
+      await wahl(false);
 
       /* Die letzte offene Zeile — und die Rückfrage bei Klasse S */
       w.__T(`(function(){
@@ -8806,6 +8863,254 @@ setTimeout(async () => {
     w.__T(`(function(){
       S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'AE'; });
       sichern(); render(); return 1;
+    })()`);
+  }
+
+  /* ══ 3.23.0: Sorte durch die KI ══════════════════════════════
+     Jeder Test legt seine Pflanzen selbst an. */
+  {
+    const anl = String(w.__T('anlegenFormat()'));
+    const dok = String(w.__T('dokPromptBauen()'));
+    const fmt = String(w.__T('ANTWORT_FORMAT'));
+    pruef('E4: Der Anlegen-Auftrag fragt SORTE', /\nSORTE: .*Sortenname \| Sicherheit/.test(anl));
+    pruef('E4: SORTE steht im Anlegen direkt nach MERKMALE', /\nMERKMALE: [^\n]*\nSORTE: /.test(anl));
+    pruef('E4: Der Doktor fragt keine SORTE', !/\nSORTE: /.test(dok));
+    pruef('E4: ANTWORT_FORMAT bleibt wortgleich beim Sortenverbot',
+      !/\nSORTE: /.test(fmt) && /Nenne keinen Sortennamen, auch keinen vermuteten\./.test(fmt)
+      && /Häng keinen Sortennamen an — panaschierte Sorten/.test(fmt)
+      && /8\. Steht in BOTANISCH und MERKMALE kein Sortenname\?/.test(fmt));
+    const kfoto = String(w.__T('auftragMitTieren(KARTEI_FELD_FOTO, KARTEI_SONICHT, karteiPruefliste(true))'));
+    pruef('E4: Der Kartei-Auftrag mit Foto fragt SORTE',
+      /\nSORTE: /.test(kfoto) && /4\. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH oder MERKMALE\?/.test(kfoto)
+      && /Den Sortennamen nennst du nur in SORTE/.test(kfoto));
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'SK'; });
+      var basis = {eigen:true, klasse:'B', sonne:'hell', typ:'Kletterpflanze', wichtig:'keine', frostMin:10,
+        gift:null, intervall:[8,12], notiz:'', todo:[], log:[], seit:'selbst angelegt'};
+      function neu(o){ S.eigene.push(Object.assign({}, basis, o)); }
+      neu({id:'SK1', name:'Sorte leer', art:'Fensterblatt', botanisch:'Monstera deliciosa', sorte:''});
+      neu({id:'SK2', name:'Sorte eigen', art:'Fensterblatt', botanisch:'Monstera deliciosa', sorte:"'Albo'"});
+      neu({id:'SK3', name:'Sorte KI', art:'Fensterblatt', botanisch:'Monstera deliciosa', sorte:'Albo',
+        quellen:{sorte:'ki'}});
+      neu({id:'SK4', name:'Sorte im Namen', art:'Kletterphilodendron', botanisch:'Philodendron hederaceum Brasil', sorte:''});
+      neu({id:'SK5', name:'Varietät', art:'Fensterblatt', botanisch:'Monstera deliciosa var. borsigiana', sorte:''});
+      neu({id:'SK6', name:'Sammel', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:''});
+      sichern(); return 1;
+    })()`);
+    const kontext = String(w.__T(`karteiAuftrag(allePflanzen().find(function(x){ return x.id === 'SK1'; })).text`));
+    pruef('E4: Ohne Foto fragt die Kartei SORTE mit Zusatz',
+      /\nSORTE: [^\n]*Ohne Foto: Nenne eine Sorte nur/.test(kontext)
+      && /Steht ein Sortenname nur in SORTE und nicht in BOTANISCH\?/.test(kontext));
+
+    /* Der Leser */
+    const lies = t => w.__T(`JSON.stringify(sorteLesen((geminiLesen(${JSON.stringify(t)}) || {}).sorte))`);
+    pruef('E4: SORTE mit Sicherheit wird gelesen',
+      lies('ART: Fensterblatt\nSORTE: Thai Constellation | hoch') === '{"name":"Thai Constellation","sicher":"hoch"}',
+      lies('ART: Fensterblatt\nSORTE: Thai Constellation | hoch'));
+    pruef('E4: Anführungszeichen fallen weg',
+      lies("ART: Fensterblatt\nSORTE: 'Albo' | mittel") === '{"name":"Albo","sicher":"mittel"}',
+      lies("ART: Fensterblatt\nSORTE: 'Albo' | mittel"));
+    pruef('E4: „keine“ ergibt nichts', lies('ART: Fensterblatt\nSORTE: keine') === 'null');
+    pruef('E4: Ohne Sicherheit gilt sie als niedrig',
+      lies('ART: Fensterblatt\nSORTE: Albo') === '{"name":"Albo","sicher":"niedrig"}');
+    pruef('E4: MERKMALE landet weiter nur in den Sortenmerkmalen',
+      w.__T(`(function(){ var d = geminiLesen('ART: X\\nMERKMALE: gelb gesprenkelt\\nSORTE: Albo | hoch');
+        return d.sortenmerkmale === 'gelb gesprenkelt' && d.sorte === 'Albo | hoch'; })()`) === true
+      && w.__T(`geminiLesen('ART: X\\nSortenmerkmale: gelb').sorte === undefined`) === true);
+    pruef('E4: Eine Antwort ohne SORTE bleibt lesbar',
+      w.__T(`(function(){ var d = geminiLesen('ART: Fensterblatt\\nBOTANISCH: Monstera deliciosa');
+        return d.art === 'Fensterblatt' && d.bot === 'Monstera deliciosa' && d.sorte === undefined; })()`) === true);
+
+    /* Das Anlegen */
+    const anlegenMit = (text, eigen) => w.__T(`(function(){
+      alStart(); neuWegSetzen('ki');
+      document.getElementById('f-sorte').value = ${JSON.stringify(eigen || '')};
+      document.getElementById('f-paste').value = ${JSON.stringify(text)};
+      document.getElementById('btn-paste-los').click();
+      return 1; })()`);
+    const feld = () => d.getElementById('f-sorte').value;
+    const hint = () => String(d.getElementById('f-sorte-hint').textContent);
+    const antwort = s => 'ART: Fensterblatt\nBOTANISCH: Monstera deliciosa\nMERKMALE: weiß marmoriert\nSORTE: ' + s;
+    anlegenMit(antwort('Albo | mittel'));
+    pruef('E4: Mittel belegt das leere Sortenfeld vor', feld() === 'Albo', feld());
+    pruef('E4: Der Hinweis nennt KI-Vorschlag und Sicherheit',
+      /KI-Vorschlag · Sicherheit mittel/.test(hint()) && /Die KI hat gesehen: weiß marmoriert/.test(hint())
+      && !d.getElementById('f-sorte-hint').hidden, hint());
+    anlegenMit(antwort('Albo | niedrig'));
+    pruef('E4: Niedrig lässt das Feld leer', feld() === '', feld());
+    const nimm = d.querySelector('#f-sorte-hint .sorte-nimm');
+    pruef('E4: Niedrig zeigt „Vielleicht“ mit Knopf',
+      /Vielleicht: Albo \(unsicher\)/.test(hint()) && !!nimm && /Als Sorte eintragen/.test(nimm.textContent), hint());
+    if(nimm) nimm.click();
+    pruef('E4: Der Knopf trägt die Sorte ein', feld() === 'Albo', feld());
+    anlegenMit(antwort('Albo | hoch'), 'Eigene');
+    pruef('E4: Ein eigener Eintrag bleibt', feld() === 'Eigene', feld());
+    pruef('E4: Die abweichende Antwort steht darunter', /Die KI sieht: Albo/.test(hint()), hint());
+    pruef('E4: Das Anlegen schreibt vor „Anlegen“ nichts in die Sammlung',
+      w.__T(`allePflanzen().some(function(p){ return p.name === 'SortenAnlegen1'; })`) === false);
+
+    anlegenMit(antwort('Albo | mittel'));
+    d.getElementById('f-name').value = 'SortenAnlegen1';
+    await w.__T('alSpeichern()');
+    const neuP = (n, c) => w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.name === '${n}'; });
+      return p ? ${c} : 'fehlt'; })()`);
+    pruef('E4: Gespeichert mit KI-Stempel',
+      neuP('SortenAnlegen1', 'p.sorte') === 'Albo' && neuP('SortenAnlegen1', 'p.quellen.sorte') === 'ki',
+      neuP('SortenAnlegen1', 'JSON.stringify([p.sorte, p.quellen])'));
+    pruef('E4: Nach dem Anlegen ist der Hinweis leer', hint() === '' && d.getElementById('f-sorte-hint').hidden);
+    anlegenMit(antwort('Albo | mittel'));
+    d.getElementById('f-sorte').value = 'Anders';
+    d.getElementById('f-name').value = 'SortenAnlegen2';
+    await w.__T('alSpeichern()');
+    pruef('E4: Geänderter Vorschlag wird als eigener gestempelt',
+      neuP('SortenAnlegen2', 'p.sorte') === 'Anders' && neuP('SortenAnlegen2', 'p.quellen.sorte') === 'hand',
+      neuP('SortenAnlegen2', 'JSON.stringify([p.sorte, p.quellen])'));
+    w.__T(`(function(){ S.eigene = S.eigene.filter(function(p){ return !/^SortenAnlegen/.test(p.name); });
+      sichern(); return 1; })()`);
+
+    /* Die Kartei */
+    const ab = (id, felder) => `karteiAbweichungen(allePflanzen().find(function(x){ return x.id === '${id}'; }),
+      {stand:'ok', felder:${JSON.stringify(felder)}})`;
+    const zeile = (id, felder, key) => w.__T(`JSON.stringify(${ab(id, felder)}.zeilen.find(function(z){ return z.key === '${key}'; }) || null)`);
+    const zl = (id, felder, key) => JSON.parse(zeile(id, felder, key));
+    const z1 = zl('SK1', {sorte:'Albo | hoch'}, 'sorte');
+    pruef('E4: Kartei zeigt die Zeile Sorte', !!z1 && z1.neu === 'Albo' && z1.alt === ''
+      && /Setzt die Sorte · Sicherheit hoch/.test(z1.wirkung) && !z1.hand, JSON.stringify(z1));
+    pruef('E4: Gleiche Sorte in anderer Schreibweise gibt keine Zeile', zl('SK2', {sorte:'albo | hoch'}, 'sorte') === null);
+    pruef('E4: Niedrig gibt keine Zeile, aber einen Hinweis',
+      zl('SK1', {sorte:'Albo | niedrig'}, 'sorte') === null
+      && /vermutet die Sorte „Albo“/.test(w.__T(`${ab('SK1', {sorte:'Albo | niedrig'})}.hinweise.join(' ')`)));
+    pruef('E4: „keine“ bietet nie an, eine Sorte zu löschen',
+      w.__T(`${ab('SK2', {sorte:'keine'})}.zeilen.length`) === 0);
+    const zh = zl('SK2', {sorte:'Thai Constellation | mittel'}, 'sorte');
+    pruef('E4: Eine selbst eingetragene Sorte gilt als eigene', !!zh && zh.hand === true && zh.alt === 'Albo', JSON.stringify(zh));
+    const zk = zl('SK3', {sorte:'Thai Constellation | mittel'}, 'sorte');
+    pruef('E4: Eine KI-Sorte gilt nicht als eigene', !!zk && zk.hand === false, JSON.stringify(zk));
+
+    w.__T(`(function(){
+      S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['SK1'], versuch:{}, aktiv:false,
+        fertig:{SK1:{stand:'ok', art:'text', zeit:Date.now(), felder:{sorte:'Albo | hoch'}}}};
+      sichern(); karteiFensterAuf('SK1'); return 1; })()`);
+    await tick();
+    const haken = d.querySelector('#ka-inhalt [data-kahaken="sorte"]');
+    if(haken){ haken.checked = true; haken.dispatchEvent(new w.Event('change', {bubbles:true})); }
+    w.__T(`modalZu('kartei-abgleich')`);
+    await tick();
+    pruef('E4: Öffnen, Haken, Schließen ändert die Sorte nicht (Regel 10.8)',
+      !!haken && w.__T(`allePflanzen().find(function(x){ return x.id === 'SK1'; }).sorte`) === '');
+    w.__T(`(function(){ KA_PFLANZE = 'SK1'; karteiAktion('nimm', ['sorte']); return 1; })()`);
+    pruef('E4: Übernommen mit KI-Stempel',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK1'; });
+        return p.sorte === 'Albo' && p.quellen.sorte === 'ki'; })()`) === true);
+
+    const zb = zl('SK4', {sorte:'keine'}, 'sortebot');
+    pruef('E4: Sorte aus dem botanischen Namen wird angeboten',
+      !!zb && zb.alt === 'Philodendron hederaceum Brasil' && zb.neu === 'Sorte Brasil · Botanisch Philodendron hederaceum',
+      JSON.stringify(zb));
+    pruef('E4: Auch ohne SORTE-Zeile in der Antwort', !!zl('SK4', {}, 'sortebot'));
+    pruef('E4: Dabei keine Zeilen Botanisch und Art',
+      zl('SK4', {art:'Kletterphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'}, 'botanisch') === null
+      && zl('SK4', {art:'Philodendron', bot:'Philodendron hederaceum', sicher:'hoch'}, 'art') === null);
+    const za = zl('SK4', {sorte:'Micans | hoch'}, 'sorte');
+    pruef('E4: Andere Sorte als im Namen: normale Zeile mit Hinweis',
+      !!za && /Im botanischen Namen steht „Brasil“/.test(za.wirkung)
+      && zl('SK4', {sorte:'Micans | hoch'}, 'sortebot') === null, JSON.stringify(za));
+    pruef('E4: Varietät ist keine Sorte', zl('SK5', {}, 'sortebot') === null);
+    w.__T(`(${ab('SK4', {sorte:'keine'})}.zeilen.find(function(z){ return z.key === 'sortebot'; }) || {nimm:function(){}}).nimm()`);
+    pruef('E4: Die Übernahme setzt Sorte und kürzt den Namen',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK4'; });
+        return JSON.stringify([p.sorte, p.botanisch, (p.quellen || {}).sorte]); })()`)
+      === '["Brasil","Philodendron hederaceum","ki"]',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK4'; });
+        return JSON.stringify([p.sorte, p.botanisch, p.quellen]); })()`));
+    pruef('E4: Danach wird nichts mehr angeboten', w.__T(`${ab('SK4', {sorte:'Brasil | hoch'})}.zeilen.length`) === 0);
+
+    /* Reihenfolge beim Sammelübernehmen */
+    const reihe = w.__T(`(function(){
+      S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['SK6'], versuch:{}, aktiv:false,
+        fertig:{SK6:{stand:'ok', art:'text', zeit:Date.now(),
+          felder:{art:'Fensterblatt', bot:'Monstera deliciosa', sicher:'hoch', sorte:'Albo | hoch', licht:'voll'}}}};
+      var log = [], echt = aenderungSetzen;
+      aenderungSetzen = function(id, f){ if(id === 'SK6') log.push(Object.keys(f).join('+')); return echt.apply(null, arguments); };
+      try { KA_PFLANZE = 'SK6'; karteiAktion('nimm', ['sonne', 'sorte', 'art']); }
+      finally { aenderungSetzen = echt; }
+      return log.join(',');
+    })()`);
+    pruef('E4: Sammelübernehmen setzt erst die Art, dann die Sorte, dann den Rest',
+      /^art\+botanisch,/.test(reihe) && reihe.indexOf('sorte') > 0 && reihe.indexOf('sonne') > reihe.indexOf('sorte'), reihe);
+    pruef('E4: Beides ist danach gesetzt',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK6'; });
+        return p.art === 'Fensterblatt' && p.sorte === 'Albo' && p.sonne === 'voll'; })()`) === true);
+
+    /* Stempel */
+    w.__T(`aenderungSetzen('SK3', {sorte:'Von Hand'})`);
+    pruef('E4: Von Hand geändert fällt der KI-Stempel weg',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK3'; });
+        return p.sorte === 'Von Hand' && (!p.quellen || p.quellen.sorte === undefined); })()`) === true);
+    const kind = w.__T(`(function(){ return ablegerAnlegen('SK1', Object.keys(V_METHODEN)[0]).id; })()`);
+    pruef('E4: Der Ableger erbt den Sortenstempel',
+      w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === '${kind}'; });
+        return p && p.sorte === 'Albo' && p.quellen && p.quellen.sorte === 'ki'; })()`) === true);
+
+    w.__T(`(function(){
+      if(typeof modalOffen === 'function' && modalOffen('kartei-abgleich')) modalZu('kartei-abgleich');
+      KA_PFLANZE = null; delete S.kartei;
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'SK' && p.id !== '${kind}'; });
+      sichern(); karteiLeiste(); karteiAbschnitt(); render(); return 1;
+    })()`);
+  }
+
+  /* ══ 3.23.0: Fortschrittsbalken ══ */
+  {
+    w.__T(`(function(){
+      S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'KZ'; });
+      ['KZ1','KZ2','KZ3'].forEach(function(id){
+        S.eigene.push({id:id, eigen:true, name:'Balken ' + id, art:'Fensterblatt', klasse:'B', todo:[], log:[]});
+      });
+      S.kartei = {start:Date.now(), gesamt:1, offen:[], alle:['KZ1'], fertig:{}, versuch:{}, aktiv:true};
+      KARTEI_CTRL = {KZ1:{abort:function(){}}};
+      sichern(); return 1;
+    })()`);
+    const teil = ms => w.__T(`(function(){ KARTEI_START = {KZ1: Date.now() - ${ms}}; return karteiFortschritt(S.kartei).teil; })()`);
+    pruef('K: Der Balken beginnt bei 0', teil(0) === 0, String(teil(0)));
+    pruef('K: Nach 1 Sekunde 30 %', teil(1500) === 30, String(teil(1500)));
+    pruef('K: Nach 4 Sekunden 60 %', teil(5000) === 60, String(teil(5000)));
+    pruef('K: Nach 10 Sekunden 85 %', teil(11000) === 85, String(teil(11000)));
+    pruef('K: Nach 20 Sekunden weiter 85 %', teil(20000) === 85, String(teil(20000)));
+    pruef('K: Der Text nennt keine Prozentzahl',
+      w.__T(`karteiFortschritt(S.kartei).text`) === 'Prüfe 1 von 1', w.__T(`karteiFortschritt(S.kartei).text`));
+    w.__T(`(function(){ KARTEI_START = {KZ1: Date.now() - 5000}; karteiLeiste(); karteiAbschnitt(); return 1; })()`);
+    pruef('K: Während des Laufs läuft der Zeitgeber', w.__T(`KARTEI_UHR !== null`) === true);
+    w.__T(`karteiBalkenSetzen()`);
+    {
+      const b = d.querySelector('#kartei-innen .kartei-balken');
+      const i = b ? b.querySelector('i') : null;
+      const s = d.querySelector('#kartei-streifen .ks-balken i');
+      pruef('K: Balken, Leiste und aria-valuenow zeigen dieselbe Zahl',
+        !!i && i.style.width === '60%' && !!s && s.style.width === '60%' && b.getAttribute('aria-valuenow') === '60',
+        [i && i.style.width, s && s.style.width, b && b.getAttribute('aria-valuenow')].join(' '));
+      pruef('K: Die Leiste nennt keine Prozentzahl',
+        !/%/.test(String((d.getElementById('kartei-streifen')||{}).textContent)));
+    }
+    pruef('K: Drei Pflanzen, eine fertig, eine seit 5 s → 53 %',
+      w.__T(`(function(){
+        S.kartei.gesamt = 3; S.kartei.alle = ['KZ1','KZ2','KZ3']; S.kartei.offen = ['KZ3'];
+        S.kartei.fertig = {KZ1:{stand:'ok', felder:{}, zeit:Date.now()}};
+        KARTEI_CTRL = {KZ2:{abort:function(){}}};
+        KARTEI_START = {KZ1: Date.now() - 30000, KZ2: Date.now() - 5000};
+        return karteiFortschritt(S.kartei).teil; })()`) === 53);
+    w.__T(`(function(){
+      KARTEI_CTRL = {};
+      S.kartei.offen = [];
+      S.kartei.fertig.KZ2 = {stand:'ok', felder:{}, zeit:Date.now()};
+      S.kartei.fertig.KZ3 = {stand:'ok', felder:{}, zeit:Date.now()};
+      karteiFertig(); return 1; })()`);
+    pruef('K: Nach dem Ende 100 %', w.__T(`karteiFortschritt(S.kartei).teil`) === 100);
+    pruef('K: Nach dem Ende läuft kein Zeitgeber', w.__T(`KARTEI_UHR === null`) === true);
+    w.__T(`(function(){
+      delete S.kartei; KARTEI_START = {};
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'KZ'; });
+      sichern(); karteiLeiste(); karteiAbschnitt(); render(); return 1;
     })()`);
   }
 

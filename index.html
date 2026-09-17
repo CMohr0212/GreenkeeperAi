@@ -3444,7 +3444,12 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 html[data-design="klartext"] .kartei-zeile{border-width:2px}
 .kartei-zeile .kz-auf{flex:1;background:none;border:0;padding:0;margin:0;text-align:left;
   font:inherit;color:inherit;cursor:pointer;min-height:var(--tap);justify-content:center}
-.kartei-zeile .kz-auf b::after{content:' ›';font-weight:400;color:var(--matt)}
+.kartei-zeile .kz-durch{flex:0 0 auto;min-height:var(--tap);padding:0 12px;white-space:nowrap}
+.kartei-zeile.kz-wahl{cursor:pointer}
+.kartei-zeile input[type=checkbox]{width:22px;height:22px;flex:0 0 auto;margin:0;accent-color:var(--moss)}
+.kartei-zeile.kz-wahl .kz-txt{flex:1}
+#f-sorte-hint .sorte-ki,#f-sorte-hint .sorte-merk{display:block}
+#f-sorte-hint .sorte-nimm{display:inline-block;margin-top:4px;min-height:var(--tap)}
 #kartei-abgleich .modal-box{max-height:calc(100dvh - 44px);overflow-y:auto}
 .ka-kopf{display:flex;align-items:flex-start;gap:8px}
 .ka-kopf h3{flex:1;min-width:0}
@@ -6010,6 +6015,12 @@ const FELD_ZUSATZ = {
       .replace(/Uebertopf/, '\u00dcbertopf'),
     bsp:'TOPFART: Kulturtopf'
   },
+  /* Die Sorte fragen nur Anlegen und Kartei (3.23.0). Der Doktor-Auftrag
+     bleibt wortgleich. */
+  SORTE: {
+    text:'SORTE: Die Sorte dieser Pflanze und wie sicher du dir bist, getrennt durch genau einen senkrechten Strich: Sortenname | Sicherheit. Sicherheit ist nur eines dieser W\u00f6rter: hoch, mittel, niedrig. Nenne nur eingef\u00fchrte Handelsnamen, erfinde keinen Namen und schreib ihn ohne Anf\u00fchrungszeichen. Ist keine Sorte erkennbar oder ist es die reine Art, schreib genau: keine',
+    bsp:'SORTE: Jessenia | mittel'
+  },
   ABLAUF: {
     text:'ABLAUF: Hat der Topf ein sichtbares Abzugsloch? Nur genau eines dieser Woerter: ja, nein, nicht sichtbar'
       .replace(/Woerter/, 'W\u00f6rter'),
@@ -6042,7 +6053,7 @@ function auftragFormat(namen, sonicht, pruefliste){
    Massnahmen, Topfurteil und der Giesssatz gehoeren zum Doktor und
    stehen hier nicht mehr. Jede Zeile weniger ist eine Stelle weniger,
    an der die Antwort ausschert. */
-const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
+const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SORTE','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
   'LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART','ABLAUF','FROST','WICHTIG',
   'KATZEN','VERMEHRUNG'];
 
@@ -6055,7 +6066,7 @@ const ANLEGEN_PRUEFLISTE = '1. Steht die gesamte Antwort in einem Codeblock und 
   + '2. Kommen alle Schl\u00fcsselw\u00f6rter genau einmal vor, in der Reihenfolge der Liste? Nur VERMEHRUNG darf mehrfach vorkommen.\n'
   + '3. Enthalten SICHERHEIT, LICHT, GIESSKLASSE, GIESSART, SUBSTRAT, TOPFART und ABLAUF nur eine der erlaubten Angaben?\n'
   + '4. Hat jede VERMEHRUNG-Zeile genau vier senkrechte Striche?\n'
-  + '5. Steht in BOTANISCH und MERKMALE kein Sortenname?\n'
+  + '5. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH oder MERKMALE?\n'
   + '6. Steht irgendwo ein Urteil oder eine Empfehlung? Dann streich es.';
 
 /* Die Tierzeile richtet sich nach den eingetragenen Tieren. Wer keine
@@ -6074,6 +6085,17 @@ function tierZeileFuer(arten){
    weil außer dem Anlegen inzwischen auch das Auffrischen der Kartei
    eigene Feldlisten schickt — zwei Stellen mit derselben Dreherei
    waren eine zu viel. */
+/* Mit einer SORTE-Zeile gehört der Sortenname dorthin. BOTANISCH und
+   MERKMALE verbieten ihn weiter, verweisen aber auf SORTE. */
+const SORTE_SATZ_BOT_ALT = 'H\u00e4ng keinen Sortennamen an \u2014 panaschierte Sorten sind am Foto oft nicht unterscheidbar, und ein geratener Name ist schlimmer als keiner.';
+const SORTE_SATZ_BOT_NEU = 'H\u00e4ng keinen Sortennamen an, der geh\u00f6rt in SORTE.';
+const SORTE_SATZ_MERK_ALT = 'Nenne keinen Sortennamen, auch keinen vermuteten.';
+const SORTE_SATZ_MERK_NEU = 'Den Sortennamen nennst du nur in SORTE.';
+function sorteSaetze(t){
+  return String(t).split(SORTE_SATZ_BOT_ALT).join(SORTE_SATZ_BOT_NEU)
+    .split(SORTE_SATZ_MERK_ALT).join(SORTE_SATZ_MERK_NEU);
+}
+
 function auftragMitTieren(namen, sonicht, pruefliste){
   const tiere = (typeof meineTiere === 'function') ? meineTiere() : ['katze'];
   const zeile = tierZeileFuer(tiere);
@@ -6088,6 +6110,7 @@ function auftragMitTieren(namen, sonicht, pruefliste){
   let t;
   try { t = auftragFormat(felder, sonicht, pruefliste); }
   finally { if(alt && merk) alt.name = merk; }
+  if(felder.indexOf('SORTE') > -1) t = sorteSaetze(t);
   return promptZahlSetzen(t);
 }
 
@@ -6202,6 +6225,7 @@ const ANTWORT_SCHLUESSEL = [
   ['art',     ['art','deutscher name','name','deutsch','pflanze','pflanzenname','common name','german name']],
   ['bot',     ['botanisch','botanischer name','wissenschaftlich','wissenschaftlicher name','lateinisch','lateinischer name','gattung und art','botanical name','scientific name','species']],
   ['sortenmerkmale',['merkmale','sortenmerkmale','sortenmerkmal','erkennungsmerkmale','panaschierung']],
+  ['sorte',   ['sorte','sortenname','cultivar','kultivar']],
   ['sicher',  ['sicherheit','sicherheit der bestimmung','confidence','gewissheit']],
   ['fehlt',   ['fehlt','fehlende angaben','was fehlt','unklar','zusatzfoto','weiteres foto','missing']],
   ['familie', ['familie','pflanzenfamilie','family']],
@@ -9048,8 +9072,18 @@ function aenderungSetzen(id, felder, herkunft, erzwungen){
     if(!erzwungen && hatWert && Q_RANG[her] < Q_RANG[bisher]){ delete felder[f]; return; }
     stempel[f] = her;
   });
-  if(Object.keys(stempel).length)
+  /* Die Sorte steht nicht in der Rangfolge. Einen Stempel bekommt sie
+     nur mit ausdrücklicher Herkunft; ohne Angabe fällt ein alter
+     KI-Stempel weg, dann gilt sie als selbst eingetragen (3.23.0). */
+  let sorteOhne = false;
+  if(Object.prototype.hasOwnProperty.call(felder, 'sorte')){
+    if(herkunft === 'ki' || herkunft === 'hand') stempel.sorte = herkunft;
+    else if(stand.quellen && stand.quellen.sorte) sorteOhne = true;
+  }
+  if(Object.keys(stempel).length || sorteOhne){
     felder.quellen = Object.assign({}, stand.quellen, stempel);
+    if(sorteOhne) delete felder.quellen.sorte;
+  }
   const eigen = (S.eigene||[]).find(p=>p.id===id);
   if(eigen){ Object.assign(eigen, felder); }
   else { S.edits[id] = Object.assign({}, S.edits[id], felder); }
@@ -11230,8 +11264,24 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.22.0';
+const FASSUNG = '3.23.0';
 const PATCHNOTES = [
+  {
+    nr: '3.23.0', datum: '2026-09-16', titel: 'Die KI erkennt die Sorte',
+    kurz: [
+      'Beim Anlegen und in der Kartei nennt die KI jetzt die Sorte und wie sicher sie sich ist. In die Karte kommt sie erst, wenn du es bestätigst.'
+    ],
+    neu: [
+      'Beim Anlegen steht eine sicher erkannte Sorte schon im Feld, mit dem Hinweis „KI-Vorschlag“ und der Sicherheit. Bei unsicherer Erkennung steht nur „Vielleicht“ darunter, mit dem Knopf „Als Sorte eintragen“. Was du selbst eingetragen hast, bleibt.',
+      'Die Kartei bietet die Sorte als eigene Zeile an. Eine unsichere Vermutung erscheint nur als Hinweis.',
+      'Steht eine Sorte noch im botanischen Namen, etwa „Philodendron hederaceum Brasil“, bietet die Kartei an, sie ins Feld Sorte zu verschieben.',
+      'Ableger erben auch, ob die Sorte von der KI oder von dir stammt.'
+    ],
+    besser: [
+      'Der Balken der Kartei bewegt sich, während eine Anfrage läuft, und bleibt kurz vor dem Ziel stehen, bis die Antwort da ist. Die Prozentzahl im Text ist weg.',
+      'In der Ergebnisliste führt „Durchsehen ›“ zu den Abweichungen. Die Kästchen erscheinen erst nach „Noch einmal prüfen“.'
+    ]
+  },
   {
     nr: '3.22.0', datum: '2026-09-16', titel: 'Kartei: Kästchen statt Knöpfe',
     kurz: [
@@ -13069,6 +13119,25 @@ function sorteVon(p){
   return String((p && p.sorte) || '')
     .replace(/^[\s'"\u201e\u201c\u201a\u2018]+/, '')
     .replace(/[\s'"\u201c\u201d\u2018\u2019]+$/, '').trim();
+}
+/* „Name | Sicherheit“ aus der SORTE-Zeile. Ohne Sicherheit gilt sie als
+   niedrig. „keine“ und Leeres ergeben nichts. */
+function sorteLesen(w){
+  const t = String(w || '').trim();
+  if(!t) return null;
+  const teile = t.split('|');
+  let name = teile[0]
+    .replace(/^\s*(cv\.?|sorte\s*:)\s*/i, '')
+    .replace(/^[\s'"\u201e\u201c\u201a\u2018\u2019\u201d]+/, '')
+    .replace(/[\s'"\u201c\u201d\u2018\u2019.,;]+$/, '').trim();
+  if(!name || /^(keine?|unbekannt|nicht erkennbar|reine art|[-\u2013\u2014?])$/i.test(name)) return null;
+  let sicher = teile.length > 1 ? norm(teile.slice(1).join(' ')) : '';
+  if(['hoch', 'mittel', 'niedrig'].indexOf(sicher) < 0) sicher = 'niedrig';
+  return {name:name, sicher:sicher};
+}
+function sorteGleich(a, b){
+  const n = x => norm(sorteVon({sorte:x}));
+  return n(a) === n(b);
 }
 function mitSorte(text, p){
   const t = String(text || '').trim();
@@ -16861,6 +16930,9 @@ function formularLeeren(){
   ['f-name','f-art','f-bot','f-sorte','f-typ','f-notiz','f-paste','f-wichtig'].forEach(x=>{
     if($('#'+x)) $('#'+x).value = '';
   });
+  if(typeof SORTE_VORSCHLAG !== 'undefined') SORTE_VORSCHLAG = null;
+  const sortHint = document.getElementById('f-sorte-hint');
+  if(sortHint){ sortHint.innerHTML = ''; sortHint.hidden = true; }
   ['f-klasse','f-sonne','f-giftig','f-giessart','f-raum','f-stellplatz',
    'f-topfform','f-substrat','f-ablauf'].forEach(x=>{
     const el = $('#'+x); if(el) el.selectedIndex = 0;
@@ -19648,13 +19720,12 @@ $('#btn-paste-los').onclick = ()=>{
   if(vorbelegen('f-substrat', substratLesen(d.substrat))) uebernommen.push('Substrat vorbelegt');
   if(vorbelegen('f-ablauf', ablaufLesen(d.ablauf))) uebernommen.push('Abzugsloch vorbelegt');
   alTopfZeichnen();
-  /* Die Merkmale gehen nicht in die Sorte — die tippt der Mensch.
-     Sie stehen als Hinweis unter dem Feld. */
-  if(d.sortenmerkmale && !/^keine?$|^unbekannt$/.test(norm(d.sortenmerkmale))){
-    const sh = document.getElementById('f-sorte-hint');
-    if(sh){ sh.textContent = 'Die KI hat gesehen: ' + d.sortenmerkmale; sh.hidden = false; }
+  /* Die Sorte schlägt die KI vor (3.23.0), die Merkmale stehen weiter
+     als Hinweis darunter. Gespeichert wird erst mit „Anlegen“. */
+  const sortMeld = sorteVorschlagZeigen(d);
+  if(sortMeld) uebernommen.push(sortMeld);
+  if(d.sortenmerkmale && !/^keine?$|^unbekannt$/.test(norm(d.sortenmerkmale)))
     uebernommen.push('Sortenmerkmale gelesen');
-  }
   /* Für den Anlegen-Knopf merken: die Maßnahmen sollen gleich als
      Aufgaben mitkommen, sobald die Pflanze eine ID hat. */
   letzteKiAntwort = d;
@@ -19685,6 +19756,50 @@ $('#btn-paste-los').onclick = ()=>{
     if(el) el.innerHTML = botWarnungHTML(d.bot) + el.innerHTML;
   }
 };
+
+/* ── Sortenvorschlag im Anlegen (3.23.0) ──────────────────────
+   Hoch oder mittel: das leere Feld wird vorbelegt. Niedrig: nur ein
+   Hinweis mit Knopf. Ein eigener Eintrag wird nie überschrieben. */
+let SORTE_VORSCHLAG = null;
+function sorteVorschlagZeigen(d){
+  const feld = document.getElementById('f-sorte');
+  const sh = document.getElementById('f-sorte-hint');
+  SORTE_VORSCHLAG = null;
+  if(!feld || !sh) return '';
+  d = d || {};
+  const merk = (d.sortenmerkmale && !/^keine?$|^unbekannt$/.test(norm(d.sortenmerkmale)))
+    ? d.sortenmerkmale : '';
+  const s = sorteLesen(d.sorte);
+  const eigen = feld.value.trim();
+  const teile = [];
+  let meld = '';
+  if(s){
+    if(eigen){
+      if(!sorteGleich(eigen, s.name))
+        teile.push('<span class="sorte-ki">' + esc('Die KI sieht: ' + s.name + ' · Sicherheit ' + s.sicher) + '</span>');
+    } else if(s.sicher !== 'niedrig'){
+      feld.value = s.name;
+      SORTE_VORSCHLAG = s.name;
+      teile.push('<span class="sorte-ki">' + esc('KI-Vorschlag · Sicherheit ' + s.sicher + ' — bitte prüfen') + '</span>');
+      meld = 'Sorte vorgeschlagen';
+    } else {
+      teile.push('<span class="sorte-ki">' + esc('Vielleicht: ' + s.name + ' (unsicher)') + '</span>'
+        + '<button type="button" class="linkbtn sorte-nimm" data-sorte="' + esc(s.name) + '">Als Sorte eintragen</button>');
+    }
+  }
+  if(merk) teile.push('<span class="sorte-merk">' + esc('Die KI hat gesehen: ' + merk) + '</span>');
+  sh.innerHTML = teile.join('');
+  sh.hidden = !teile.length;
+  const b = sh.querySelector('.sorte-nimm');
+  if(b) b.onclick = ()=>{
+    feld.value = b.dataset.sorte;
+    SORTE_VORSCHLAG = b.dataset.sorte;
+    const z = sh.querySelector('.sorte-ki');
+    if(z) z.textContent = 'KI-Vorschlag · Sicherheit niedrig — von dir eingetragen';
+    b.remove();
+  };
+  return meld;
+}
 
 /* Sieht der botanische Name überhaupt nach einer Pflanze aus?
    Eine Antwort mit „Carassius auratus“ wurde bisher wortlos
@@ -19868,7 +19983,8 @@ async function alSpeichern(){
   const p = {
     id, eigen:true, name: name || 'Name offen', art: art || 'Unbestimmt',
     botanisch: $('#f-bot').value.trim() || (a ? a.bot : ''),
-    /* Die Sorte tippt der Mensch. Die KI liefert dazu nur Merkmale. */
+    /* Die Sorte kann ein KI-Vorschlag sein (3.23.0). Der Stempel folgt
+       unten, sobald die Quellen stehen. */
     sorte: $('#f-sorte').value.trim(),
     sortenmerkmale: (letzteKiAntwort && letzteKiAntwort.sortenmerkmale) || '',
     familie: a ? a.fam : '', klasse: kl,
@@ -19908,6 +20024,7 @@ async function alSpeichern(){
      Eine eigene Eingabe im Auswahlfeld legt sich darüber. */
   p.gift = (gift === 'ja' || gift === 'nein')
     ? giftEigenSetzen(p, gift) : giftErmitteln(p);
+  if(p.sorte) p.quellen.sorte = (SORTE_VORSCHLAG && sorteGleich(p.sorte, SORTE_VORSCHLAG)) ? 'ki' : 'hand';
   S.eigene.push(p);
   const zc = $('#f-zustand').value;
   if(zc && zc !== 'gesund') zustandSetzen(id, zc);
@@ -27351,7 +27468,7 @@ function ablegerErbe(mutter, b){
   const q = mutter.quellen;
   if(q && typeof q === 'object' && !Array.isArray(q)){
     const qq = {};
-    Q_FELDER.forEach(f=>{ if(q[f] && Object.prototype.hasOwnProperty.call(erbe, f)) qq[f] = q[f]; });
+    Q_FELDER.concat(['sorte']).forEach(f=>{ if(q[f] && Object.prototype.hasOwnProperty.call(erbe, f)) qq[f] = q[f]; });
     if(Object.keys(qq).length) erbe.quellen = qq;
   }
   return erbe;
@@ -27805,7 +27922,7 @@ const KARTEI_PFLICHT_NAME = {
 /* Zwei Aufträge: mit Foto und ohne. Jede gewählte Pflanze bekommt den
    vollen Abgleich der Artdaten, nicht nur ihre Lücken — die Kartei soll
    auch prüfen, was schon dasteht. */
-const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SICHERHEIT','FAMILIE','TYP','SPEICHER',
+const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SORTE','SICHERHEIT','FAMILIE','TYP','SPEICHER',
   'LICHT','GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','KATZEN','VERMEHRUNG'];
 const KARTEI_FELD_TEXT = KARTEI_FELD_FOTO.filter(n=>n !== 'MERKMALE');
 
@@ -27844,7 +27961,7 @@ function karteiPruefliste(mitFoto){
     + '2. Kommen alle Schlüsselwörter genau einmal vor, in der Reihenfolge der Liste? '
     + 'Nur VERMEHRUNG darf mehrfach vorkommen.\n'
     + '3. Enthalten die Zeilen mit fester Wortliste nur eines der erlaubten Wörter?\n'
-    + '4. Steht in BOTANISCH' + (mitFoto ? ' und MERKMALE' : '') + ' kein Sortenname?\n'
+    + '4. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH' + (mitFoto ? ' oder MERKMALE' : '') + '?\n'
     + '5. Steht irgendwo eine Aussage über Zustand, Topf oder Pflegefehler dieses Exemplars? Dann streich sie.';
 }
 
@@ -27889,8 +28006,11 @@ function karteiAuftrag(p){
   /* Die Regelzeile im Format kündigt MASSNAHME-Zeilen an. Die fragt
      die Kartei nicht. */
   format = format.replace(' und ein bis drei MASSNAHME-Zeilen', '');
-  if(art === 'text' && typeof formatZeileErgaenzen === 'function')
+  if(art === 'text' && typeof formatZeileErgaenzen === 'function'){
     format = formatZeileErgaenzen(format, 'SPEICHER', 'Ohne Foto: beurteile es nach der Art.');
+    format = formatZeileErgaenzen(format, 'SORTE', 'Ohne Foto: Nenne eine Sorte nur, wenn sie sich aus dem Namen '
+      + 'oder dem botanischen Namen oben ergibt, sonst genau: keine');
+  }
   return {art:art,
           text:[art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, '']
                  .concat(karteiKontext(p), ['', format]).join('\n')};
@@ -27942,6 +28062,10 @@ async function karteiBilder(p){
 
 /* ── Die Schlange ───────────────────────────────────────────── */
 let KARTEI_CTRL = {};
+/* Startzeit je laufender Anfrage, nur für den Balken (3.23.0). Nicht in
+   der Sicherung: nach einem Neustart beginnt der Vorlauf bei 0. */
+let KARTEI_START = {};
+let KARTEI_UHR = null;
 let KARTEI_BREMSE_BIS = 0;
 let KARTEI_WARTET = false;
 
@@ -27967,15 +28091,54 @@ function karteiFortschritt(k){
      Gezählt wird nur, was zu diesem Lauf gehört. */
   const ids = Object.keys(k.fertig || {});
   const fertig = Array.isArray(k.alle) ? ids.filter(i=>k.alle.indexOf(i) > -1).length : ids.length;
-  const teil = k.gesamt ? Math.min(100, Math.round(fertig / k.gesamt * 100)) : 0;
   const laeuft = !!k.aktiv && (k.offen.length > 0 || karteiLaufend() > 0);
+  /* Vorlauf: laufende Anfragen rücken den Balken künstlich vor und
+     bleiben bei 85 % ihres Anteils stehen, bis die Antwort da ist. */
+  let vor = 0;
+  if(laeuft){
+    const jetzt = Date.now();
+    Object.keys(KARTEI_CTRL).forEach(id=>{
+      if(k.fertig && k.fertig[id]) return;
+      if(Array.isArray(k.alle) && k.alle.indexOf(id) < 0) return;
+      if(KARTEI_START[id]) vor += karteiVorlauf(jetzt - KARTEI_START[id]);
+    });
+  }
+  const teil = k.gesamt ? Math.min(100, Math.round((fertig + vor) / k.gesamt * 100)) : 0;
   const bei = Math.min(k.gesamt, fertig + 1);
-  const text = laeuft ? 'Prüfe ' + bei + ' von ' + k.gesamt + ' · ' + teil + ' %'
-    : k.pausiert ? 'Angehalten bei ' + fertig + ' von ' + k.gesamt + ' · ' + teil + ' %'
+  const text = laeuft ? 'Prüfe ' + bei + ' von ' + k.gesamt
+    : k.pausiert ? 'Angehalten bei ' + fertig + ' von ' + k.gesamt
     : 'Kartei aufgefrischt · ' + fertig + ' von ' + k.gesamt;
   return {fertig:fertig, teil:teil, laeuft:laeuft, text:text};
 }
 function karteiLaufend(){ return Object.keys(KARTEI_CTRL).length; }
+
+/* Halte bei 30, 60 und 85 % nach 1, 4 und 10 Sekunden. */
+function karteiVorlauf(ms){
+  if(!(ms >= 1000)) return 0;
+  if(ms < 4000) return 0.3;
+  if(ms < 10000) return 0.6;
+  return 0.85;
+}
+
+/* Setzt nur die Breite der Balken, ohne neu zu zeichnen. Läuft nichts
+   mehr, hält der Zeitgeber an. */
+function karteiBalkenSetzen(){
+  const k = karteiStand();
+  const f = k ? karteiFortschritt(k) : null;
+  if(!f || !f.laeuft){ karteiUhrAus(); return f; }
+  document.querySelectorAll('.kartei-balken i, #kartei-streifen .ks-balken i').forEach(i=>{
+    i.style.width = f.teil + '%';
+  });
+  document.querySelectorAll('.kartei-balken').forEach(b=>b.setAttribute('aria-valuenow', String(f.teil)));
+  return f;
+}
+function karteiUhrAn(){
+  if(KARTEI_UHR) return;
+  KARTEI_UHR = setInterval(karteiBalkenSetzen, 500);
+}
+function karteiUhrAus(){
+  if(KARTEI_UHR){ clearInterval(KARTEI_UHR); KARTEI_UHR = null; }
+}
 
 /* `behalten`: „Ausgewählte noch einmal prüfen“. Die Ergebnisse der
    übrigen Pflanzen bleiben in `frueher` liegen und kommen am Ende des
@@ -27986,6 +28149,7 @@ function karteiStarten(ids, behalten){
   if(karteiLaufend()) return false;
   const vorher = karteiStand();
   let frueher = null;
+  KARTEI_NOCHMAL_WAHL = false;
   if(behalten && vorher && !vorher.aktiv){
     const da = new Set(allePflanzen().map(p=>p.id));
     const alt = Object.assign({}, vorher.frueher || {}, vorher.fertig || {});
@@ -27995,6 +28159,7 @@ function karteiStarten(ids, behalten){
     });
   }
   KARTEI_GEN++;
+  KARTEI_START = {};
   S.kartei = {start:Date.now(), gesamt:liste.length, offen:liste.slice(),
               alle:liste.slice(), fertig:{}, versuch:{}, aktiv:true};
   if(frueher && Object.keys(frueher).length) S.kartei.frueher = frueher;
@@ -28038,6 +28203,7 @@ function karteiZusammen(k){
 
 function karteiVerwerfen(){
   const k = karteiStand(); if(!k) return;
+  KARTEI_NOCHMAL_WAHL = false;
   KARTEI_GEN++;
   Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
   KARTEI_CTRL = {};
@@ -28097,6 +28263,7 @@ async function karteiEine(id){
   const k = karteiStand(); if(!k) return;
   const gen = KARTEI_GEN;
   KARTEI_CTRL[id] = {abort(){}};
+  KARTEI_START[id] = Date.now();
   const p = allePflanzen().find(x=>x.id === id);
   if(!p){ karteiEintragen(id, {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.', zeit:Date.now()}); return; }
   const auftrag = karteiAuftrag(p);
@@ -28188,7 +28355,7 @@ function karteiWiederaufnehmen(){
 function karteiLeiste(){
   const k = karteiStand();
   let s = document.getElementById('kartei-streifen');
-  if(!k){ if(s) s.remove(); return; }
+  if(!k){ karteiUhrAus(); if(s) s.remove(); return; }
   if(!s){
     s = document.createElement('div');
     s.id = 'kartei-streifen';
@@ -28196,6 +28363,7 @@ function karteiLeiste(){
   }
   const f = karteiFortschritt(k);
   const laeuft = f.laeuft;
+  if(laeuft) karteiUhrAn(); else karteiUhrAus();
   s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + f.teil + '%"></i></div>'
     + '<span>' + esc(f.text) + '</span>'
     + (laeuft ? '<button type="button" data-do="kartei-stopp">Anhalten</button>'
@@ -28324,6 +28492,23 @@ function karteiWortzahl(b){
 /* Der alte Name ist nur länger, Gattung und Art stimmen: dann steht dort
    eine Sorte oder ein Zusatz, den die Antwort nicht nennen darf. Das ist
    keine Abweichung — „Übernehmen“ würde die Sorte löschen. */
+/* Eine alte Sorte im botanischen Namen (aus dem Anlegen bis 3.17):
+   alles hinter Gattung und Art, solange die Karte keine Sorte hat.
+   „var.“, „subsp.“ und Hybriden sind keine Sorte. */
+function karteiSortenZusatz(p){
+  if(!p || sorteVon(p)) return '';
+  const w = String(p.botanisch || '').trim().split(/\s+/).filter(Boolean);
+  if(w.length < 3) return '';
+  if(/^[x\u00d7]$/i.test(w[1]) || /^[x\u00d7]$/i.test(w[0])) return '';
+  let rest = w.slice(2).join(' ').replace(/^cv\.?\s*/i, '');
+  if(!rest || /[.\u00d7]/.test(rest) || /^(x|subsp|ssp|var|f)$/i.test(rest.split(' ')[0])) return '';
+  rest = sorteVon({sorte:rest});
+  return rest;
+}
+function karteiBotKurz(p){
+  return String(p.botanisch || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).join(' ');
+}
+
 function karteiNurKuerzer(alt, neu){
   const ga = karteiGattungArt(neu);
   return !!ga && ga.indexOf(' ') > 0 && ga === karteiGattungArt(alt)
@@ -28374,6 +28559,28 @@ function karteiAbweichungen(p, erg){
       alt:karteiLeer(alt) ? '' : f.zeig(alt), neu:f.zeig(neu),
       nimm:()=>aenderungSetzen(id, {[f.feld]: neu}, 'ki', true)});
   });
+
+  /* Die Sorte (3.23.0): Zeile nur bei hoher oder mittlerer Sicherheit.
+     „keine“ bietet nie an, eine Sorte zu löschen. */
+  const sNeu = sorteLesen(d.sorte);
+  const sAlt = sorteVon(p);
+  const sHand = !!sAlt && !(p.quellen && p.quellen.sorte === 'ki');
+  const zusatz = karteiSortenZusatz(p);
+  const sorteZeile = extra => zeilen.push({key:'sorte', name:'Sorte', hand:sHand, alt:sAlt, neu:sNeu.name,
+    wirkung:'Setzt die Sorte · Sicherheit ' + sNeu.sicher + '.' + (extra || ''),
+    nimm:()=>aenderungSetzen(id, {sorte: sNeu.name}, 'ki', true)});
+  const sorteUnsicher = () => hinweise.push('Die Antwort vermutet die Sorte „' + sNeu.name
+    + '“, ist sich aber unsicher.');
+  if(zusatz && (!sNeu || sorteGleich(sNeu.name, zusatz))){
+    const kurz = karteiBotKurz(p);
+    zeilen.push({key:'sortebot', name:'Sorte aus dem botanischen Namen', alt:p.botanisch || '',
+      neu:'Sorte ' + zusatz + ' · Botanisch ' + kurz,
+      wirkung:'Setzt die Sorte und kürzt den botanischen Namen.',
+      nimm:()=>aenderungSetzen(id, {sorte: zusatz, botanisch: kurz}, 'ki', true)});
+  } else if(sNeu && !sorteGleich(sNeu.name, sAlt)){
+    if(sNeu.sicher === 'niedrig') sorteUnsicher();
+    else sorteZeile(zusatz ? ' Im botanischen Namen steht „' + zusatz + '“.' : '');
+  }
 
   const famNeu = String(d.familie || '').trim();
   if(famNeu){
@@ -28462,7 +28669,11 @@ function karteiOffeneZeilen(p, erg){
   return karteiAbweichungen(p, erg).zeilen.filter(z=>!e[z.key]);
 }
 
-function karteiZeile(p, erg, ohneHaken){
+/* `modus`: 'lauf' ohne Kästchen und Knopf, 'wahl' mit Kästchen,
+   sonst die Liste mit „Durchsehen ›“ (3.23.0). */
+let KARTEI_NOCHMAL_WAHL = false;
+function karteiZeile(p, erg, modus){
+  if(modus === true) modus = 'lauf';
   const e = erg || {};
   let wort;
   if(e.stand !== 'ok') wort = e.fehler || 'Fehlgeschlagen';
@@ -28473,12 +28684,16 @@ function karteiZeile(p, erg, ohneHaken){
   }
   const txt = '<b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i>';
   const kl = 'kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl');
-  if(ohneHaken) return '<div class="' + kl + '"><span class="kz-txt">' + txt + '</span></div>';
-  return '<div class="' + kl + '">'
+  if(modus === 'lauf') return '<div class="' + kl + '"><span class="kz-txt">' + txt + '</span></div>';
+  if(modus === 'wahl') return '<label class="' + kl + ' kz-wahl">'
     + '<input type="checkbox" data-karteierg="' + esc(p.id) + '" aria-label="' + esc(nice(p)) + ' noch einmal prüfen">'
+    + '<span class="kz-txt">' + txt + '</span></label>';
+  const offen = e.stand === 'ok' && karteiOffeneZeilen(p, e).length > 0;
+  return '<div class="' + kl + '">'
     + (e.stand === 'ok'
        ? '<button type="button" class="kz-txt kz-auf" data-karteiauf="' + esc(p.id) + '">' + txt + '</button>'
        : '<span class="kz-txt">' + txt + '</span>')
+    + (offen ? '<button type="button" class="kz-durch" data-karteiauf="' + esc(p.id) + '">Durchsehen ›</button>' : '')
     + '</div>';
 }
 
@@ -28566,6 +28781,12 @@ function karteiHakenZaehlen(){
   if(b){ b.disabled = n === 0; b.textContent = 'Ausgewählte übernehmen (' + n + ')'; }
   return n;
 }
+function karteiNochmalZaehlen(){
+  const n = document.querySelectorAll('#kartei-innen [data-karteierg]:checked').length;
+  const b = document.querySelector('#kartei-innen [data-do="kartei-nochmal"]');
+  if(b){ b.disabled = n === 0; b.textContent = 'Ausgewählte prüfen (' + n + ')'; }
+  return n;
+}
 function karteiHaken(){
   return Array.prototype.slice
     .call(document.querySelectorAll('#ka-inhalt [data-kahaken]:checked'))
@@ -28588,8 +28809,13 @@ function karteiAktion(was, key){
        Art geht zuerst — sie setzt auch den botanischen Namen. */
     const keys = Array.isArray(key) ? key : (key ? [key] : []);
     const offen = karteiOffeneZeilen(p, erg);
+    /* Reihenfolge: Art, Botanisch, Sorte, Rest (3.23.0). */
+    const rang = z => ({art:0, botanisch:1, sortebot:2, sorte:2})[z.key];
+    const rg = z => { const r = rang(z); return r === undefined ? 3 : r; };
     const wahl = offen.filter(z=>keys.indexOf(z.key) > -1)
-      .sort((a, b)=>(a.key === 'art' ? 0 : 1) - (b.key === 'art' ? 0 : 1));
+      .map((z, i)=>({z:z, i:i}))
+      .sort((a, b)=>(rg(a.z) - rg(b.z)) || (a.i - b.i))
+      .map(x=>x.z);
     if(!wahl.length) return;
     let n = 0;
     const liegen = [];
@@ -28652,7 +28878,7 @@ function karteiAbschnitt(){
       const alt = !Array.isArray(k.alle);
       const zeilen = Object.keys(k.fertig).map(id=>{
         const p = alle.find(x=>x.id === id);
-        return p ? karteiZeile(p, k.fertig[id], true) : '';
+        return p ? karteiZeile(p, k.fertig[id], 'lauf') : '';
       }).filter(Boolean).join('');
       box.innerHTML = '<div class="kartei-balken" role="progressbar" aria-valuemin="0" aria-valuemax="100"'
         + ' aria-valuenow="' + f.teil + '"><i style="width:' + f.teil + '%"></i></div>'
@@ -28669,6 +28895,7 @@ function karteiAbschnitt(){
     }
   }
 
+  if(!k || k.aktiv || k.pausiert) KARTEI_NOCHMAL_WAHL = false;
   if(k && !k.aktiv) karteiAufraeumen(k);
   if(k && !k.aktiv && !k.pausiert && !Object.keys(k.fertig).length && Array.isArray(k.alle)){
     /* Alle Pflanzen des Ergebnisses sind gelöscht. */
@@ -28689,23 +28916,31 @@ function karteiAbschnitt(){
     };
     const sichtbar = ids.filter(id=>!k.fertig[id].fertig);
     const offen = sichtbar.filter(id=>rang(id) === 0);
+    const wahl = KARTEI_NOCHMAL_WAHL;
     const zeilen = [0, 1, 2].map(r=>sichtbar.filter(id=>rang(id) === r).map(id=>{
       const p = alle.find(x=>x.id === id);
-      return p ? karteiZeile(p, k.fertig[id]) : '';
+      return p ? karteiZeile(p, k.fertig[id], wahl ? 'wahl' : 'liste') : '';
     }).join('')).join('');
     box.innerHTML = '<p class="ein-abschnitt">Ergebnis</p>'
       + '<p class="fhint">' + gut.length + ' von ' + ids.length + ' beantwortet'
       + (k.pausiert || k.offen.length ? ' · Lauf abgebrochen' : '')
       + (dauer != null ? ' · ' + (dauer < 90 ? dauer + ' Sekunden'
           : Math.round(dauer / 60) + ' Minuten') : '') + '</p>'
-      + '<p class="fhint">' + (offen.length
-          ? (offen.length === 1 ? 'Eine Pflanze' : offen.length + ' Pflanzen')
-            + ' mit Abweichungen. Tipp auf einen Namen zum Durchsehen.'
-          : 'Keine offenen Abweichungen.')
-      + ' An deinen Pflanzen ändert sich nur, was du im Fenster selbst übernimmst.</p>'
+      + '<p class="fhint">' + (wahl
+          ? 'Hak an, was noch einmal geprüft werden soll.'
+          : (offen.length
+             ? (offen.length === 1 ? 'Eine Pflanze' : offen.length + ' Pflanzen')
+               + ' mit Abweichungen. Tipp auf „Durchsehen“, um die Abweichungen anzusehen.'
+             : 'Keine offenen Abweichungen.')
+            + ' An deinen Pflanzen ändert sich nur, was du im Fenster selbst übernimmst.')
+      + '</p>'
       + '<div class="kartei-erg">' + zeilen + '</div>'
-      + '<div class="tools"><button type="button" data-do="kartei-nochmal">Ausgewählte noch einmal prüfen</button>'
-      + '<button type="button" data-do="kartei-weg">Ergebnis verwerfen</button></div>'
+      + '<div class="tools">' + (wahl
+          ? '<button type="button" class="haupt" data-do="kartei-nochmal" disabled>Ausgewählte prüfen (0)</button>'
+            + '<button type="button" data-do="kartei-wahl-zu">Abbrechen</button>'
+          : '<button type="button" data-do="kartei-wahl">Noch einmal prüfen</button>'
+            + '<button type="button" data-do="kartei-weg">Ergebnis verwerfen</button>')
+      + '</div>'
       + '<p class="kihinweis" id="kartei-meld"></p>';
     return;
   }
@@ -28778,6 +29013,10 @@ document.addEventListener('click', e=>{
       if(sec && sec.scrollIntoView) sec.scrollIntoView({block:'start'});
       return;
     }
+    if(a === 'kartei-wahl' || a === 'kartei-wahl-zu'){
+      KARTEI_NOCHMAL_WAHL = a === 'kartei-wahl';
+      karteiAbschnitt(); return;
+    }
     if(a === 'kartei-nochmal'){
       const ids = Array.prototype.slice
         .call(document.querySelectorAll('[data-karteierg]:checked'))
@@ -28821,6 +29060,7 @@ document.addEventListener('click', e=>{
    gezeichnet — der ganze Abschnitt wuerde zurueckscrollen. */
 document.addEventListener('change', e=>{
   if(e.target && e.target.closest && e.target.closest('[data-kahaken]')){ karteiHakenZaehlen(); return; }
+  if(e.target && e.target.closest && e.target.closest('[data-karteierg]')){ karteiNochmalZaehlen(); return; }
   const kasten = e.target && e.target.closest && e.target.closest('[data-karteikasten]');
   if(!kasten) return;
   const an = !!kasten.checked;

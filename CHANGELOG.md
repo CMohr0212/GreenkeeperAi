@@ -4,6 +4,22 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.23.0 — 16. September 2026
+**Die KI erkennt die Sorte**
+
+### Neu
+- **Sortenvorschlag beim Anlegen.** Die KI nennt die Sorte samt Sicherheit. Bei hoher oder mittlerer Sicherheit steht sie schon im Feld, mit dem Hinweis „KI-Vorschlag“. Bei niedriger steht darunter „Vielleicht“ mit dem Knopf „Als Sorte eintragen“. Ein eigener Eintrag bleibt stehen. Gespeichert wird erst mit „Anlegen“.
+- **Sorte in der Kartei.** Eine erkannte Sorte erscheint als eigene Zeile im Abgleich-Fenster. Eine unsichere Vermutung steht nur als Hinweis da. „Keine Sorte“ bietet nie an, eine vorhandene zu löschen.
+- **Sorte aus dem botanischen Namen.** Steht die Sorte noch im botanischen Namen, etwa „Philodendron hederaceum Brasil“, bietet die Kartei an, sie ins Feld Sorte zu verschieben und den Namen zu kürzen.
+- **Ableger** erben auch, ob die Sorte von der KI oder von dir stammt.
+
+### Anders
+- **Fortschrittsbalken.** Er bewegt sich während einer laufenden Anfrage und hält kurz vor dem Ziel an, bis die Antwort da ist. Der Text nennt keine Prozentzahl mehr.
+- **Ergebnisliste.** „Durchsehen ›“ führt zu den Abweichungen. Die Kästchen erscheinen erst nach „Noch einmal prüfen“, dazu „Ausgewählte prüfen“ und „Abbrechen“.
+- **Beim Sammelübernehmen** kommt die Sorte direkt nach Art und botanischem Namen.
+
+---
+
 ## 3.22.0 — 16. September 2026
 **Kartei: Kästchen statt Knöpfe**
 
