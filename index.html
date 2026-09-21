@@ -11306,8 +11306,24 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.25.0';
+const FASSUNG = '3.26.0';
 const PATCHNOTES = [
+  {
+    nr: '3.26.0', datum: '2026-09-22', titel: 'Kartei schneller',
+    kurz: [
+      'Die Kartei fragt fünf Pflanzen auf einmal und lässt die KI weniger lange nachdenken. Laufzeit, Modell und Restzeit stehen unter dem Balken.'
+    ],
+    besser: [
+      'Bis zu fünf Pflanzen gehen in einer Anfrage. 50 Pflanzen brauchen damit etwa zehn Anfragen statt fünfzig — das schont auch Googles Kontingent.',
+      'Die KI denkt beim Auffrischen auf niedriger Stufe. Anlegen und Doktor bleiben gründlich.',
+      'Unter dem Balken stehen Laufzeit, Modell und die geschätzte Restzeit, jede fertige Pflanze nennt ihre Dauer.',
+      'Muss die App wegen zu vieler Anfragen warten, zeigt sie das mit Countdown, statt still stehen zu bleiben.'
+    ],
+    behoben: [
+      'Ein erschöpftes Tageskontingent wurde immer wieder versucht. Jetzt hält der Lauf an und nennt die Uhrzeit, ab der es weitergeht.',
+      'Fehlt eine Pflanze in der Antwort eines Bündels, wird nur sie allein noch einmal gefragt.'
+    ]
+  },
   {
     nr: '3.25.0', datum: '2026-09-21', titel: 'Pflegeschritte und Winterruhe',
     kurz: [
@@ -18711,7 +18727,7 @@ function kiModellAktiv(){
 
 async function kiFehlerText(r){
   let m = '';
-  try{ const d = await r.json(); m = (d && d.error && d.error.message) || ''; }catch(e){}
+  try{ const d = await r.json(); m = (d && d.error && d.error.message) || ''; try{ r._gk = d && d.error; }catch(e2){} }catch(e){}
   const an = m ? ' Google meldet: ' + m : '';
   if(r.status === 400) return 'Google hat die Anfrage abgelehnt (400). Meist ist der Schlüssel falsch kopiert.' + an;
   if(r.status === 401 || r.status === 403)
@@ -18803,7 +18819,20 @@ function warte(ms){ return new Promise(r => setTimeout(r, ms)); }
    Sonst überschriebe jede neue Anfrage KI_LAEUFT, und kiAbbrechen
    träfe nur die zuletzt gestartete. Ohne Argument bleibt alles,
    wie es war. */
-async function kiFragen(prompt, bilder, modellId, ctrl){
+/* Modelle, die eine Denkstufe abgelehnt haben (3.26.0). */
+const KI_DENKEN_AUS = {};
+/* Tageskontingent oder Minutenlimit? Google nennt es in den Details
+   (quotaId …PerDay…) und oft eine Wartezeit (RetryInfo). */
+function kiKontingentLesen(fehler, info){
+  const roh = JSON.stringify(info || {}) + ' ' + String((fehler && fehler.message) || '');
+  fehler.tag = /PerDay|per[ _-]?day|daily/i.test(roh);
+  const w = roh.match(/retryDelay"?\s*:\s*"(\d+(?:\.\d+)?)s"/) || roh.match(/retry in (\d+(?:\.\d+)?)\s*s/i);
+  if(w) fehler.warte = Math.min(300000, Math.ceil(parseFloat(w[1]) * 1000));
+}
+/* `opt` (3.26.0): {denken:'niedrig'} setzt eine niedrige Denkstufe,
+   {frist:ms} eine eigene Zeitgrenze. Ohne `opt` bleibt alles wie bisher. */
+async function kiFragen(prompt, bilder, modellId, ctrl, opt){
+  opt = opt || {};
   const k = kiSchluessel();
   if(!k) throw new Error('Kein Schlüssel hinterlegt.');
   const m = modellId ? (kiModelle().find(x => x.id === modellId) || {id:modellId}) : kiModellAktiv();
@@ -18821,7 +18850,15 @@ async function kiFragen(prompt, bilder, modellId, ctrl){
   const uhr = c ? setTimeout(()=>{
     frist = true;
     try{ c.abort(); }catch(e){}
-  }, (bilder && bilder.length) ? KI_FRIST_BILD : KI_FRIST_TEXT) : null;
+  }, opt.frist || ((bilder && bilder.length) ? KI_FRIST_BILD : KI_FRIST_TEXT)) : null;
+  /* Denkstufe: Gemini 3 kennt thinkingLevel, 2.5 thinkingBudget. Der
+     falsche Parameter gibt einen Fehler — deshalb nach Generation. */
+  const genCfg = {temperature:0.2};
+  if(opt.denken === 'niedrig' && !KI_DENKEN_AUS[m.id]){
+    const gv = kiModellVersion(m.id);
+    if(gv >= 3) genCfg.thinkingConfig = {thinkingLevel:'low'};
+    else if(gv >= 2.5) genCfg.thinkingConfig = {thinkingBudget:512};
+  }
   let r;
   try{
     r = await fetch(KI_BASIS + '/' + m.id + ':generateContent?key=' + encodeURIComponent(k), {
@@ -18837,7 +18874,7 @@ async function kiFragen(prompt, bilder, modellId, ctrl){
            Angabe gilt das Maximum des jeweiligen Modells, und das kennt
            nur Google. Eine feste Zahl waere fuer das eine Modell zu
            klein und fuer das andere ein Ablehnungsgrund. */
-        generationConfig:{temperature:0.2}
+        generationConfig:genCfg
       }),
       signal:c ? c.signal : undefined
     });
@@ -18860,7 +18897,13 @@ async function kiFragen(prompt, bilder, modellId, ctrl){
   const ende = () => { if(uhr) clearTimeout(uhr); if(!ctrl) KI_LAEUFT = null; };
   if(!r.ok){
     ende();
+    /* Lehnt das Modell die Denkstufe ab, einmal ohne sie (3.26.0). */
+    if(r.status === 400 && genCfg.thinkingConfig){
+      KI_DENKEN_AUS[m.id] = true;
+      return kiFragen(prompt, bilder, m.id, ctrl, opt);
+    }
     const fehler = new Error(await kiFehlerText(r));
+    if(r.status === 429) kiKontingentLesen(fehler, r._gk);
     /* Der Aufrufer muss 503 von 400 unterscheiden können: das eine
        lohnt einen zweiten Versuch, das andere nie. */
     fehler.status = r.status;
@@ -28017,7 +28060,8 @@ render = function(){ _renderVorherRg(); rgKnopf(); };
    gehören dem Doktor (Chris, 16.09.2026).
    ══════════════════════════════════════════════════════════════ */
 
-const KARTEI_PARALLEL = 3;
+/* Ab 3.26.0 zwei Anfragen gleichzeitig, jede mit bis zu fünf Pflanzen. */
+const KARTEI_PARALLEL = 2;
 /* Ein unterbrochener Lauf nimmt sich selbst wieder auf, solange er
    frisch ist. Danach wäre es eine Überraschung: wer die App nach
    zwei Tagen öffnet, erwartet keine fünfzig Anfragen. */
@@ -28130,6 +28174,11 @@ function karteiKontext(p){
 
 function karteiAuftrag(p){
   const art = karteiArt(p);
+  return {art:art,
+          text:[art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, '']
+                 .concat(karteiKontext(p), ['', karteiFormat(art)]).join('\n')};
+}
+function karteiFormat(art){
   const felder = art === 'foto' ? KARTEI_FELD_FOTO : KARTEI_FELD_TEXT;
   let format = auftragMitTieren(felder, KARTEI_SONICHT, karteiPruefliste(art === 'foto'));
   /* Die Regelzeile im Format kündigt MASSNAHME-Zeilen an. Die fragt
@@ -28146,9 +28195,63 @@ function karteiAuftrag(p){
     format = formatZeileErgaenzen(format, 'SORTE', 'Ohne Foto: Nenne eine Sorte nur, wenn sie sich aus dem Namen '
       + 'oder dem botanischen Namen oben ergibt, sonst genau: keine');
   }
-  return {art:art,
-          text:[art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, '']
-                 .concat(karteiKontext(p), ['', format]).join('\n')};
+  return format;
+}
+
+/* ── Bündel (3.26.0) ─────────────────────────────────────────
+   Bis zu fünf Pflanzen gleicher Art (alle mit oder alle ohne Foto) in
+   einer Anfrage. Jeder Block der Antwort beginnt mit PFLANZE: <Nummer>. */
+const KARTEI_BUENDEL = 5;
+const KARTEI_FRIST_BUENDEL = 90000;
+function karteiBuendelAuftrag(ps, art, fotoVon){
+  const n = ps.length;
+  const z = ['Ich schicke dir ' + n + ' Pflanzen aus meiner Sammlung auf einmal. '
+    + 'Alles Folgende gilt für jede Pflanze einzeln.', '',
+    art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, ''];
+  ps.forEach((p, i)=>{
+    z.push('PFLANZE ' + (i + 1) + ' — ' + nice(p));
+    karteiKontext(p).forEach(x=>z.push(x));
+    z.push('');
+  });
+  if(art === 'foto'){
+    if(fotoVon.length) z.push('Die Fotos kommen in dieser Reihenfolge: '
+      + fotoVon.map((nr, i)=>'Foto ' + (i + 1) + ' zeigt PFLANZE ' + nr).join(', ') + '.');
+    const ohne = ps.map((p, i)=>i + 1).filter(nr=>fotoVon.indexOf(nr) < 0);
+    if(ohne.length) z.push('Ohne Foto: PFLANZE ' + ohne.join(', ') + '. Beantworte sie aus Art und botanischem Namen.');
+    z.push('');
+  }
+  z.push(karteiFormat(art), '');
+  z.push('So antwortest du bei mehreren Pflanzen: ein einziger Codeblock. Darin für jede Pflanze ein Block. '
+    + 'Jeder Block beginnt mit einer eigenen Zeile PFLANZE: <Nummer> | <Name wie oben>, danach alle '
+    + 'Schlüsselwörter der Liste für genau diese Pflanze. Die Blöcke stehen in der Reihenfolge der Nummern. '
+    + 'Die Prüfliste gilt für jeden Block einzeln.');
+  return z.join('\n');
+}
+/* Teilt die Antwort in Blöcke je Pflanze. Passt der Name im Kopf eines
+   Blocks nicht zur Nummer, gilt der Block als fehlend. */
+function karteiBloecke(txt, ps){
+  const inhalt = (typeof codeblockInhalt === 'function' && codeblockInhalt(txt)) || String(txt || '');
+  const re = /^[ \t*#>-]*PFLANZE[ \t]*:?[ \t]*(\d+)([^\n]*)$/gim;
+  const kopf = [];
+  let m;
+  while((m = re.exec(inhalt)) !== null) kopf.push({nr:parseInt(m[1], 10), rest:m[2], ab:m.index, bis:re.lastIndex});
+  const raus = new Array(ps.length).fill(null);
+  const gesehen = {};
+  kopf.forEach((h, i)=>{
+    const idx = h.nr - 1;
+    if(idx < 0 || idx >= ps.length) return;
+    if(gesehen[idx]){ raus[idx] = null; return; }
+    gesehen[idx] = true;
+    const name = norm(String(h.rest || '').replace(/^[\s|:–—-]+/, '')).trim();
+    const p = ps[idx];
+    if(name){
+      const kandidaten = [nice(p), p.name, p.art, p.botanisch].filter(Boolean).map(x=>norm(String(x)));
+      const passt = kandidaten.some(k=>k && (name.indexOf(k) > -1 || k.indexOf(name) > -1));
+      if(!passt) return;
+    }
+    raus[idx] = inhalt.slice(h.bis, i + 1 < kopf.length ? kopf[i + 1].ab : inhalt.length);
+  });
+  return raus;
 }
 
 /* ── Das Bild ───────────────────────────────────────────────
@@ -28251,6 +28354,66 @@ function karteiFortschritt(k){
 }
 function karteiLaufend(){ return Object.keys(KARTEI_CTRL).length; }
 
+/* ── Laufzeit (3.26.0) ── */
+let KARTEI_AKTIV = 0;
+function karteiLaufzeit(k){
+  if(!k) return 0;
+  return (k.laufMs || 0) + (k.aktiv && k.laufAb ? Math.max(0, Date.now() - k.laufAb) : 0);
+}
+function karteiLaufStopp(k){
+  if(k && k.laufAb){ k.laufMs = (k.laufMs || 0) + Math.max(0, Date.now() - k.laufAb); delete k.laufAb; }
+}
+function karteiUhrzeit(ms){
+  const s = Math.max(0, Math.round(ms / 1000));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+function karteiDauerWort(ms){
+  const s = Math.round(ms / 1000);
+  return s < 60 ? s + ' s' : karteiUhrzeit(ms) + ' min';
+}
+/* Wann Googles Tageszähler zurückspringt: Mitternacht Pazifikzeit. */
+function karteiKontingentZurueck(){
+  try{
+    const jetzt = new Date();
+    const la = new Date(jetzt.toLocaleString('en-US', {timeZone:'America/Los_Angeles'}));
+    const bis = (24 * 3600 - (la.getHours() * 3600 + la.getMinutes() * 60 + la.getSeconds())) * 1000;
+    return new Date(jetzt.getTime() + bis).toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
+  }catch(e){ return '9:00'; }
+}
+function karteiInfo(k, f){
+  if(!k) return '';
+  if(k.halt === 'tag')
+    return 'Tageskontingent erschöpft — wieder ab ' + karteiKontingentZurueck() + ' Uhr. Fortsetzen macht dort weiter.';
+  const lauf = karteiLaufzeit(k);
+  const teile = [];
+  if(f && f.laeuft){
+    const warte = KARTEI_BREMSE_BIS - Date.now();
+    if(warte > 0) teile.push('wartet ' + Math.ceil(warte / 1000) + ' s — zu viele Anfragen in der Minute');
+    teile.push('läuft seit ' + karteiUhrzeit(lauf));
+  } else if(lauf) teile.push('Laufzeit ' + karteiUhrzeit(lauf));
+  const m = (typeof kiModellAktiv === 'function') ? kiModellAktiv() : null;
+  if(m && m.anzeige) teile.push('Modell ' + m.anzeige);
+  if(f && f.laeuft && f.fertig > 0 && lauf > 0){
+    const rest = (k.gesamt - f.fertig) * lauf / f.fertig;
+    teile.push('noch etwa ' + Math.max(1, Math.round(rest / 60000)) + ' min');
+  }
+  return teile.join(' · ');
+}
+/* 429: Tageskontingent hält den Lauf an, ein Minutenlimit bremst so
+   lange, wie Google sagt (sonst 60 s). */
+function karteiKontingent(e, st){
+  if(!e || e.status !== 429 || !st) return false;
+  if(!e.tag){ KARTEI_BREMSE_BIS = Date.now() + (e.warte || KARTEI_BREMSE); return false; }
+  KARTEI_GEN++;
+  Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(x){} });
+  KARTEI_CTRL = {};
+  st.aktiv = false; st.pausiert = true; st.halt = 'tag';
+  karteiLaufStopp(st);
+  karteiNachbauen(st);
+  sichern(); karteiLeiste(); karteiAbschnitt();
+  return true;
+}
+
 /* Halte bei 30, 60 und 85 % nach 1, 4 und 10 Sekunden. */
 function karteiVorlauf(ms){
   if(!(ms >= 1000)) return 0;
@@ -28269,6 +28432,10 @@ function karteiBalkenSetzen(){
     i.style.width = f.teil + '%';
   });
   document.querySelectorAll('.kartei-balken').forEach(b=>b.setAttribute('aria-valuenow', String(f.teil)));
+  const info = karteiInfo(karteiStand(), f);
+  document.querySelectorAll('.kartei-info').forEach(x=>{ x.textContent = info; });
+  const kz = document.querySelector('#kartei-streifen .ks-zeit');
+  if(kz) kz.textContent = karteiUhrzeit(karteiLaufzeit(karteiStand()));
   return f;
 }
 function karteiUhrAn(){
@@ -28300,7 +28467,7 @@ function karteiStarten(ids, behalten){
   KARTEI_GEN++;
   KARTEI_START = {};
   S.kartei = {start:Date.now(), gesamt:liste.length, offen:liste.slice(),
-              alle:liste.slice(), fertig:{}, versuch:{}, aktiv:true};
+              alle:liste.slice(), fertig:{}, versuch:{}, aktiv:true, laufMs:0, laufAb:Date.now()};
   if(frueher && Object.keys(frueher).length) S.kartei.frueher = frueher;
   sichern();
   karteiErlaubnisFragen();
@@ -28318,6 +28485,7 @@ function karteiAbbrechen(){
   Object.keys(KARTEI_CTRL).forEach(id=>{ try{ KARTEI_CTRL[id].abort(); }catch(e){} });
   KARTEI_CTRL = {};
   k.aktiv = false;
+  karteiLaufStopp(k);
   karteiNachbauen(k);
   if(k.offen.length){ k.pausiert = true; }
   else { k.pausiert = false; k.ende = Date.now(); karteiZusammen(k); }
@@ -28329,7 +28497,8 @@ function karteiFortsetzen(){
   karteiNachbauen(k);
   if(!k.offen.length){ karteiFertig(); return; }
   KARTEI_GEN++;
-  k.aktiv = true; k.pausiert = false; k.start = Date.now();
+  k.aktiv = true; k.pausiert = false; k.start = Date.now(); k.laufAb = Date.now();
+  delete k.halt;
   sichern(); karteiLeiste(); karteiAbschnitt(); karteiPumpe();
 }
 
@@ -28374,8 +28543,32 @@ function karteiPumpe(){
   /* Nach einem 429 bleibt es bei einer Anfrage gleichzeitig. Wer
      einmal zu schnell war, ist es beim zweiten Anlauf wieder. */
   const breite = KARTEI_BREMSE_BIS ? 1 : KARTEI_PARALLEL;
-  let platz = breite - karteiLaufend();
-  while(platz > 0 && k.offen.length){ karteiEine(k.offen.shift()); platz--; }
+  let platz = breite - KARTEI_AKTIV;
+  while(platz > 0 && k.offen.length){
+    const ids = karteiNaechste(k);
+    if(ids.length > 1) karteiBuendelFragen(ids); else karteiEine(ids[0]);
+    platz--;
+  }
+}
+
+/* Die nächsten Pflanzen: bis zu fünf gleicher Art. Wer einmal in einem
+   Bündel fehlte, geht allein. */
+function karteiNaechste(k){
+  const erst = k.offen.shift();
+  const ein = k.einzeln || {};
+  if(ein[erst]) return [erst];
+  const alle = allePflanzen();
+  const pe = alle.find(x=>x.id === erst);
+  if(!pe) return [erst];
+  const art = karteiArt(pe);
+  const ids = [erst];
+  for(let i = 0; i < k.offen.length && ids.length < KARTEI_BUENDEL; ){
+    const id = k.offen[i];
+    const p = alle.find(x=>x.id === id);
+    if(p && !ein[id] && karteiArt(p) === art){ ids.push(id); k.offen.splice(i, 1); }
+    else i++;
+  }
+  return ids;
 }
 
 function karteiEintragen(id, erg){
@@ -28399,6 +28592,11 @@ function karteiNochmal(id, k){
 }
 
 async function karteiEine(id){
+  KARTEI_AKTIV++;
+  try{ await karteiEineInnen(id); }
+  finally{ KARTEI_AKTIV = Math.max(0, KARTEI_AKTIV - 1); karteiPumpe(); }
+}
+async function karteiEineInnen(id){
   const k = karteiStand(); if(!k) return;
   const gen = KARTEI_GEN;
   KARTEI_CTRL[id] = {abort(){}};
@@ -28413,7 +28611,7 @@ async function karteiEine(id){
   const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   if(c) KARTEI_CTRL[id] = c;
   try{
-    const txt = await kiFragen(auftrag.text, bilder, null, c);
+    const txt = await kiFragen(auftrag.text, bilder, null, c, {denken:'niedrig'});
     if(gen !== KARTEI_GEN) return;
     const felder = (typeof geminiLesen === 'function') ? (geminiLesen(txt) || {}) : {};
     karteiEintragen(id, {stand:'ok', art:auftrag.art, felder:felder,
@@ -28423,7 +28621,7 @@ async function karteiEine(id){
     const st = karteiStand();
     if(!st){ delete KARTEI_CTRL[id]; return; }
     if(e && e.name === 'AbortError' && !st.aktiv){ delete KARTEI_CTRL[id]; return; }
-    if(e && e.status === 429) KARTEI_BREMSE_BIS = Date.now() + KARTEI_BREMSE;
+    if(karteiKontingent(e, st)) return;
     if(e && (e.voll || e.status === 429) && karteiNochmal(id, st)){
       delete KARTEI_CTRL[id];
       karteiPumpe();
@@ -28434,9 +28632,82 @@ async function karteiEine(id){
   }
 }
 
+async function karteiBuendelFragen(ids){
+  KARTEI_AKTIV++;
+  try{ await karteiBuendelInnen(ids); }
+  finally{ KARTEI_AKTIV = Math.max(0, KARTEI_AKTIV - 1); karteiPumpe(); }
+}
+async function karteiBuendelInnen(ids){
+  const k = karteiStand(); if(!k) return;
+  const gen = KARTEI_GEN;
+  const t0 = Date.now();
+  const platzhalter = {abort(){}};
+  ids.forEach(id=>{ KARTEI_CTRL[id] = platzhalter; KARTEI_START[id] = t0; });
+  const alle = allePflanzen();
+  const liste = [];
+  ids.forEach(id=>{
+    const p = alle.find(x=>x.id === id);
+    if(p) liste.push({id:id, p:p});
+    else { delete KARTEI_CTRL[id]; k.fertig[id] = {stand:'fehler', fehler:'Diese Pflanze gibt es nicht mehr.', zeit:Date.now()}; }
+  });
+  if(!liste.length){ sichern(); return; }
+  const art = karteiArt(liste[0].p);
+  const bilder = [], fotoVon = [];
+  if(art === 'foto'){
+    for(let i = 0; i < liste.length; i++){
+      let b = null;
+      try{ b = await karteiBilder(liste[i].p); }catch(e){ b = null; }
+      if(b && b[0]){ bilder.push(b[0]); fotoVon.push(i + 1); }
+    }
+  }
+  if(gen !== KARTEI_GEN) return;
+  const auftrag = karteiBuendelAuftrag(liste.map(x=>x.p), art, fotoVon);
+  const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  if(c) liste.forEach(x=>{ KARTEI_CTRL[x.id] = c; });
+  let txt;
+  try{
+    txt = await kiFragen(auftrag, bilder, null, c, {denken:'niedrig', frist:KARTEI_FRIST_BUENDEL});
+  }catch(e){
+    if(gen !== KARTEI_GEN) return;
+    const st = karteiStand();
+    if(!st){ liste.forEach(x=>delete KARTEI_CTRL[x.id]); return; }
+    if(e && e.name === 'AbortError' && !st.aktiv){ liste.forEach(x=>delete KARTEI_CTRL[x.id]); return; }
+    if(karteiKontingent(e, st)) return;
+    liste.forEach(x=>{
+      delete KARTEI_CTRL[x.id];
+      if(e && (e.voll || e.status === 429) && karteiNochmal(x.id, st)) return;
+      st.fertig[x.id] = {stand:'fehler', art:art, fehler:String((e && e.message) || 'Unbekannter Fehler'),
+        dauer:Date.now() - t0, buendel:liste.length, zeit:Date.now()};
+    });
+    sichern(); karteiLeiste(); karteiAbschnitt();
+    return;
+  }
+  if(gen !== KARTEI_GEN) return;
+  const st = karteiStand(); if(!st) return;
+  const bloecke = karteiBloecke(txt, liste.map(x=>x.p));
+  const dauer = Date.now() - t0;
+  liste.forEach((x, i)=>{
+    delete KARTEI_CTRL[x.id];
+    const felder = bloecke[i] && (typeof geminiLesen === 'function') ? (geminiLesen(bloecke[i]) || {}) : {};
+    if(Object.keys(felder).length){
+      st.fertig[x.id] = {stand:'ok', art:art, felder:felder, anzahl:Object.keys(felder).length,
+        dauer:dauer, buendel:liste.length, zeit:Date.now()};
+      return;
+    }
+    /* Fehlt die Pflanze im Bündel, geht sie allein noch einmal. */
+    st.einzeln = st.einzeln || {};
+    st.einzeln[x.id] = true;
+    if(karteiNochmal(x.id, st)) return;
+    st.fertig[x.id] = {stand:'fehler', art:art, fehler:'Die Antwort enthielt diese Pflanze nicht.',
+      dauer:dauer, buendel:liste.length, zeit:Date.now()};
+  });
+  sichern(); karteiLeiste(); karteiAbschnitt();
+}
+
 function karteiFertig(){
   const k = karteiStand(); if(!k) return;
   k.aktiv = false; k.pausiert = false; k.ende = Date.now();
+  karteiLaufStopp(k);
   karteiZusammen(k);
   sichern();
   karteiLeiste(); karteiAbschnitt();
@@ -28504,7 +28775,8 @@ function karteiLeiste(){
   const laeuft = f.laeuft;
   if(laeuft) karteiUhrAn(); else karteiUhrAus();
   s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + f.teil + '%"></i></div>'
-    + '<span>' + esc(f.text) + '</span>'
+    + '<span>' + esc(k.halt === 'tag' ? 'Tageskontingent erschöpft' : f.text)
+    + ' · <b class="ks-zeit">' + esc(karteiUhrzeit(karteiLaufzeit(k))) + '</b></span>'
     + (laeuft ? '<button type="button" data-do="kartei-stopp">Anhalten</button>'
       : k.pausiert ? (Array.isArray(k.alle)
           ? '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>' : '')
@@ -28883,7 +29155,8 @@ function karteiZeile(p, erg, modus){
   else {
     const n = karteiOffeneZeilen(p, e).length;
     wort = (n === 0 ? 'Keine Abweichung' : n === 1 ? 'Eine Abweichung' : n + ' Abweichungen')
-      + (e.art === 'text' ? ' · ohne Foto' : '');
+      + (e.art === 'text' ? ' · ohne Foto' : '')
+      + (e.dauer ? ' · ' + karteiDauerWort(e.dauer / (e.buendel || 1)) : '');
   }
   const txt = '<b>' + esc(nice(p)) + '</b><i>' + esc(wort) + '</i>';
   const kl = 'kartei-zeile' + (e.stand === 'ok' ? '' : ' fehl');
@@ -29075,6 +29348,7 @@ function karteiAbschnitt(){
       box.innerHTML = '<div class="kartei-balken" role="progressbar" aria-valuemin="0" aria-valuemax="100"'
         + ' aria-valuenow="' + f.teil + '"><i style="width:' + f.teil + '%"></i></div>'
         + '<p class="fhint kartei-stand">' + esc(f.text) + '</p>'
+        + '<p class="fhint kartei-info">' + esc(karteiInfo(k, f)) + '</p>'
         + (alt ? '<p class="fhint">Dieser Lauf stammt aus einer älteren Fassung und lässt sich nicht fortsetzen.</p>' : '')
         + '<div class="tools">'
         + (f.laeuft ? '<button type="button" data-do="kartei-stopp">Anhalten</button>'

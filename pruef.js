@@ -87,8 +87,19 @@ const dom = new JSDOM(html, {
           const f = typeof k.fehler === 'function' ? k.fehler(nr) : k.fehler;
           if (f) return res({ok:false, status:f,
             json:()=>Promise.resolve({error:{message:'Attrappe'}})});
+          /* Bündel (3.26.0): die Attrappe antwortet je PFLANZE mit
+             demselben Inhalt, mit Nummer und Name im Kopf. */
+          let text = k.antwort;
+          try{
+            const leib = JSON.parse(o.body).contents[0].parts[0].text;
+            const koepfe = [...leib.matchAll(/^PFLANZE (\d+) — (.*)$/gm)];
+            if(koepfe.length > 1 && typeof k.antwort === 'string'){
+              const innen = k.antwort.replace(/```[a-z]*\n?/g, '').trim();
+              text = '```\n' + koepfe.map(m => 'PFLANZE: ' + m[1] + ' | ' + m[2] + '\n' + innen).join('\n') + '\n```';
+            }
+          }catch(e){}
           res({ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP',
-            content:{parts:[{text:k.antwort}]}}]})});
+            content:{parts:[{text:text}]}}]})});
         }, k.verzug));
       }
       const j = String(u).indexOf('geocoding') !== -1
@@ -146,7 +157,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.25.0', w.__T('FASSUNG') === '3.25.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.26.0', w.__T('FASSUNG') === '3.26.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7068,7 +7079,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.25.0', e0.nr === '3.25.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.26.0', e0.nr === '3.26.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7820,10 +7831,24 @@ setTimeout(async () => {
     /* Fruehere Bloecke haben window.fetch mehrfach ersetzt — hier
        kommt eine eigene Attrappe hin, die mitzaehlt, wie viele
        Anfragen gleichzeitig unterwegs sind. */
+    /* Bündel (3.26.0): je PFLANZE derselbe Inhalt, Kopf mit Nummer und Name. */
+    w.__buendelAntwort = (o, antwort) => {
+      try{
+        const leib = JSON.parse(o.body).contents[0].parts[0].text;
+        const koepfe = [...leib.matchAll(/^PFLANZE (\d+) — (.*)$/gm)];
+        if(koepfe.length > 1 && typeof antwort === 'string'){
+          const innen = antwort.replace(/```[a-z]*\n?/g, '').trim();
+          return '```\n' + koepfe.map(m => 'PFLANZE: ' + m[1] + ' | ' + m[2] + '\n' + innen).join('\n') + '\n```';
+        }
+      }catch(e){}
+      return antwort;
+    };
     w.__netz = true;
-    w.fetch = (u) => {
+    w.fetch = (u, o) => {
       const k = w.__ki;
       k.zaehler++; k.jetzt++;
+      k.leiber = k.leiber || [];
+      try{ k.leiber.push(JSON.parse(o.body)); }catch(e){}
       if(k.jetzt > k.hoechst) k.hoechst = k.jetzt;
       const nr = k.zaehler;
       return new Promise(res => setTimeout(() => {
@@ -7832,7 +7857,7 @@ setTimeout(async () => {
         if(f) return res({ok:false, status:f,
           json:()=>Promise.resolve({error:{message:'Attrappe'}})});
         res({ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP',
-          content:{parts:[{text:k.antwort}]}}]})});
+          content:{parts:[{text:w.__buendelAntwort(o, k.antwort)}]}}]})});
       }, k.verzug));
     };
     const BT3 = String.fromCharCode(96,96,96);
@@ -8100,9 +8125,11 @@ setTimeout(async () => {
     pruef('Der Lauf ist durch', stand('k.aktiv') === false);
     pruef('Drei Antworten liegen vor',
       stand('Object.keys(k.fertig).length') === 3, String(stand('Object.keys(k.fertig).length')));
-    pruef('Höchstens drei Anfragen gleichzeitig',
-      w.__ki.hoechst > 0 && w.__ki.hoechst <= 3, String(w.__ki.hoechst));
-    pruef('Es lief mehr als eine gleichzeitig', w.__ki.hoechst > 1, String(w.__ki.hoechst));
+    /* Seit 3.26.0: zwei Bündel gleichzeitig. Drei Pflanzen (zwei mit, eine ohne Foto)
+       sind zwei Anfragen statt drei. */
+    pruef('3.26.0: Höchstens zwei Anfragen gleichzeitig',
+      w.__ki.hoechst > 0 && w.__ki.hoechst <= 2, String(w.__ki.hoechst));
+    pruef('3.26.0: Drei Pflanzen brauchen zwei Anfragen', w.__ki.zaehler === 2, String(w.__ki.zaehler));
     /* geminiLesen legt den botanischen Namen unter `bot` ab, nicht
        unter `botanisch` — die Schluessel der Antwort sind nicht die
        Feldnamen der Pflanze. Fuer E2 ist das die Stelle, an der die
@@ -8182,6 +8209,8 @@ setTimeout(async () => {
     /* Fehlschlag reisst den Lauf nicht mit */
     w.__ki.zaehler = 0;
     w.__ki.fehler = nr => (nr === 1 ? 400 : null);
+    /* Ohne Denkstufen-Nachfrage, damit der 400 als Fehlschlag stehen bleibt. */
+    w.__T(`(function(){ KI_DENKEN_AUS['models/gemini-3-flash'] = true; return 1; })()`);
     w.__T(`karteiVerwerfen()`);
     /* Fuenf Pflanzen bei drei Spuren: die letzten beiden stehen noch in
        der Schlange, wenn die erste scheitert. Nur so zeigt sich, ob ein
@@ -8193,12 +8222,14 @@ setTimeout(async () => {
       String(stand('Object.keys(k.fertig).length')));
     pruef('Die Pflanzen hinter dem Fehlschlag kommen trotzdem dran',
       stand(`['KA4','KA5'].every(function(i){ return !!k.fertig[i]; })`) === true);
+    /* Seit 3.26.0 scheitert ein ganzes Bündel: KA1 und KA2 (mit Foto) oder KA3 bis KA5 (ohne). */
     pruef('Der Fehlschlag steht als Fehlschlag in der Liste',
-      stand(`Object.keys(k.fertig).filter(function(i){return k.fertig[i].stand==='fehler';}).length`) === 1,
+      ['KA1,KA2', 'KA3,KA4,KA5'].indexOf(stand(`Object.keys(k.fertig).filter(function(i){return k.fertig[i].stand==='fehler';}).sort().join(',')`)) > -1,
       String(stand(`Object.keys(k.fertig).filter(function(i){return k.fertig[i].stand==='fehler';}).length`)));
     pruef('Er nennt einen Grund',
       String(stand(`Object.keys(k.fertig).map(function(i){return k.fertig[i].fehler||'';}).join('')`)).length > 5);
     w.__ki.fehler = null;
+    w.__T(`(function(){ delete KI_DENKEN_AUS['models/gemini-3-flash']; return 1; })()`);
 
     /* Anhalten und Fortsetzen (3.20.0) */
     w.__ki.verzug = 400;
@@ -8206,7 +8237,8 @@ setTimeout(async () => {
     w.__ki.zaehler = 0;
     w.__T(`karteiStarten(['KA1','KA2','KA3','KA4','KA5'])`);
     await tick();
-    pruef('Drei Anfragen sind unterwegs', w.__T(`karteiLaufend()`) === 3, String(w.__T(`karteiLaufend()`)));
+    pruef('3.26.0: Zwei Bündel mit allen fünf Pflanzen sind unterwegs',
+      w.__T(`KARTEI_AKTIV`) === 2 && w.__T(`karteiLaufend()`) === 5, w.__T(`KARTEI_AKTIV`) + '/' + w.__T(`karteiLaufend()`));
     {
       const stopp = d.querySelector('#kartei-streifen [data-do="kartei-stopp"]');
       pruef('Die Leiste heißt Anhalten', !!stopp && /Anhalten/.test(stopp.textContent));
@@ -8239,7 +8271,7 @@ setTimeout(async () => {
       if(weiter){ weiter.click(); await tick(); }
     }
     pruef('Fortsetzen lässt den Lauf wieder laufen',
-      stand('k.pausiert') === false && w.__ki.zaehler > 5, String(w.__ki.zaehler));
+      stand('k.pausiert') === false && w.__ki.zaehler > 2, String(w.__ki.zaehler));
     await warte(()=>stand('k.aktiv') === false, 12000);
     pruef('Nach dem Fortsetzen hat jede Pflanze ein Ergebnis',
       stand('Object.keys(k.fertig).sort().join(",")') === 'KA1,KA2,KA3,KA4,KA5',
@@ -8278,8 +8310,8 @@ setTimeout(async () => {
     w.__ki.zaehler = 0;
     w.__T(`karteiWiederaufnehmen()`);
     await warte(()=>stand('k.aktiv') === false, 6000);
-    pruef('Nach dem Neustart werden verlorene Anfragen nachgeholt',
-      w.__ki.zaehler === 2, String(w.__ki.zaehler));
+    pruef('Nach dem Neustart werden verlorene Anfragen nachgeholt (als ein Bündel)',
+      w.__ki.zaehler === 1, String(w.__ki.zaehler));
     pruef('Der Lauf endet mit allen drei',
       stand('Object.keys(k.fertig).length') === 3, String(stand('Object.keys(k.fertig).length')));
 
@@ -9254,6 +9286,145 @@ setTimeout(async () => {
     T(`(function(){ var b = document.getElementById('b-${bid}'); if(b) b.remove();
       S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'PF' && p.id !== '${bid}'; });
       delete S.kartei; KA_PFLANZE = null; sichern(); render(); return 1; })()`);
+  }
+
+  /* ══════════ Kartei schneller (3.26.0) ══════════ */
+  {
+    const T = c => w.__T(c);
+    const fetch0 = w.fetch;
+    const haengt = pr => Promise.race([pr, new Promise((_, nein)=>setTimeout(()=>nein(new Error('hängt')), 4000))]);
+    /* Eine Attrappe, die die Leiber mitschreibt und nach Plan antwortet */
+    w.__plan = [];
+    w.__leiber = [];
+    w.fetch = (u, o) => {
+      let leib = null; try{ leib = JSON.parse(o.body); }catch(e){}
+      w.__leiber.push(leib);
+      const schritt = w.__plan.length ? w.__plan.shift() : {text:'```\nART: Test\nLICHT: hell\n```'};
+      return new Promise(res => setTimeout(() => {
+        if(schritt.status) return res({ok:false, status:schritt.status, json:()=>Promise.resolve(schritt.fehler || {error:{message:'Attrappe'}})});
+        const t = typeof schritt.text === 'function' ? schritt.text(leib) : schritt.text;
+        res({ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP', content:{parts:[{text:t}]}}]})});
+      }, 20));
+    };
+    T(`(function(){ S.kiModelle = [{id:'models/gemini-3-flash', anzeige:'3 flash', empfohlen:true},
+      {id:'models/gemini-2.5-flash', anzeige:'2.5 flash'}]; S.kiModell = 'models/gemini-3-flash'; sichern();
+      kiSchluesselSetzen('${ATTRAPPE_ECHT}'); return 1; })()`);
+
+    /* Denkstufe */
+    await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig'})`));
+    const l1 = w.__leiber[w.__leiber.length - 1];
+    pruef('3.26.0: Gemini 3 bekommt thinkingLevel low',
+      !!l1 && l1.generationConfig.thinkingConfig && l1.generationConfig.thinkingConfig.thinkingLevel === 'low', JSON.stringify(l1 && l1.generationConfig));
+    await haengt(T(`kiFragen('x', null, 'models/gemini-2.5-flash', null, {denken:'niedrig'})`));
+    const l2 = w.__leiber[w.__leiber.length - 1];
+    pruef('3.26.0: Gemini 2.5 bekommt thinkingBudget', !!l2 && l2.generationConfig.thinkingConfig
+      && l2.generationConfig.thinkingConfig.thinkingBudget > 0 && !l2.generationConfig.thinkingConfig.thinkingLevel);
+    await haengt(T(`kiFragen('x', null)`));
+    const l3 = w.__leiber[w.__leiber.length - 1];
+    pruef('3.26.0: Ohne Option keine Denkstufe (Anlegen, Doktor)', !!l3 && !l3.generationConfig.thinkingConfig);
+    w.__plan = [{status:400}, {text:'ok'}];
+    const vor = w.__leiber.length;
+    const t4 = await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig'})`));
+    pruef('3.26.0: Lehnt das Modell die Denkstufe ab, einmal ohne',
+      t4 === 'ok' && w.__leiber.length === vor + 2 && !w.__leiber[vor + 1].generationConfig.thinkingConfig);
+    pruef('3.26.0: und das Modell wird gemerkt', T(`KI_DENKEN_AUS['models/gemini-3-flash'] === true`) === true);
+    T(`(function(){ delete KI_DENKEN_AUS['models/gemini-3-flash']; return 1; })()`);
+
+    /* Kontingent lesen */
+    const tag = {error:{message:'Quota exceeded', details:[{'@type':'type.googleapis.com/google.rpc.QuotaFailure',
+      violations:[{quotaId:'GenerateRequestsPerDayPerProjectPerModel-FreeTier'}]}]}};
+    const minute = {error:{message:'Quota exceeded. Please retry in 12.5s.', details:[{'@type':'type.googleapis.com/google.rpc.RetryInfo', retryDelay:'12s'}]}};
+    w.__plan = [{status:429, fehler:tag}];
+    let e1 = null; try{ await haengt(T(`kiFragen('x', null).catch(function(e){ return Promise.reject({tag:e.tag, warte:e.warte, status:e.status}); })`)); }catch(e){ e1 = e; }
+    pruef('3.26.0: 429 mit Tageskontingent wird erkannt', !!e1 && e1.tag === true && e1.status === 429, JSON.stringify(e1));
+    w.__plan = [{status:429, fehler:minute}];
+    let e2 = null; try{ await haengt(T(`kiFragen('x', null).catch(function(e){ return Promise.reject({tag:e.tag, warte:e.warte}); })`)); }catch(e){ e2 = e; }
+    pruef('3.26.0: Minutenlimit mit Wartezeit von Google', !!e2 && e2.tag === false && e2.warte === 12000, JSON.stringify(e2));
+
+    /* Bündel: Auftrag, Blöcke, Gruppen */
+    T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'BU'; });
+      ['BU1','BU2','BU3','BU4','BU5','BU6','BU7'].forEach(function(id, i){
+        S.eigene.push({id:id, eigen:true, name:'Bündel ' + (i + 1), art:'Testranke', botanisch:'Fictus rankens',
+          typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'x', frostMin:5, pflege:[], winterruheText:''});
+      });
+      sichern(); return 1; })()`);
+    const ps = "['BU1','BU2','BU3'].map(function(i){ return allePflanzen().find(function(x){return x.id===i;}); })";
+    const auf = T(`karteiBuendelAuftrag(${ps}, 'foto', [1,3])`);
+    pruef('3.26.0: Der Bündel-Auftrag nennt jede Pflanze mit Nummer',
+      /^PFLANZE 1 — Bündel 1$/m.test(auf) && /^PFLANZE 3 — Bündel 3$/m.test(auf));
+    pruef('3.26.0: Die Fotos sind den Nummern zugeordnet',
+      /Foto 1 zeigt PFLANZE 1, Foto 2 zeigt PFLANZE 3/.test(auf) && /Ohne Foto: PFLANZE 2/.test(auf));
+    pruef('3.26.0: Der Auftrag verlangt Blöcke mit PFLANZE: <Nummer>', /PFLANZE: <Nummer> \| <Name wie oben>/.test(auf));
+    const bl = t => JSON.parse(T(`JSON.stringify(karteiBloecke(${JSON.stringify(t)}, ${ps}).map(function(b){ return b === null ? null : b.trim(); }))`));
+    const b1 = bl('```\nPFLANZE: 1 | Bündel 1\nART: A\nPFLANZE: 3 | Bündel 3\nART: C\n```');
+    pruef('3.26.0: Blöcke werden der Nummer zugeordnet, ein fehlender bleibt leer',
+      b1[0] === 'ART: A' && b1[1] === null && b1[2] === 'ART: C', JSON.stringify(b1));
+    const b2 = bl('```\nPFLANZE: 1 | Monstera\nART: A\nPFLANZE: 2\nART: B\n```');
+    pruef('3.26.0: Ein falscher Name im Kopf zählt als fehlend, ohne Namen gilt die Nummer',
+      b2[0] === null && b2[1] === 'ART: B', JSON.stringify(b2));
+    const b3 = bl('```\nPFLANZE: 2 | Bündel 2\nART: A\nPFLANZE: 2 | Bündel 2\nART: B\n```');
+    pruef('3.26.0: Eine doppelte Nummer zählt als fehlend', b3[1] === null, JSON.stringify(b3));
+    const gruppe = T(`(function(){ var k = {offen:['BU1','BU2','BU3','BU4','BU5','BU6','BU7'], einzeln:{BU2:true}};
+      var a = karteiNaechste(k); var b = karteiNaechste(k); return JSON.stringify([a, b, k.offen]); })()`);
+    pruef('3.26.0: Höchstens fünf je Bündel, wer einzeln muss, geht allein',
+      gruppe === JSON.stringify([['BU1','BU3','BU4','BU5','BU6'], ['BU2'], ['BU7']]), gruppe);
+
+    /* Ein Lauf: fehlende Pflanze geht allein noch einmal */
+    w.__plan = [
+      {text: leib => { const n = [...leib.contents[0].parts[0].text.matchAll(/^PFLANZE (\d+) — (.*)$/gm)];
+        return '```\n' + n.filter(m => m[1] !== '2').map(m => 'PFLANZE: ' + m[1] + ' | ' + m[2] + '\nART: Testranke\nLICHT: halbschatten').join('\n') + '\n```'; }},
+      {text:'```\nART: Testranke\nLICHT: halbschatten\n```'}
+    ];
+    w.__leiber = [];
+    T(`(function(){ delete S.kartei; KARTEI_BREMSE_BIS = 0; karteiStarten(['BU1','BU2','BU3']); return 1; })()`);
+    for(let i = 0; i < 60 && T(`!!(S.kartei && S.kartei.aktiv)`); i++) await new Promise(r => setTimeout(r, 50));
+    pruef('3.26.0: Drei Pflanzen, eine fehlt im Bündel: zwei Anfragen',
+      w.__leiber.length === 2, String(w.__leiber.length));
+    pruef('3.26.0: Die fehlende kam allein und ist fertig',
+      T(`S.kartei.fertig.BU2 && S.kartei.fertig.BU2.stand === 'ok' && !S.kartei.fertig.BU2.buendel`) === true);
+    pruef('3.26.0: Die fehlende ist als einzeln vermerkt, damit sie nicht wieder ins Bündel rutscht',
+      T(`!!(S.kartei.einzeln && S.kartei.einzeln.BU2 === true)`) === true);
+    pruef('3.26.0: Die anderen tragen die Bündelgröße', T(`S.kartei.fertig.BU1.buendel === 3 && S.kartei.fertig.BU3.stand === 'ok'`) === true);
+    pruef('3.26.0: Beide Anfragen mit niedriger Denkstufe',
+      w.__leiber.every(l => l && l.generationConfig.thinkingConfig && l.generationConfig.thinkingConfig.thinkingLevel === 'low'));
+    pruef('3.26.0: Die Laufzeit ist gemerkt', T(`S.kartei.laufMs >= 0 && !S.kartei.laufAb`) === true);
+    const zeileTxt = T(`karteiZeile(allePflanzen().find(function(x){return x.id==='BU1';}), S.kartei.fertig.BU1)`);
+    pruef('3.26.0: Die Ergebniszeile nennt die Dauer', /· \d+ s/.test(zeileTxt), zeileTxt);
+
+    /* Tageskontingent hält den Lauf an */
+    w.__plan = [{status:429, fehler:tag}];
+    T(`(function(){ delete S.kartei; KARTEI_BREMSE_BIS = 0; karteiStarten(['BU4','BU5']); return 1; })()`);
+    for(let i = 0; i < 60 && T(`!!(S.kartei && S.kartei.aktiv)`); i++) await new Promise(r => setTimeout(r, 50));
+    pruef('3.26.0: Tageskontingent: der Lauf hält an',
+      T(`S.kartei.aktiv === false && S.kartei.pausiert === true && S.kartei.halt === 'tag'`) === true,
+      T(`JSON.stringify({a:S.kartei.aktiv, p:S.kartei.pausiert, h:S.kartei.halt, f:Object.keys(S.kartei.fertig)})`));
+    pruef('3.26.0: Keine Pflanze gilt als gescheitert', T(`Object.keys(S.kartei.fertig).length === 0 && S.kartei.offen.length === 2`) === true);
+    T(`karteiAbschnitt(); karteiLeiste()`);
+    pruef('3.26.0: Die Anzeige nennt Kontingent und Uhrzeit',
+      /Tageskontingent erschöpft — wieder ab \d{1,2}:\d{2} Uhr/.test(String(d.getElementById('kartei-innen').textContent))
+      && /Tageskontingent/.test(String((d.getElementById('kartei-streifen') || {}).textContent)));
+    w.__plan = [];
+    T(`karteiFortsetzen()`);
+    pruef('3.26.0: Fortsetzen löscht den Halt', T(`!S.kartei.halt && S.kartei.aktiv === true`) === true);
+    for(let i = 0; i < 60 && T(`!!(S.kartei && S.kartei.aktiv)`); i++) await new Promise(r => setTimeout(r, 50));
+
+    /* Minutenlimit bremst sichtbar */
+    w.__plan = [{status:429, fehler:minute}];
+    T(`(function(){ delete S.kartei; KARTEI_BREMSE_BIS = 0; karteiStarten(['BU6','BU7']); return 1; })()`);
+    for(let i = 0; i < 20 && T(`KARTEI_BREMSE_BIS`) === 0; i++) await new Promise(r => setTimeout(r, 50));
+    const rest = T(`KARTEI_BREMSE_BIS - Date.now()`);
+    pruef('3.26.0: Das Minutenlimit bremst so lange, wie Google sagt', rest > 9000 && rest <= 12000, String(rest));
+    const info = T(`karteiInfo(S.kartei, karteiFortschritt(S.kartei))`);
+    pruef('3.26.0: Die Info nennt Warten, Laufzeit und Modell',
+      /wartet \d+ s — zu viele Anfragen in der Minute/.test(info) && /läuft seit \d+:\d{2}/.test(info) && /Modell 3 flash/.test(info), info);
+    T(`karteiAbschnitt()`);
+    pruef('3.26.0: Die Info steht unter dem Balken', !!d.querySelector('#kartei-innen .kartei-info'));
+    pruef('3.26.0: Die Leiste zeigt die Laufzeit', !!d.querySelector('#kartei-streifen .ks-zeit'));
+    T(`(function(){ karteiVerwerfen(); KARTEI_BREMSE_BIS = 0;
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'BU'; });
+      sichern(); karteiLeiste(); karteiAbschnitt(); return 1; })()`);
+    w.fetch = fetch0;
   }
 
   console.log('\n── Ergebnis ──');

@@ -1,8 +1,8 @@
 # PLAN — GreenkeeperAI
 
-Stand 21.09.2026 · Ausgangsfassung 3.25.0 · **Zielversion 3.26.0, sw.js greenkeeperai-v121**
+Stand 22.09.2026 · Ausgangsfassung 3.26.0 · **nächste Zielversion 3.27.0, sw.js greenkeeperai-v122**
 
-Erledigt und nicht mehr hier: Etappe A bis D, E1 (3.19.0), Lösch-Fix (3.19.1), Kartei-Seite (3.20.0), E2 (3.21.0), E2b (3.22.0), E4 + K (3.23.0), Kartei-Abschluss (3.24.0), E3 Pflegetexte (3.25.0). Der Verlauf steht im CHANGELOG.
+Erledigt und nicht mehr hier: Etappe A bis D, E1 (3.19.0), Lösch-Fix (3.19.1), Kartei-Seite (3.20.0), E2 (3.21.0), E2b (3.22.0), E4 + K (3.23.0), Kartei-Abschluss (3.24.0), E3 Pflegetexte (3.25.0), Kartei schneller (3.26.0). Der Verlauf steht im CHANGELOG.
 
 Offen sind: **Stecklinge sammeln** unter einer Kartei oder Gruppe (Chris erklärt, Plan folgt), Sammel-Anlegen, **F** und **T**. Zurückgestellt: Claude-Anbindung.
 
@@ -39,3 +39,11 @@ Offen sind: **Stecklinge sammeln** unter einer Kartei oder Gruppe (Chris erklär
 - Pflegeschritte werden als Ganzes ersetzt (E5). Bearbeiten mit Stempel `hand` nur bei Änderung.
 - `winterruheText` in `ABLEGER_ERBE`; ein geprüftes „keine“ erbt mit.
 - Folge: „Nur mit Lücken“ nimmt zunächst fast jede Pflanze, bis ein Kartei-Lauf die Texte ergänzt hat.
+
+## Erledigt in 3.26.0 — Kartei schneller
+
+- Bündel zu fünf Pflanzen gleicher Art (mit oder ohne Foto), zwei gleichzeitig, Frist 90 s. Blöcke `PFLANZE: <Nummer> | <Name>`; falscher Name, doppelte oder fehlende Nummer → die Pflanze geht einzeln noch einmal (`S.kartei.einzeln`).
+- Niedrige Denkstufe nur für die Kartei: `thinkingLevel: low` ab Gemini 3, `thinkingBudget: 512` bei 2.5. Bei 400 einmal ohne, gemerkt in `KI_DENKEN_AUS`.
+- 429 mit Tageskontingent (`PerDay`) hält den Lauf an (`halt: 'tag'`), Minutenlimit bremst nach Googles `retryDelay`, sonst 60 s.
+- Laufzeit (`laufMs`, `laufAb`), Modell und Restzeit unter dem Balken; Dauer je Pflanze in der Ergebnisliste; Laufzeit in der Leiste.
+- Noch unbestätigt am Gerät: Tempo mit echter Denkstufe und Bündel über 50 Pflanzen.

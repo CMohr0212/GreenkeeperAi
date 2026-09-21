@@ -4,6 +4,21 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.26.0 — 22. September 2026
+**Kartei schneller**
+
+### Anders
+- **Bündel.** Die Kartei fragt bis zu fünf Pflanzen in einer Anfrage, zwei Bündel gleichzeitig. 50 Pflanzen brauchen etwa zehn Anfragen statt fünfzig — das schont auch Googles Kontingent.
+- **Denkstufe.** Beim Auffrischen denkt die KI auf niedriger Stufe und antwortet schneller. Anlegen und Doktor bleiben gründlich.
+- **Laufzeit.** Unter dem Balken stehen Laufzeit, Modell und die geschätzte Restzeit. Jede fertige Pflanze nennt ihre Dauer, die Leiste unten die Laufzeit.
+- **Warten sichtbar.** Muss die App wegen zu vieler Anfragen pausieren, zeigt sie das mit Countdown — so lange, wie Google es verlangt.
+
+### Behoben
+- **Tageskontingent.** Ein erschöpftes Kontingent wurde immer wieder versucht. Jetzt hält der Lauf an und nennt die Uhrzeit, ab der es weitergeht. Fortsetzen macht dort weiter.
+- **Fehlende Pflanze im Bündel.** Nur sie wird allein noch einmal gefragt.
+
+---
+
 ## 3.25.0 — 21. September 2026
 **Pflegeschritte und Winterruhe**
 
