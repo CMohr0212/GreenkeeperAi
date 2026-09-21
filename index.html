@@ -3464,11 +3464,11 @@ html[data-design="klartext"] .kartei-zeile{border-width:2px}
 .ka-zeile{display:flex;align-items:flex-start;gap:6px;padding:8px 0;border-top:1px solid var(--line);
   font-size:var(--t-m)}
 .ka-zeile:first-child{border-top:0}
-.ka-zeile.ka-eigen{background:color-mix(in srgb, var(--peat) 6%, transparent)}
-.ka-wahl{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;cursor:pointer;
+.ka-zeile.ka-eigen{background:color-mix(in srgb, var(--peat) 12%, transparent);
+  box-shadow:inset 3px 0 0 var(--peat);padding-left:10px}
+/* Ab 3.24.0 nur noch Kreuze: die Zeile ist Text, × verwirft sie. */
+.ka-wahl{flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;
   min-height:var(--tap);margin:0}
-.ka-wahl input[type="checkbox"]{flex:0 0 auto;width:22px;height:22px;margin:2px 0 0;
-  accent-color:var(--moss)}
 .ka-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .ka-feld{font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.08em;
   text-transform:uppercase;color:var(--peat)}
@@ -6021,6 +6021,18 @@ const FELD_ZUSATZ = {
     text:'SORTE: Die Sorte dieser Pflanze und wie sicher du dir bist, getrennt durch genau einen senkrechten Strich: Sortenname | Sicherheit. Sicherheit ist nur eines dieser W\u00f6rter: hoch, mittel, niedrig. Nenne nur eingef\u00fchrte Handelsnamen, erfinde keinen Namen und schreib ihn ohne Anf\u00fchrungszeichen. Ist keine Sorte erkennbar oder ist es die reine Art, schreib genau: keine',
     bsp:'SORTE: Jessenia | mittel'
   },
+  /* Pflegetexte der Art (3.25.0), gefragt von Anlegen und Kartei.
+     Regel 10.11: nichts, was für jede Zimmerpflanze gilt. */
+  PFLEGE: {
+    text:'PFLEGE: Ein bis vier Pflegeschritte, die nur f\u00fcr diese Art oder Sorte gelten, getrennt durch senkrechte Striche. '
+      + 'Keine Regeln, die f\u00fcr jede Zimmerpflanze gelten, etwa Staun\u00e4sse meiden, gie\u00dfen wenn die Erde trocken ist, hell stellen oder im Sommer d\u00fcngen. '
+      + 'Nichts, was schon in WICHTIG steht. Gibt es nichts Besonderes, schreib genau: keine',
+    bsp:'PFLEGE: Verbl\u00fchte Stiele am Ansatz abschneiden | Im Fr\u00fchjahr um ein Drittel zur\u00fcckschneiden'
+  },
+  WINTERRUHE: {
+    text:'WINTERRUHE: Ob und wie diese Art im Winter ruht, in ein bis drei S\u00e4tzen: Zeitraum, Temperatur und wie viel gegossen wird. Ruht sie nicht, schreib genau: keine',
+    bsp:'WINTERRUHE: Von November bis Februar hell bei 10 bis 15 \u00b0C, nur alle drei Wochen wenig gie\u00dfen.'
+  },
   ABLAUF: {
     text:'ABLAUF: Hat der Topf ein sichtbares Abzugsloch? Nur genau eines dieser Woerter: ja, nein, nicht sichtbar'
       .replace(/Woerter/, 'W\u00f6rter'),
@@ -6055,19 +6067,21 @@ function auftragFormat(namen, sonicht, pruefliste){
    an der die Antwort ausschert. */
 const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SORTE','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
   'LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART','ABLAUF','FROST','WICHTIG',
-  'KATZEN','VERMEHRUNG'];
+  'PFLEGE','WINTERRUHE','KATZEN','VERMEHRUNG'];
 
 const ANLEGEN_SONICHT = 'Kein Text vor oder nach dem Codeblock. Kein **ART:**, kein ### ART, kein - ART:. '
   + 'Keine Zeile ohne Schl\u00fcsselwort. Kein "Ich hoffe, das hilft!". Keine Werte wie "hell bis indirekt", '
-  + 'wo nur ein Wort erlaubt ist. Keine Diagnose, keine Pflegeempfehlung, kein Urteil dar\u00fcber, '
-  + 'ob der Topf zu klein ist oder die Pflanze gesund — hier wird nur beschrieben, was zu sehen ist.';
+  + 'wo nur ein Wort erlaubt ist. Keine Diagnose, keine Pflegeempfehlung f\u00fcr dieses Exemplar, kein Urteil dar\u00fcber, '
+  + 'ob der Topf zu klein ist oder die Pflanze gesund — hier wird nur beschrieben, was zu sehen ist. '
+  + 'PFLEGE und WINTERRUHE gelten f\u00fcr die Art, nicht f\u00fcr dieses Exemplar.';
 
 const ANLEGEN_PRUEFLISTE = '1. Steht die gesamte Antwort in einem Codeblock und au\u00dferhalb nichts?\n'
   + '2. Kommen alle Schl\u00fcsselw\u00f6rter genau einmal vor, in der Reihenfolge der Liste? Nur VERMEHRUNG darf mehrfach vorkommen.\n'
   + '3. Enthalten SICHERHEIT, LICHT, GIESSKLASSE, GIESSART, SUBSTRAT, TOPFART und ABLAUF nur eine der erlaubten Angaben?\n'
   + '4. Hat jede VERMEHRUNG-Zeile genau vier senkrechte Striche?\n'
   + '5. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH oder MERKMALE?\n'
-  + '6. Steht irgendwo ein Urteil oder eine Empfehlung? Dann streich es.';
+  + '6. Steht au\u00dferhalb von PFLEGE und WINTERRUHE ein Urteil oder eine Empfehlung? Dann streich es.\n'
+  + '7. Steht in PFLEGE oder WINTERRUHE eine Regel, die f\u00fcr jede Zimmerpflanze gilt? Dann streich sie.';
 
 /* Die Tierzeile richtet sich nach den eingetragenen Tieren. Wer keine
    haelt, bekommt die Frage gar nicht gestellt. */
@@ -6249,6 +6263,10 @@ const ANTWORT_SCHLUESSEL = [
   ['ablauf',  ['ablauf','abzugsloch','abzug','wasserablauf','drainage','drainageloch']],
   ['topf',    ['topf','topfverhaeltnisse','topfverhältnisse','topf und platz','gefaess','gefäß','pflanzgefaess','pflanzgefäß','pot']],
   ['vermehrung',['vermehrung','vermehrungsmethode','vermehrungsmethoden','vermehren','stecklinge','steckling','propagation']],
+  /* Pflegetexte der Art (3.25.0). Stehen vor `schritte`, damit
+     „Pflegeschritte“ nicht bei den Maßnahmen des Doktors landet. */
+  ['pflege',  ['pflege','pflegeschritte','pflegeschritt']],
+  ['winterruhe',['winterruhe','ruhephase','winterpause','ruhezeit']],
   ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
 const SCHLUESSEL_KARTE = (()=>{
@@ -9075,6 +9093,10 @@ function aenderungSetzen(id, felder, herkunft, erzwungen){
   /* Die Sorte steht nicht in der Rangfolge. Einen Stempel bekommt sie
      nur mit ausdrücklicher Herkunft; ohne Angabe fällt ein alter
      KI-Stempel weg, dann gilt sie als selbst eingetragen (3.23.0). */
+  /* Pflegetexte tragen ihren Stempel ohne Rangfolge (3.25.0). */
+  ['pflege', 'winterruheText'].forEach(f=>{
+    if(Object.prototype.hasOwnProperty.call(felder, f)) stempel[f] = her;
+  });
   let sorteOhne = false;
   if(Object.prototype.hasOwnProperty.call(felder, 'sorte')){
     if(herkunft === 'ki' || herkunft === 'hand') stempel.sorte = herkunft;
@@ -9131,6 +9153,11 @@ function bearbeitenInnenHTML(p){
       <label class="fspan"><span class="lab">Wichtig zu wissen</span>
         <textarea data-e="wichtig" data-p="${p.id}" rows="2" placeholder="z. B. nur destilliertes oder Regenwasser, Leitungswasser tötet sie">${esc(p.wichtig||'')}</textarea>
         <span class="fhint">Pflegehinweise, die über Leben und Tod entscheiden und die man nicht von selbst weiß. Erscheinen auf der Karte und werden auf den Urlaubszettel übernommen.</span></label>
+      <label class="fspan"><span class="lab">Pflegeschritte</span>
+        <textarea data-e="pflege" data-p="${p.id}" rows="3" placeholder="Ein Schritt je Zeile">${esc(Array.isArray(p.pflege) ? p.pflege.join('\n') : '')}</textarea>
+        <span class="fhint">Nur was für diese Art gilt, ein Schritt je Zeile.</span></label>
+      <label class="fspan"><span class="lab">Winterruhe</span>
+        <textarea data-e="winterruheText" data-p="${p.id}" rows="2" placeholder="z. B. November bis Februar kühl bei 10 °C, kaum gießen">${esc(typeof p.winterruheText === 'string' ? p.winterruheText : '')}</textarea></label>
       <label class="fspan"><span class="lab">Notiz</span><textarea data-e="notiz" data-p="${p.id}" rows="3">${esc(p.notiz||'')}</textarea></label>
     </div>
     <div class="tools">
@@ -9172,6 +9199,21 @@ document.addEventListener('click', e=>{
     });
     if(!felder.name) felder.name = 'Name offen';
     if(!felder.art) felder.art = 'Unbestimmt';
+    /* Pflegetexte (3.25.0): nur, was sich geändert hat, bekommt den
+       Stempel „hand“. Ein leeres Feld ohne Vorwert bleibt eine Lücke. */
+    {
+      const vor = allePflanzen().find(x=>x.id === id) || {};
+      if(Object.prototype.hasOwnProperty.call(felder, 'pflege')){
+        const neu = String(felder.pflege).split('\n').map(x=>x.trim()).filter(Boolean);
+        const alt = Array.isArray(vor.pflege) ? vor.pflege : null;
+        if(alt ? alt.join('\n') === neu.join('\n') : !neu.length) delete felder.pflege;
+        else felder.pflege = neu;
+      }
+      if(Object.prototype.hasOwnProperty.call(felder, 'winterruheText')){
+        const alt = typeof vor.winterruheText === 'string' ? vor.winterruheText : null;
+        if(alt === null ? !felder.winterruheText : alt === felder.winterruheText) delete felder.winterruheText;
+      }
+    }
     /* Das Intervall kommt aus der Gießklasse und wird nicht kopiert —
        eine geänderte Klasse wirkt dadurch sofort. */
     aenderungSetzen(id, felder);
@@ -10642,7 +10684,7 @@ function papierkorbRender(){
       <button class="wz-i" data-mh-info="kartei" aria-expanded="false" aria-label="Wozu ist das Auffrischen da?">i</button>
     </div>
     <div class="wz-in" id="mh-in-kartei" hidden>
-      <p class="wz-hilfe" hidden>Die KI geht einmal über deine Sammlung und gleicht die Artdaten jeder Karte ab: Steckbrief, Gießklasse, Licht, Frost, Düngebedarf, Giftigkeit und Vermehrung. Zustand, Topf und Befund sind Sache des Doktors. Das läuft weiter, während du die App normal benutzt; eine Leiste am unteren Rand zeigt, wie weit es ist. An deinen Pflanzen ändert sich dabei nichts: danach siehst du jede Pflanze in einem Fenster durch und übernimmst nur, was du selbst antippst. Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt.</p>
+      <p class="wz-hilfe" hidden>Die KI geht einmal über deine Sammlung und gleicht die Artdaten jeder Karte ab: Steckbrief, Gießklasse, Licht, Frost, Düngebedarf, Giftigkeit und Vermehrung. Zustand, Topf und Befund sind Sache des Doktors. Das läuft weiter, während du die App normal benutzt; eine Leiste am unteren Rand zeigt, wie weit es ist. An deinen Pflanzen ändert sich dabei nichts: danach siehst du jede Pflanze in einem Fenster durch, kreuzt weg, was nicht passt, und übernimmst den Rest mit einem Tipp. Ohne Foto wird nur gefragt, was sich aus dem Namen ergibt.</p>
       <div id="kartei-innen"></div>
     </div>
   </section>
@@ -11264,8 +11306,41 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.23.0';
+const FASSUNG = '3.25.0';
 const PATCHNOTES = [
+  {
+    nr: '3.25.0', datum: '2026-09-21', titel: 'Pflegeschritte und Winterruhe',
+    kurz: [
+      'Anlegen und Kartei fragen jetzt auch Pflegeschritte und Winterruhe der Art ab. Stimmt ein Text auf der Karte, bietet die Kartei ihn nicht mehr neu formuliert an.'
+    ],
+    neu: [
+      'Beim Anlegen kommen Pflegeschritte und Winterruhe gleich mit auf die Karte.',
+      'Die Kartei schreibt Pflegeschritte und einen Text zur Winterruhe, wo keine stehen, und gleicht vorhandene ab. Fehlen sie, zählt das als Lücke.',
+      'Pflegeschritte und Winterruhe lassen sich in der Karte selbst bearbeiten.'
+    ],
+    besser: [
+      'Stimmt „Wichtig“, die Pflegeschritte oder die Winterruhe inhaltlich, sagt die KI „wie Karte“. Das Abgleich-Fenster zeigt dann keine Zeile mehr, nur weil etwas anders formuliert ist.',
+      'Nur was für die Art gilt, wird gefragt. Regeln für jede Zimmerpflanze bleiben draußen.'
+    ],
+    behoben: [
+      'Jede Pflanze mit Winterruhe bekam den Text der Venusfliegenfalle. Steht ein eigener Text da, gilt jetzt dieser.'
+    ]
+  },
+  {
+    nr: '3.24.0', datum: '2026-09-21', titel: 'Kartei: Kreuzen statt Anhaken',
+    kurz: [
+      'Im Abgleich-Fenster kreuzt du weg, was nicht passt, und übernimmst den Rest mit einem Tipp.'
+    ],
+    besser: [
+      'Die Kästchen im Abgleich-Fenster sind weg. Jede Zeile hat nur noch ihr ×, unten steht „Übrige übernehmen“ mit Anzahl.',
+      'Angaben, die du selbst gesetzt hast, sind deutlicher markiert. Sie gehen beim Übernehmen mit, wenn du sie nicht wegkreuzt.'
+    ],
+    behoben: [
+      'Beim Anlegen konnte ein Sortenname der KI im botanischen Namen landen, etwa „Brasil“. Er steht jetzt nur noch als unsichere Vermutung unter dem Feld Sorte.',
+      'Eine stockende Antwort hielt den Kartei-Balken unbegrenzt kurz vor dem Ziel. Die Zeitgrenze gilt jetzt, bis die Antwort ganz gelesen ist.',
+      'Ein Foto, das nicht lädt, hält den Kartei-Lauf nicht mehr an. Nach zehn Sekunden geht die Anfrage ohne Bild.'
+    ]
+  },
   {
     nr: '3.23.0', datum: '2026-09-16', titel: 'Die KI erkennt die Sorte',
     kurz: [
@@ -15402,7 +15477,11 @@ function kartenDetailHTML(p){
   const dl = o => (o && typeof o === 'object' && Object.keys(o).length)
     ? `<dl class="spec">${Object.entries(o).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '';
   const hinweis = p.hinweis ? `<div class="alert info"><strong>Sonderfall gerade.</strong> ${esc(p.hinweis)}</div>` : '';
-  const winter = p.winterruhe ? `<div class="alert"><strong>Ist Pflicht.</strong> Ab Oktober oder November stellt sie das Wachstum ein, Blätter werden braun und sterben teils ab — das ist normal, nicht der Tod. Sie braucht 3–4 Monate bei 0–10 °C: ungeheizter Balkon, kalter Keller mit Licht, ungeheiztes Gewächshaus. Untersetzer leeren, Substrat nur leicht feucht. Ohne Winterruhe schwächt sie sich über 1–2 Jahre ab und stirbt.</div>` : '';
+  /* Ab 3.25.0 gilt der eigene Text der Art. Der feste Text stammt von der
+     Venusfliegenfalle und bleibt nur, wo noch keiner steht. */
+  const winter = (typeof p.winterruheText === 'string')
+    ? (p.winterruheText.trim() ? `<p>${esc(p.winterruheText.trim())}</p>` : '')
+    : p.winterruhe ? `<div class="alert"><strong>Ist Pflicht.</strong> Ab Oktober oder November stellt sie das Wachstum ein, Blätter werden braun und sterben teils ab — das ist normal, nicht der Tod. Sie braucht 3–4 Monate bei 0–10 °C: ungeheizter Balkon, kalter Keller mit Licht, ungeheiztes Gewächshaus. Untersetzer leeren, Substrat nur leicht feucht. Ohne Winterruhe schwächt sie sich über 1–2 Jahre ab und stirbt.</div>` : '';
   const probleme = Array.isArray(p.probleme) ? p.probleme : [];
   const probs = probleme.map(x=>Array.isArray(x)
     ? `<div class="prob"><b>${esc(x[0]||'')}</b><em>${esc(x[1]||'')}</em><div>${esc(x[2]||'')}</div></div>` : '').join('');
@@ -18773,9 +18852,14 @@ async function kiFragen(prompt, bilder, modellId, ctrl){
     if(e && e.name === 'AbortError') throw e;
     throw new Error(KI_NETZ);
   }
-  if(uhr) clearTimeout(uhr);
-  if(!ctrl) KI_LAEUFT = null;
+  /* Die Frist läuft weiter, bis die Antwort gelesen ist (3.24.0). Vorher
+     endete sie mit dem Kopf der Antwort, und ein stockender Rumpf hielt
+     den Kartei-Balken unbegrenzt bei 85 %. */
+  const fristFehler = () => { const f = new Error('Das Modell hat nicht rechtzeitig geantwortet.');
+    f.voll = true; f.modell = m.id; return f; };
+  const ende = () => { if(uhr) clearTimeout(uhr); if(!ctrl) KI_LAEUFT = null; };
   if(!r.ok){
+    ende();
     const fehler = new Error(await kiFehlerText(r));
     /* Der Aufrufer muss 503 von 400 unterscheiden können: das eine
        lohnt einen zweiten Versuch, das andere nie. */
@@ -18785,7 +18869,13 @@ async function kiFragen(prompt, bilder, modellId, ctrl){
     throw fehler;
   }
   let d;
-  try{ d = await r.json(); }catch(e){ throw new Error('Die Antwort von Google war nicht lesbar.'); }
+  try{ d = await r.json(); }catch(e){
+    ende();
+    if(frist) throw fristFehler();
+    if(e && e.name === 'AbortError') throw e;
+    throw new Error('Die Antwort von Google war nicht lesbar.');
+  }
+  ende();
   const sperre = d && d.promptFeedback && d.promptFeedback.blockReason;
   if(sperre) throw new Error('Google hat die Anfrage zurückgewiesen (' + sperre + ').');
   const kand = ((d && d.candidates) || [])[0];
@@ -19674,6 +19764,18 @@ $('#btn-paste-los').onclick = ()=>{
       uebernommen.push('Die Antwort nennt sie unbedenklich — das wird nicht ungeprüft übernommen');
     }
   }
+  /* Ab 3.24.0 steht im botanischen Namen nie eine Sorte — weder aus der
+     Antwort noch aus einem Bibliothekseintrag mit Sorte. So kam „Brasil“
+     hinein. Die Sorte wandert in den Vorschlag: „mittel“, wenn die
+     Bibliothek den ganzen Namen kennt, sonst nur als Vermutung. */
+  {
+    const botJetzt = $('#f-bot').value;
+    const bs = botOhneSorte(botJetzt);
+    if(bs.sorte){
+      $('#f-bot').value = bs.bot;
+      if(!sorteLesen(d.sorte)) d.sorte = bs.sorte + ' | ' + (BIB_NACH_BOT[botJetzt.trim()] ? 'mittel' : 'niedrig');
+    }
+  }
   /* Das Namensfeld ist für Spitznamen da und bleibt frei. Ohne Eintrag
      zeigt die Karte ohnehin „Botanisch (deutscher Name)“. */
   /* Gießart und Besonderheit wandern direkt in die neuen Felder, damit
@@ -19701,7 +19803,7 @@ $('#btn-paste-los').onclick = ()=>{
   }
   const kcode = klasseRaten(d.klasse);
   if(kcode && !treffer){ $('#f-klasse').value = kcode; uebernommen.push('Gießklasse gesetzt'); }
-  if(d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))){
+  if(d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig)) && !wieKarte(d.wichtig)){
     $('#f-wichtig').value = d.wichtig;
     uebernommen.push('Wichtiger Hinweis übernommen');
   }
@@ -19738,6 +19840,9 @@ $('#btn-paste-los').onclick = ()=>{
      Giesssatz und Massnahmen sind Sache des Doktors. */
   const notiz = [];
   if(d.vermehrung) uebernommen.push('Vermehrungswege gemerkt');
+  /* Pflegetexte (3.25.0) kommen mit „Anlegen“ auf die Karte. */
+  if(pflegeLesen(d.pflege) || winterLesen(d.winterruhe))
+    uebernommen.push('Pflegeschritte und Winterruhe gemerkt — sie kommen mit „Anlegen“ auf die Karte');
   if(d.frost && !/^winterhart$/.test(norm(d.frost))) notiz.push('Frostgrenze laut Bestimmung: ' + d.frost);
   if(d.verw) notiz.push('Könnte verwechselt sein mit: ' + d.verw);
   if(notiz.length){
@@ -20036,6 +20141,15 @@ async function alSpeichern(){
     const v = vermehrungLesen(letzteKiAntwort.vermehrung,
       (KI_DIENSTE[$('#ki-dienst').value] || {}).name);
     if(v) p.vermehrungKi = v;
+  }
+  /* Pflegetexte aus der Antwort (3.25.0), mit Stempel `ki`. „keine“ wird
+     als geprüft vermerkt, damit die Kartei keine Lücke meldet. */
+  if(letzteKiAntwort){
+    const pl = pflegeLesen(letzteKiAntwort.pflege);
+    if(pl && pl.typ !== 'wie'){ p.pflege = pl.liste.slice(); p.quellen.pflege = 'ki'; }
+    const wr = winterLesen(letzteKiAntwort.winterruhe);
+    if(wr && wr.typ !== 'wie'){ p.winterruheText = wr.text; p.quellen.winterruheText = 'ki'; }
+    if((pl && pl.typ !== 'wie') || (wr && wr.typ !== 'wie')) sichern();
   }
   letzteKiAntwort = null;
   /* Zuerst aufräumen und schließen, dann die Bilder. Vorher hing
@@ -25650,7 +25764,7 @@ const AB_FELDER = [
   {feld:'sonne', name:'Licht', lies:d=>lichtRaten(d.licht),
    ist:p=>p.sonne || '', zeig:v=>(SONNE[v]||{}).text || v},
   {feld:'wichtig', name:'Wichtig', lies:d=>
-     (d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig))) ? d.wichtig : null,
+     (d.wichtig && !/^keine?$|^nichts$|^-$/.test(norm(d.wichtig)) && !wieKarte(d.wichtig)) ? d.wichtig : null,
    ist:p=>p.wichtig || '', zeig:v=>v},
   {feld:'frostMin', name:'Frost', lies:d=>frostRaten(d.frost),
    ist:p=>p.frostMin != null ? p.frostMin : '', zeig:v=>v + ' °C'}
@@ -27447,7 +27561,7 @@ document.addEventListener('click', e=>{
    zum Exemplar und bleiben aussen vor. */
 const ABLEGER_ERBE = ['art', 'botanisch', 'sorte', 'sortenmerkmale', 'familie', 'klasse', 'gift',
   'typ', 'sonne', 'frostMin', 'duenger', 'bib', 'giessart', 'wichtig', 'speicher',
-  'vermehrungKi', 'pflege', 'winterruhe'];
+  'vermehrungKi', 'pflege', 'winterruhe', 'winterruheText'];
 
 function ablegerLeer(v){
   return v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);
@@ -27462,13 +27576,15 @@ function ablegerErbe(mutter, b){
       if(f === 'botanisch' || f === 'bib') v = b.bot;
       else if(f === 'familie') v = b.fam;
     }
-    if(!ablegerLeer(v)) erbe[f] = kopie(v);
+    /* Ein geprüftes „keine“ (leere Liste, leerer Text) erbt mit (3.25.0). */
+    if(!ablegerLeer(v) || ((f === 'pflege' && Array.isArray(v)) || (f === 'winterruheText' && typeof v === 'string')))
+      erbe[f] = kopie(v);
   });
   /* Die Herkunft der geerbten Steckbrieffelder wandert mit. */
   const q = mutter.quellen;
   if(q && typeof q === 'object' && !Array.isArray(q)){
     const qq = {};
-    Q_FELDER.concat(['sorte']).forEach(f=>{ if(q[f] && Object.prototype.hasOwnProperty.call(erbe, f)) qq[f] = q[f]; });
+    Q_FELDER.concat(['sorte', 'pflege', 'winterruheText']).forEach(f=>{ if(q[f] && Object.prototype.hasOwnProperty.call(erbe, f)) qq[f] = q[f]; });
     if(Object.keys(qq).length) erbe.quellen = qq;
   }
   return erbe;
@@ -27913,17 +28029,21 @@ const KARTEI_WIEDER = 2 * 60 * 60 * 1000;
 const KARTEI_BREMSE = 60000;
 const KARTEI_VERSUCHE = 2;
 
-const KARTEI_PFLICHT = ['botanisch', 'typ', 'klasse', 'sonne', 'frostMin', 'wichtig'];
+/* Pflegeschritte und Winterruhe zählen ab 3.25.0 als Lücke (Chris,
+   21.09.2026). Geprüft „keine“ steht als leere Liste bzw. leerer Text
+   und ist keine Lücke mehr. */
+const KARTEI_PFLICHT = ['botanisch', 'typ', 'klasse', 'sonne', 'frostMin', 'wichtig', 'pflege', 'winterruheText'];
 const KARTEI_PFLICHT_NAME = {
   botanisch:'botanischer Name', typ:'Wuchsform', klasse:'Gießklasse',
-  sonne:'Lichtbedarf', frostMin:'Frostgrenze', wichtig:'wichtigster Pflegehinweis'
+  sonne:'Lichtbedarf', frostMin:'Frostgrenze', wichtig:'wichtigster Pflegehinweis',
+  pflege:'Pflegeschritte', winterruheText:'Winterruhe'
 };
 
 /* Zwei Aufträge: mit Foto und ohne. Jede gewählte Pflanze bekommt den
    vollen Abgleich der Artdaten, nicht nur ihre Lücken — die Kartei soll
    auch prüfen, was schon dasteht. */
 const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SORTE','SICHERHEIT','FAMILIE','TYP','SPEICHER',
-  'LICHT','GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','KATZEN','VERMEHRUNG'];
+  'LICHT','GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','PFLEGE','WINTERRUHE','KATZEN','VERMEHRUNG'];
 const KARTEI_FELD_TEXT = KARTEI_FELD_FOTO.filter(n=>n !== 'MERKMALE');
 
 /* Zwei Felder, die nur die Kartei fragt. Das Anlegen lässt sie ohne
@@ -27962,7 +28082,8 @@ function karteiPruefliste(mitFoto){
     + 'Nur VERMEHRUNG darf mehrfach vorkommen.\n'
     + '3. Enthalten die Zeilen mit fester Wortliste nur eines der erlaubten Wörter?\n'
     + '4. Steht ein Sortenname nur in SORTE und nicht in BOTANISCH' + (mitFoto ? ' oder MERKMALE' : '') + '?\n'
-    + '5. Steht irgendwo eine Aussage über Zustand, Topf oder Pflegefehler dieses Exemplars? Dann streich sie.';
+    + '5. Steht irgendwo eine Aussage über Zustand, Topf oder Pflegefehler dieses Exemplars? Dann streich sie.\n'
+    + '6. Steht in PFLEGE oder WINTERRUHE eine Regel, die für jede Zimmerpflanze gilt? Dann streich sie.';
 }
 
 /* ── Was fehlt, und welcher Auftrag daraus folgt ───────────── */
@@ -27974,6 +28095,8 @@ function karteiLuecken(p){
   if(!p) return [];
   return KARTEI_PFLICHT.filter(f=>{
     const v = p[f];
+    if(f === 'pflege') return !Array.isArray(v);
+    if(f === 'winterruheText') return typeof v !== 'string';
     if(!(v === null || v === undefined || v === '')) return false;
     /* Frostgrenze und Wuchsform zeigt die Karte aus der Bibliothek an,
        wenn die Pflanze selbst nichts hat. Dann ist das keine Lücke. */
@@ -27988,12 +28111,18 @@ function karteiArt(p){
   return karteiFoto(p) ? 'foto' : 'text';
 }
 
-/* Mitgegeben werden nur Name und Sorte. Die Werte aus der Karte stehen
-   bewusst nicht drin — die Antwort soll sie prüfen, nicht abschreiben. */
+/* Mitgegeben werden Name und Sorte. Steckbriefwerte stehen bewusst nicht
+   drin — die Antwort soll sie prüfen, nicht abschreiben. Ab 3.25.0 gehen
+   die drei Texte mit (Wichtig, Pflegeschritte, Winterruhe): nur so kann
+   die Antwort „wie Karte“ sagen, statt jeden Lauf neu zu formulieren. */
 function karteiKontext(p){
   const z = ['Es handelt sich um: ' + (p.art || nice(p))
     + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.'];
   if(p.sorte) z.push('Sorte laut meiner Karte: ' + p.sorte + '.');
+  if(p.wichtig && String(p.wichtig).trim()) z.push('Auf meiner Karte steht bei Wichtig: ' + String(p.wichtig).trim());
+  if(Array.isArray(p.pflege) && p.pflege.length) z.push('Auf meiner Karte stehen diese Pflegeschritte: ' + p.pflege.join(' | '));
+  if(typeof p.winterruheText === 'string' && p.winterruheText.trim())
+    z.push('Auf meiner Karte steht zur Winterruhe: ' + p.winterruheText.trim());
   const fehlt = karteiLuecken(p).map(f=>KARTEI_PFLICHT_NAME[f] || f);
   if(fehlt.length) z.push('Diese Angaben fehlen mir noch: ' + fehlt.join(', ') + '.');
   return z;
@@ -28006,6 +28135,12 @@ function karteiAuftrag(p){
   /* Die Regelzeile im Format kündigt MASSNAHME-Zeilen an. Die fragt
      die Kartei nicht. */
   format = format.replace(' und ein bis drei MASSNAHME-Zeilen', '');
+  if(typeof formatZeileErgaenzen === 'function'){
+    const wie = 'Steht oben der Text meiner Karte dazu und stimmt er inhaltlich, schreib genau: wie Karte';
+    format = formatZeileErgaenzen(format, 'WICHTIG', wie);
+    format = formatZeileErgaenzen(format, 'PFLEGE', wie);
+    format = formatZeileErgaenzen(format, 'WINTERRUHE', wie);
+  }
   if(art === 'text' && typeof formatZeileErgaenzen === 'function'){
     format = formatZeileErgaenzen(format, 'SPEICHER', 'Ohne Foto: beurteile es nach der Art.');
     format = formatZeileErgaenzen(format, 'SORTE', 'Ohne Foto: Nenne eine Sorte nur, wenn sie sich aus dem Namen '
@@ -28052,10 +28187,14 @@ function karteiKleiner(u){
     }catch(e){ if(!fertig){ fertig = true; clearTimeout(uhr); KARTEI_LEINWAND = false; res(u); } }
   });
 }
+/* Ein Foto, das nicht lädt, darf den Lauf nicht anhalten (3.24.0):
+   nach der Frist geht die Anfrage ohne Bild. */
+const KARTEI_BILD_FRIST = 10000;
 async function karteiBilder(p){
   const f = karteiFoto(p);
   if(!f) return null;
-  const u = await karteiKleiner(f.src);
+  const u = await Promise.race([karteiKleiner(f.src),
+    new Promise((_, nein)=>setTimeout(()=>nein(new Error('Foto nicht geladen')), KARTEI_BILD_FRIST))]);
   const b = (typeof kiBildAusDataUrl === 'function') ? kiBildAusDataUrl(u) : null;
   return b ? [b] : null;
 }
@@ -28505,6 +28644,13 @@ function karteiSortenZusatz(p){
   rest = sorteVon({sorte:rest});
   return rest;
 }
+/* Trennt eine Sorte vom botanischen Namen der KI (3.24.0). Die Sorte
+   kommt nur als unsichere Vermutung ins Anlegen, nie still ins Feld. */
+function botOhneSorte(b){
+  const t = String(b || '').trim();
+  const z = karteiSortenZusatz({botanisch:t});
+  return z ? {bot:karteiBotKurz({botanisch:t}), sorte:z} : {bot:t, sorte:''};
+}
 function karteiBotKurz(p){
   return String(p.botanisch || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).join(' ');
 }
@@ -28513,6 +28659,32 @@ function karteiNurKuerzer(alt, neu){
   const ga = karteiGattungArt(neu);
   return !!ga && ga.indexOf(' ') > 0 && ga === karteiGattungArt(alt)
     && karteiWortzahl(alt) > karteiWortzahl(neu);
+}
+
+/* ── Pflegetexte (3.25.0) ─────────────────────────────────── */
+function wieKarte(w){
+  return /^(wie (auf der |in der )?karte|unver(a|ä)ndert|stimmt( so)?)\b/.test(norm(String(w || '')).replace(/[.!„“"]/g, '').trim());
+}
+function keineAngabe(w){
+  return /^(keine?|nichts|-)( besonder\w*( pflege\w*)?| winterruhe| ruhe\w*)?$/.test(norm(String(w || '')).replace(/[.!]/g, '').trim());
+}
+/* PFLEGE: „wie Karte“, „keine“ oder eine Liste (| ; oder Aufzählungsstriche). */
+function pflegeLesen(w){
+  const t = String(w || '').trim();
+  if(!t) return null;
+  if(wieKarte(t)) return {typ:'wie'};
+  if(keineAngabe(t)) return {typ:'keine', liste:[]};
+  let teile = t.split(/\s*[|;]\s*|\n+/);
+  if(teile.length === 1 && /^[-•]\s/.test(t)) teile = t.split(/\s+[-•]\s+/);
+  const liste = teile.map(x=>x.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, '').trim()).filter(Boolean).slice(0, 6);
+  return liste.length ? {typ:'liste', liste:liste} : null;
+}
+function winterLesen(w){
+  const t = String(w || '').trim();
+  if(!t) return null;
+  if(wieKarte(t)) return {typ:'wie'};
+  if(keineAngabe(t)) return {typ:'keine', text:''};
+  return {typ:'text', text:t};
 }
 
 function karteiAbweichungen(p, erg){
@@ -28580,6 +28752,37 @@ function karteiAbweichungen(p, erg){
   } else if(sNeu && !sorteGleich(sNeu.name, sAlt)){
     if(sNeu.sicher === 'niedrig') sorteUnsicher();
     else sorteZeile(zusatz ? ' Im botanischen Namen steht „' + zusatz + '“.' : '');
+  }
+
+  /* Pflegeschritte und Winterruhe (3.25.0). „wie Karte“ gibt keine
+     Zeile, „keine“ löscht nie einen vorhandenen Text. */
+  const plNeu = pflegeLesen(d.pflege);
+  const plAlt = Array.isArray(p.pflege) ? p.pflege : null;
+  if(plNeu && plNeu.typ === 'liste'
+     && (!plAlt || norm(plAlt.join('|')) !== norm(plNeu.liste.join('|')))){
+    zeilen.push({key:'pflege', name:'Pflegeschritte', hand:hand('pflege'),
+      alt:plAlt && plAlt.length ? plAlt.join(' · ') : '', neu:plNeu.liste.join(' · '),
+      wirkung:plAlt && plAlt.length ? 'Ersetzt die Pflegeschritte.' : 'Setzt die Pflegeschritte.',
+      nimm:()=>aenderungSetzen(id, {pflege: plNeu.liste.slice()}, 'ki', true)});
+  } else if(plNeu && plNeu.typ === 'keine' && !plAlt){
+    zeilen.push({key:'pflege', name:'Pflegeschritte', alt:'', neu:'keine besonderen',
+      wirkung:'Vermerkt, dass die Art keine besonderen Schritte braucht.',
+      nimm:()=>aenderungSetzen(id, {pflege: []}, 'ki', true)});
+  }
+  const wrNeu = winterLesen(d.winterruhe);
+  const wrAlt = typeof p.winterruheText === 'string' ? p.winterruheText : null;
+  if(wrNeu && wrNeu.typ === 'text' && (wrAlt === null || norm(wrAlt) !== norm(wrNeu.text))){
+    zeilen.push({key:'winterruhe', name:'Winterruhe', hand:hand('winterruheText'),
+      alt:wrAlt || (p.winterruhe ? 'allgemeiner Text der App' : ''), neu:wrNeu.text,
+      wirkung:wrAlt ? 'Ersetzt den Text zur Winterruhe.' : 'Setzt den Text zur Winterruhe.',
+      nimm:()=>aenderungSetzen(id, {winterruheText: wrNeu.text}, 'ki', true)});
+  } else if(wrNeu && wrNeu.typ === 'keine' && wrAlt === null){
+    if(p.winterruhe)
+      hinweise.push('Die Antwort sieht keine Winterruhe, deine Karte schon. Das bleibt, wie es ist.');
+    else
+      zeilen.push({key:'winterruhe', name:'Winterruhe', alt:'', neu:'keine',
+        wirkung:'Vermerkt, dass die Art nicht ruht.',
+        nimm:()=>aenderungSetzen(id, {winterruheText: ''}, 'ki', true)});
   }
 
   const famNeu = String(d.familie || '').trim();
@@ -28747,12 +28950,12 @@ function karteiFensterZeichnen(meldung, art){
   const foto = karteiFoto(p);
   box.innerHTML = (foto ? '<img class="ka-bild" src="' + esc(foto.src) + '" alt="">' : '')
     + '<p class="fhint">Antwort vom ' + esc(new Date(zeit).toLocaleDateString('de-DE')) + '</p>'
+    + (zeilen.length ? '<p class="fhint">Kreuz weg, was nicht passt. Der Rest geht mit „Übrige übernehmen“.</p>' : '')
     + ab.hinweise.map(h=>'<p class="ka-hinweis">' + esc(h) + '</p>').join('')
     + (zeilen.length
        ? '<div class="abgleich ka-liste">' + zeilen.map(z=>
            '<div class="ka-zeile' + (z.hand ? ' ka-eigen' : '') + '" data-kazeile="' + esc(z.key) + '">'
-           + '<label class="ka-wahl">'
-           + '<input type="checkbox" data-kahaken="' + esc(z.key) + '">'
+           + '<div class="ka-wahl">'
            + '<span class="ka-text">'
            + '<span class="ka-feld">' + esc(z.name)
            + (z.hand ? '<i class="ab-herkunft">von dir gesetzt</i>' : '') + '</span>'
@@ -28760,7 +28963,7 @@ function karteiFensterZeichnen(meldung, art){
            + (z.alt ? '<span class="ab-alt">' + esc(z.alt) + '</span>' : '<span class="ab-alt ka-leer">leer</span>')
            + ' → ' + esc(z.neu) + '</span>'
            + (z.wirkung ? '<span class="ka-wirkung">' + esc(z.wirkung) + '</span>' : '')
-           + '</span></label>'
+           + '</span></div>'
            + '<button type="button" class="ab-weg" data-do="ka-weg" data-k="' + esc(z.key) + '"'
            + ' aria-label="' + esc(z.name) + ' verwerfen">×</button>'
            + '</div>').join('') + '</div>'
@@ -28768,29 +28971,18 @@ function karteiFensterZeichnen(meldung, art){
     + '<p class="kihinweis' + (art ? ' ' + art : '') + '" id="ka-meld">' + esc(meldung || '') + '</p>'
     + '<div class="ka-knoepfe">'
     + (zeilen.length
-       ? '<button type="button" data-do="ka-auswahl" disabled>Ausgewählte übernehmen (0)</button>'
-         + '<button type="button" data-do="ka-alle">Alle übernehmen (' + zeilen.length + ')</button>'
+       /* Ab 3.24.0: Was nicht passt, kreuzt man weg — der Rest geht mit
+          einem Tipp. Eigene Angaben sind markiert, aber dabei. */
+       ? '<button type="button" class="haupt" data-do="ka-alle">Übrige übernehmen (' + zeilen.length + ')</button>'
        : '')
     + '<button type="button" data-do="ka-fertig">Fertig — Rest verwerfen</button></div>';
 }
 
-/* Die Zahl im Knopf folgt den Haken, ohne das Fenster neu zu zeichnen. */
-function karteiHakenZaehlen(){
-  const n = document.querySelectorAll('#ka-inhalt [data-kahaken]:checked').length;
-  const b = document.querySelector('#ka-inhalt [data-do="ka-auswahl"]');
-  if(b){ b.disabled = n === 0; b.textContent = 'Ausgewählte übernehmen (' + n + ')'; }
-  return n;
-}
 function karteiNochmalZaehlen(){
   const n = document.querySelectorAll('#kartei-innen [data-karteierg]:checked').length;
   const b = document.querySelector('#kartei-innen [data-do="kartei-nochmal"]');
   if(b){ b.disabled = n === 0; b.textContent = 'Ausgewählte prüfen (' + n + ')'; }
   return n;
-}
-function karteiHaken(){
-  return Array.prototype.slice
-    .call(document.querySelectorAll('#ka-inhalt [data-kahaken]:checked'))
-    .map(x=>x.dataset.kahaken);
 }
 
 function karteiAktion(was, key){
@@ -29024,11 +29216,6 @@ document.addEventListener('click', e=>{
       if(!ids.length){ karteiMeldung('Hak zuerst an, was noch einmal laufen soll.', 'warn'); return; }
       karteiLos(ids, true); return;
     }
-    if(a === 'ka-auswahl'){
-      const keys = karteiHaken();
-      if(keys.length) karteiAktion('nimm', keys);
-      return;
-    }
     if(a === 'ka-alle'){
       const p = allePflanzen().find(x=>x.id === KA_PFLANZE);
       const k = karteiStand();
@@ -29059,7 +29246,6 @@ document.addEventListener('click', e=>{
    sie filtert nur, was im Gitter zu sehen ist. Nur das Gitter wird neu
    gezeichnet — der ganze Abschnitt wuerde zurueckscrollen. */
 document.addEventListener('change', e=>{
-  if(e.target && e.target.closest && e.target.closest('[data-kahaken]')){ karteiHakenZaehlen(); return; }
   if(e.target && e.target.closest && e.target.closest('[data-karteierg]')){ karteiNochmalZaehlen(); return; }
   const kasten = e.target && e.target.closest && e.target.closest('[data-karteikasten]');
   if(!kasten) return;

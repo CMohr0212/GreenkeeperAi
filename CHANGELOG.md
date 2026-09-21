@@ -4,6 +4,37 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.25.0 — 21. September 2026
+**Pflegeschritte und Winterruhe**
+
+### Neu
+- **Pflegetexte beim Anlegen.** Die KI nennt Pflegeschritte und Winterruhe der Art. Sie kommen mit „Anlegen“ auf die Karte.
+- **Pflegetexte in der Kartei.** Wo keine stehen, schlägt die Kartei sie vor, vorhandene gleicht sie ab. Fehlende Pflegeschritte oder Winterruhe zählen als Lücke. „Keine“ wird als geprüft vermerkt und löscht nie einen vorhandenen Text.
+- **Bearbeiten.** Pflegeschritte (ein Schritt je Zeile) und Winterruhe lassen sich in der Karte selbst ändern.
+
+### Anders
+- **„wie Karte“.** Stimmt „Wichtig“, die Pflegeschritte oder die Winterruhe inhaltlich, sagt die KI „wie Karte“, und das Abgleich-Fenster zeigt keine Zeile. Dafür gehen diese drei Texte der Karte im Auftrag mit, Steckbriefwerte weiterhin nicht.
+- **Nur Artwissen.** Regeln, die für jede Zimmerpflanze gelten, sind im Auftrag verboten.
+
+### Behoben
+- **Winterruhe-Text.** Jede Pflanze mit Winterruhe bekam den Text der Venusfliegenfalle. Ein eigener Text hat jetzt Vorrang.
+
+---
+
+## 3.24.0 — 21. September 2026
+**Kartei: Kreuzen statt Anhaken**
+
+### Anders
+- **Abgleich-Fenster nur mit Kreuzen.** Die Kästchen sind weg. Was nicht passt, kreuzt du mit × weg, den Rest übernimmt „Übrige übernehmen“ mit einem Tipp. Die Art geht weiterhin zuerst, die Rückfrage bei der Gießklasse bleibt.
+- **Eigene Angaben** sind deutlicher markiert und gehen beim Übernehmen mit, wenn du sie nicht wegkreuzt.
+
+### Behoben
+- **Sorte im botanischen Namen.** Beim Anlegen landete ein Sortenname der KI im botanischen Namen, etwa „Brasil“. Er erscheint jetzt nur als unsichere Vermutung unter dem Feld Sorte.
+- **Hängender Balken.** Eine stockende Antwort hielt den Kartei-Balken unbegrenzt kurz vor dem Ziel. Die Zeitgrenze gilt jetzt bis zum Ende der Antwort.
+- **Foto lädt nicht.** Der Kartei-Lauf wartet höchstens zehn Sekunden auf ein Foto und fragt dann ohne Bild.
+
+---
+
 ## 3.23.0 — 16. September 2026
 **Die KI erkennt die Sorte**
 
