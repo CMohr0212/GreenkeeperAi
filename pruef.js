@@ -157,7 +157,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.26.0', w.__T('FASSUNG') === '3.26.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.27.0', w.__T('FASSUNG') === '3.27.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -3522,7 +3522,7 @@ setTimeout(async () => {
       lies('ART: Unbekannte Probe\nBOTANISCH: Nonexistus fictus Goldrand');
       pruef('3.24.0: Auch ohne Bibliothekstreffer bleibt die Sorte draußen', bot() === 'Nonexistus fictus', bot());
       pruef('3.24.0: Sie steht dann nur als Vermutung da', /Goldrand/.test(hint()) && sorte() === '', hint() + ' | ' + sorte());
-      lies('ART: Philodendron\nBOTANISCH: Philodendron hederaceum Brasil\nSORTE: Lemon Lime | hoch');
+      lies('ART: Philodendron\nBOTANISCH: Philodendron hederaceum Brasil\nSORTE: Lemon Lime | hoch\nSORTE_BELEG: gelbgrüne Blätter');
       pruef('3.24.0: Eine SORTE-Zeile hat Vorrang', sorte() === 'Lemon Lime' && bot().indexOf('Brasil') === -1, sorte() + ' | ' + bot());
       lies('ART: Unbekannte Probe\nBOTANISCH: Nonexistus fictus var. major');
       pruef('3.24.0: Ein botanischer Zusatz bleibt stehen', bot() === 'Nonexistus fictus var. major', bot());
@@ -7079,7 +7079,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.26.0', e0.nr === '3.26.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.27.0', e0.nr === '3.27.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -8515,10 +8515,15 @@ setTimeout(async () => {
         !d.querySelector('#ka-inhalt input[type="checkbox"]') && !d.querySelector('#ka-inhalt [data-kahaken]'));
       pruef('3.24.0: Kein „Ausgewählte übernehmen“ mehr', !d.querySelector('#ka-inhalt [data-do="ka-auswahl"]'));
       pruef('3.24.0: Jede Zeile hat genau ein ×',
-        d.querySelectorAll('#ka-inhalt .ka-zeile [data-do="ka-weg"]').length === fz().length
-        && d.querySelectorAll('#ka-inhalt .ka-zeile button').length === fz().length);
-      pruef('3.24.0: „Übrige übernehmen“ nennt die Zahl',
-        !!kAlle() && /^Übrige übernehmen \(7\)$/.test(kAlle().textContent), zahl());
+        d.querySelectorAll('#ka-inhalt .ka-zeile [data-do="ka-weg"]').length === fz().length);
+      /* 3.27.0: Klasse, Licht und Dünger weichen von der Bibliothek ab (Epipremnum aureum) */
+      const eins = () => Array.prototype.map.call(d.querySelectorAll('#ka-inhalt [data-do="ka-eins"]'), b=>b.dataset.k).sort().join(',');
+      pruef('3.27.0: Abweichungen von der Bibliothek sind nur einzeln übernehmbar',
+        eins() === 'duenger,klasse,sonne', eins());
+      pruef('3.27.0: Sie nennen den Bibliothekswert',
+        /Weicht von der Bibliothek ab/.test(String((d.querySelector('#ka-inhalt [data-kazeile="sonne"]') || {}).textContent)));
+      pruef('3.24.0: „Übrige übernehmen“ nennt die Zahl ohne die Einzelnen',
+        !!kAlle() && /^Übrige übernehmen \(4\)$/.test(kAlle().textContent), zahl());
       pruef('3.24.0: Die eigene Angabe ist hervorgehoben',
         !!d.querySelector('#ka-inhalt [data-kazeile="klasse"].ka-eigen'));
 
@@ -8539,7 +8544,7 @@ setTimeout(async () => {
       await tipp('ka-weg', 'familie');
       pruef('× entfernt die Zeile', fz().indexOf('familie') === -1);
       pruef('und ändert die Pflanze nicht', !kb('p.familie'));
-      pruef('3.24.0: Die Zahl im Knopf folgt dem Kreuz', /\(6\)/.test(zahl()), zahl());
+      pruef('3.24.0: Die Zahl im Knopf folgt dem Kreuz', /\(3\)/.test(zahl()), zahl());
       w.__T(`(function(){ laden(); karteiFensterZeichnen(); return 1; })()`);
       pruef('Nach dem Neuladen bleiben verworfene Zeilen weg',
         fz().indexOf('familie') === -1 && fz().length === 6, fz().join(','));
@@ -8547,15 +8552,21 @@ setTimeout(async () => {
       await tipp('ka-weg', 'duenger');
       await tipp('ka-weg', 'speicher');
       pruef('3.24.0: Nach zwei weiteren Kreuzen stehen vier da',
-        fz().slice().sort().join(',') === 'klasse,sonne,sortenmerkmale,vermehrung' && /\(4\)/.test(zahl()),
+        fz().slice().sort().join(',') === 'klasse,sonne,sortenmerkmale,vermehrung' && /\(2\)/.test(zahl()),
         fz().join(',') + ' ' + zahl());
       await tipp('ka-alle');
       pruef('3.24.0: „Übrige übernehmen“ schreibt alles Nicht-Weggekreuzte',
-        kb('p.sonne') === 'hell' && kb('p.sortenmerkmale') === 'gelb marmoriert'
+        kb('p.sortenmerkmale') === 'gelb marmoriert'
         && kb('(vermehrungKiVon(p) || {wege:[]}).wege.length') === 1,
         kb('JSON.stringify([p.sonne, p.sortenmerkmale])'));
-      pruef('3.24.0: Die eigene Angabe geht mit', kb('p.klasse') === 'C' && kb(`herkunftVon(p, 'klasse')`) === 'ki');
-      pruef('mit Stempel ki', kb(`herkunftVon(p, 'sonne')`) === 'ki');
+      pruef('3.27.0: Die Einzelnen bleiben dabei unberührt',
+        kb('p.sonne') === 'indirekt' && kb('p.klasse') === 'B' && fz().slice().sort().join(',') === 'klasse,sonne',
+        fz().join(','));
+      pruef('3.27.0: Ohne Sammelzeilen verschwindet der Sammelknopf', !kAlle());
+      await tipp('ka-eins', 'klasse');
+      pruef('3.24.0: Die eigene Angabe geht einzeln mit', kb('p.klasse') === 'C' && kb(`herkunftVon(p, 'klasse')`) === 'ki');
+      await tipp('ka-eins', 'sonne');
+      pruef('mit Stempel ki', kb('p.sonne') === 'hell' && kb(`herkunftVon(p, 'sonne')`) === 'ki');
       pruef('3.24.0: Weggekreuztes bleibt unverändert',
         !kb('p.familie') && kb('p.duenger') === 'normal' && !kb('p.speicher'),
         kb('JSON.stringify([p.familie, p.duenger, p.speicher])'));
@@ -8593,15 +8604,17 @@ setTimeout(async () => {
         ka().indexOf(new Date(Date.UTC(2026, 0, 15, 12)).toLocaleDateString('de-DE')) > -1, ka().slice(0, 80));
       const vorherConfirm = w.confirm;
       w.confirm = () => false;
-      await tipp('ka-alle');
+      /* 3.27.0: Beide weichen von der Bibliothek ab (Dionaea) — einzeln. */
+      await tipp('ka-eins', 'klasse');
       pruef('Abgelehnte Rückfrage bei Klasse S schreibt nichts',
         w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).klasse`) === 'S');
-      pruef('und nur diese Zeile bleibt stehen', fz().join(',') === 'klasse', fz().join(','));
-      pruef('Die übrige Zeile ist übernommen',
-        w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).sonne`) === 'hell');
       pruef('Die Meldung nennt, was offen bleibt',
         /Gießklasse bleibt offen/.test(String((d.getElementById('ka-meld') || {}).textContent)),
         String((d.getElementById('ka-meld') || {}).textContent));
+      await tipp('ka-eins', 'sonne');
+      pruef('und nur diese Zeile bleibt stehen', fz().join(',') === 'klasse', fz().join(','));
+      pruef('Die übrige Zeile ist übernommen',
+        w.__T(`allePflanzen().find(function(x){return x.id==='KB4';}).sonne`) === 'hell');
       w.confirm = vorherConfirm;
       await tipp('ka-fertig');
       await tick();
@@ -8613,8 +8626,8 @@ setTimeout(async () => {
 
       /* „Übrige übernehmen“: alles, die Art zuerst (3.22.0) */
       w.__T(`(function(){
-        S.eigene.push({id:'KB7', eigen:true, name:'Abgleich sieben', art:'Efeutute',
-          botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'B', sonne:'indirekt',
+        S.eigene.push({id:'KB7', eigen:true, name:'Abgleich sieben', art:'Probepflanze',
+          botanisch:'Fictus probus', typ:'Kletterpflanze', klasse:'B', sonne:'indirekt',
           wichtig:'keine', frostMin:12, quellen:{klasse:'hand'}});
         S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['KB7'],
           versuch:{}, aktiv:false, fertig:{KB7:{stand:'ok', art:'teil', zeit:Date.now(), felder:{
@@ -8980,7 +8993,8 @@ setTimeout(async () => {
       return 1; })()`);
     const feld = () => d.getElementById('f-sorte').value;
     const hint = () => String(d.getElementById('f-sorte-hint').textContent);
-    const antwort = s => 'ART: Fensterblatt\nBOTANISCH: Monstera deliciosa\nMERKMALE: weiß marmoriert\nSORTE: ' + s;
+    const antwort = s => 'ART: Fensterblatt\nBOTANISCH: Monstera deliciosa\nMERKMALE: weiß marmoriert\nSORTE: ' + s
+      + '\nSORTE_BELEG: weiße Flächen und Sektoren';
     anlegenMit(antwort('Albo | mittel'));
     pruef('E4: Mittel belegt das leere Sortenfeld vor', feld() === 'Albo', feld());
     pruef('E4: Der Hinweis nennt KI-Vorschlag und Sicherheit',
@@ -9023,23 +9037,23 @@ setTimeout(async () => {
       {stand:'ok', felder:${JSON.stringify(felder)}})`;
     const zeile = (id, felder, key) => w.__T(`JSON.stringify(${ab(id, felder)}.zeilen.find(function(z){ return z.key === '${key}'; }) || null)`);
     const zl = (id, felder, key) => JSON.parse(zeile(id, felder, key));
-    const z1 = zl('SK1', {sorte:'Albo | hoch'}, 'sorte');
+    const z1 = zl('SK1', {sorte:'Albo | hoch', sortebeleg:'sichtbare Merkmale'}, 'sorte');
     pruef('E4: Kartei zeigt die Zeile Sorte', !!z1 && z1.neu === 'Albo' && z1.alt === ''
       && /Setzt die Sorte · Sicherheit hoch/.test(z1.wirkung) && !z1.hand, JSON.stringify(z1));
-    pruef('E4: Gleiche Sorte in anderer Schreibweise gibt keine Zeile', zl('SK2', {sorte:'albo | hoch'}, 'sorte') === null);
+    pruef('E4: Gleiche Sorte in anderer Schreibweise gibt keine Zeile', zl('SK2', {sorte:'albo | hoch', sortebeleg:'sichtbare Merkmale'}, 'sorte') === null);
     pruef('E4: Niedrig gibt keine Zeile, aber einen Hinweis',
       zl('SK1', {sorte:'Albo | niedrig'}, 'sorte') === null
       && /vermutet die Sorte „Albo“/.test(w.__T(`${ab('SK1', {sorte:'Albo | niedrig'})}.hinweise.join(' ')`)));
     pruef('E4: „keine“ bietet nie an, eine Sorte zu löschen',
       w.__T(`${ab('SK2', {sorte:'keine'})}.zeilen.length`) === 0);
-    const zh = zl('SK2', {sorte:'Thai Constellation | mittel'}, 'sorte');
+    const zh = zl('SK2', {sorte:'Thai Constellation | mittel', sortebeleg:'sichtbare Merkmale'}, 'sorte');
     pruef('E4: Eine selbst eingetragene Sorte gilt als eigene', !!zh && zh.hand === true && zh.alt === 'Albo', JSON.stringify(zh));
-    const zk = zl('SK3', {sorte:'Thai Constellation | mittel'}, 'sorte');
+    const zk = zl('SK3', {sorte:'Thai Constellation | mittel', sortebeleg:'sichtbare Merkmale'}, 'sorte');
     pruef('E4: Eine KI-Sorte gilt nicht als eigene', !!zk && zk.hand === false, JSON.stringify(zk));
 
     w.__T(`(function(){
       S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['SK1'], versuch:{}, aktiv:false,
-        fertig:{SK1:{stand:'ok', art:'text', zeit:Date.now(), felder:{sorte:'Albo | hoch'}}}};
+        fertig:{SK1:{stand:'ok', art:'foto', zeit:Date.now(), felder:{sorte:'Albo | hoch', sortebeleg:'sichtbare Merkmale'}}}};
       sichern(); karteiFensterAuf('SK1'); return 1; })()`);
     await tick();
     const haken = d.querySelector('#ka-inhalt [data-kazeile="sorte"]');
@@ -9060,10 +9074,10 @@ setTimeout(async () => {
     pruef('E4: Dabei keine Zeilen Botanisch und Art',
       zl('SK4', {art:'Kletterphilodendron', bot:'Philodendron hederaceum', sicher:'hoch'}, 'botanisch') === null
       && zl('SK4', {art:'Philodendron', bot:'Philodendron hederaceum', sicher:'hoch'}, 'art') === null);
-    const za = zl('SK4', {sorte:'Micans | hoch'}, 'sorte');
+    const za = zl('SK4', {sorte:'Micans | hoch', sortebeleg:'sichtbare Merkmale'}, 'sorte');
     pruef('E4: Andere Sorte als im Namen: normale Zeile mit Hinweis',
       !!za && /Im botanischen Namen steht „Brasil“/.test(za.wirkung)
-      && zl('SK4', {sorte:'Micans | hoch'}, 'sortebot') === null, JSON.stringify(za));
+      && zl('SK4', {sorte:'Micans | hoch', sortebeleg:'sichtbare Merkmale'}, 'sortebot') === null, JSON.stringify(za));
     pruef('E4: Varietät ist keine Sorte', zl('SK5', {}, 'sortebot') === null);
     w.__T(`(${ab('SK4', {sorte:'keine'})}.zeilen.find(function(z){ return z.key === 'sortebot'; }) || {nimm:function(){}}).nimm()`);
     pruef('E4: Die Übernahme setzt Sorte und kürzt den Namen',
@@ -9072,13 +9086,13 @@ setTimeout(async () => {
       === '["Brasil","Philodendron hederaceum","ki"]',
       w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK4'; });
         return JSON.stringify([p.sorte, p.botanisch, p.quellen]); })()`));
-    pruef('E4: Danach wird nichts mehr angeboten', w.__T(`${ab('SK4', {sorte:'Brasil | hoch'})}.zeilen.length`) === 0);
+    pruef('E4: Danach wird nichts mehr angeboten', w.__T(`${ab('SK4', {sorte:'Brasil | hoch', sortebeleg:'sichtbare Merkmale'})}.zeilen.length`) === 0);
 
     /* Reihenfolge beim Sammelübernehmen */
     const reihe = w.__T(`(function(){
       S.kartei = {start:Date.now(), ende:Date.now(), gesamt:1, offen:[], alle:['SK6'], versuch:{}, aktiv:false,
-        fertig:{SK6:{stand:'ok', art:'text', zeit:Date.now(),
-          felder:{art:'Fensterblatt', bot:'Monstera deliciosa', sicher:'hoch', sorte:'Albo | hoch', licht:'voll'}}}};
+        fertig:{SK6:{stand:'ok', art:'foto', zeit:Date.now(),
+          felder:{art:'Fensterblatt', bot:'Monstera deliciosa', sicher:'hoch', sorte:'Albo | hoch', sortebeleg:'sichtbare Merkmale', licht:'indirekt'}}}};
       var log = [], echt = aenderungSetzen;
       aenderungSetzen = function(id, f){ if(id === 'SK6') log.push(Object.keys(f).join('+')); return echt.apply(null, arguments); };
       try { KA_PFLANZE = 'SK6'; karteiAktion('nimm', ['sonne', 'sorte', 'art']); }
@@ -9089,7 +9103,7 @@ setTimeout(async () => {
       /^art\+botanisch,/.test(reihe) && reihe.indexOf('sorte') > 0 && reihe.indexOf('sonne') > reihe.indexOf('sorte'), reihe);
     pruef('E4: Beides ist danach gesetzt',
       w.__T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'SK6'; });
-        return p.art === 'Fensterblatt' && p.sorte === 'Albo' && p.sonne === 'voll'; })()`) === true);
+        return p.art === 'Fensterblatt' && p.sorte === 'Albo' && p.sonne === 'indirekt'; })()`) === true);
 
     /* Stempel */
     w.__T(`aenderungSetzen('SK3', {sorte:'Von Hand'})`);
@@ -9352,18 +9366,20 @@ setTimeout(async () => {
     const ps = "['BU1','BU2','BU3'].map(function(i){ return allePflanzen().find(function(x){return x.id===i;}); })";
     const auf = T(`karteiBuendelAuftrag(${ps}, 'foto', [1,3])`);
     pruef('3.26.0: Der Bündel-Auftrag nennt jede Pflanze mit Nummer',
-      /^PFLANZE 1 — Bündel 1$/m.test(auf) && /^PFLANZE 3 — Bündel 3$/m.test(auf));
+      /^PFLANZE 1 — Testranke \(Fictus rankens\)$/m.test(auf) && /^PFLANZE 3 — Testranke \(Fictus rankens\)$/m.test(auf));
+    pruef('3.27.0: Kein Spitzname im Bündel-Auftrag', !/Bündel \d/.test(auf));
+    pruef('3.27.0: Gleiche Art, gleiche Artangaben', /Pflanzen derselben Art bekommen dieselben Artangaben/.test(auf));
     pruef('3.26.0: Die Fotos sind den Nummern zugeordnet',
       /Foto 1 zeigt PFLANZE 1, Foto 2 zeigt PFLANZE 3/.test(auf) && /Ohne Foto: PFLANZE 2/.test(auf));
-    pruef('3.26.0: Der Auftrag verlangt Blöcke mit PFLANZE: <Nummer>', /PFLANZE: <Nummer> \| <Name wie oben>/.test(auf));
+    pruef('3.26.0: Der Auftrag verlangt Blöcke mit PFLANZE: <Nummer>', /PFLANZE: <Nummer>, danach/.test(auf) && !/Name wie oben/.test(auf));
     const bl = t => JSON.parse(T(`JSON.stringify(karteiBloecke(${JSON.stringify(t)}, ${ps}).map(function(b){ return b === null ? null : b.trim(); }))`));
-    const b1 = bl('```\nPFLANZE: 1 | Bündel 1\nART: A\nPFLANZE: 3 | Bündel 3\nART: C\n```');
+    const b1 = bl('```\nPFLANZE: 1\nART: A\nPFLANZE: 3 | Testranke\nART: C\n```');
     pruef('3.26.0: Blöcke werden der Nummer zugeordnet, ein fehlender bleibt leer',
       b1[0] === 'ART: A' && b1[1] === null && b1[2] === 'ART: C', JSON.stringify(b1));
     const b2 = bl('```\nPFLANZE: 1 | Monstera\nART: A\nPFLANZE: 2\nART: B\n```');
     pruef('3.26.0: Ein falscher Name im Kopf zählt als fehlend, ohne Namen gilt die Nummer',
       b2[0] === null && b2[1] === 'ART: B', JSON.stringify(b2));
-    const b3 = bl('```\nPFLANZE: 2 | Bündel 2\nART: A\nPFLANZE: 2 | Bündel 2\nART: B\n```');
+    const b3 = bl('```\nPFLANZE: 2\nART: A\nPFLANZE: 2\nART: B\n```');
     pruef('3.26.0: Eine doppelte Nummer zählt als fehlend', b3[1] === null, JSON.stringify(b3));
     const gruppe = T(`(function(){ var k = {offen:['BU1','BU2','BU3','BU4','BU5','BU6','BU7'], einzeln:{BU2:true}};
       var a = karteiNaechste(k); var b = karteiNaechste(k); return JSON.stringify([a, b, k.offen]); })()`);
@@ -9425,6 +9441,147 @@ setTimeout(async () => {
       S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'BU'; });
       sichern(); karteiLeiste(); karteiAbschnitt(); return 1; })()`);
     w.fetch = fetch0;
+  }
+
+  /* ══════════ Verlässliche Sorten und Pflegeangaben (3.27.0) ══════════ */
+  {
+    const T = c => w.__T(c);
+    const fetch0 = w.fetch;
+    T(`(function(){
+      S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'VS'; });
+      var basis = function(o){ return Object.assign({eigen:true, typ:'Kletterpflanze', wichtig:'keine', frostMin:13,
+        pflege:[], winterruheText:'', quellen:{}}, o); };
+      S.eigene.push(basis({id:'VS1', name:'Ableger von Beauty', art:'Königsbegonie', botanisch:'Begonia rex', klasse:'B', sonne:'indirekt'}));
+      S.eigene.push(basis({id:'VS2', name:'Thai', art:'Fensterblatt', botanisch:'Monstera deliciosa', klasse:'B', sonne:'indirekt'}));
+      S.eigene.push(basis({id:'VS3', name:'Meine Albo', art:'Fensterblatt', botanisch:'Monstera deliciosa', sorte:'Albo',
+        klasse:'B', sonne:'indirekt', quellen:{sorte:'hand'}}));
+      S.eigene.push(basis({id:'VS4', name:'Stachel', art:'Goldkugelkaktus', botanisch:'Echinocactus grusonii', typ:'Kaktus', klasse:'D', sonne:'voll', frostMin:5}));
+      S.eigene.push(basis({id:'VS5', name:'Bogi', art:'Bogenhanf', botanisch:'Dracaena trifasciata (Bogenhand)', typ:'Sukkulente', klasse:'C', sonne:'hell'}));
+      S.eigene.push(basis({id:'VS6', name:'King Green', art:'Königsbegonie', botanisch:'Begonia rex', klasse:'B', sonne:'indirekt',
+        sortenmerkmale:'silbrige Blätter', vermehrungKi:{quelle:'Gemini', wege:[{methode:'Blattsteckling'}]}}));
+      sichern(); return 1; })()`);
+    const sg = (id, d, ctx) => JSON.parse(T(`JSON.stringify(sorteGeprueft(${JSON.stringify(d)},
+      Object.assign({p: allePflanzen().find(function(x){return x.id==='${id}';})}, ${JSON.stringify(ctx || {})})))`));
+    /* Prüfstand Sorte */
+    pruef('3.27.0: Spitzname wird nie Sorte („Ableger von Beauty“)',
+      !!sg('VS1', {sorte:'Beauty | mittel', sortebeleg:'rosa Blätter'}).verworfen);
+    pruef('3.27.0: Spitzname wird nie Sorte („King Green“, Sicherheit hoch)',
+      !!sg('VS6', {sorte:'King Green | hoch', sortebeleg:'silbrig'}).verworfen);
+    pruef('3.27.0: Trivialname in Klammern ist keine Sorte', !!sg('VS5', {sorte:'(Bogenhand) | mittel', sortebeleg:'x'}).verworfen);
+    pruef('3.27.0: Deutscher Artname ist keine Sorte', !!sg('VS5', {sorte:'Bogenhanf | hoch', sortebeleg:'x'}).verworfen);
+    pruef('3.27.0: Klammerzusatz im botanischen Namen gibt keine Sorte',
+      T(`karteiSortenZusatz(allePflanzen().find(function(x){return x.id==='VS5';}))`) === '');
+    pruef('3.27.0: Ohne Foto keine Sorte', !!sg('VS2', {sorte:'Thai Constellation | hoch', sortebeleg:'Sprenkel'}, {ohneFoto:true}).verworfen);
+    const t1 = sg('VS2', {sorte:'Thai Constellation | hoch'});
+    pruef('3.27.0: Ohne Beleg nur „niedrig“', t1.sicher === 'niedrig', JSON.stringify(t1));
+    const t2 = sg('VS2', {sorte:'Thai Constellation | hoch', sortebeleg:'cremefarbene Sprenkel über das ganze Blatt',
+      sortenverw:'Albo, hat weiße Sektoren statt Sprenkel'});
+    pruef('3.27.0: Mit Verwechslung höchstens „mittel“', t2.sicher === 'mittel' && /Albo/.test(t2.verwechslung), JSON.stringify(t2));
+    const t3 = sg('VS2', {sorte:'Thai Constellation | hoch', sortebeleg:'cremefarbene Sprenkel', sortenverw:'keine'});
+    pruef('3.27.0: Ein Spitzname, der nur ein Teil der Sorte ist, sperrt sie nicht („Thai“)', !t3.verworfen);
+    pruef('3.27.0: Mit Beleg und ohne Verwechslung bleibt „hoch“', t3.sicher === 'hoch', JSON.stringify(t3));
+
+    const ab = (id, f, art) => JSON.parse(T(`JSON.stringify(karteiAbweichungen(allePflanzen().find(function(x){return x.id==='${id}';}),
+      {stand:'ok', art:'${art || 'foto'}', felder:${JSON.stringify(f)}}))`));
+    const zk = (a, k) => a.zeilen.find(z => z.key === k) || null;
+    const a1 = ab('VS2', {sorte:'Thai Constellation | hoch', sortebeleg:'cremefarbene Sprenkel', sortenverw:'Albo, weiße Sektoren'});
+    const z1 = zk(a1, 'sorte');
+    pruef('3.27.0: Kartei nennt Beleg und Verwechslung, Sicherheit mittel',
+      !!z1 && /Sicherheit mittel/.test(z1.wirkung) && /Erkannt an: cremefarbene Sprenkel/.test(z1.wirkung)
+      && /Verwechslung möglich: Albo/.test(z1.wirkung) && !z1.einzeln, JSON.stringify(z1));
+    const z2 = zk(ab('VS3', {sorte:'Thai Constellation | hoch', sortebeleg:'Sprenkel'}), 'sorte');
+    pruef('3.27.0: Vorhandene Sorte: strittig, nur einzeln',
+      !!z2 && z2.einzeln === true && /strittig/.test(z2.name) && z2.alt === 'Albo' && /Deine Sorte bleibt/.test(z2.wirkung), JSON.stringify(z2));
+    const a3 = ab('VS1', {sorte:'Beauty | hoch', sortebeleg:'rosa'});
+    pruef('3.27.0: Kartei verwirft den Spitznamen mit Hinweis',
+      !zk(a3, 'sorte') && /„Beauty“ als Sorte — verworfen \(dein Name/.test(a3.hinweise.join(' ')), a3.hinweise.join(' | '));
+    pruef('3.27.0: Ohne Foto bietet die Kartei keine Sorte an', !zk(ab('VS2', {sorte:'Thai Constellation | hoch', sortebeleg:'x'}, 'text'), 'sorte'));
+
+    /* Plausibilität */
+    const a4 = ab('VS2', {frost:'0', licht:'volle Sonne', winterruhe:'November bis Februar kühl bei 12 °C'});
+    pruef('3.27.0: Aronstab: Frost unter 5 °C wird nicht angeboten', !zk(a4, 'frostMin') && /Frost unter 5 °C/.test(a4.hinweise.join(' ')), a4.hinweise.join(' | '));
+    pruef('3.27.0: Aronstab: volle Sonne wird nicht angeboten', !zk(a4, 'sonne') && /volle Sonne/.test(a4.hinweise.join(' ')));
+    pruef('3.27.0: Aronstab: keine Winterruhe', !zk(a4, 'winterruhe') && /ruhen im Zimmer nicht/.test(a4.hinweise.join(' ')));
+    const a5 = ab('VS4', {klasse:'durstig'});
+    pruef('3.27.0: Kaktus: dauerhaft feuchte Erde wird nicht angeboten', !zk(a5, 'klasse') && /dauerhaft feuchte Erde/.test(a5.hinweise.join(' ')), JSON.stringify(a5));
+    const z6 = zk(ab('VS2', {klasse:'kakteenmodus'}), 'klasse');
+    pruef('3.27.0: Abweichung von der Bibliothek: nur einzeln', !!z6 && z6.einzeln === true && /Weicht von der Bibliothek ab/.test(z6.wirkung), JSON.stringify(z6));
+
+    /* wie Karte für Merkmale und Vermehrung */
+    const a7 = ab('VS6', {sortenmerkmale:'wie Karte', vermehrung:'wie Karte'});
+    pruef('3.27.0: „wie Karte“ bei Sortenmerkmalen und Vermehrung gibt keine Zeile', !zk(a7, 'sortenmerkmale') && !zk(a7, 'vermehrung'));
+
+    /* Aufträge */
+    const kf = T(`karteiFormat('foto')`), kt = T(`karteiFormat('text')`), anl = T(`anlegenFormat()`);
+    pruef('3.27.0: Kartei mit Foto fragt SORTE_BELEG und SORTEN_VERWECHSLUNG', /^SORTE_BELEG:/m.test(kf) && /^SORTEN_VERWECHSLUNG:/m.test(kf));
+    pruef('3.27.0: Ohne Foto nicht', !/^SORTE_BELEG:/m.test(kt) && !/^SORTEN_VERWECHSLUNG:/m.test(kt));
+    pruef('3.27.0: Das Anlegen fragt beides', /^SORTE_BELEG:/m.test(anl) && /^SORTEN_VERWECHSLUNG:/m.test(anl));
+    pruef('3.27.0: Der Beleg verlangt die Genauigkeit am Beispiel Thai Constellation', /Thai Constellation hat cremefarbene Sprenkel/.test(kf));
+    pruef('3.27.0: Spitzname ist nie Sorte — steht im Auftrag', /Ein Name, den ich meiner Pflanze gegeben habe, ist nie eine Sorte/.test(kf));
+    pruef('3.27.0: Verbotene Pflegeschritte stehen im Auftrag', /Blätter abwischen, die Pflanze drehen/.test(kf));
+    pruef('3.27.0: Tropische Arten ruhen nicht', /Tropische Arten, die im Zimmer im Winter nur langsamer wachsen, ruhen nicht/.test(kf));
+    pruef('3.27.0: Merkmale nur der Sorte', /^MERKMALE:[^\n]*Nie Größe, Alter, Zustand/m.test(kf) && /^MERKMALE:[^\n]*Nie Größe/m.test(anl));
+    pruef('3.27.0: Licht bei panaschierten Sorten', /^LICHT:[^\n]*panaschierten Sorte/m.test(kf));
+    pruef('3.27.0: MERKMALE und VERMEHRUNG erlauben „wie Karte“',
+      /^MERKMALE:[^\n]*wie Karte/m.test(kf) && /^VERMEHRUNG:[^\n]*wie Karte/m.test(kf));
+    pruef('3.27.0: Der Doktor bleibt ohne Sortenbeleg', !/SORTE_BELEG/.test(T('ANTWORT_FORMAT')));
+    const kx = T(`karteiKontext(allePflanzen().find(function(x){return x.id==='VS6';})).join(' ')`);
+    pruef('3.27.0: Kontext ohne Spitznamen, mit Merkmalen und Vermehrung',
+      !/King Green/.test(kx) && /Sortenmerkmale: silbrige Blätter/.test(kx) && /Vermehrungswege: Blattsteckling/.test(kx), kx);
+    pruef('3.27.0: Ohne Art keine Namen im Kontext',
+      !/Namenlos/.test(T(`karteiKontext({id:'x', name:'Namenlos'}).join(' ')`)));
+
+    /* Bündel: gleiche Art zuerst */
+    const g = T(`(function(){ var k = {offen:['VS2','VS4','VS1','VS6','VS3']};
+      var a = karteiNaechste(k); return JSON.stringify(a); })()`);
+    pruef('3.27.0: Gleicher botanischer Name kommt zuerst ins Bündel', /^\["VS2","VS3"/.test(g), g);
+
+    /* Herkunft auf der Karte */
+    const hz = T(`herkunftZeileHTML({quellen:{sorte:'ki', pflege:'ki', klasse:'hand'}})`);
+    pruef('3.27.0: Die Karte zeigt KI- und eigene Angaben', /KI<\/b> Sorte, Pflegeschritte/.test(hz) && /Von dir<\/b> Gießklasse/.test(hz), hz);
+
+    /* Denkstufe und 503 */
+    w.__leiber = []; w.__plan = [];
+    w.fetch = (u, o) => {
+      let leib = null; try{ leib = JSON.parse(o.body); }catch(e){}
+      w.__leiber.push({u:u, leib:leib});
+      const schritt = w.__plan.length ? w.__plan.shift() : {text:'ok'};
+      return Promise.resolve(schritt.status
+        ? {ok:false, status:schritt.status, json:()=>Promise.resolve({error:{message:'high demand'}})}
+        : {ok:true, json:()=>Promise.resolve({candidates:[{finishReason:'STOP', content:{parts:[{text:schritt.text}]}}]})});
+    };
+    T(`(function(){ S.kiModelle = [{id:'models/gemini-3-flash', anzeige:'3 flash', empfohlen:true},
+      {id:'models/gemini-3-pro', anzeige:'3 pro'}]; S.kiModell = 'models/gemini-3-flash'; sichern();
+      kiSchluesselSetzen('${ATTRAPPE_ECHT}'); window.__st1 = window.setTimeout;
+      window.setTimeout = function(f, ms){ return window.__st1(f, Math.min(ms || 0, 20)); }; return 1; })()`);
+    await T(`kiFragen('x', null, null, null, {denken:'mittel'})`);
+    const lm = w.__leiber[w.__leiber.length - 1].leib;
+    pruef('3.27.0: Fotobündel denken auf mittlerer Stufe',
+      lm.generationConfig.thinkingConfig && lm.generationConfig.thinkingConfig.thinkingLevel === 'medium', JSON.stringify(lm.generationConfig));
+    w.__plan = [{status:503}, {text:'ausgewichen'}];
+    w.__leiber = [];
+    let r503 = '';
+    try{ r503 = await T(`karteiFragen('x', null, null, {denken:'niedrig'}, KARTEI_GEN)`); }catch(e){ r503 = 'Fehler: ' + e.message; }
+    const letzte = w.__leiber[w.__leiber.length - 1];
+    pruef('3.27.0: Nach 503 weicht die Kartei einmal auf das nächste Modell aus',
+      r503 === 'ausgewichen' && /gemini-3-pro/.test(letzte.u), r503 + ' | ' + (letzte && letzte.u));
+    T(`(function(){ window.setTimeout = window.__st1; return 1; })()`);
+    w.fetch = fetch0;
+
+    /* Anlegen: Spitzname und fehlender Beleg */
+    const anl2 = (text, name) => T(`(function(){ alStart(); neuWegSetzen('ki');
+      document.getElementById('f-name').value = ${JSON.stringify(name || '')};
+      document.getElementById('f-paste').value = ${JSON.stringify(text)};
+      document.getElementById('btn-paste-los').click(); return document.getElementById('f-sorte').value; })()`);
+    pruef('3.27.0: Anlegen: Spitzname im Namensfeld wird nie Sorte',
+      anl2('ART: Königsbegonie\nBOTANISCH: Begonia rex\nSORTE: Beauty | hoch\nSORTE_BELEG: rosa Blätter', 'Beauty') === '');
+    pruef('3.27.0: Anlegen: ohne Beleg kein Vorbelegen',
+      anl2('ART: Fensterblatt\nBOTANISCH: Monstera deliciosa\nSORTE: Thai Constellation | hoch') === '');
+    const hv = anl2('ART: Fensterblatt\nBOTANISCH: Monstera deliciosa\nSORTE: Thai Constellation | hoch\nSORTE_BELEG: cremefarbene Sprenkel\nSORTEN_VERWECHSLUNG: Albo, weiße Sektoren');
+    pruef('3.27.0: Anlegen: mit Beleg vorbelegt, Verwechslung angezeigt',
+      hv === 'Thai Constellation' && /Verwechslung möglich: Albo/.test(String(d.getElementById('f-sorte-hint').textContent))
+      && /Sicherheit mittel/.test(String(d.getElementById('f-sorte-hint').textContent)), hv + ' | ' + d.getElementById('f-sorte-hint').textContent);
+    T(`(function(){ alStart(); S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'VS'; }); sichern(); return 1; })()`);
   }
 
   console.log('\n── Ergebnis ──');

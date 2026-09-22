@@ -6018,19 +6018,34 @@ const FELD_ZUSATZ = {
   /* Die Sorte fragen nur Anlegen und Kartei (3.23.0). Der Doktor-Auftrag
      bleibt wortgleich. */
   SORTE: {
-    text:'SORTE: Die Sorte dieser Pflanze und wie sicher du dir bist, getrennt durch genau einen senkrechten Strich: Sortenname | Sicherheit. Sicherheit ist nur eines dieser W\u00f6rter: hoch, mittel, niedrig. Nenne nur eingef\u00fchrte Handelsnamen, erfinde keinen Namen und schreib ihn ohne Anf\u00fchrungszeichen. Ist keine Sorte erkennbar oder ist es die reine Art, schreib genau: keine',
+    text:'SORTE: Die Sorte dieser Pflanze und wie sicher du dir bist, getrennt durch genau einen senkrechten Strich: Sortenname | Sicherheit. Sicherheit ist nur eines dieser W\u00f6rter: hoch, mittel, niedrig. Nenne nur eingef\u00fchrte Handelsnamen, erfinde keinen Namen und schreib ihn ohne Anf\u00fchrungszeichen. Ist keine Sorte erkennbar oder ist es die reine Art, schreib genau: keine. '
+      + 'Bestimme die Sorte nur aus dem Foto und dem botanischen Namen. Ein Name, den ich meiner Pflanze gegeben habe, ist nie eine Sorte, ein deutscher Trivialname auch nicht.',
     bsp:'SORTE: Jessenia | mittel'
+  },
+  /* Beleg und Verwechslung der Sorte (3.27.0). Ohne Beleg keine Sorte,
+     mit Verwechslung höchstens „mittel“ — das entscheidet der Code. */
+  SORTE_BELEG: {
+    text:'SORTE_BELEG: Die zwei bis drei auf dem Foto sichtbaren Merkmale, an denen du die Sorte erkennst, mit Komma getrennt. '
+      + 'So genau wie hier: Thai Constellation hat cremefarbene Sprenkel gleichm\u00e4\u00dfig \u00fcber das ganze Blatt, Albo dagegen wei\u00dfe Fl\u00e4chen und Sektoren. '
+      + 'Ohne Sorte oder ohne sichtbare Merkmale schreib genau: keine',
+    bsp:'SORTE_BELEG: gelbgr\u00fcn marmorierte Bl\u00e4tter, Marmorierung bis zum Rand'
+  },
+  SORTEN_VERWECHSLUNG: {
+    text:'SORTEN_VERWECHSLUNG: Sorten, die dieser \u00e4hnlich sehen, und woran man sie unterscheidet, in einem Satz. Gibt es keine, schreib genau: keine',
+    bsp:'SORTEN_VERWECHSLUNG: Marble Queen, hat wei\u00dfe statt gelbgr\u00fcne Marmorierung'
   },
   /* Pflegetexte der Art (3.25.0), gefragt von Anlegen und Kartei.
      Regel 10.11: nichts, was für jede Zimmerpflanze gilt. */
   PFLEGE: {
     text:'PFLEGE: Ein bis vier Pflegeschritte, die nur f\u00fcr diese Art oder Sorte gelten, getrennt durch senkrechte Striche. '
-      + 'Keine Regeln, die f\u00fcr jede Zimmerpflanze gelten, etwa Staun\u00e4sse meiden, gie\u00dfen wenn die Erde trocken ist, hell stellen oder im Sommer d\u00fcngen. '
+      + 'Keine Regeln, die f\u00fcr jede Zimmerpflanze gelten, etwa Staun\u00e4sse meiden, gie\u00dfen wenn die Erde trocken ist, hell stellen, im Sommer d\u00fcngen, '
+      + 'Bl\u00e4tter abwischen, die Pflanze drehen, Verbl\u00fchtes oder abgestorbene Bl\u00e4tter entfernen, Luftfeuchtigkeit erh\u00f6hen oder eine Kletterhilfe geben. '
       + 'Nichts, was schon in WICHTIG steht. Gibt es nichts Besonderes, schreib genau: keine',
     bsp:'PFLEGE: Verbl\u00fchte Stiele am Ansatz abschneiden | Im Fr\u00fchjahr um ein Drittel zur\u00fcckschneiden'
   },
   WINTERRUHE: {
-    text:'WINTERRUHE: Ob und wie diese Art im Winter ruht, in ein bis drei S\u00e4tzen: Zeitraum, Temperatur und wie viel gegossen wird. Ruht sie nicht, schreib genau: keine',
+    text:'WINTERRUHE: Ob und wie diese Art im Winter ruht, in ein bis drei S\u00e4tzen: Zeitraum, Temperatur und wie viel gegossen wird. '
+      + 'Tropische Arten, die im Zimmer im Winter nur langsamer wachsen, ruhen nicht. Ruht sie nicht, schreib genau: keine',
     bsp:'WINTERRUHE: Von November bis Februar hell bei 10 bis 15 \u00b0C, nur alle drei Wochen wenig gie\u00dfen.'
   },
   ABLAUF: {
@@ -6065,7 +6080,7 @@ function auftragFormat(namen, sonicht, pruefliste){
    Massnahmen, Topfurteil und der Giesssatz gehoeren zum Doktor und
    stehen hier nicht mehr. Jede Zeile weniger ist eine Stelle weniger,
    an der die Antwort ausschert. */
-const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SORTE','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
+const ANLEGEN_FELDER = ['ART','BOTANISCH','MERKMALE','SORTE','SORTE_BELEG','SORTEN_VERWECHSLUNG','SPEICHER','TYP','SICHERHEIT','VERWECHSLUNG',
   'LICHT','GIESSKLASSE','GIESSART','SUBSTRAT','TOPFART','ABLAUF','FROST','WICHTIG',
   'PFLEGE','WINTERRUHE','KATZEN','VERMEHRUNG'];
 
@@ -6129,8 +6144,16 @@ function auftragMitTieren(namen, sonicht, pruefliste){
 }
 
 function anlegenFormat(){
-  return auftragMitTieren(ANLEGEN_FELDER, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE);
+  let f = auftragMitTieren(ANLEGEN_FELDER, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE);
+  if(typeof formatZeileErgaenzen === 'function'){
+    f = formatZeileErgaenzen(f, 'MERKMALE', KI_MERKMALE_REGEL);
+    f = formatZeileErgaenzen(f, 'LICHT', KI_LICHT_PANASCHIERT);
+  }
+  return f;
 }
+/* Zusätze für Anlegen und Kartei (3.27.0). */
+const KI_MERKMALE_REGEL = 'Nur Merkmale der Sorte: Farbe, Muster, Blattform. Nie Größe, Alter, Zustand oder dass es ein Steckling ist.';
+const KI_LICHT_PANASCHIERT = 'Bei einer panaschierten Sorte gilt der Lichtbedarf der Sorte, nicht der Art — weniger Blattgrün braucht mehr Licht.';
 
 /* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
 const GEMINI_PROMPT = ANLEGEN_KOPF + '\n\n' + ANTWORT_FORMAT;
@@ -6266,6 +6289,8 @@ const ANTWORT_SCHLUESSEL = [
   /* Pflegetexte der Art (3.25.0). Stehen vor `schritte`, damit
      „Pflegeschritte“ nicht bei den Maßnahmen des Doktors landet. */
   ['pflege',  ['pflege','pflegeschritte','pflegeschritt']],
+  ['sortebeleg', ['sorte beleg','sortenbeleg','sorte belege']],
+  ['sortenverw', ['sorten verwechslung','sortenverwechslung']],
   ['winterruhe',['winterruhe','ruhephase','winterpause','ruhezeit']],
   ['schritte',['massnahme','massnahmen','maßnahme','maßnahmen','schritt','schritte','empfehlung','empfehlungen','pflegetipps','tipps','todo','care']]
 ];
@@ -11306,8 +11331,29 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.26.0';
+const FASSUNG = '3.27.0';
 const PATCHNOTES = [
+  {
+    nr: '3.27.0', datum: '2026-09-22', titel: 'Verlässliche Sorten und Pflegeangaben',
+    kurz: [
+      'Die KI muss jede Sorte begründen, der Code prüft sie. Dein Spitzname wird nie mehr zur Sorte, und unplausible Pflegeangaben werden gar nicht erst angeboten.'
+    ],
+    besser: [
+      'Die Sorte wird nur noch aus Foto und botanischem Namen bestimmt. Die KI nennt die Merkmale, an denen sie die Sorte erkennt, und ähnliche Sorten.',
+      'Ohne Foto oder ohne Begründung gibt es keine Sorte. Bei Verwechslungsgefahr ist die Sicherheit höchstens mittel.',
+      'Steht schon eine Sorte auf der Karte, bleibt sie. Eine andere Antwort erscheint als strittig und lässt sich nur einzeln übernehmen.',
+      'Weicht eine Antwort von der Artenbibliothek ab, ist das markiert und nur einzeln übernehmbar.',
+      'Feste Grenzen je Pflanzenfamilie: etwa kein Frost unter 5 °C, keine volle Sonne und keine Winterruhe für Aronstab-, Maranten-, Begonien-, Gesnerien- und Bromeliengewächse.',
+      'Pflanzen derselben Art kommen ins selbe Bündel und bekommen dieselben Artangaben. Bündel mit Fotos denken gründlicher.',
+      'Sortenmerkmale und Vermehrung werden nicht mehr nur umformuliert angeboten.',
+      'Auf der Karte steht, welche Angaben von der KI und welche von dir stammen.'
+    ],
+    behoben: [
+      'Spitznamen wie „Beauty“ oder „King Green“ wurden als Sorte vorgeschlagen.',
+      'Ein deutscher Name in Klammern im botanischen Namen wurde als Sorte angeboten.',
+      'Bei Überlastung (503) weicht die Kartei jetzt einmal auf das nächste Modell aus.'
+    ]
+  },
   {
     nr: '3.26.0', datum: '2026-09-22', titel: 'Kartei schneller',
     kurz: [
@@ -15088,6 +15134,25 @@ function lichtAmPlatzHTML(p){
 function frostWort(f){
   return f <= 0 ? 'winterhart bis ' + f + ' °C' : 'ab ' + f + ' °C ins Haus';
 }
+/* Woher die Angaben stammen (3.27.0): KI-Angaben sind als solche zu
+   erkennen. Die Herkunft ist je Feld gespeichert. */
+const HERKUNFT_NAMEN = {art:'Art', botanisch:'botanischer Name', typ:'Wuchsform', klasse:'Gießklasse',
+  sonne:'Licht', wichtig:'Wichtig', frostMin:'Frost', sorte:'Sorte', pflege:'Pflegeschritte',
+  winterruheText:'Winterruhe', duenger:'Dünger', familie:'Familie', sortenmerkmale:'Sortenmerkmale'};
+function herkunftZeileHTML(p){
+  const q = (p && p.quellen) || {};
+  const ki = [], hand = [];
+  Object.keys(HERKUNFT_NAMEN).forEach(f=>{
+    if(q[f] === 'ki') ki.push(HERKUNFT_NAMEN[f]);
+    else if(q[f] === 'hand') hand.push(HERKUNFT_NAMEN[f]);
+  });
+  if(!ki.length && !hand.length) return '';
+  return '<p class="kb-quelle kb-herkunft">'
+    + (ki.length ? '<span><b>KI</b> ' + esc(ki.join(', ')) + '</span>' : '')
+    + (ki.length && hand.length ? ' · ' : '')
+    + (hand.length ? '<span><b>Von dir</b> ' + esc(hand.join(', ')) + '</span>' : '')
+    + '</p>';
+}
 function steckbriefDaten(p){
   const stamm = (p.stamm && typeof p.stamm === 'object') ? Object.assign({}, p.stamm) : {};
   const b = (typeof bibVon === 'function') ? bibVon(p) : null;
@@ -15505,6 +15570,7 @@ function kartenDetailHTML(p){
   const sb = steckbriefDaten(p);
   const steckbrief = dl(sb.daten)
     + (sb.ausBib ? '<p class="kb-quelle">Aus der Artenbibliothek</p>' : '')
+    + herkunftZeileHTML(p)
     + (lebens ? `<h4>Lebensumstände</h4>${lebens}` : '');
   const herkunft = p.herkunft
     ? `<p>${esc(p.herkunft)}</p>${p.folge ? `<p><strong>Was das für die Haltung heißt:</strong> ${esc(p.folge)}</p>` : ''}` : '';
@@ -18854,10 +18920,11 @@ async function kiFragen(prompt, bilder, modellId, ctrl, opt){
   /* Denkstufe: Gemini 3 kennt thinkingLevel, 2.5 thinkingBudget. Der
      falsche Parameter gibt einen Fehler — deshalb nach Generation. */
   const genCfg = {temperature:0.2};
-  if(opt.denken === 'niedrig' && !KI_DENKEN_AUS[m.id]){
+  if((opt.denken === 'niedrig' || opt.denken === 'mittel') && !KI_DENKEN_AUS[m.id]){
     const gv = kiModellVersion(m.id);
-    if(gv >= 3) genCfg.thinkingConfig = {thinkingLevel:'low'};
-    else if(gv >= 2.5) genCfg.thinkingConfig = {thinkingBudget:512};
+    const mittel = opt.denken === 'mittel';
+    if(gv >= 3) genCfg.thinkingConfig = {thinkingLevel: mittel ? 'medium' : 'low'};
+    else if(gv >= 2.5) genCfg.thinkingConfig = {thinkingBudget: mittel ? 2048 : 512};
   }
   let r;
   try{
@@ -19816,7 +19883,7 @@ $('#btn-paste-los').onclick = ()=>{
     const bs = botOhneSorte(botJetzt);
     if(bs.sorte){
       $('#f-bot').value = bs.bot;
-      if(!sorteLesen(d.sorte)) d.sorte = bs.sorte + ' | ' + (BIB_NACH_BOT[botJetzt.trim()] ? 'mittel' : 'niedrig');
+      if(!sorteLesen(d.sorte)){ d.sorte = bs.sorte + ' | ' + (BIB_NACH_BOT[botJetzt.trim()] ? 'mittel' : 'niedrig'); d._sorteAusBot = true; }
     }
   }
   /* Das Namensfeld ist für Spitznamen da und bleibt frei. Ohne Eintrag
@@ -19867,6 +19934,13 @@ $('#btn-paste-los').onclick = ()=>{
   alTopfZeichnen();
   /* Die Sorte schlägt die KI vor (3.23.0), die Merkmale stehen weiter
      als Hinweis darunter. Gespeichert wird erst mit „Anlegen“. */
+  /* 3.27.0: dieselben Sortenregeln wie in der Kartei. */
+  {
+    const sg = sorteGeprueft(d, {p:{name:(document.getElementById('f-name') || {}).value || '', art:d.art},
+      ausBot: !!d._sorteAusBot});
+    d.sorte = sg && !sg.verworfen ? sg.name + ' | ' + sg.sicher : '';
+    d._sortenverw = sg && !sg.verworfen ? sg.verwechslung : '';
+  }
   const sortMeld = sorteVorschlagZeigen(d);
   if(sortMeld) uebernommen.push(sortMeld);
   if(d.sortenmerkmale && !/^keine?$|^unbekannt$/.test(norm(d.sortenmerkmale)))
@@ -19935,6 +20009,7 @@ function sorteVorschlagZeigen(d){
         + '<button type="button" class="linkbtn sorte-nimm" data-sorte="' + esc(s.name) + '">Als Sorte eintragen</button>');
     }
   }
+  if(s && d._sortenverw) teile.push('<span class="sorte-merk">' + esc('Verwechslung möglich: ' + d._sortenverw) + '</span>');
   if(merk) teile.push('<span class="sorte-merk">' + esc('Die KI hat gesehen: ' + merk) + '</span>');
   sh.innerHTML = teile.join('');
   sh.hidden = !teile.length;
@@ -28086,9 +28161,10 @@ const KARTEI_PFLICHT_NAME = {
 /* Zwei Aufträge: mit Foto und ohne. Jede gewählte Pflanze bekommt den
    vollen Abgleich der Artdaten, nicht nur ihre Lücken — die Kartei soll
    auch prüfen, was schon dasteht. */
-const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SORTE','SICHERHEIT','FAMILIE','TYP','SPEICHER',
+const KARTEI_FELD_FOTO = ['ART','BOTANISCH','MERKMALE','SORTE','SORTE_BELEG','SORTEN_VERWECHSLUNG','SICHERHEIT','FAMILIE','TYP','SPEICHER',
   'LICHT','GIESSKLASSE','GIESSART','DUENGER','FROST','WICHTIG','PFLEGE','WINTERRUHE','KATZEN','VERMEHRUNG'];
-const KARTEI_FELD_TEXT = KARTEI_FELD_FOTO.filter(n=>n !== 'MERKMALE');
+/* Ohne Foto keine Sorte (3.27.0): Beleg und Verwechslung entfallen. */
+const KARTEI_FELD_TEXT = KARTEI_FELD_FOTO.filter(n=>['MERKMALE','SORTE_BELEG','SORTEN_VERWECHSLUNG'].indexOf(n) < 0);
 
 /* Zwei Felder, die nur die Kartei fragt. Das Anlegen lässt sie ohne
    Bibliothekstreffer leer. */
@@ -28160,13 +28236,19 @@ function karteiArt(p){
    die drei Texte mit (Wichtig, Pflegeschritte, Winterruhe): nur so kann
    die Antwort „wie Karte“ sagen, statt jeden Lauf neu zu formulieren. */
 function karteiKontext(p){
-  const z = ['Es handelt sich um: ' + (p.art || nice(p))
+  /* Nie der Name aus der Karte (3.27.0): „Beauty“ kam so als Sorte zurück. */
+  const z = ['Es handelt sich um: ' + (p.art || p.botanisch || 'eine noch unbestimmte Pflanze')
     + (p.botanisch ? ' (' + p.botanisch + ')' : '') + '.'];
   if(p.sorte) z.push('Sorte laut meiner Karte: ' + p.sorte + '.');
   if(p.wichtig && String(p.wichtig).trim()) z.push('Auf meiner Karte steht bei Wichtig: ' + String(p.wichtig).trim());
   if(Array.isArray(p.pflege) && p.pflege.length) z.push('Auf meiner Karte stehen diese Pflegeschritte: ' + p.pflege.join(' | '));
   if(typeof p.winterruheText === 'string' && p.winterruheText.trim())
     z.push('Auf meiner Karte steht zur Winterruhe: ' + p.winterruheText.trim());
+  if(p.sortenmerkmale && String(p.sortenmerkmale).trim())
+    z.push('Auf meiner Karte stehen diese Sortenmerkmale: ' + String(p.sortenmerkmale).trim());
+  const vk = (typeof vermehrungKiVon === 'function') ? vermehrungKiVon(p) : null;
+  if(vk && vk.wege && vk.wege.length)
+    z.push('Auf meiner Karte stehen diese Vermehrungswege: ' + vk.wege.map(x=>x.methode).join('; '));
   const fehlt = karteiLuecken(p).map(f=>KARTEI_PFLICHT_NAME[f] || f);
   if(fehlt.length) z.push('Diese Angaben fehlen mir noch: ' + fehlt.join(', ') + '.');
   return z;
@@ -28189,6 +28271,9 @@ function karteiFormat(art){
     format = formatZeileErgaenzen(format, 'WICHTIG', wie);
     format = formatZeileErgaenzen(format, 'PFLEGE', wie);
     format = formatZeileErgaenzen(format, 'WINTERRUHE', wie);
+    format = formatZeileErgaenzen(format, 'MERKMALE', KI_MERKMALE_REGEL + ' ' + wie);
+    format = formatZeileErgaenzen(format, 'VERMEHRUNG', wie);
+    format = formatZeileErgaenzen(format, 'LICHT', KI_LICHT_PANASCHIERT);
   }
   if(art === 'text' && typeof formatZeileErgaenzen === 'function'){
     format = formatZeileErgaenzen(format, 'SPEICHER', 'Ohne Foto: beurteile es nach der Art.');
@@ -28203,13 +28288,22 @@ function karteiFormat(art){
    einer Anfrage. Jeder Block der Antwort beginnt mit PFLANZE: <Nummer>. */
 const KARTEI_BUENDEL = 5;
 const KARTEI_FRIST_BUENDEL = 90000;
+/* Wie eine Pflanze im Auftrag heißt: Art, botanischer Name, Sorte —
+   nie der Spitzname (3.27.0). */
+function karteiBezeichnung(p){
+  const art = String(p.art || '').trim(), bot = String(p.botanisch || '').trim();
+  const sorte = (typeof sorteVon === 'function') ? sorteVon(p) : '';
+  let t = art && bot && norm(art) !== norm(bot) ? art + ' (' + bot + ')' : (art || bot || 'unbestimmte Pflanze');
+  if(sorte) t += ', Sorte laut Karte: ' + sorte;
+  return t;
+}
 function karteiBuendelAuftrag(ps, art, fotoVon){
   const n = ps.length;
   const z = ['Ich schicke dir ' + n + ' Pflanzen aus meiner Sammlung auf einmal. '
     + 'Alles Folgende gilt für jede Pflanze einzeln.', '',
     art === 'text' ? KARTEI_KOPF_OHNE : KARTEI_KOPF, ''];
   ps.forEach((p, i)=>{
-    z.push('PFLANZE ' + (i + 1) + ' — ' + nice(p));
+    z.push('PFLANZE ' + (i + 1) + ' — ' + karteiBezeichnung(p));
     karteiKontext(p).forEach(x=>z.push(x));
     z.push('');
   });
@@ -28221,8 +28315,10 @@ function karteiBuendelAuftrag(ps, art, fotoVon){
     z.push('');
   }
   z.push(karteiFormat(art), '');
+  z.push('Pflanzen derselben Art bekommen dieselben Artangaben (Wuchsform, Licht, Gießklasse, Gießart, Dünger, Frost, '
+    + 'Wichtig, Pflege, Winterruhe, Vermehrung). Unterschiede nur bei Sorte, Sortenmerkmalen und dem, was das Foto zeigt.');
   z.push('So antwortest du bei mehreren Pflanzen: ein einziger Codeblock. Darin für jede Pflanze ein Block. '
-    + 'Jeder Block beginnt mit einer eigenen Zeile PFLANZE: <Nummer> | <Name wie oben>, danach alle '
+    + 'Jeder Block beginnt mit einer eigenen Zeile PFLANZE: <Nummer>, danach alle '
     + 'Schlüsselwörter der Liste für genau diese Pflanze. Die Blöcke stehen in der Reihenfolge der Nummern. '
     + 'Die Prüfliste gilt für jeden Block einzeln.');
   return z.join('\n');
@@ -28245,7 +28341,7 @@ function karteiBloecke(txt, ps){
     const name = norm(String(h.rest || '').replace(/^[\s|:–—-]+/, '')).trim();
     const p = ps[idx];
     if(name){
-      const kandidaten = [nice(p), p.name, p.art, p.botanisch].filter(Boolean).map(x=>norm(String(x)));
+      const kandidaten = [karteiBezeichnung(p), p.art, p.botanisch].filter(Boolean).map(x=>norm(String(x)));
       const passt = kandidaten.some(k=>k && (name.indexOf(k) > -1 || k.indexOf(name) > -1));
       if(!passt) return;
     }
@@ -28562,12 +28658,18 @@ function karteiNaechste(k){
   if(!pe) return [erst];
   const art = karteiArt(pe);
   const ids = [erst];
-  for(let i = 0; i < k.offen.length && ids.length < KARTEI_BUENDEL; ){
-    const id = k.offen[i];
-    const p = alle.find(x=>x.id === id);
-    if(p && !ein[id] && karteiArt(p) === art){ ids.push(id); k.offen.splice(i, 1); }
-    else i++;
-  }
+  /* Erst dieselbe Art (3.27.0), dann der Rest gleicher Fotolage. */
+  const bot = norm(pe.botanisch || pe.art || '');
+  [true, false].forEach(gleich=>{
+    for(let i = 0; i < k.offen.length && ids.length < KARTEI_BUENDEL; ){
+      const id = k.offen[i];
+      const p = alle.find(x=>x.id === id);
+      const passt = p && !ein[id] && karteiArt(p) === art
+        && (!gleich || (bot && norm(p.botanisch || p.art || '') === bot));
+      if(passt){ ids.push(id); k.offen.splice(i, 1); }
+      else i++;
+    }
+  });
   return ids;
 }
 
@@ -28611,7 +28713,7 @@ async function karteiEineInnen(id){
   const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
   if(c) KARTEI_CTRL[id] = c;
   try{
-    const txt = await kiFragen(auftrag.text, bilder, null, c, {denken:'niedrig'});
+    const txt = await karteiFragen(auftrag.text, bilder, c, {denken: bilder && bilder.length ? 'mittel' : 'niedrig'}, gen);
     if(gen !== KARTEI_GEN) return;
     const felder = (typeof geminiLesen === 'function') ? (geminiLesen(txt) || {}) : {};
     karteiEintragen(id, {stand:'ok', art:auftrag.art, felder:felder,
@@ -28632,6 +28734,17 @@ async function karteiEineInnen(id){
   }
 }
 
+/* 503 nach den Wiederholungen: einmal das nächste Modell (3.27.0). */
+async function karteiFragen(text, bilder, c, opt, gen){
+  try{ return await kiFragen(text, bilder, null, c, opt); }
+  catch(e){
+    if(!e || e.status !== 503 || (gen !== undefined && gen !== KARTEI_GEN)) throw e;
+    const m0 = (typeof kiModellAktiv === 'function') ? kiModellAktiv() : null;
+    const alt = m0 ? kiAusweichModelle(m0.id)[0] : null;
+    if(!alt) throw e;
+    return kiFragen(text, bilder, alt.id, c, opt);
+  }
+}
 async function karteiBuendelFragen(ids){
   KARTEI_AKTIV++;
   try{ await karteiBuendelInnen(ids); }
@@ -28666,7 +28779,7 @@ async function karteiBuendelInnen(ids){
   if(c) liste.forEach(x=>{ KARTEI_CTRL[x.id] = c; });
   let txt;
   try{
-    txt = await kiFragen(auftrag, bilder, null, c, {denken:'niedrig', frist:KARTEI_FRIST_BUENDEL});
+    txt = await karteiFragen(auftrag, bilder, c, {denken: art === 'foto' ? 'mittel' : 'niedrig', frist:KARTEI_FRIST_BUENDEL}, gen);
   }catch(e){
     if(gen !== KARTEI_GEN) return;
     const st = karteiStand();
@@ -28912,10 +29025,72 @@ function karteiSortenZusatz(p){
   if(w.length < 3) return '';
   if(/^[x\u00d7]$/i.test(w[1]) || /^[x\u00d7]$/i.test(w[0])) return '';
   let rest = w.slice(2).join(' ').replace(/^cv\.?\s*/i, '');
+  /* „(Bogenhanf)“ ist ein deutscher Trivialname, keine Sorte (3.27.0). */
+  if(/[()]/.test(rest)) return '';
   if(!rest || /[.\u00d7]/.test(rest) || /^(x|subsp|ssp|var|f)$/i.test(rest.split(' ')[0])) return '';
   rest = sorteVon({sorte:rest});
   return rest;
 }
+/* ── Verlässliche Sorte (3.27.0) ───────────────────────────
+   Die KI nennt Sorte und Sicherheit, der Code entscheidet. */
+function spitznameVon(p){
+  return String((p && p.name) || '').replace(/^\s*ableger von\s+/i, '').replace(/\s*\(?\d+\)?\s*$/, '').trim();
+}
+function sorteGeprueft(d, ctx){
+  ctx = ctx || {};
+  const s = sorteLesen(d && d.sorte);
+  if(!s) return null;
+  const n = norm(s.name);
+  const p = ctx.p || {};
+  const spitz = norm(spitznameVon(p));
+  /* Nur Gleichheit: „Thai“ als Spitzname darf „Thai Constellation“ nicht sperren. */
+  if(spitz && n === spitz)
+    return {verworfen:'dein Name für die Pflanze', name:s.name};
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(/[()]/.test(s.name) || (p.art && n === norm(p.art)) || (d.art && n === norm(d.art)) || (b && b.de && n === norm(b.de)))
+    return {verworfen:'deutscher Trivialname', name:s.name};
+  if(ctx.ohneFoto && !ctx.ausBot) return {verworfen:'ohne Foto keine Sorte', name:s.name};
+  const beleg = String((d && d.sortebeleg) || '').trim();
+  const verw = String((d && d.sortenverw) || '').trim();
+  const hatBeleg = !!beleg && !keineAngabe(beleg);
+  const hatVerw = !!verw && !keineAngabe(verw);
+  let sicher = s.sicher;
+  if(!hatBeleg && !ctx.ausBot) sicher = 'niedrig';
+  if(hatVerw && sicher === 'hoch') sicher = 'mittel';
+  return {name:s.name, sicher:sicher, beleg:hatBeleg ? beleg : '', verwechslung:hatVerw ? verw : ''};
+}
+
+/* ── Plausibilität (3.27.0) ─────────────────────────────────
+   Feste Grenzen je Familie. Eine Antwort dagegen wird nicht angeboten. */
+const PLAUSI_TROPISCH = /aronstab|araceae|maranten|marantaceae|begonien|begoniaceae|gesnerien|gesneriaceae|bromelien|bromeliaceae/;
+const PLAUSI_SUKKULENT = /kakteen|cactaceae|dickblatt|crassulaceae/;
+function plausiFamilie(p, d){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  return norm(String((p && p.familie) || (b && b.fam) || (typeof familieVon === 'function' ? familieVon(p) : '') || ''));
+}
+function plausiVerstoss(p, feld, wert){
+  const fam = plausiFamilie(p);
+  const trop = PLAUSI_TROPISCH.test(fam);
+  const sukk = PLAUSI_SUKKULENT.test(fam) || /sukkulent|kaktus/i.test(String((p && p.typ) || ''));
+  if(trop && feld === 'frostMin' && Number(wert) < 5) return 'Frost unter 5 °C';
+  if(trop && feld === 'sonne' && wert === 'voll') return 'volle Sonne';
+  if(trop && feld === 'winterruhe') return 'eine Winterruhe';
+  if(sukk && feld === 'klasse' && (wert === 'A' || wert === 'S')) return 'dauerhaft feuchte Erde';
+  return '';
+}
+function plausiFamName(p){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  return String((p && p.familie) || (b && b.fam) || 'diese Familie');
+}
+/* Bibliothekswert zum Vergleich — die Bibliothek ist Referenz. */
+function karteiBibReferenz(p, feld){
+  const b = (typeof bibVon === 'function') ? bibVon(p) : null;
+  if(!b) return null;
+  if(feld === 'klasse') return b.klasse || null;
+  if(feld === 'sonne') return b.licht || null;
+  return karteiBibWert(p, feld);
+}
+
 /* Trennt eine Sorte vom botanischen Namen der KI (3.24.0). Die Sorte
    kommt nur als unsichere Vermutung ins Anlegen, nie still ins Feld. */
 function botOhneSorte(b){
@@ -28999,20 +29174,41 @@ function karteiAbweichungen(p, erg){
     if(f.feld === 'typ' && (karteiLeer(alt) || alt === 'Ohne Angabe')) alt = karteiBibWert(p, 'typ') || '';
     if(String(alt) === String(neu)) return;
     if(f.feld === 'botanisch' && karteiNurKuerzer(alt, neu)) return;
+    const v = plausiVerstoss(p, f.feld, neu);
+    if(v){
+      hinweise.push('Die Antwort nennt ' + v + ' bei ' + f.name + ' — für ' + plausiFamName(p)
+        + ' unplausibel. Nicht angeboten.');
+      return;
+    }
+    const ref = karteiBibReferenz(p, f.feld);
+    const abw = ref != null && ref !== '' && String(ref) !== String(neu);
     zeilen.push({key:f.feld, name:f.name, hand:hand(f.feld), wert:neu,
-      alt:karteiLeer(alt) ? '' : f.zeig(alt), neu:f.zeig(neu),
+      alt:karteiLeer(alt) ? '' : f.zeig(alt), neu:f.zeig(neu), einzeln:abw || undefined,
+      wirkung:abw ? 'Weicht von der Bibliothek ab (' + f.zeig(ref) + '). Nur einzeln übernehmbar.' : undefined,
       nimm:()=>aenderungSetzen(id, {[f.feld]: neu}, 'ki', true)});
   });
 
   /* Die Sorte (3.23.0): Zeile nur bei hoher oder mittlerer Sicherheit.
      „keine“ bietet nie an, eine Sorte zu löschen. */
-  const sNeu = sorteLesen(d.sorte);
+  /* 3.27.0: Der Code prüft die Sorte — Spitzname, Trivialname, ohne Foto,
+     ohne Beleg, Verwechslung. Eine vorhandene Sorte wird nie im Sammel-
+     knopf ersetzt. */
+  const sG = sorteGeprueft(d, {p:p, ohneFoto: erg.art === 'text'});
+  if(sG && sG.verworfen && !sorteGleich(sG.name, sorteVon(p)))
+    hinweise.push('Die Antwort nannte „' + sG.name + '“ als Sorte — verworfen (' + sG.verworfen + ').');
+  const sNeu = sG && !sG.verworfen ? sG : null;
   const sAlt = sorteVon(p);
   const sHand = !!sAlt && !(p.quellen && p.quellen.sorte === 'ki');
   const zusatz = karteiSortenZusatz(p);
-  const sorteZeile = extra => zeilen.push({key:'sorte', name:'Sorte', hand:sHand, alt:sAlt, neu:sNeu.name,
-    wirkung:'Setzt die Sorte · Sicherheit ' + sNeu.sicher + '.' + (extra || ''),
-    nimm:()=>aenderungSetzen(id, {sorte: sNeu.name}, 'ki', true)});
+  const sBeleg = () => (sNeu.beleg ? ' Erkannt an: ' + sNeu.beleg + '.' : '')
+    + (sNeu.verwechslung ? ' Verwechslung möglich: ' + sNeu.verwechslung : '');
+  const sorteZeile = extra => zeilen.push(sAlt ? {key:'sorte', name:'Sorte (strittig)', hand:sHand, alt:sAlt,
+      neu:sNeu.name + ' laut Antwort', einzeln:true,
+      wirkung:'Deine Sorte bleibt, bis du einzeln übernimmst · Sicherheit ' + sNeu.sicher + '.' + sBeleg() + (extra || ''),
+      nimm:()=>aenderungSetzen(id, {sorte: sNeu.name}, 'ki', true)}
+    : {key:'sorte', name:'Sorte', hand:sHand, alt:sAlt, neu:sNeu.name,
+      wirkung:'Setzt die Sorte · Sicherheit ' + sNeu.sicher + '.' + sBeleg() + (extra || ''),
+      nimm:()=>aenderungSetzen(id, {sorte: sNeu.name}, 'ki', true)});
   const sorteUnsicher = () => hinweise.push('Die Antwort vermutet die Sorte „' + sNeu.name
     + '“, ist sich aber unsicher.');
   if(zusatz && (!sNeu || sorteGleich(sNeu.name, zusatz))){
@@ -29043,7 +29239,10 @@ function karteiAbweichungen(p, erg){
   }
   const wrNeu = winterLesen(d.winterruhe);
   const wrAlt = typeof p.winterruheText === 'string' ? p.winterruheText : null;
-  if(wrNeu && wrNeu.typ === 'text' && (wrAlt === null || norm(wrAlt) !== norm(wrNeu.text))){
+  if(wrNeu && wrNeu.typ === 'text' && plausiVerstoss(p, 'winterruhe', wrNeu.text)){
+    hinweise.push('Die Antwort beschreibt eine Winterruhe — ' + plausiFamName(p)
+      + ' ruhen im Zimmer nicht. Nicht angeboten.');
+  } else if(wrNeu && wrNeu.typ === 'text' && (wrAlt === null || norm(wrAlt) !== norm(wrNeu.text))){
     zeilen.push({key:'winterruhe', name:'Winterruhe', hand:hand('winterruheText'),
       alt:wrAlt || (p.winterruhe ? 'allgemeiner Text der App' : ''), neu:wrNeu.text,
       wirkung:wrAlt ? 'Ersetzt den Text zur Winterruhe.' : 'Setzt den Text zur Winterruhe.',
@@ -29068,14 +29267,17 @@ function karteiAbweichungen(p, erg){
   const duNeu = duengerLesen(d.duenger);
   if(duNeu && DUENGER[duNeu]){
     const duAlt = p.duenger || karteiBibWert(p, 'duenger') || '';
+    const duRef = karteiBibWert(p, 'duenger');
+    const duAbw = !!duRef && duRef !== duNeu;
     if(duNeu !== duAlt)
-      zeilen.push({key:'duenger', name:'Düngebedarf',
+      zeilen.push({key:'duenger', name:'Düngebedarf', einzeln:duAbw || undefined,
+        wirkung:duAbw ? 'Weicht von der Bibliothek ab (' + ((DUENGER[duRef] || {}).text || duRef) + '). Nur einzeln übernehmbar.' : undefined,
         alt:DUENGER[duAlt] ? DUENGER[duAlt].text : '', neu:DUENGER[duNeu].text,
         nimm:()=>aenderungSetzen(id, {duenger: duNeu}, 'ki', true)});
   }
 
   const merkNeu = String(d.sortenmerkmale || '').trim();
-  if(merkNeu && !/^keine?$|^unbekannt$/.test(norm(merkNeu))
+  if(merkNeu && !/^keine?$|^unbekannt$/.test(norm(merkNeu)) && !wieKarte(merkNeu)
      && norm(merkNeu) !== norm(p.sortenmerkmale || ''))
     /* Nie nach `merkmale` — das Feld gehört der Bibliothek. */
     zeilen.push({key:'sortenmerkmale', name:'Sortenmerkmale', alt:p.sortenmerkmale || '', neu:merkNeu,
@@ -29123,7 +29325,7 @@ function karteiAbweichungen(p, erg){
     }
   }
 
-  const ver = vermehrungLesen(d.vermehrung, 'Gemini');
+  const ver = wieKarte(d.vermehrung) ? null : vermehrungLesen(d.vermehrung, 'Gemini');
   if(ver){
     const bis = vermehrungKiVon(p);
     const wege = v => v.wege.map(x=>x.methode).join('; ');
@@ -29236,6 +29438,7 @@ function karteiFensterZeichnen(meldung, art){
            + (z.alt ? '<span class="ab-alt">' + esc(z.alt) + '</span>' : '<span class="ab-alt ka-leer">leer</span>')
            + ' → ' + esc(z.neu) + '</span>'
            + (z.wirkung ? '<span class="ka-wirkung">' + esc(z.wirkung) + '</span>' : '')
+           + (z.einzeln ? '<button type="button" class="linkbtn ka-eins" data-do="ka-eins" data-k="' + esc(z.key) + '">Einzeln übernehmen</button>' : '')
            + '</span></div>'
            + '<button type="button" class="ab-weg" data-do="ka-weg" data-k="' + esc(z.key) + '"'
            + ' aria-label="' + esc(z.name) + ' verwerfen">×</button>'
@@ -29246,7 +29449,8 @@ function karteiFensterZeichnen(meldung, art){
     + (zeilen.length
        /* Ab 3.24.0: Was nicht passt, kreuzt man weg — der Rest geht mit
           einem Tipp. Eigene Angaben sind markiert, aber dabei. */
-       ? '<button type="button" class="haupt" data-do="ka-alle">Übrige übernehmen (' + zeilen.length + ')</button>'
+       ? (zeilen.some(z=>!z.einzeln)
+          ? '<button type="button" class="haupt" data-do="ka-alle">Übrige übernehmen (' + zeilen.filter(z=>!z.einzeln).length + ')</button>' : '')
        : '')
     + '<button type="button" data-do="ka-fertig">Fertig — Rest verwerfen</button></div>';
 }
@@ -29494,9 +29698,12 @@ document.addEventListener('click', e=>{
       const p = allePflanzen().find(x=>x.id === KA_PFLANZE);
       const k = karteiStand();
       const erg = (p && k && k.fertig) ? k.fertig[p.id] : null;
-      if(p && erg) karteiAktion('nimm', karteiOffeneZeilen(p, erg).map(z=>z.key));
+      /* Einzeln-Zeilen (strittige Sorte, Abweichung von der Bibliothek)
+         gehen nie mit dem Sammelknopf (3.27.0). */
+      if(p && erg) karteiAktion('nimm', karteiOffeneZeilen(p, erg).filter(z=>!z.einzeln).map(z=>z.key));
       return;
     }
+    if(a === 'ka-eins'){ karteiAktion('nimm', [b.dataset.k]); return; }
     if(a === 'ka-weg'){ karteiAktion('weg', b.dataset.k); return; }
     if(a === 'ka-fertig'){ karteiAktion('fertig'); return; }
     if(a === 'ka-zu'){ if(typeof modalZu === 'function') modalZu('kartei-abgleich'); return; }

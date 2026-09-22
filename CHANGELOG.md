@@ -4,6 +4,25 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.27.0 — 22. September 2026
+**Verlässliche Sorten und Pflegeangaben**
+
+### Anders
+- **Sorte mit Beleg.** Die KI nennt die sichtbaren Merkmale, an denen sie die Sorte erkennt (`SORTE_BELEG`), und ähnliche Sorten (`SORTEN_VERWECHSLUNG`). Der Code legt die Sicherheit fest: ohne Foto keine Sorte, ohne Beleg nur „niedrig“ (Hinweis, keine Zeile), mit Verwechslung höchstens „mittel“. Gilt für Kartei und Anlegen.
+- **Vorhandene Sorte bleibt.** Nennt die Antwort eine andere, erscheint sie als „Sorte (strittig)“ mit Beleg und lässt sich nur einzeln übernehmen.
+- **Bibliothek als Referenz.** Weicht eine Antwort bei Gießklasse, Licht, Frost, Wuchsform oder Dünger von der Artenbibliothek ab, ist die Zeile markiert und nur mit „Einzeln übernehmen“ zu setzen. „Übrige übernehmen“ lässt sie aus.
+- **Feste Grenzen je Familie.** Aronstab-, Maranten-, Begonien-, Gesnerien- und Bromeliengewächse: kein Frost unter 5 °C, keine volle Sonne, keine Winterruhe. Kakteen und Dickblattgewächse: keine dauerhaft feuchte Erde. Solche Antworten erscheinen nur als Hinweis.
+- **Gleiche Art, gleiche Angaben.** Pflanzen mit gleichem botanischen Namen kommen ins selbe Bündel, der Auftrag verlangt dieselben Artangaben. Bündel mit Fotos denken auf mittlerer Stufe.
+- **Schärfere Aufträge.** Mehr verbotene Allerwelts-Pflegeschritte, keine Winterruhe für tropische Arten, Sortenmerkmale nur der Sorte, Licht bei panaschierten Sorten für die Sorte. „wie Karte“ auch für Sortenmerkmale und Vermehrung.
+- **Herkunft auf der Karte.** Unter dem Steckbrief steht, welche Angaben von der KI und welche von dir stammen.
+
+### Behoben
+- **Spitzname als Sorte.** Der Auftrag nannte die Pflanze beim Spitznamen, „Beauty“ und „King Green“ kamen als Sorte zurück. Der Name aus der Karte geht nicht mehr mit, und eine Sorte gleich dem Spitznamen wird verworfen.
+- **Trivialname als Sorte.** „Dracaena trifasciata (Bogenhand)“ bot „(Bogenhand)“ als Sorte an.
+- **503.** Die Kartei weicht bei Überlastung einmal auf das nächste Modell aus.
+
+---
+
 ## 3.26.0 — 22. September 2026
 **Kartei schneller**
 
