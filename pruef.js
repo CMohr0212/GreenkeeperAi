@@ -157,7 +157,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.27.0', w.__T('FASSUNG') === '3.27.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.28.0', w.__T('FASSUNG') === '3.28.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -1008,7 +1008,7 @@ setTimeout(async () => {
   pruef('Vermehren \u00b7 Stufe 1 hei\u00dft Weiter',
     d.getElementById('ver-weiter').textContent === 'Weiter',
     d.getElementById('ver-weiter').textContent);
-  w.__T('verStufeZeigen(VER_STUFEN)');
+  w.__T("verWohin = 'pflanzen'; verStufeZeigen(VER_STUFEN)");
   pruef('Vermehren \u00b7 auf der letzten Stufe steht die Abschlussaktion',
     d.getElementById('ver-weiter').hidden === false
     && /Ableger anlegen/.test(d.getElementById('ver-weiter').textContent),
@@ -7079,7 +7079,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.27.0', e0.nr === '3.27.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.28.0', e0.nr === '3.28.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -9584,7 +9584,144 @@ setTimeout(async () => {
     T(`(function(){ alStart(); S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'VS'; }); sichern(); return 1; })()`);
   }
 
+  /* ══ 3.28.0: Anzucht ══ */
+  {
+    const T = c => w.__T(c);
+    const vor = t => `iso(new Date(HEUTE.getTime() - ${t}*86400000))`;
+    T(`(function(){ S.anzucht = {}; S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,3) !== 'AZT'; });
+      S.eigene.push({id:'AZT-M', eigen:true, name:'Rexi', art:'Königsbegonie', botanisch:'Begonia rex', sorte:'', klasse:'B', notiz:'', todo:[], log:[]});
+      sichern(); return 1; })()`);
+    const nPfl0 = T('allePflanzen().length');
+    T("sektionOeffnen('vermehren')");
+    await tick();
+    pruef('3.28.0: Das Werkzeug heißt Anzucht', d.getElementById('sekm-titel').textContent === 'Anzucht', d.getElementById('sekm-titel').textContent);
+    pruef('3.28.0: Es öffnet mit der Übersicht',
+      d.getElementById('az-ansicht').hidden === false && d.getElementById('az-assistent').hidden === true
+      && /Neue Stecklinge/.test(d.getElementById('az-ansicht').textContent));
+
+    /* Assistent: Stufe 3 „Wohin?“, Vorgabe Anzucht */
+    d.querySelector('[data-az="neu-stecklinge"]').click();
+    pruef('3.28.0: „Neue Stecklinge“ startet den Assistenten auf Stufe 1',
+      d.getElementById('az-assistent').hidden === false && T('verStufe') === 1);
+    T(`verPflanze = 'AZT-M'; verMethode = 'blatt_sukkulent'; verStufeZeigen(3)`);
+    pruef('3.28.0: Stufe 3 steht auf „In die Anzucht“',
+      T('verWohin') === 'anzucht' && d.getElementById('ver-az').hidden === false && d.getElementById('ver-pfl').hidden === true
+      && d.getElementById('ver-weiter').textContent === 'In die Anzucht setzen', d.getElementById('ver-weiter').textContent);
+    d.getElementById('ver-az-zahl').value = '15';
+    d.getElementById('ver-az-gname').value = 'Glas 1';
+    d.getElementById('ver-weiter').click();
+    await tick();
+    const gr0 = JSON.parse(T('JSON.stringify(anzuchtDaten().gruppen)'));
+    pruef('3.28.0: Es entsteht eine Gruppe mit 15 Blattstecklingen',
+      gr0.length === 1 && gr0[0].anzahl === 15 && gr0[0].methode === 'Blattsteckling' && gr0[0].mutter === 'AZT-M', JSON.stringify(gr0));
+    pruef('3.28.0: In der Anzucht entstehen keine Karten', T('allePflanzen().length') === nPfl0);
+    pruef('3.28.0: Die Meldung nennt das Gefäß', /Glas 1/.test(d.getElementById('ver-meldung').textContent));
+    pruef('3.28.0: Gefäße sind keine Pflanzen', T('allePflanzen().some(function(p){ return p.anzucht || /^AZ[GBR]-/.test(String(p.id)); })') === false);
+    pruef('3.28.0: Die Mutterkarte zeigt die Anzucht',
+      /In Anzucht:.*15 Blattstecklinge · Glas 1/.test(T(`anzuchtMutterHTML(allePflanzen().find(function(p){ return p.id === 'AZT-M'; }))`)));
+    d.getElementById('ver-weiter').click();
+    pruef('3.28.0: „Fertig“ führt zur Übersicht zurück, nicht hinaus',
+      T("modalOffen('sek-modal')") === true && d.getElementById('az-ansicht').hidden === false);
+
+    /* Gießplan, Heute, Gießmodus */
+    const gid = T('anzuchtDaten().gefaesse[0].id');
+    T(`(function(){ var g = anzuchtDaten().gefaesse[0]; g.start = ${vor(8)}; g.gewechselt = []; sichern(); return 1; })()`);
+    pruef('3.28.0: Das Glas ist nach 8 Tagen fällig', T('azFaellig().length') === 1 && T('azFaellig()[0].rest') === -1);
+    pruef('3.28.0: Die Gießplan-Vorschau führt es als überfällig',
+      T(`giessplanDaten(28).ueber.some(function(x){ return x.p.anzucht && x.p.ref === '${gid}'; })`) === true);
+    pruef('3.28.0: giessListe bleibt eine reine Pflanzenliste', T('giessListe().some(function(p){ return p.anzucht; })') === false);
+    pruef('3.28.0: Heute zählt das Glas mit', /Anzucht braucht Wasser/.test(T('heuteLageText()')), T('heuteLageText()'));
+    T("modalZu('sek-modal')");
+    await tick();
+    T('gmStarten()');
+    await tick();
+    const azIdx = T('gmListe.findIndex(function(p){ return p.anzucht; })');
+    pruef('3.28.0: Der Gießmodus nimmt das Glas auf', azIdx >= 0 && azIdx === T('gmListe.length') - 1);
+    T(`gmIndex = ${azIdx}; gmDuengetag = 'nein'; gmZeichnen()`);
+    const jaK = d.querySelector('#gm-knoepfe [data-gm="azja"]');
+    pruef('3.28.0: Knopf „Wasser gewechselt“ im Gießmodus', !!jaK && jaK.textContent === 'Wasser gewechselt');
+    pruef('3.28.0: Das Glas nennt seine Stecklinge', /15 Blattstecklinge Königsbegonie/.test(d.getElementById('gm-inhalt').textContent));
+    jaK.click();
+    pruef('3.28.0: Der Wechsel ist eingetragen', T(`azGefaess('${gid}').gewechselt.indexOf(iso(HEUTE)) !== -1`) === true
+      && T('azFaellig().length') === 0);
+    T("modalZu('giessmodus')");
+    await tick();
+
+    /* Bereich mit eigenem Rhythmus */
+    T(`(function(){ var b = azBereichAnlegen({name:'Anzuchthaus', rhythmus:10});
+      var s = azGefaessAnlegen({name:'Schale', medium:'substrat', bereich:b.id, start:${vor(12)}});
+      var w2 = azGefaessAnlegen({name:'Glas 2', medium:'wasser', bereich:b.id, start:${vor(12)}});
+      azGruppeAnlegen({gefaess:s.id, anzahl:3, methode:'Kopfsteckling', art:'Efeutute'});
+      azGruppeAnlegen({gefaess:w2.id, anzahl:2, methode:'Kopfsteckling', art:'Efeutute'});
+      window.__azB = b.id; window.__azS = s.id; window.__azW = w2.id; sichern(); return 1; })()`);
+    const e = JSON.parse(T('JSON.stringify(azEintraege().map(function(x){ return x.typ + ":" + x.ref; }))'));
+    pruef('3.28.0: Das Anzuchthaus steht als ein Eintrag im Gießplan',
+      e.indexOf('bereich:' + T('__azB')) !== -1 && e.indexOf('gefaess:' + T('__azS')) === -1, JSON.stringify(e));
+    pruef('3.28.0: Ein Wasserglas im Anzuchthaus behält seinen Wechsel', e.indexOf('gefaess:' + T('__azW')) !== -1);
+    pruef('3.28.0: Der Bereich hat den Knopf „Befeuchtet“',
+      T(`azEintraege().find(function(x){ return x.ref === __azB; }).tat`) === 'Befeuchtet');
+
+    /* Entnehmen */
+    const rid = T('anzuchtDaten().gruppen[0].id');
+    const neu1 = JSON.parse(T(`JSON.stringify(azEintopfen(azGruppe('${rid}'), 2, false).map(function(p){ return p.eltern; }))`));
+    pruef('3.28.0: Eintopfen einzeln: zwei Karten unter der Mutter', neu1.length === 2 && neu1.every(x=>x === 'AZT-M'), JSON.stringify(neu1));
+    pruef('3.28.0: Die Gruppe zählt herunter', T(`azGruppe('${rid}').anzahl`) === 13);
+    const neu2 = JSON.parse(T(`JSON.stringify(azEintopfen(azGruppe('${rid}'), 3, true).map(function(p){ return p.notiz; }))`));
+    pruef('3.28.0: Alle in einen Topf: eine Karte', neu2.length === 1 && /3 Blattstecklinge in einem Topf/.test(neu2[0]), JSON.stringify(neu2));
+    const zid = T(`azGefaessAnlegen({name:'Glas 3'}).id`);
+    T(`azUmsetzen(azGruppe('${rid}'), 4, '${zid}')`);
+    const ziel = JSON.parse(T(`JSON.stringify(azGruppenIn('${zid}'))`));
+    pruef('3.28.0: Umsetzen: neue Gruppe mit Verlauf',
+      ziel.length === 1 && ziel[0].anzahl === 4 && ziel[0].verlauf.some(v=>/angesetzt/.test(v.text)) && T(`azGruppe('${rid}').anzahl`) === 6, JSON.stringify(ziel));
+    T(`azUmsetzen(azGruppe('${rid}'), 1, '${zid}')`);
+    pruef('3.28.0: Gleiche Herkunft kommt zur vorhandenen Gruppe',
+      T(`azGruppenIn('${zid}').length`) === 1 && T(`azGruppenIn('${zid}')[0].anzahl`) === 5);
+    T(`azAusfall(azGruppe('${rid}'), 5)`);
+    pruef('3.28.0: Eine leere Gruppe verschwindet', T(`azGruppe('${rid}')`) === null);
+    pruef('3.28.0: Ihr Verlauf bleibt in der Mutterkarte',
+      T(`(S.ereignisse['AZT-M']||[]).some(function(x){ return /^Anzucht \\(Glas 1\\): 5 ausgefallen/.test(x.text); })`) === true);
+
+    /* Entnehmen über die Oberfläche */
+    T(`sektionOeffnen('vermehren'); azZeigen({art:'gefaess', id:'${zid}'})`);
+    await tick();
+    d.querySelector('[data-az-ent]').click();
+    d.querySelector('[data-az-was="ausfall"]').click();
+    d.querySelector('[data-az-n="1"]').click();
+    pruef('3.28.0: Die Anzahl lässt sich wählen', d.getElementById('az-n').textContent === '2');
+    d.querySelector('[data-az="entnehmen-los"]').click();
+    pruef('3.28.0: Ausfall über die Oberfläche', T(`azGruppenIn('${zid}')[0].anzahl`) === 3);
+
+    /* Frei eintragen */
+    T(`azZeigen({art:'frei'})`);
+    d.getElementById('az-fr-art').value = 'Efeutute';
+    d.getElementById('az-fr-sorte').value = 'Marble Queen';
+    d.getElementById('az-fr-zahl').value = '2';
+    d.querySelector('[data-az="frei-los"]').click();
+    const fr = JSON.parse(T(`JSON.stringify(anzuchtDaten().gruppen.filter(function(r){ return r.sorte === 'Marble Queen'; }))`));
+    pruef('3.28.0: Frei eintragen ohne Mutter', fr.length === 1 && fr[0].mutter === null && fr[0].anzahl === 2, JSON.stringify(fr));
+    const fp = JSON.parse(T(`JSON.stringify(azEintopfen(azGruppe('${fr[0] && fr[0].id}'), 1, false)[0])`));
+    pruef('3.28.0: Eingetopft ohne Mutter: Art und Sorte aus der Gruppe',
+      fp && fp.eltern === null && fp.art === 'Efeutute' && fp.sorte === 'Marble Queen', JSON.stringify(fp));
+
+    /* Sicherung und Karte */
+    pruef('3.28.0: Die Anzucht geht in die Sicherung', JSON.parse(T('sicherungInhalt()')).anzucht.gefaesse.length >= 3);
+    T("modalZu('sek-modal')");
+    await tick();
+    const kb = d.createElement('button');
+    kb.dataset.do = 'vermehren-fuer'; kb.dataset.p = 'AZT-M';
+    d.body.appendChild(kb); kb.click(); kb.remove();
+    await tick();
+    pruef('3.28.0: Karte › Vermehren springt in den Assistenten',
+      d.getElementById('az-assistent').hidden === false && T('verStufe') === 2 && T('verWohin') === 'anzucht');
+    T("modalZu('sek-modal')");
+    await tick();
+    T(`(function(){ S.anzucht = {}; S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'AZT'
+      && p.eltern !== 'AZT-M' && p.art !== 'Efeutute'; }); verErledigt = false; verPflanze = null; verMethode = null;
+      verLetzterWeg = null; sichern(); return 1; })()`);
+  }
+
   console.log('\n── Ergebnis ──');
+  console.log('  ' + zahl + ' Prüfungen, ' + (zahl - fehler.length) + ' bestanden');
   if (fehler.length) { console.log('  ' + fehler.length + ' Fehler'); fehler.forEach(f => console.log('   · ' + f)); process.exit(1); }
   console.log('  ' + zahl + ' Prüfungen, alles sauber');
   process.exit(0);

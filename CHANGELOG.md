@@ -4,6 +4,26 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.28.0 — 22. September 2026
+**Anzucht**
+
+### Neu
+- **Werkzeug „Anzucht“** statt „Vermehren“, an derselben Stelle. Oben die Übersicht: Bereiche mit ihren Gefäßen, Gefäße ohne Bereich darunter, je Gefäß Medium, Zahl der Stecklinge und nächster Wasserwechsel.
+- **Bereiche, Gefäße, Gruppen.** Ein Bereich (etwa das Anzuchthaus) fasst mehrere Gefäße. Ein Gefäß hat Name, Medium (Wasser, Substrat, Moos, Perlite), Startdatum und Fotos. Darin stehen Gruppen: Stecklinge einer Herkunft mit Anzahl, Methode und Verlauf.
+- **Wasserwechsel im Gießplan.** Wassergläser stehen in Heute, im Gießmodus und in der Gießplan-Vorschau wie eine Pflanze in Wasserkultur, mit Knopf „Wasser gewechselt“. Abstand je Gefäß, Vorgabe 7 Tage. Substrat, Moos und Perlite: „Befeuchtet“, Vorgabe 10 Tage, abschaltbar.
+- **Bereich mit eigenem Rhythmus.** Das Anzuchthaus steht als ein Eintrag im Gießplan, Vorgabe alle 10 Tage befeuchten. Wassergläser darin behalten ihren eigenen Wechsel.
+- **„Wohin?“** in der letzten Stufe von „Neue Stecklinge“: in die Anzucht (Vorgabe) oder gleich als eigene Pflanzen wie bisher.
+- **Frei eintragen** für Stecklinge ohne Mutter in der Sammlung.
+- **Verlauf je Gruppe:** Wurzeln sichtbar, erstes neues Blatt, eigene Notiz.
+- **Entnehmen**, auch einzeln: eintopfen (je Steckling eine Karte oder alle in einen Topf, mit Erbe von der Mutter), umsetzen in ein anderes Gefäß (Verlauf wandert mit, gleiche Herkunft kommt zur vorhandenen Gruppe) oder Ausfall. Leere Gruppen verschwinden, ihr Verlauf bleibt an der Mutterkarte.
+- **Mutterkarte** zeigt „In Anzucht: 15 Blattstecklinge · Glas 1“.
+- **Sicherung:** Die Anzucht und die Gefäßfotos gehen mit.
+
+### Anders
+- Gefäße sind keine Pflanzen: Sie stehen nicht in Kartei, Lücken, Sammlungszahl oder Doktor.
+
+---
+
 ## 3.27.0 — 22. September 2026
 **Verlässliche Sorten und Pflegeangaben**
 

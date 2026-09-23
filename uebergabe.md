@@ -1,54 +1,41 @@
-Fassung 3.23.0 · sw.js greenkeeperai-v118 · 16.09.2026
+Fassung 3.28.0 · sw.js greenkeeperai-v123 · 22.09.2026
 
 ## Kurz
-Version: 3.23.0 (index.html), greenkeeperai-v118 (sw.js). E4 und K geliefert: Sorte durch die KI im Anlegen und in der Kartei, Sorte aus dem botanischen Namen, Balken mit Vorlauf, Ergebnisliste mit „Durchsehen ›“ und Kästchen erst nach „Noch einmal prüfen“.
-Nächster Schritt: 3.23.0 am Handy prüfen (Liste im Chat vom 16.09.). Danach Plan E3 (Pflegetexte durch die KI), Zielversion 3.24.0.
-Offen oder kaputt: 3.23.0 nicht am Gerät geprüft. Lauf mit mehreren Pflanzen weiter unbestätigt. Gießcenter „überfällig“, Fettkraut im Winter, Gerätekontrollen 3.13.0–3.20.0.
-Nicht anfassen: Gift über `giftEigenSetzen` und `fest`/`strittig`. `merkmale` gehört der Bibliothek. `S.kartei` schreibt nie von selbst in eine Pflanze. Kartei fragt nur Artdaten. `ABLEGER_ERBE` ist die einzige Liste der erbbaren Felder. Der Doktor-Auftrag (`ANTWORT_FORMAT`) fragt keine SORTE.
-Offener Plan: ja (PLAN.md) — E4 + K dort erledigt mit 3.23.0, E3 im Zuschnitt, Detailplan E3 fehlt.
+Version: 3.28.0 (index.html), greenkeeperai-v123 (sw.js) — Anzucht gebaut, am Gerät unbestätigt.
+Nächster Schritt: Chris prüft 3.28.0 am Handy; danach Plan 3.29.0 (KI-Bestimmung, Mischtopf) zur Freigabe.
+Offen oder kaputt: 3.28.0 und 3.27.0 am Gerät unbestätigt; vier alte rote Tests („Fokus“ wackelt); Statuszeile unter Mehr.
+Nicht anfassen: `giftEigenSetzen`, `fest`/`strittig`, `merkmale` (Bibliothek), `ABLEGER_ERBE`, `ANTWORT_FORMAT` wortgleich, `sorteGeprueft`, `einzeln`-Zeilen, Werkzeugschlüssel `vermehren`, `giessListe()` bleibt reine Pflanzenliste.
+Offener Plan: ja (PLAN.md) — 3.29.0 nicht freigegeben, danach Aufräumen.
 
 ## Gescheiterte Versuche
-- Die erste Antwort nach der Freigabe brach vor dem Pflichtpaket ab. Ursache (belegt): Drei Blöcke Gegenproben in einem einzigen Befehl überschritten die 300 Sekunden je Befehl. Der Container blieb erhalten, gebaut wurde danach aus den gesicherten Dateien unter /tmp weiter.
-- Gegenprobe „Sorte aus dem botanischen Namen“ ließ pruef.js abstürzen statt nur fehlzuschlagen. Die Tests greifen jetzt abgesichert zu.
-- Gegenprobe zur Reihenfolge beim Sammelübernehmen schlug zuerst nicht fehl, weil die Art-Zeile ohnehin vorne steht. Der Test prüft jetzt Art, Sorte, Licht.
+- Erster Bauanlauf am 22.09. brach nach der Code-Sichtung ab, ohne Codeänderung. Ursache vermutet: Länge der Antwort, nicht belegt.
+- Sitzungsstart verfehlt: kein STAND-Block (Regel 2.3), fehlende Dateien nicht per curl geholt (Regel 2.1).
+- Test „Gefäße sind keine Pflanzen“ schlug zuerst fehl: das Suchmuster `^AZ` traf die Test-Mutter „AZT-M“. Jetzt `^AZ[GBR]-`.
 
 ## Entscheidungen
-- K kam mit in 3.23.0 („mit rein“, Chris), die Vorschau entfiel (Chris), deshalb rückt E3 auf 3.24.0.
-- C1 bis C5 und D1 bis D3 gelten wie im Plan, weil Chris keinen Einwand hatte.
-- Eine SORTE-Zeile ohne Sicherheit gilt als „niedrig“, damit nichts ungeprüft vorbelegt wird.
-- Die Sorte steht nicht in `Q_FELDER`. Sie bekommt einen Stempel nur mit ausdrücklicher Herkunft; ohne Angabe fällt ein KI-Stempel weg, damit eine von Hand geänderte Sorte als eigene gilt.
-- Ableger erben den Sortenstempel (Chris, 16.09.), damit eine geerbte KI-Sorte nicht als „von dir gesetzt“ erscheint.
-- Die Prozentzahl in der Leiste entfiel, weil sie nicht mehr zum vorlaufenden Balken passte.
+- Weitergebaut trotz „Kontext reicht: nein“, weil Chris „Leg los“ schrieb (Regel 0.2 für diese Sitzung).
+- Eingetopfte Stecklinge mit Mutter laufen über `ablegerAnlegen` und bekommen dort wie bisher den Zustand „Steckling“ samt Bewurzelungsfrist, weil der Plan „wie bisher“ sagt.
+- Eingetopfte Stecklinge ohne Mutter bekommen Gießklasse B und keinen Zustand, weil keine Mutter zum Erben da ist; die Kartei ergänzt den Rest.
+- Ein neuer Bereich hat den Rhythmus vorgabemäßig an (10 Tage), weil Z2 das Anzuchthaus im Gießplan will.
+- Beim Auflösen eines Gefäßes werden seine Fotos nach Rückfrage mit gelöscht, weil sie sonst ohne Besitzer im Speicher blieben.
+- Abweichung vom Plan, nachträglich zur Entscheidung: „Bereich auflösen“ (Gefäße bleiben ohne Bereich) ist dazugekommen; steht nicht im Plan.
+- Gefäßfotos liegen in `S.fotos` unter der Gefäßkennung, damit Sicherung und Fotospeicher sie ohne Sonderweg mitnehmen.
 
 ## Backlog-Zuwachs
-- **Anlegen übernimmt einen längeren botanischen Namen der KI samt Zusatz.** Belegt (Code): `d.bot.length > treffer.bot.length` setzt `#f-bot` auf den KI-Namen. So kam „Brasil“ in den botanischen Namen. Der neue Auftrag verbietet den Sortennamen dort, der Code prüft es nicht.
-- **Hängende Anfrage:** Der Balken steht dann lange bei 85 %.
-- Aus der Übergabe vom 16.09. weiter offen:
-  - Doktor-Auftrag kürzen.
-  - Doktor schreibt Zustand und Befund-Notiz ohne Knopf, widerspricht Regel 10.8.
-  - Wissen-Reiter per KI.
-  - Düngebedarf „Starkzehrer“ (`viel`).
-  - Kartei-Leiste über der Zeile „Einstellungen“.
-  - Kartei-Lauf im Hintergrund (Wake Lock machbar, Background Fetch ungeklärt).
-  - Gießerinnerung als Benachrichtigung (groß) samt Schalter unter Mehr › Einstellungen.
-  - Frostwarnung und Sicherungserinnerung (Vorschlag, nicht gewünscht).
-  - Zeitlimit für `karteiBilder`.
-  - Statuszeile „Kartei auffrischen“ unter Mehr wird beim Start nicht neu gezeichnet.
-  - Gießcenter „überfällig“ (braucht Screenshots).
-  - Fettkraut „Winterrosette“.
-  - Eigene Modellwahl für den Kartei-Lauf.
-  - Weniger Meldungen auf den Reitern (braucht Screenshot).
-  - Zeit für fünfzig Pflanzen messen.
-  - Foto nachtragen aus der Kartei.
-  - Ein Lauf über eine neue Fassung hinweg.
+- **Aufräumen nach der Anzucht** (Chris, 22.09.): Umfang gemeinsam festlegen. Dazu die vier roten Tests („Der Anstau bekommt keine Fingerprobe“, „Die Bromelie wird im Trichter gegossen“, „Der Kaktus wird gewogen“, „Fokus kehrt zum Auslöser zurück“; vermutet datumsabhängig) und die Statuszeile „Kartei auffrischen“ unter Mehr (braucht Screenshot).
+- **Widerspruch Regel 5.1:** „nur bei 0 Fehlschlägen“, geliefert wird seit 3.24.0 mit den vier alten roten Tests. Chris entscheidet: Regel anpassen oder die vier zuerst beheben.
+- **Zustand „Steckling“ nach dem Eintopfen:** bewurzelte Stecklinge bekommen noch eine Bewurzelungsfrist. Klären, ob stattdessen „frisch umgetopft“ oder gar kein Zustand gelten soll.
+- **Meldung nach der letzten Übernahme geht ins Leere** (belegt, Test): `karteiMeldung` schreibt in `#kartei-meld`, das die Ergebnisansicht nicht hat.
+- **Alte Werte uneinheitlich:** Wuchsform „Kraut, panaschiert“, Vermehrung „Blattsteckling; TEILUNG“.
+- **Claude-Anbindung** (zurückgestellt): `KI_ANBIETER` kennt Anthropic mit `kann:false`; `kiFragen` fest auf Google.
+- Gerätekontrollen offen: Gießcenter „überfällig“, Fettkraut im Winter, 3.13.0–3.20.0.
+- Aus der Übergabe vom 16.09. weiter offen: Doktor-Auftrag kürzen; Doktor schreibt Zustand und Befund ohne Knopf (widerspricht 10.8); Wissen-Reiter per KI; Düngebedarf „Starkzehrer“; Kartei-Leiste über „Einstellungen“; Kartei-Lauf im Hintergrund; Gießerinnerung als Benachrichtigung; Fettkraut „Winterrosette“; eigene Modellwahl für die Kartei; weniger Meldungen auf den Reitern; Foto nachtragen aus der Kartei; Lauf über neue Fassung hinweg; Sammel-Anlegen, F, T.
 - Risiko: Spätere Änderungen an einer Mutter wandern nicht zum Ableger nach.
 
 ## Offene Regeländerungen
-- 10.10 (neu, Antwort vom 15.09.2026). Der Inhalt steht in keiner Übergabe. Chris prüft, ob er eingetragen ist.
+- 10.10 (neu, 15.09.2026): Inhalt steht in keiner Übergabe. Chris prüft, ob eingetragen.
 - 10.11 (neu, Stand 3, 16.09.2026): „Kartei auffrischen“ prüft und ergänzt nur Angaben, die für die Art oder Sorte gelten und in der Pflanzenkarte stehen: Steckbriefdaten, Sorte und art- oder sortenspezifische Pflegetexte. Pflegeregeln, die für jede Zimmerpflanze gelten, schreibt die Kartei nie. Zustand, Befund, Topf, Topfart, Substrat, Abzugsloch und Maßnahmen fragt die Kartei nie ab und zeigt sie nie zur Übernahme an; sie gehören dem Doktor. Der Doktor zeigt keinen Abgleich von Steckbriefdaten.
-- 5.9 (neu, Stand 3, Fassung vom 16.09.2026 aus dieser Sitzung, ersetzt die ältere): Gegenproben laufen je in einer Kopie unter /tmp/<n> (veränderte index.html, pruef.js, Verweis auf node_modules). Ein Befehl startet höchstens einen Block von drei Gegenproben mit `timeout 250`, weil ein Befehl nach 300 Sekunden abbricht. Die Datei im Arbeitsordner wird dabei nie verändert; danach `cmp` gegen die gesicherte Fassung.
-- Formfehler in der Datei:
-  - Die Kopfzeile nennt „Stand 2“.
-  - 10.8 steht als roher Änderungsblock.
-  - 10.9 steht ohne eigene Zeile.
-  - 5.8 trägt das Präfix „Regel:“.
+- 10.12 (Vorschlag, 22.09.2026): KI-Aufträge nennen eine Pflanze nie beim Namen aus der Karte, nur mit Art, botanischem Namen und eingetragener Sorte. Eine Sorte wird nur mit sichtbarem Beleg angeboten; die Sicherheit legt der Code fest, nicht die KI.
+- 10.13 (Vorschlag, 22.09.2026): Eine KI-Angabe, die von der Artenbibliothek abweicht oder eine vorhandene Sorte ersetzen würde, wird nie mit einem Sammelknopf übernommen, nur einzeln.
+- 5.9 (neu, Stand 3, 16.09.2026): Gegenproben laufen je in einer Kopie unter /tmp/<n> (veränderte index.html, pruef.js, Verweis auf node_modules). Ein Befehl startet höchstens einen Block von drei Gegenproben mit `timeout 250`, weil ein Befehl nach 300 Sekunden abbricht. Die Datei im Arbeitsordner wird dabei nie verändert; danach `cmp` gegen die gesicherte Fassung. Tests, die auf eine Antwort warten, brauchen eine eigene Zeitgrenze, damit eine Gegenprobe fehlschlägt statt hängt. Ergänzung 22.09.: Ein Prüflauf dauert rund 106 s; die drei Gegenproben eines Blocks laufen deshalb gleichzeitig.
+- Formfehler in der Datei: Kopfzeile nennt „Stand 2“; 10.8 steht als roher Änderungsblock; 10.9 ohne eigene Zeile; 5.8 mit Präfix „Regel:“.

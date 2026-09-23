@@ -2,9 +2,11 @@
 
 Stand 22.09.2026 · Ausgangsfassung 3.27.0 · **nächste Zielversion 3.28.0, sw.js greenkeeperai-v123**
 
+**Freigegeben am 22.09.2026 (Chris): 3.28.0 · Zielversion 3.28.0, sw.js greenkeeperai-v123.** 3.29.0 ist nicht freigegeben.
+
 Erledigt und nicht mehr hier: Etappe A bis D, E1 (3.19.0), Lösch-Fix (3.19.1), Kartei-Seite (3.20.0), E2 (3.21.0), E2b (3.22.0), E4 + K (3.23.0), Kartei-Abschluss (3.24.0), E3 Pflegetexte (3.25.0), Kartei schneller (3.26.0), Verlässliche Sorten (3.27.0). Der Verlauf steht im CHANGELOG.
 
-Reihenfolge (Chris, 22.09.2026): **Anzucht** (3.28.0, Konzept unten) → **Aufräumen** ohne neue Funktionen. Erst danach Sammel-Anlegen, **F**, **T**. Zurückgestellt: Claude-Anbindung.
+Reihenfolge (Chris, 22.09.2026): **Anzucht** (3.28.0 und 3.29.0, zur Freigabe) → **Aufräumen** ohne neue Funktionen. Erst danach Sammel-Anlegen, **F**, **T**. Zurückgestellt: Claude-Anbindung.
 
 ## Zweck der Kartei, von Chris am 16.09.2026 gesetzt
 
@@ -61,44 +63,104 @@ Reihenfolge (Chris, 22.09.2026): **Anzucht** (3.28.0, Konzept unten) → **Aufr�
 
 ---
 
-# Konzept — Anzucht · Zielversion 3.28.0 (noch nicht zur Freigabe)
+# Zur Freigabe — Anzucht · Zielversion 3.28.0 und 3.29.0
 
-Chris am 22.09.2026: eigener Bereich mit allen Anzuchten, gegliedert in Anzuchtbereiche (z. B. das kleine Anzuchthaus) und Gefäße (Wassergläser). Wasserwechsel muss vermerkt werden. Mehrere Stecklinge, auch verschiedene Sorten, werden oft zu einer Pflanze zusammengesetzt. Bestimmung über die Mutterpflanze aus der Galerie oder per KI.
+Chris am 22.09.2026: eigener Bereich mit allen Anzuchten, gegliedert in Anzuchtbereiche (z. B. das kleine Anzuchthaus) und Gefäße (Wassergläser). Wasserwechsel mit Abstand je Gefäß. Mehrere Stecklinge, auch verschiedene Sorten, werden oft zu einer Pflanze zusammengesetzt. Bestimmung über die Mutterpflanze aus der Galerie oder per KI. Fotos am Gefäß, Verlauf je Gruppe („beides“).
 
-## Aufbau
+Nachtrag Chris, 22.09.2026:
+- Der Wasserwechsel steht im **Gießplan** wie eine Gießaufgabe, nicht als Aufgabe — so wie bei Pflanzen in reinem Wasser.
+- Stecklinge müssen **einzeln aus einer Gruppe entnommen** werden können, etwa zum Eintopfen.
+- **„Vermehren“ und Anzucht zusammenführen** zu einem Werkzeug „Anzucht“, statt eines weiteren Eintrags unter Werkzeuge.
 
-- **Bereich „Anzucht“** in der App, eigener Einstieg.
-- **Anzuchtbereiche**, z. B. „Anzuchthaus“, „Fensterbank Küche“. Ein Gefäß kann auch ohne Bereich stehen.
-- **Gefäße**, z. B. „Glas 1“, „Schale im Anzuchthaus“. Angaben: Medium (Wasser, Substrat, Moos, Perlite), Foto, Startdatum.
-- **Gruppen** im Gefäß: Anzahl, Methode (Blattsteckling, Kopfsteckling, Blattschnitt, Triebstück …), Start, Herkunft.
+## Begriffe
 
-## Herkunft einer Gruppe — drei Wege
+- **Bereich:** ein Ort mit mehreren Gefäßen, z. B. „Anzuchthaus“. Freiwillig.
+- **Gefäß:** Glas, Schale, Topf. Medium Wasser, Substrat, Moos oder Perlite.
+- **Gruppe:** Stecklinge einer Herkunft in einem Gefäß — z. B. „15 Blattstecklinge Königsbegonie“. Ein Glas mit Red Emerald, Maranta, Adansonii und Pothos hat vier Gruppen.
 
-- Mutterpflanze aus der Galerie wählen (erbt Art, botanischen Namen, Sorte).
-- KI-Bestimmung per Foto des Stecklings (dieselben Sorten-Regeln wie 3.27.0).
-- Frei eintragen (getauschte Stecklinge).
+## Befund
 
-## Wasserwechsel
+- **Belegt** (Code): Pflanzen in Wasserkultur haben im Gießplan schon den Wasserwechsel statt des Gießens (`GIESSARTEN.wasser`: `wechsel:[5,7]`, Knopf „Wasser gewechselt“, `wechselIntervall`). Genau so sollen die Gläser erscheinen.
+- **Belegt** (Code): Gießliste, Gießmodus, Gießplan-Vorschau (`giessplanDaten`) und Heute bauen ausschließlich aus Pflanzen (`allePflanzen()`). Gefäße müssen dort als eigene Einträge hinein, ohne als Pflanzen zu gelten (sonst landen sie in Kartei, Lücken und Sammlungszahl).
+- **Belegt** (Code): Das Werkzeug „Vermehren“ ist ein Ablauf in drei Stufen: Mutterpflanze wählen → Weg wählen (Aussicht, Anleitung, KI-Nachfrage) → „Wie viele Ableger?“, die sofort als eigene Pflanzen angelegt werden (`ablegerAnlegen`).
+- **Belegt** (Code): Es gibt keinen Speicherort für Stecklinge; ein Ableger kennt genau eine Mutter (`eltern`) und eine Sorte.
+- **Belegt** (Code): Pflanzenfotos liegen in IndexedDB (`FOTO_DB`), `S` im localStorage. Gefäßfotos gehören in den Fotospeicher.
 
-- Gefäße mit Wasser haben „Wasser gewechselt“ mit Datum und Verlauf.
-- Erinnerung im festen Abstand, fällig und überfällig sichtbar im Bereich und in der Tagesübersicht.
+## Aufteilung
 
-## Eintopfen
+- **3.28.0:** Werkzeug „Anzucht“ (ersetzt „Vermehren“), Bereiche, Gefäße, Gruppen, Wasserwechsel im Gießplan, Verlauf, Fotos, Entnehmen (Ausfall, umsetzen, als eigene Pflanze eintopfen).
+- **3.29.0:** KI-Bestimmung per Foto, Mischtopf aus mehreren Gruppen und Sorten mit mehreren Müttern.
 
-- Aus einer oder mehreren Gruppen, auch aus verschiedenen Gefäßen und Sorten, entsteht **eine** neue Pflanze.
-- Die Karte kennt dann mehrere Mütter und eine Hauptsorte mit „Mit im Topf: …“ (z. B. Golden Pothos mit Marble Queen).
-- Erbe über `ABLEGER_ERBE` von der gewählten Hauptmutter.
-- Die Gruppen zählen um die eingetopften Stecklinge herunter; leere Gruppen verschwinden, der Verlauf bleibt.
+## 3.28.0
 
-## Befund für den Bau
+**Werkzeug „Anzucht“ statt „Vermehren“**
+- Der Eintrag „Vermehren“ heißt künftig „Anzucht“, an derselben Stelle. Kein weiterer Eintrag, die Werkzeugseite sieht aus wie bisher.
+- Oben die Übersicht: Bereiche mit ihren Gefäßen, Gefäße ohne Bereich darunter. Je Gefäß Name, Medium, Zahl der Stecklinge, nächster Wasserwechsel.
+- Knopf „Neue Stecklinge“ startet den bisherigen Vermehren-Ablauf unverändert (Mutterpflanze → Weg mit Aussicht, Anleitung, KI-Nachfrage).
+- Stufe 3 fragt neu „Wohin?“:
+  - **In die Anzucht** (Vorgabe): Gefäß wählen oder neu anlegen, Anzahl — es entsteht eine Gruppe;
+  - **Gleich als eigene Pflanzen**: wie bisher, für schon bewurzelte Ableger.
+- „Frei eintragen“ für Stecklinge ohne Mutter in der Sammlung (getauscht): Art, botanischer Name, Sorte von Hand.
 
-- **Belegt** (Code): Ein Ableger kennt genau eine Mutter (`eltern`). Mehrere Mütter brauchen ein neues Feld.
-- **Belegt** (Code): Eine Karte kennt genau eine Sorte.
+**Gefäß**
+- Name, Medium, Bereich (oder keiner), Startdatum, Fotos mit Datum.
+- Bei Medium Wasser: „Wasser wechseln alle … Tage“, Vorgabe 7, je Gefäß änderbar.
+- Bei Substrat, Moos oder Perlite: „Befeuchten alle … Tage“, Vorgabe 10, je Gefäß änderbar oder aus.
+- Umbenennen, verschieben, auflösen (nur wenn leer).
 
-## Offene Fragen an Chris
+**Bereich mit eigenem Rhythmus**
+- Ein Bereich kann selbst einen Rhythmus haben — gedacht für das Anzuchthaus: „Befeuchten alle … Tage“, Vorgabe 10.
+- Dann stehen die Gefäße darin nicht einzeln im Gießplan, sondern das Anzuchthaus als ein Eintrag mit Knopf „Befeuchtet“. Wassergläser in einem Bereich behalten ihren eigenen Wechsel.
 
-- Abstand für den Wasserwechsel als Vorgabe: alle 3 oder alle 7 Tage — oder je Gefäß einstellbar?
-- Eigene Fotos und Verlauf je Gruppe (Wurzeln sichtbar, erstes Blatt) oder je Gefäß?
+**Wasserwechsel im Gießplan**
+- Wassergläser erscheinen in Heute, im Gießmodus und in der Gießplan-Vorschau **wie eine Pflanze in Wasserkultur**: Eintrag mit dem Gefäßnamen und seinen Stecklingen, Knopf „Wasser gewechselt“, fällig nach dem eingestellten Abstand.
+- Substrat-Gefäße und Bereiche mit Rhythmus (Anzuchthaus) erscheinen genauso, mit Knopf „Befeuchtet“.
+- Sie sind dort eigene Einträge, keine Pflanzen: nicht in Kartei, Lücken, Sammlungszahl, Doktor.
+
+**Gruppe**
+- Anzahl, Methode (Blattsteckling, Kopfsteckling, Stammsteckling, Blattschnitt, Triebstück, Teilstück, Ausläufer), Startdatum, Herkunft.
+- Verlauf mit Datum: „Wurzeln sichtbar“, „erstes neues Blatt“, freie Notiz.
+
+**Entnehmen**
+- Aus jeder Gruppe lassen sich ein oder mehrere Stecklinge entnehmen, Anzahl wählbar:
+  - **Eintopfen als eigene Pflanze** — je entnommenem Steckling eine Karte oder alle zusammen in einen Topf als eine Karte; erbt von der Mutter wie bisher, hängt im Stammbaum unter ihr;
+  - **Umsetzen** in ein anderes Gefäß (vorhandene Gruppe derselben Herkunft oder neue Gruppe) — der Verlauf wandert mit;
+  - **Ausfall** — zählt nur herunter, mit Eintrag im Verlauf.
+- Eine leere Gruppe verschwindet aus dem Gefäß; der Verlauf bleibt am Ableger bzw. in der Mutterkarte.
+
+**Mutterpflanze**
+- Die Karte der Mutter zeigt: „In Anzucht: 15 Blattstecklinge · Glas 1“.
+
+**Sicherung**
+- `S.anzucht` geht in Datensicherung und Wiederherstellung mit, die Fotos wie die Pflanzenfotos.
+
+## 3.29.0
+
+**KI-Bestimmung**
+- „Per Foto bestimmen“ in der Gruppe: kurzer Auftrag nur mit ART, BOTANISCH, SICHERHEIT, SORTE, SORTE_BELEG, SORTEN_VERWECHSLUNG; Regeln aus 3.27.0 (`sorteGeprueft`); gespeichert erst per Tipp.
+
+**Mischtopf**
+- Eintopfen aus mehreren Gruppen, auch aus verschiedenen Gefäßen und Sorten, zu **einer** Pflanze (z. B. Golden Pothos mit Marble Queen).
+- Erbe über `ABLEGER_ERBE` von der Hauptgruppe (Vorgabe: die mit den meisten Stecklingen).
+- Neue Felder `muetter` und `mitImTopf`; die Karte zeigt „Mit im Topf: Marble Queen (2)“. `eltern` bleibt die Hauptmutter, der Stammbaum zeigt weitere Mütter mit.
+
+## Annahmen — ohne Einwand gelten sie mit der Freigabe
+
+- **Z1** Ein Glas im Gießplan heißt wie das Gefäß („Glas 1“) und nennt darunter seine Stecklinge.
+- **Z2** (entschieden, Chris 22.09.2026) Auch das Anzuchthaus steht im Gießplan: Es wird alle ein bis zwei Wochen mit etwas Wasser befüllt, damit die Feuchtigkeit bleibt. Vorgabe „Befeuchten alle 10 Tage“, einstellbar.
+- **Z3** Der Vermehren-Ablauf bleibt inhaltlich gleich (Aussicht, Anleitung, KI-Wege); neu ist nur „Wohin?“ in Stufe 3.
+- **Z4** Aufteilung auf 3.28.0 und 3.29.0 wie oben.
+
+## Nicht angefasst
+
+Kartei, Doktor, Gießlogik der Pflanzen, bestehende Ableger und `eltern`, `ABLEGER_ERBE` (nur gelesen), `giftEigenSetzen`, `fest`/`strittig`.
+
+## Risiken
+
+- Gießliste, Gießmodus, Vorschau und Heute bekommen einen zweiten Eintragstyp — jede Stelle, die heute „Pflanze“ annimmt, braucht einen Test mit Glas.
+- Fotos mehrerer Gefäße vergrößern den Fotospeicher; sie werden verkleinert wie Pflanzenfotos.
+
+**Pflichtpaket** je Fassung nach Regel 6.2.
 
 ---
 

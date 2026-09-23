@@ -3113,6 +3113,52 @@ html[data-design="klartext"] .vgl-punkt{width:12px;height:12px}
 .ver-fehler li{color:var(--ink-2)}
 #ver-meldung .linkbtn{margin-left:6px}
 
+/* ── Anzucht (3.28.0) ─────────────────────────────────────── */
+.az-zurueck{display:inline-block;margin:0 0 10px}
+.az-oben{margin-top:0}
+.az-titel{font-family:var(--f-display);font-size:var(--t-xl, 1.35rem);margin:4px 0 2px;overflow-wrap:anywhere}
+.az-unter{margin:0 0 10px;font-size:var(--t-s);color:var(--schrift-2)}
+.az-still{margin:6px 0 10px;font-size:var(--t-s);color:var(--schrift-2);line-height:1.5}
+.az-fehler{margin:8px 0 0;font-size:var(--t-s);color:var(--terra)}
+.az-bkopf{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.az-bkopf .linkbtn{font-size:var(--t-s);text-transform:none;letter-spacing:0}
+.az-tat{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin:6px 0 10px;padding:10px 12px;border:1px solid var(--linie);border-radius:var(--r-mittel)}
+.az-tat.faellig{border-color:var(--water)}
+.az-tat span{flex:1 1 12em;min-width:0;font-size:var(--t-s)}
+.az-tat button{min-height:var(--tap);padding:0 14px;border-radius:var(--r-klein);font:inherit;cursor:pointer;
+  border:1px solid var(--water);background:var(--water);color:var(--schrift-invers, #fff);font-weight:600}
+.az-gruppe{border:1px solid var(--linie);border-radius:var(--r-mittel);padding:12px;margin:0 0 10px}
+.az-gkopf{margin:0}
+.az-gkopf b{display:block;font-size:var(--t-l);overflow-wrap:anywhere}
+.az-gkopf i{display:block;font-style:normal;font-size:var(--t-s);color:var(--schrift-2);margin-top:2px}
+.az-verlauf{list-style:none;margin:10px 0 0;padding:0;font-size:var(--t-s);line-height:1.5}
+.az-verlauf span{display:inline-block;min-width:4.5em;color:var(--schrift-2);font-family:var(--f-data)}
+.az-gruppe .tools{margin-top:10px}
+.az-notiz{display:flex;gap:8px;margin-top:8px}
+.az-notiz[hidden]{display:none!important}
+.az-notiz input{flex:1;min-width:0;font:inherit;padding:8px 10px;border:1px solid var(--linie);
+  border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
+.az-notiz button{font:inherit;padding:0 12px;min-height:var(--tap);border:1px solid var(--linie);
+  border-radius:var(--r-klein);background:none;color:inherit;cursor:pointer}
+.az-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:6px 0 10px}
+.az-fotos figure{position:relative;margin:0}
+.az-fotos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--r-klein);display:block}
+.az-fotos figcaption{font-size:var(--t-mono);color:var(--schrift-2);margin-top:2px}
+.az-fotoweg{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;
+  background:rgba(0,0,0,.55);color:#fff;font-size:1rem;line-height:1;cursor:pointer}
+.az-fotoneu{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;aspect-ratio:1;
+  border:1px dashed var(--linie);border-radius:var(--r-klein);cursor:pointer;color:var(--schrift-2);font-size:var(--t-s)}
+.az-fotoneu span[aria-hidden]{font-size:1.4rem;line-height:1}
+.az-form [hidden]{display:none!important}
+.az-neufelder{display:grid;gap:12px}
+.az-zahl{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
+.az-zahl button:not(.linkbtn){width:var(--tap);height:var(--tap);border-radius:var(--r-klein);font:inherit;
+  font-size:1.2rem;border:1px solid var(--linie);background:none;color:inherit;cursor:pointer}
+.az-zahl output{min-width:2.5em;text-align:center;font-size:var(--t-l);font-weight:600}
+.az-mutter{margin:8px 0;font-size:var(--t-s)}
+#az-ansicht[hidden],#az-assistent[hidden],#ver-az[hidden],#ver-pfl[hidden]{display:none!important}
+
 /* ── Vermehren ───────────────────────────────────────────── */
 #verm-pflanze{width:100%;margin-top:4px;font:inherit;font-size:var(--t-l);padding:9px 10px;
   border:1px solid var(--line);border-radius:var(--r-klein);background:var(--paper);color:var(--ink)}
@@ -9838,14 +9884,17 @@ function papierkorbRender(){
   </section>
 
   <section data-ans="werkzeuge" class="plan wz" id="vermehr-sec" data-wz="vermehren">
-    <h2 class="wz-h2">Vermehren</h2>
+    <h2 class="wz-h2">Anzucht</h2>
     <div class="wz-kopfzeile">
       <button class="wz-kopf" data-wz-go="vermehren" aria-expanded="false" aria-controls="wz-in-vermehren">
-        <span class="wz-t">Vermehren</span><span class="wz-p" aria-hidden="true">›</span></button>
-      <button class="wz-i" data-wz-info="vermehren" aria-expanded="false" aria-label="Wozu ist „Vermehren“ da?">i</button>
+        <span class="wz-t">Anzucht</span><span class="wz-p" aria-hidden="true">›</span></button>
+      <button class="wz-i" data-wz-info="vermehren" aria-expanded="false" aria-label="Wozu ist „Anzucht“ da?">i</button>
     </div>
     <div class="wz-in" id="wz-in-vermehren" hidden>
-      <p class="wz-hilfe" hidden>Welche Wege bei genau dieser Art funktionieren, wie lange sie dauern und woran es meistens scheitert. Der fertige Ableger landet mit einem Tipp in der Sammlung und im Stammbaum.</p>
+      <p class="wz-hilfe" hidden>Alle Stecklinge an einem Ort: Bereiche wie das Anzuchthaus, darin Gefäße wie Wassergläser, darin die Gruppen. Wasserwechsel und Befeuchten stehen im Gießplan wie bei einer Pflanze in Wasserkultur. „Neue Stecklinge“ zeigt, welche Wege bei einer Pflanze deiner Sammlung funktionieren.</p>
+      <div id="az-ansicht"></div>
+      <div id="az-assistent" hidden>
+      <button type="button" class="linkbtn az-zurueck" data-az="liste">‹ Zur Übersicht</button>
       <ol class="as-fortschritt" id="ver-fortschritt" aria-label="Fortschritt">
         <li class="jetzt"></li><li></li><li></li>
       </ol>
@@ -9918,10 +9967,18 @@ function papierkorbRender(){
              Namensfelder daneben gehoerten zu einem Durchgang, der
              vorbei ist. -->
         <div id="ver-form3">
+          <p class="as-frage">Wohin?</p>
+          <div class="ein-wahl" id="ver-wohin" role="group" aria-label="Wohin mit den Stecklingen">
+            <button type="button" data-verwohin="anzucht" aria-pressed="true">In die Anzucht</button>
+            <button type="button" data-verwohin="pflanzen" aria-pressed="false">Gleich als eigene Pflanzen</button>
+          </div>
+          <div id="ver-az"></div>
+          <div id="ver-pfl" hidden>
           <p class="as-frage">Wie viele Ableger?</p>
-          <p class="as-unter">Jeder wird eine eigene Pflanze mit eigenem Namen, eigenem Bild und eigenem Gießrhythmus. Alle hängen im Stammbaum unter der Mutter.</p>
+          <p class="as-unter">Jeder wird eine eigene Pflanze mit eigenem Namen, eigenem Bild und eigenem Gießrhythmus. Alle hängen im Stammbaum unter der Mutter. Für schon bewurzelte Ableger.</p>
           <div class="ver-zahl" id="ver-zahl"></div>
           <div id="ver-ableger"></div>
+          </div>
         </div>
         <div class="alert info" id="ver-meldung" hidden></div>
       </div>
@@ -9929,6 +9986,7 @@ function papierkorbRender(){
       <div class="as-fuss">
         <button id="ver-zurueck" type="button" hidden>Zurück</button>
         <button id="ver-weiter" type="button" class="haupt">Weiter</button>
+      </div>
       </div>
 
         </div>
@@ -11331,8 +11389,26 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.27.0';
+const FASSUNG = '3.28.0';
 const PATCHNOTES = [
+  {
+    nr: '3.28.0', datum: '2026-09-22', titel: 'Anzucht',
+    kurz: [
+      'Aus „Vermehren“ wird das Werkzeug „Anzucht“: Stecklinge stehen als Gruppe in Gläsern und Schalen, der Wasserwechsel steht im Gießplan, und eine eigene Karte gibt es erst beim Eintopfen.'
+    ],
+    besser: [
+      'Die Anzucht zeigt alle Bereiche und Gefäße auf einen Blick: Name, Medium, Zahl der Stecklinge und den nächsten Wasserwechsel.',
+      'Bereiche wie das Anzuchthaus können einen eigenen Rhythmus haben, Vorgabe alle 10 Tage befeuchten. Dann steht der Bereich als ein Eintrag im Gießplan. Wassergläser darin behalten ihren eigenen Wechsel.',
+      'Wassergläser stehen in Heute, im Gießmodus und in der Gießplan-Vorschau wie eine Pflanze in Wasserkultur, mit Knopf „Wasser gewechselt“. Den Abstand stellst du je Gefäß ein, Vorgabe 7 Tage. Gefäße mit Substrat, Moos oder Perlite: „Befeuchtet“, Vorgabe 10 Tage.',
+      '„Neue Stecklinge“ führt durch die bekannten Wege. Neu ist die Frage „Wohin?“: in die Anzucht oder gleich als eigene Pflanzen.',
+      '„Frei eintragen“ für Stecklinge ohne Mutter in der Sammlung, etwa getauschte.',
+      'Jede Gruppe hat einen Verlauf: Wurzeln sichtbar, erstes neues Blatt, eigene Notizen. Fotos hängen am Gefäß.',
+      'Entnehmen, auch einzeln: als eigene Pflanze eintopfen (je Steckling eine Karte oder alle in einen Topf), in ein anderes Gefäß umsetzen oder als Ausfall eintragen.',
+      'Die Karte der Mutter zeigt, was von ihr gerade in der Anzucht steht.',
+      'Die Anzucht geht mit in die Sicherung, ihre Fotos auch.'
+    ],
+    behoben: []
+  },
   {
     nr: '3.27.0', datum: '2026-09-22', titel: 'Verlässliche Sorten und Pflegeangaben',
     kurz: [
@@ -13982,9 +14058,11 @@ function giessen(id){
    als eigener Stand 'stopp' abgebildet und fallen darum nicht in 'over'. */
 function heuteZahlen(){
   const alle = allePflanzen().map(p=>giessStatus(p));
+  /* 3.28.0: fällige Gläser und Anzuchthäuser zählen mit. */
+  const az = (typeof azEintraege === 'function') ? azEintraege() : [];
   return {
-    ueber:     alle.filter(st=>st.stand === 'over').length,
-    heute:     alle.filter(st=>st.stand === 'soon' && st.rest === 0).length,
+    ueber:     alle.filter(st=>st.stand === 'over').length + az.filter(e=>e.rest < 0).length,
+    heute:     alle.filter(st=>st.stand === 'soon' && st.rest === 0).length + az.filter(e=>e.rest === 0).length,
     unbekannt: alle.filter(st=>st.stand === 'unbekannt').length,
     pause:     alle.filter(st=>st.stand === 'stopp').length
   };
@@ -15582,6 +15660,7 @@ function kartenDetailHTML(p){
   return `<div class="detail">
       ${kartenKopfHTML(p)}
       ${hinweis}
+      ${typeof anzuchtMutterHTML === 'function' ? anzuchtMutterHTML(p) : ''}
       ${warnungenHTML(p)}
       ${pflegeHinweiseHTML(p)}
       ${aufgabenZeileHTML(p)}
@@ -16752,6 +16831,12 @@ function giessplanDaten(tage){
     if(rest < 0) ueber.push({p, tage:-rest});
     else if(rest < tage) raus[rest].push(p);
   });
+  /* 3.28.0: Gläser und Anzuchthaus stehen hier wie Pflanzen in
+     Wasserkultur, ohne selbst Pflanzen zu sein. */
+  if(typeof azEintraege === 'function') azEintraege().forEach(e=>{
+    if(e.rest < 0) ueber.push({p:e, tage:-e.rest});
+    else if(e.rest < tage) raus[e.rest].push(e);
+  });
   return {tage:raus, ueber};
 }
 
@@ -16783,7 +16868,7 @@ function giessplanZeichnen(){
   ziel.innerHTML = `<div class="gp">
     ${d.ueber.length ? `<div class="gp-sockel">
       <b>${d.ueber.length} überfällig</b>
-      <span>${d.ueber.slice(0,6).map(x=>esc(nice(x.p)) + ' (' + x.tage + ')').join(' · ')}${d.ueber.length>6?' …':''}</span>
+      <span>${d.ueber.slice(0,6).map(x=>esc(x.p.anzucht ? x.p.name : nice(x.p)) + ' (' + x.tage + ')').join(' · ')}${d.ueber.length>6?' …':''}</span>
     </div>` : ''}
     <div class="gp-balken">${saeulen}</div>
     <p class="gp-legende">Vier Wochen im Voraus. Die Zahl über der Säule ist die Menge fälliger Pflanzen an diesem Tag. Antippen zeigt, welche.</p>
@@ -16801,7 +16886,9 @@ document.addEventListener('click', e=>{
   document.querySelectorAll('[data-gptag]').forEach(x=>x.classList.toggle('on', x === b));
   box.innerHTML = liste.length
     ? `<h4>${tag.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'})}</h4>
-       <ul class="gp-liste">${liste.map(p=>`<li>${esc(nice(p))} <span>${esc(lageVon(p) || 'ohne Platz')}</span></li>`).join('')}</ul>`
+       <ul class="gp-liste">${liste.map(p=>p.anzucht
+         ? `<li>${esc(p.name)} <span>${esc(p.tat === 'Wasser gewechselt' ? 'Wasserwechsel' : 'Befeuchten')} · Anzucht</span></li>`
+         : `<li>${esc(nice(p))} <span>${esc(lageVon(p) || 'ohne Platz')}</span></li>`).join('')}</ul>`
     : `<p class="allgut">An diesem Tag ist nichts fällig.</p>`;
 });
 
@@ -22602,12 +22689,14 @@ function giessListe(){
     .map(x=>x.p);
 }
 
-let gmListe = [], gmIndex = 0, gmErledigt = 0, gmUebersprungen = 0;
+let gmListe = [], gmIndex = 0, gmErledigt = 0, gmUebersprungen = 0, gmAzErledigt = 0;
 
 function gmStarten(){
-  gmListe = giessListe();
+  /* 3.28.0: fällige Gläser und Anzuchthäuser hinten dran. Sie sind
+     keine Pflanzen und laufen durch einen eigenen Zweig. */
+  gmListe = giessListe().concat(typeof azFaellig === 'function' ? azFaellig() : []);
   if(!gmListe.length){ alert('Gerade ist nichts fällig. Schön.'); return; }
-  gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0; gmBefunde = []; gmZugefragt = {};
+  gmIndex = 0; gmErledigt = 0; gmUebersprungen = 0; gmAzErledigt = 0; gmBefunde = []; gmZugefragt = {};
   gmDuengetag = false;
   modalAuf('giessmodus');
 }
@@ -22620,7 +22709,7 @@ let gmDuengetag = false;
    sie noch feucht. Der Zaehler wird nur bei denen zurueckgesetzt, die
    tatsaechlich etwas bekommen haben. */
 function gmDuengKandidaten(liste){
-  return (liste || []).filter(p => !!duengFaellig(p));
+  return (liste || []).filter(p => !p.anzucht && !!duengFaellig(p));
 }
 let gmBefunde = [];
 /* Wer im Rundgang schon geantwortet hat, wird nicht noch einmal
@@ -22653,6 +22742,7 @@ function gmZeichnen(){
     }
   }
   const p = gmListe[gmIndex];
+  if(p && p.anzucht){ gmZeichnenAnzucht(p); return; }
   const st = giessStatus(p);
   const z = zustandVon(p);
   const kl = KLASSEN[p.klasse] || {};
@@ -22734,6 +22824,28 @@ function gmZeichnen(){
   $('#gm-fort').style.width = ((gmIndex)/gmListe.length*100).toFixed(1)+'%';
 }
 
+/* 3.28.0: ein Glas oder ein Anzuchthaus im Rundgang. Wie eine Pflanze
+   in Wasserkultur: ein Knopf für die Tat, einer für später. */
+function gmZeichnenAnzucht(e){
+  const lage = e.rest < 0 ? `${-e.rest} ${-e.rest===1?'Tag':'Tage'} überfällig` : 'Heute dran';
+  const f = (e.typ === 'gefaess' && typeof profilFoto === 'function') ? profilFoto(e.ref) : null;
+  $('#gm-inhalt').innerHTML = `
+    <p class="gm-zaehler">${gmIndex+1} von ${gmListe.length}</p>
+    <div class="gm-karte">
+    <div class="gm-kopf">
+      <div class="gm-bild klein">${f && f.src ? `<img src="${f.src}" alt="">` : '<span class="gm-kein">kein Foto</span>'}</div>
+      <div class="gm-kopf-text"><h3>${esc(e.name)}</h3><p class="gm-art">${esc(e.art)}</p></div>
+    </div>
+    <p class="gm-lage ${e.rest < 0 ? 'warn' : ''}">${esc(lage)} · alle ${e.iv} Tage</p>
+    ${e.unter.length ? `<p class="gm-namen">${e.unter.map(esc).join(' · ')}</p>` : ''}
+    <p class="gm-hinweis">${esc(e.tat === 'Wasser gewechselt' ? AZ_GLAS_TEXT : AZ_FEUCHT_TEXT)}</p>
+    </div>`;
+  $('#gm-knoepfe').innerHTML = `
+    <button class="gm-ja" data-gm="azja">${esc(e.tat)}</button>
+    <button class="gm-spaeter" data-gm="spaeter">Später</button>`;
+  $('#gm-fort').style.width = ((gmIndex)/gmListe.length*100).toFixed(1)+'%';
+}
+
 /* Ein Satz, der zu genau dieser Pflanze passt. Reihenfolge nach
    Dringlichkeit: was gerade verboten ist, dann die Probe für ihre
    Klasse, dann die Art der Wassergabe, dann der Standort. */
@@ -22804,7 +22916,9 @@ function gmZeichnenDueng(perNotbremse){
   const e = duengEinst();
   const liter = duengKanneLiter(kand);
   const geschaetzt = kand.filter(p => !topfBekannt(p)).length;
+  const nPfl = gmListe.filter(p => !p.anzucht).length;
   const gesperrt = gmListe.filter(p => {
+    if(p.anzucht) return false;
     const g = duengGrenze(p);
     return g && g.code === 'karnivore';
   });
@@ -22813,7 +22927,7 @@ function gmZeichnenDueng(perNotbremse){
     <div class="gm-karte">
       <h3>Heute ist Düngetag</h3>
       <p class="gm-dosis"><b>${String(liter).replace('.', ',')} Liter</b> anrühren · <b>${String(duengMengeFuer(kand)).replace('.', ',')} ml</b> Dünger hinein</p>
-      <p class="gm-art">Voraussichtlich ${kand.length} von ${gmListe.length} ${gmListe.length===1?'Pflanze':'Pflanzen'} — wer heute nicht gegossen wird, bekommt auch keinen Dünger.</p>
+      <p class="gm-art">Voraussichtlich ${kand.length} von ${nPfl} ${nPfl===1?'Pflanze':'Pflanzen'} — wer heute nicht gegossen wird, bekommt auch keinen Dünger.</p>
       <p class="gm-namen">${kand.map(p=>esc(nice(p))).join(' · ')}</p>
       ${geschaetzt ? `<p class="gm-hinweis">Bei ${geschaetzt} von ${kand.length} ist die Topfgröße geschätzt — trag sie an der Pflanze nach, dann stimmt die Menge. An der Stärke ändert das nichts.</p>` : ''}
       ${perNotbremse ? `<p class="gm-hinweis">Heute ist eigentlich kein Düngetag. Eine Pflanze wartet aber deutlich zu lange, deshalb doch.</p>` : ''}
@@ -22839,7 +22953,7 @@ function gmZeichnenEnde(){
     <p class="gm-zaehler">Fertig</p>
     <div class="gm-fertig">✓</div>
     <h3>Durch</h3>
-    <p class="gm-art">${gmErledigt} ${gmErledigt===1?'Pflanze':'Pflanzen'} gegossen${rest?`, ${rest} übersprungen`:''}.</p>
+    <p class="gm-art">${gmErledigt} ${gmErledigt===1?'Pflanze':'Pflanzen'} gegossen${gmAzErledigt?`, ${gmAzErledigt} ${gmAzErledigt===1?'Anzucht':'Anzuchten'} versorgt`:''}${rest?`, ${rest} übersprungen`:''}.</p>
     ${befunde ? `<p class="gm-hinweis">${gmBefunde.length===1?'Eine Pflanze ist aufgefallen':gmBefunde.length + ' Pflanzen sind aufgefallen'}:</p>${befunde}` : ''}
     <p class="gm-hinweis">Übersprungene bleiben in der Liste und tauchen morgen wieder auf.</p>`;
   $('#gm-knoepfe').innerHTML = `<button class="gm-ja" data-gm="zu">Schließen</button>`;
@@ -22886,6 +23000,13 @@ document.addEventListener('click', e=>{
     return;
   }
   if(a === 'probe'){ return; }
+  const pa = gmListe[gmIndex];
+  if(pa && pa.anzucht){
+    if(a === 'azja'){ azErledigen(pa.typ, pa.ref); gmAzErledigt++; }
+    else gmUebersprungen++;
+    gmWeiter();
+    return;
+  }
   const p = gmListe[gmIndex];
   /* „War staubtrocken" ist auch gegossen — nur mit der Meldung, dass
      der Abstand zu lang war. Deshalb derselbe Weg wie „Gegossen",
@@ -22942,13 +23063,15 @@ function duengZeileHTML(){
 
 function gmKnopfAktualisieren(){
   const n = giessListe().length;
+  const m = (typeof azFaellig === 'function') ? azFaellig().length : 0;
   const sub = document.getElementById('gm-start-sub');
   const btn = document.getElementById('btn-giessmodus');
   if(!sub || !btn) return;
-  btn.classList.toggle('leer', n === 0);
-  sub.textContent = n === 0
-    ? 'nichts fällig'
-    : `${n} ${n===1?'Pflanze wartet':'Pflanzen warten'}`;
+  btn.classList.toggle('leer', n + m === 0);
+  const teile = [];
+  if(n) teile.push(`${n} ${n===1?'Pflanze wartet':'Pflanzen warten'}`);
+  if(m) teile.push(`${m} ${m===1?'Anzucht':'Anzuchten'}`);
+  sub.textContent = teile.length ? teile.join(' · ') : 'nichts fällig';
 }
 const _renderVorherGm = render;
 render = function(){ _renderVorherGm(); gmKnopfAktualisieren(); rasterSpannenBald(); };
@@ -23240,10 +23363,13 @@ const ANSICHT_KOPF = {
 /* Eine Zeile, die den Tag beschreibt — dieselbe Zahl, die auch auf
    dem Giesknopf steht, aber als Satz. */
 function heuteLageText(){
-  let n = 0;
+  let n = 0, m = 0;
   try{ n = giessListe().length; }catch(e){ return ''; }
-  if(!n) return 'Heute ist nichts fällig.';
-  return n === 1 ? 'Eine Pflanze ist heute dran.' : n + ' Pflanzen sind heute dran.';
+  try{ m = (typeof azFaellig === 'function') ? azFaellig().length : 0; }catch(e){ m = 0; }
+  if(!n && !m) return 'Heute ist nichts fällig.';
+  const pfl = !n ? '' : (n === 1 ? 'Eine Pflanze ist heute dran.' : n + ' Pflanzen sind heute dran.');
+  const az = !m ? '' : (m === 1 ? 'Eine Anzucht braucht Wasser.' : m + ' Anzuchten brauchen Wasser.');
+  return [pfl, az].filter(Boolean).join(' ');
 }
 
 function tagesGruss(){
@@ -23459,6 +23585,8 @@ function sektionOeffnen(key, ausloeser){
   /* Immer mit der Liste beginnen: wer den Stammbaum aufschlägt, will
      wählen, nicht dort weitermachen, wo er letztes Mal aufgehört hat. */
   if(key === 'stammbaum' && typeof sbZeigeListe === 'function') sbZeigeListe();
+  /* Die Anzucht beginnt immer mit der Übersicht. */
+  if(key === 'vermehren' && typeof azZeigen === 'function') azZeigen({art:'liste'});
   /* Der Planer merkte sich, dass er zuletzt im Editor stand — und
      sprang beim nächsten Öffnen sofort wieder hinein. Der Weg zur
      Raumliste war damit versperrt. Er beginnt jetzt immer oben. */
@@ -23588,7 +23716,7 @@ const WZ_KACHEL = {
     + '<path d="M7.6 13c1.1-1.5 2.6-2.3 4.4-2.3s3.3.8 4.4 2.3"/><path d="M12 10.7V6.4"/>'
     + '<path d="M12 7.6c0-2 1.5-3.1 4-3.1 0 2.4-1.5 3.6-4 3.1z"/>'
     + '<path d="M12 8.8c0-1.6-1.2-2.5-3.2-2.5 0 2 1.2 3 3.2 2.5z"/>'},
-  vermehren: {unter:'Ableger ziehen', svg:
+  vermehren: {unter:'Stecklinge und Gläser', svg:
     '<path d="M12 21V11M12 11c0-4 3-6 8-6 0 5-3 7-8 6z"/><path d="M4 7h6M7 4v6"/>'},
   stammbaum: {unter:'Wer von wem', svg:
     '<circle cx="12" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="19" r="2.5"/>'
@@ -27278,6 +27406,9 @@ let verStufe = 1;
    Meldung mit den Links auf die neuen Pflanzen soll aber stehen
    bleiben. Erst „Fertig“ raeumt ab. */
 let verErledigt = false;
+/* 3.28.0: Wohin die Stecklinge in Stufe 3 gehen. */
+let verWohin = 'anzucht';
+let verLetzterWeg = null;
 let VER_ABLEGER = [];    /* [{name, bearbeitet, datei, vorschau}] */
 const VER_MAX = 10;
 
@@ -27413,6 +27544,7 @@ function verStufeZeigen(nr){
   if(verStufe === 3 && !verErledigt){
     if(!VER_ABLEGER.length) verAnzahlSetzen(1);
     else verAblegerZeichnen();
+    if(typeof verWohinZeichnen === 'function') verWohinZeichnen();
   }
 }
 
@@ -27427,7 +27559,7 @@ function verFussZeichnen(){
   if(wei){
     wei.hidden = false;
     wei.textContent = verErledigt ? 'Fertig'
-      : letzte ? 'Ableger anlegen' : 'Weiter';
+      : letzte ? (verWohin === 'anzucht' ? 'In die Anzucht setzen' : 'Ableger anlegen') : 'Weiter';
     /* Ohne Pflanze und ohne Weg führt Weiter ins Leere. */
     wei.disabled = (verStufe === 1 && !verPflanze) || (verStufe === 2 && !verMethode);
   }
@@ -27438,6 +27570,9 @@ function verFussZeichnen(){
 async function verAblegerAnlegen(){
   const los = document.getElementById('ver-weiter');
   const meld = document.getElementById('ver-meldung');
+  /* 3.28.0: Vorgabe ist die Anzucht. Eigene Pflanzen nur für schon
+     bewurzelte Ableger — der alte Weg bleibt unverändert darunter. */
+  if(verWohin === 'anzucht'){ verInAnzucht(); return; }
   if(!verPflanze || !verMethode || !VER_ABLEGER.length) return;
   if(los){ los.disabled = true; los.textContent = 'Wird angelegt …'; }
   const neue = [];
@@ -27480,6 +27615,9 @@ async function verAblegerAnlegen(){
 /* „Fertig“ raeumt den Durchgang ab und verlaesst das Werkzeug —
    dasselbe wie „Diagnose abschließen“ beim Doktor. */
 function verAbschliessen(){
+  /* Wer in die Anzucht gesetzt hat, will das Gefäß sehen, nicht raus. */
+  const zurAnzucht = verLetzterWeg === 'anzucht';
+  verLetzterWeg = null;
   verErledigt = false;
   verPflanze = null;
   verMethode = null;
@@ -27490,6 +27628,7 @@ function verAbschliessen(){
   if(typeof verWahlZeichnen === 'function') verWahlZeichnen();
   if(typeof verGitterZeichnen === 'function')
     verGitterZeichnen((document.getElementById('ver-such') || {}).value || '');
+  if(zurAnzucht){ azZeigen({art:'liste'}); return; }
   if(typeof modalZu === 'function') modalZu('sek-modal');
 }
 
@@ -27785,6 +27924,814 @@ function ablegerAnlegen(mutterId, methodeId){
   return p;
 }
 
+/* ══════════════════ Anzucht (3.28.0) ══════════════════
+   Stecklinge sind noch keine Pflanzen. Bis 3.27.0 wurde jeder sofort
+   eine eigene Karte — fünfzehn Blattstecklinge einer Königsbegonie
+   waren fünfzehn Karten mit fünfzehn Gießplänen. Jetzt stehen sie als
+   Gruppe in einem Gefäß, das Gefäß steht im Gießplan wie eine Pflanze
+   in Wasserkultur, und eine Karte entsteht erst beim Eintopfen.
+
+   Bereich: ein Ort mit mehreren Gefäßen (Anzuchthaus), freiwillig.
+   Gefäß:   Glas, Schale, Topf mit einem Medium.
+   Gruppe:  Stecklinge einer Herkunft in einem Gefäß.
+
+   Gefäße sind keine Pflanzen: sie stehen nie in allePflanzen() und
+   damit nie in Kartei, Lücken, Sammlungszahl oder Doktor. */
+const AZ_MEDIEN = {
+  wasser:   {name:'Wasser',   tat:'Wasser gewechselt', rhythmus:'Wasser wechseln', vorgabe:7},
+  substrat: {name:'Substrat', tat:'Befeuchtet',        rhythmus:'Befeuchten',      vorgabe:10},
+  moos:     {name:'Moos',     tat:'Befeuchtet',        rhythmus:'Befeuchten',      vorgabe:10},
+  perlite:  {name:'Perlite',  tat:'Befeuchtet',        rhythmus:'Befeuchten',      vorgabe:10}
+};
+const AZ_BEREICH_VORGABE = 10;
+const AZ_METHODEN = ['Blattsteckling', 'Kopfsteckling', 'Stammsteckling', 'Blattschnitt',
+                     'Triebstück', 'Teilstück', 'Ausläufer'];
+/* Der Weg aus dem Vermehren-Ablauf, als Wort für das, was im Glas steht. */
+const AZ_AUS_VMETHODE = {kopfsteckling:'Kopfsteckling', stammstueck:'Stammsteckling',
+  blatt_sukkulent:'Blattsteckling', blatt_bogenhanf:'Blattschnitt', teilung:'Teilstück',
+  rhizomteilung:'Teilstück', kindel:'Kindel', auslaeufer:'Ausläufer', absenker:'Absenker',
+  abmoosen:'Abgemooster Trieb', aussaat:'Sämling', wurzelschnittling:'Wurzelschnittling'};
+const AZ_MEHRZAHL = {Blattsteckling:'Blattstecklinge', Kopfsteckling:'Kopfstecklinge',
+  Stammsteckling:'Stammstecklinge', Blattschnitt:'Blattschnitte', 'Triebstück':'Triebstücke',
+  'Teilstück':'Teilstücke', 'Ausläufer':'Ausläufer', Kindel:'Kindel', Absenker:'Absenker',
+  'Abgemooster Trieb':'Abgemooste Triebe', 'Sämling':'Sämlinge', Wurzelschnittling:'Wurzelschnittlinge'};
+const AZ_GLAS_TEXT = 'Wasser ausgießen, das Glas ausspülen, frisches zimmerwarmes Wasser einfüllen. '
+  + 'Nur Schnittstellen und Wurzeln stehen im Wasser, keine Blätter.';
+const AZ_FEUCHT_TEXT = 'Substrat nur anfeuchten, nicht nass machen. Im Anzuchthaus etwas Wasser '
+  + 'auf den Boden geben, damit die Luft feucht bleibt, und kurz lüften.';
+
+function azMethodeWort(m, n){ return n === 1 ? m : (AZ_MEHRZAHL[m] || m); }
+function azTagWort(n){ return n === 1 ? '1 Tag' : n + ' Tage'; }
+function azZahl(v, min, max, sonst){
+  const n = parseInt(v, 10);
+  return isNaN(n) ? sonst : Math.max(min, Math.min(max, n));
+}
+function anzuchtDaten(){
+  let A = S.anzucht;
+  if(!A || typeof A !== 'object' || Array.isArray(A)) A = S.anzucht = {};
+  ['bereiche', 'gefaesse', 'gruppen'].forEach(k=>{ if(!Array.isArray(A[k])) A[k] = []; });
+  return A;
+}
+function azNeueId(k){ return k + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function azGefaess(id){ return id ? (anzuchtDaten().gefaesse.find(g=>g.id === id) || null) : null; }
+function azBereich(id){ return id ? (anzuchtDaten().bereiche.find(b=>b.id === id) || null) : null; }
+function azGruppe(id){ return id ? (anzuchtDaten().gruppen.find(r=>r.id === id) || null) : null; }
+function azGruppenIn(gid){ return anzuchtDaten().gruppen.filter(r=>r.gefaess === gid && r.anzahl > 0); }
+function azZahlIn(gid){ return azGruppenIn(gid).reduce((s, r)=>s + r.anzahl, 0); }
+function azMedium(g){ return AZ_MEDIEN[g && g.medium] || AZ_MEDIEN.wasser; }
+function azMutter(r){ return r && r.mutter ? (allePflanzen().find(p=>p.id === r.mutter) || null) : null; }
+function azHerkunft(r){
+  return [r.art, r.sorte].map(x=>String(x || '').trim()).filter(Boolean).join(' ')
+    || String(r.botanisch || '').trim() || 'ohne Angabe';
+}
+function azGruppeText(r){ return r.anzahl + ' ' + azMethodeWort(r.methode, r.anzahl) + ' ' + azHerkunft(r); }
+function azHerkunftSchluessel(r){
+  return [r.mutter || '', r.methode, r.art, r.botanisch, r.sorte]
+    .map(x=>String(x || '').trim().toLowerCase()).join('|');
+}
+function azNameVorschlag(){
+  const namen = anzuchtDaten().gefaesse.map(g=>g.name);
+  let n = namen.length + 1;
+  while(namen.indexOf('Glas ' + n) !== -1) n++;
+  return 'Glas ' + n;
+}
+function azVerlauf(r, typ, text, datum){
+  if(!Array.isArray(r.verlauf)) r.verlauf = [];
+  r.verlauf.push({datum: datum || iso(HEUTE), typ, text});
+}
+
+function azGefaessAnlegen(o){
+  o = o || {};
+  const med = AZ_MEDIEN[o.medium] ? o.medium : 'wasser';
+  let abstand = o.abstand === null ? null : azZahl(o.abstand, 1, 60, AZ_MEDIEN[med].vorgabe);
+  if(med === 'wasser' && !abstand) abstand = AZ_MEDIEN.wasser.vorgabe;
+  const g = {id: azNeueId('AZG'), name: String(o.name || '').trim() || azNameVorschlag(), medium: med,
+             bereich: azBereich(o.bereich) ? o.bereich : null, start: o.start || iso(HEUTE),
+             abstand, gewechselt: []};
+  anzuchtDaten().gefaesse.push(g);
+  return g;
+}
+function azBereichAnlegen(o){
+  o = o || {};
+  const b = {id: azNeueId('AZB'), name: String(o.name || '').trim() || 'Anzuchthaus',
+             rhythmus: o.rhythmus === null ? null : azZahl(o.rhythmus, 1, 60, AZ_BEREICH_VORGABE),
+             befeuchtet: []};
+  anzuchtDaten().bereiche.push(b);
+  return b;
+}
+function azGruppeAnlegen(o){
+  const r = {id: azNeueId('AZR'), gefaess: o.gefaess, anzahl: azZahl(o.anzahl, 1, 500, 1),
+             methode: o.methode || 'Steckling', methodeId: o.methodeId || null,
+             mutter: o.mutter || null, mutterName: o.mutterName || '',
+             art: o.art || '', botanisch: o.botanisch || '', sorte: o.sorte || '',
+             start: o.start || iso(HEUTE), verlauf: Array.isArray(o.verlauf) ? o.verlauf : []};
+  anzuchtDaten().gruppen.push(r);
+  return r;
+}
+
+/* ── Rhythmus ─────────────────────────────────────────────────
+   Wie eine Pflanze in Wasserkultur: ein Abstand in Tagen, gezählt ab
+   dem letzten Wechsel, vor dem ersten ab dem Startdatum. Substrat-
+   Gefäße in einem Bereich mit eigenem Rhythmus stehen nicht einzeln
+   da — dann ist der Bereich der Eintrag. Wassergläser behalten ihren
+   Wechsel, auch wenn sie im Anzuchthaus stehen. */
+function azLetzte(liste, start){
+  const l = (Array.isArray(liste) ? liste : []).filter(Boolean).slice().sort();
+  return l.length ? l[l.length - 1] : (start || iso(HEUTE));
+}
+function azVomBereich(g){
+  const b = azBereich(g.bereich);
+  return !!(b && b.rhythmus && g.medium !== 'wasser');
+}
+function azEintrag(typ, obj, iv, letzte, tat, gefaesse){
+  const t = Math.max(0, tageSeit(letzte));
+  const rest = iv - t;
+  const unter = [];
+  gefaesse.forEach(g=>azGruppenIn(g.id).forEach(r=>unter.push(azGruppeText(r))));
+  return {anzucht:true, typ, ref:obj.id, id:'az:' + obj.id, name:obj.name, iv, letzte,
+          tage:t, rest, stand: rest < 0 ? 'over' : (rest <= 2 ? 'soon' : 'ok'), tat, unter,
+          art: typ === 'bereich' ? 'Anzucht · Bereich' : 'Anzucht · ' + azMedium(obj).name};
+}
+function azEintraege(){
+  if(!S || !S.anzucht) return [];
+  const A = anzuchtDaten(), raus = [];
+  A.bereiche.forEach(b=>{
+    if(!b.rhythmus) return;
+    const gef = A.gefaesse.filter(g=>g.bereich === b.id && g.medium !== 'wasser' && azZahlIn(g.id) > 0);
+    if(!gef.length) return;
+    const start = gef.map(g=>g.start || '').filter(Boolean).sort()[0];
+    raus.push(azEintrag('bereich', b, b.rhythmus, azLetzte(b.befeuchtet, start), 'Befeuchtet', gef));
+  });
+  A.gefaesse.forEach(g=>{
+    if(!azZahlIn(g.id) || azVomBereich(g) || !g.abstand) return;
+    raus.push(azEintrag('gefaess', g, g.abstand, azLetzte(g.gewechselt, g.start), azMedium(g).tat, [g]));
+  });
+  return raus;
+}
+function azFaellig(){ return azEintraege().filter(e=>e.rest <= 0).sort((a, b)=>a.rest - b.rest); }
+function azErledigen(typ, ref){
+  const o = typ === 'bereich' ? azBereich(ref) : azGefaess(ref);
+  if(!o) return false;
+  const k = typ === 'bereich' ? 'befeuchtet' : 'gewechselt';
+  const l = Array.isArray(o[k]) ? o[k] : [];
+  const h = iso(HEUTE);
+  if(l.indexOf(h) === -1) l.push(h);
+  l.sort();
+  o[k] = l.slice(-30);
+  sichern();
+  return true;
+}
+function azFaelligText(e){
+  if(e.rest < 0) return 'seit ' + azTagWort(-e.rest) + ' fällig';
+  if(e.rest === 0) return 'heute fällig';
+  if(e.rest === 1) return 'morgen';
+  return 'in ' + e.rest + ' Tagen';
+}
+
+/* ── Entnehmen ────────────────────────────────────────────────
+   Leert sich eine Gruppe, verschwindet sie aus dem Gefäß. Ihr Verlauf
+   bleibt am Ableger (beim Eintopfen) und in der Mutterkarte. Beim
+   Umsetzen wandert er mit und geht nicht zusätzlich an die Mutter. */
+function azEreignisKopie(pid, verlauf, vorsatz){
+  if(!pid || !Array.isArray(verlauf) || !verlauf.length) return;
+  if(!S.ereignisse) S.ereignisse = {};
+  const l = S.ereignisse[pid] = S.ereignisse[pid] || [];
+  verlauf.forEach(v=>l.push({id:'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    datum: v.datum, typ:'notiz', text: vorsatz + v.text, bezug:null}));
+}
+function azGruppeLeer(r, ohneMutter){
+  if(!r || r.anzahl > 0) return;
+  if(!ohneMutter && azMutter(r)){
+    const g = azGefaess(r.gefaess);
+    azEreignisKopie(r.mutter, r.verlauf, 'Anzucht' + (g ? ' (' + g.name + ')' : '') + ': ');
+  }
+  const A = anzuchtDaten();
+  A.gruppen = A.gruppen.filter(x=>x !== r);
+}
+function azPflanzeFrei(r){
+  const id = neueId();
+  const p = {id, eigen:true, name: azHerkunft(r), art: r.art || '', botanisch: r.botanisch || '',
+    sorte: r.sorte || '', sortenmerkmale:'', familie:'', klasse:'B', raum:'', stellplatz:'',
+    bib:null, eltern:null, linie:null, seit: new Date().toLocaleDateString('de-DE'),
+    notiz:'', todo:[], log:[]};
+  S.eigene = S.eigene || [];
+  S.eigene.push(p);
+  if(typeof ereignisDazu === 'function') ereignisDazu(id, 'entstanden', r.methode + ' aus der Anzucht');
+  return p;
+}
+function azEintopfen(r, n, zusammen){
+  if(!r) return [];
+  n = azZahl(n, 1, r.anzahl, 1);
+  const g = azGefaess(r.gefaess);
+  const karten = zusammen ? 1 : n;
+  const mutterDa = !!azMutter(r);
+  const weg = (r.methodeId && typeof V_METHODEN !== 'undefined' && V_METHODEN[r.methodeId]) ? r.methodeId : 'kopfsteckling';
+  const neue = [];
+  for(let i = 0; i < karten; i++){
+    const p = mutterDa ? ablegerAnlegen(r.mutter, weg) : azPflanzeFrei(r);
+    if(!p) continue;
+    p.notiz = (p.notiz ? p.notiz + '\n' : '') + 'Aus der Anzucht: ' + (g ? g.name : 'ohne Gefäß')
+      + ', angesetzt am ' + datumKurz(r.start)
+      + (zusammen && n > 1 ? ', ' + n + ' ' + azMethodeWort(r.methode, n) + ' in einem Topf' : '') + '.';
+    azEreignisKopie(p.id, r.verlauf, 'Anzucht: ');
+    neue.push(p);
+  }
+  if(!neue.length) return [];
+  r.anzahl -= n;
+  azVerlauf(r, 'eingetopft', n + ' eingetopft' + (karten === 1 && n > 1 ? ', alle in einen Topf' : ''));
+  azGruppeLeer(r);
+  sichern();
+  return neue;
+}
+function azUmsetzen(r, n, zielId){
+  const ziel = azGefaess(zielId), quelle = azGefaess(r && r.gefaess);
+  if(!r || !ziel || zielId === r.gefaess) return null;
+  n = azZahl(n, 1, r.anzahl, 1);
+  const kopie = (r.verlauf || []).map(v=>Object.assign({}, v));
+  const gleich = azGruppenIn(zielId).find(x=>azHerkunftSchluessel(x) === azHerkunftSchluessel(r));
+  let z;
+  if(gleich){
+    z = gleich;
+    z.anzahl += n;
+    kopie.forEach(v=>{ if(!z.verlauf.some(w=>w.datum === v.datum && w.text === v.text)) z.verlauf.push(v); });
+    z.verlauf.sort((a, b)=>a.datum.localeCompare(b.datum));
+  } else {
+    z = azGruppeAnlegen({gefaess:zielId, anzahl:n, methode:r.methode, methodeId:r.methodeId,
+      mutter:r.mutter, mutterName:r.mutterName, art:r.art, botanisch:r.botanisch, sorte:r.sorte,
+      start:r.start, verlauf:kopie});
+  }
+  azVerlauf(z, 'umgesetzt', n + ' aus ' + (quelle ? quelle.name : 'einem anderen Gefäß') + ' dazu');
+  r.anzahl -= n;
+  azVerlauf(r, 'umgesetzt', n + ' nach ' + ziel.name + ' umgesetzt');
+  azGruppeLeer(r, true);
+  sichern();
+  return z;
+}
+function azAusfall(r, n){
+  if(!r) return;
+  n = azZahl(n, 1, r.anzahl, 1);
+  r.anzahl -= n;
+  azVerlauf(r, 'ausfall', n + ' ausgefallen');
+  azGruppeLeer(r);
+  sichern();
+}
+
+/* Die Karte der Mutter sagt, was von ihr gerade in der Anzucht steht. */
+function anzuchtMutterHTML(p){
+  if(!p || !S.anzucht) return '';
+  const r = anzuchtDaten().gruppen.filter(x=>x.mutter === p.id && x.anzahl > 0);
+  if(!r.length) return '';
+  return '<p class="az-mutter"><b>In Anzucht:</b> ' + r.map(x=>{
+    const g = azGefaess(x.gefaess);
+    return '<button type="button" class="linkbtn" data-az-gef="' + esc(x.gefaess) + '">'
+      + esc(x.anzahl + ' ' + azMethodeWort(x.methode, x.anzahl) + ' · ' + (g ? g.name : 'ohne Gefäß')) + '</button>';
+  }).join(' · ') + '</p>';
+}
+
+/* ══════ Oberfläche ══════ */
+let AZ_SICHT = {art:'liste'};
+let AZ_ENT = null;
+let AZ_MELDUNG = '';
+let VER_AZ = {gef:null, anzahl:1, gname:'', gmed:'wasser'};
+
+function azMedienOptionen(wahl){
+  return Object.keys(AZ_MEDIEN).map(k=>'<option value="' + k + '"' + (k === wahl ? ' selected' : '') + '>'
+    + AZ_MEDIEN[k].name + '</option>').join('');
+}
+function azZurueckHTML(){
+  return '<button type="button" class="linkbtn az-zurueck" data-az="liste">‹ Zur Übersicht</button>';
+}
+function azTatHTML(e){
+  const wort = e.tat === 'Wasser gewechselt' ? 'Wasserwechsel ' : 'Befeuchten ';
+  return '<div class="az-tat' + (e.rest <= 0 ? ' faellig' : '') + '"><span>' + esc(wort + azFaelligText(e))
+    + ' · alle ' + e.iv + ' Tage</span><button type="button" data-az-tat="' + e.typ + '" data-id="' + esc(e.ref) + '">'
+    + esc(e.tat) + '</button></div>';
+}
+function azZeileHTML(g, eintr){
+  const n = azZahlIn(g.id);
+  const teile = [azMedium(g).name, n ? n + (n === 1 ? ' Steckling' : ' Stecklinge') : 'leer'];
+  if(n){
+    if(azVomBereich(g)) teile.push('befeuchtet über den Bereich');
+    else if(!g.abstand) teile.push(azMedium(g).rhythmus + ' aus');
+    else {
+      const e = eintr.find(x=>x.typ === 'gefaess' && x.ref === g.id);
+      if(e) teile.push((g.medium === 'wasser' ? 'Wasserwechsel ' : 'Befeuchten ') + azFaelligText(e));
+    }
+  }
+  return '<button type="button" class="ein-zeile" data-az-gef="' + esc(g.id) + '"><span class="ein-txt"><b>'
+    + esc(g.name) + '</b><i>' + esc(teile.join(' · ')) + '</i></span><span class="ein-p" aria-hidden="true">›</span></button>';
+}
+function azListeHTML(){
+  const A = anzuchtDaten();
+  let h = '<div class="tools az-oben">'
+    + '<button type="button" class="haupt" data-az="neu-stecklinge">Neue Stecklinge</button>'
+    + '<button type="button" data-az="frei">Frei eintragen</button>'
+    + '<button type="button" data-az="neu-gefaess">Neues Gefäß</button>'
+    + '<button type="button" data-az="neu-bereich">Neuer Bereich</button></div>';
+  if(!A.gefaesse.length && !A.bereiche.length)
+    return h + '<p class="kb-leer">Noch keine Anzucht. „Neue Stecklinge“ führt durch die Wege für eine Pflanze '
+      + 'aus deiner Sammlung und setzt die Stecklinge in ein Gefäß. „Frei eintragen“ ist für Stecklinge ohne '
+      + 'Mutter in der Sammlung, etwa getauschte.</p>';
+  const eintr = azEintraege();
+  A.bereiche.forEach(b=>{
+    const gef = A.gefaesse.filter(g=>g.bereich === b.id);
+    h += '<p class="ein-abschnitt az-bkopf"><span>' + esc(b.name) + '</span>'
+      + '<button type="button" class="linkbtn" data-az-bereich="' + esc(b.id) + '">Bearbeiten</button></p>';
+    const e = eintr.find(x=>x.typ === 'bereich' && x.ref === b.id);
+    if(e) h += azTatHTML(e);
+    else if(b.rhythmus) h += '<p class="az-still">Befeuchten alle ' + b.rhythmus
+      + ' Tage, sobald Stecklinge in Substrat, Moos oder Perlite darin stehen.</p>';
+    h += gef.length ? '<div class="ein-liste">' + gef.map(g=>azZeileHTML(g, eintr)).join('') + '</div>'
+      : '<p class="az-still">Noch kein Gefäß in diesem Bereich.</p>';
+  });
+  const ohne = A.gefaesse.filter(g=>!azBereich(g.bereich));
+  if(ohne.length){
+    if(A.bereiche.length) h += '<p class="ein-abschnitt">Ohne Bereich</p>';
+    h += '<div class="ein-liste">' + ohne.map(g=>azZeileHTML(g, eintr)).join('') + '</div>';
+  }
+  return h;
+}
+function azGruppeHTML(r){
+  const m = azMutter(r);
+  const von = m ? 'von ' + nice(m) : (r.mutter ? 'Mutter nicht mehr in der Sammlung' : 'frei eingetragen');
+  const t = Math.max(0, tageSeit(r.start));
+  const verl = (r.verlauf || []).slice().sort((a, b)=>b.datum.localeCompare(a.datum));
+  const tag = d => new Date(d + 'T12:00:00').toLocaleDateString('de-DE', {day:'numeric', month:'short'});
+  const id = esc(r.id);
+  return '<div class="az-gruppe" data-az-gruppe="' + id + '">'
+    + '<p class="az-gkopf"><b>' + esc(azGruppeText(r)) + '</b><i>' + esc(von + ' · seit ' + datumKurz(r.start)
+    + ' (' + azTagWort(t) + ')') + '</i></p>'
+    + (verl.length ? '<ul class="az-verlauf">' + verl.map(v=>'<li><span>' + esc(tag(v.datum)) + '</span> '
+      + esc(v.text) + '</li>').join('') + '</ul>' : '')
+    + '<div class="tools">'
+    + '<button type="button" data-az-v="wurzeln" data-r="' + id + '">Wurzeln sichtbar</button>'
+    + '<button type="button" data-az-v="blatt" data-r="' + id + '">Erstes neues Blatt</button>'
+    + '<button type="button" data-az-v="notiz" data-r="' + id + '">Notiz</button>'
+    + '<button type="button" class="haupt" data-az-ent="' + id + '">Entnehmen</button></div>'
+    + '<div class="az-notiz" hidden><input type="text" data-az-notiztext="' + id + '" aria-label="Notiz"'
+    + ' placeholder="Was ist dir aufgefallen?"><button type="button" data-az-notizlos="' + id + '">Eintragen</button></div>'
+    + '</div>';
+}
+function azGefaessFelderHTML(g){
+  const A = anzuchtDaten();
+  const med = g ? g.medium : 'wasser';
+  const abst = g ? g.abstand : AZ_MEDIEN[med].vorgabe;
+  return '<div class="fgrid az-form">'
+    + '<label><span class="lab">Name</span><input id="az-f-name" value="' + esc(g ? g.name : azNameVorschlag()) + '"></label>'
+    + '<label><span class="lab">Medium</span><select id="az-f-medium">' + azMedienOptionen(med) + '</select></label>'
+    + '<label><span class="lab">Bereich</span><select id="az-f-bereich"><option value="">Kein Bereich</option>'
+    + A.bereiche.map(b=>'<option value="' + esc(b.id) + '"' + (g && g.bereich === b.id ? ' selected' : '') + '>'
+      + esc(b.name) + '</option>').join('') + '</select></label>'
+    + '<label><span class="lab" id="az-f-abst-lab">' + esc(AZ_MEDIEN[med].rhythmus) + ' alle … Tage</span>'
+    + '<input type="number" id="az-f-abstand" min="1" max="60" step="1" inputmode="numeric" value="'
+    + (abst || AZ_MEDIEN[med].vorgabe) + '"></label>'
+    + '<label class="check" id="az-f-aus-zeile"' + (med === 'wasser' ? ' hidden' : '') + '>'
+    + '<input type="checkbox" id="az-f-aus"' + (g && !g.abstand && med !== 'wasser' ? ' checked' : '') + '>'
+    + '<span class="lab">Befeuchten aus</span></label>'
+    + '<label><span class="lab">Start</span><input type="date" id="az-f-start" value="' + esc(g ? g.start : iso(HEUTE)) + '"></label>'
+    + '</div>';
+}
+function azGefaessLesen(){
+  const v = id => (document.getElementById(id) || {}).value || '';
+  const med = AZ_MEDIEN[v('az-f-medium')] ? v('az-f-medium') : 'wasser';
+  const aus = med !== 'wasser' && !!(document.getElementById('az-f-aus') || {}).checked;
+  const start = /^\d{4}-\d{2}-\d{2}$/.test(v('az-f-start')) ? v('az-f-start') : iso(HEUTE);
+  return {name: v('az-f-name'), medium: med, bereich: v('az-f-bereich') || null,
+          abstand: aus ? null : azZahl(v('az-f-abstand'), 1, 60, AZ_MEDIEN[med].vorgabe), start};
+}
+function azGefaessHTML(id){
+  const g = azGefaess(id);
+  if(!g){ AZ_SICHT = {art:'liste'}; return azListeHTML(); }
+  const b = azBereich(g.bereich), med = azMedium(g), n = azZahlIn(g.id);
+  const e = azEintraege().find(x=>x.typ === 'gefaess' && x.ref === g.id);
+  let h = azZurueckHTML() + '<h3 class="az-titel">' + esc(g.name) + '</h3>'
+    + '<p class="az-unter">' + esc([med.name, b ? b.name : 'ohne Bereich', 'seit ' + datumKurz(g.start)].join(' · ')) + '</p>';
+  if(e) h += azTatHTML(e);
+  else if(n && azVomBereich(g)) h += '<p class="az-still">Befeuchtet wird über den Bereich „' + esc(b.name) + '“.</p>';
+  else if(n && !g.abstand) h += '<p class="az-still">' + esc(med.rhythmus) + ' ist aus.</p>';
+  const gr = azGruppenIn(g.id);
+  h += '<p class="ein-abschnitt">Stecklinge</p>'
+    + (gr.length ? gr.map(azGruppeHTML).join('') : '<p class="kb-leer">Keine Stecklinge in diesem Gefäß.</p>');
+  const fs = fotosVon(g.id);
+  h += '<p class="ein-abschnitt">Fotos</p><div class="az-fotos">' + fs.map(f=>'<figure><img alt="" src="' + f.src + '">'
+      + '<figcaption>' + esc(f.datum ? new Date(f.datum + 'T12:00:00').toLocaleDateString('de-DE') : '') + '</figcaption>'
+      + '<button type="button" class="az-fotoweg" data-az-fotoweg="' + esc(f.key) + '" data-g="' + esc(g.id)
+      + '" aria-label="Foto löschen">×</button></figure>').join('')
+    + '<label class="az-fotoneu"><span aria-hidden="true">+</span><span>Foto</span>'
+    + '<input type="file" accept="image/*" hidden data-az-foto="' + esc(g.id) + '"></label></div>';
+  h += '<p class="ein-abschnitt">Gefäß</p>' + azGefaessFelderHTML(g)
+    + '<div class="tools"><button type="button" class="haupt" data-az="gef-speichern" data-g="' + esc(g.id) + '">Speichern</button>'
+    + '<button type="button" data-az="gef-weg" data-g="' + esc(g.id) + '"' + (n ? ' disabled' : '') + '>Auflösen</button></div>'
+    + (n ? '<p class="az-still">Auflösen geht erst, wenn das Gefäß leer ist.</p>' : '');
+  return h;
+}
+function azNeuGefaessHTML(){
+  return azZurueckHTML() + '<h3 class="az-titel">Neues Gefäß</h3>'
+    + '<p class="az-unter">Glas, Schale oder Topf. Bei Wasser steht der Wechsel im Gießplan, bei Substrat, Moos und Perlite das Befeuchten.</p>'
+    + azGefaessFelderHTML(null)
+    + '<div class="tools"><button type="button" class="haupt" data-az="gef-anlegen">Anlegen</button></div>';
+}
+function azBereichHTML(id){
+  const b = azBereich(id);
+  const hatHaus = anzuchtDaten().bereiche.some(x=>x.name === 'Anzuchthaus');
+  return azZurueckHTML() + '<h3 class="az-titel">' + (b ? 'Bereich bearbeiten' : 'Neuer Bereich') + '</h3>'
+    + '<p class="az-unter">Ein Ort mit mehreren Gefäßen, etwa das Anzuchthaus. Mit eigenem Rhythmus steht er als ein '
+    + 'Eintrag im Gießplan. Wassergläser darin behalten ihren eigenen Wechsel.</p>'
+    + '<div class="fgrid az-form">'
+    + '<label><span class="lab">Name</span><input id="az-b-name" value="' + esc(b ? b.name : (hatHaus ? '' : 'Anzuchthaus')) + '"></label>'
+    + '<label class="check"><input type="checkbox" id="az-b-an"' + (!b || b.rhythmus ? ' checked' : '') + '>'
+    + '<span class="lab">Eigener Rhythmus</span></label>'
+    + '<label><span class="lab">Befeuchten alle … Tage</span><input type="number" id="az-b-tage" min="1" max="60" step="1"'
+    + ' inputmode="numeric" value="' + ((b && b.rhythmus) || AZ_BEREICH_VORGABE) + '"></label></div>'
+    + '<div class="tools"><button type="button" class="haupt" data-az="bereich-speichern"' + (b ? ' data-b="' + esc(b.id) + '"' : '')
+    + '>' + (b ? 'Speichern' : 'Anlegen') + '</button>'
+    + (b ? '<button type="button" data-az="bereich-weg" data-b="' + esc(b.id) + '">Bereich auflösen</button>' : '') + '</div>';
+}
+function azGefWahlHTML(prefix, wahl, ohne){
+  const A = anzuchtDaten();
+  const liste = A.gefaesse.filter(g=>g.id !== ohne);
+  return '<label><span class="lab">Gefäß</span><select id="' + prefix + '-gef">'
+    + liste.map(g=>'<option value="' + esc(g.id) + '"' + (wahl === g.id ? ' selected' : '') + '>'
+      + esc(g.name + ' · ' + azMedium(g).name) + '</option>').join('')
+    + '<option value="__neu"' + (wahl === '__neu' || !liste.length ? ' selected' : '') + '>Neues Gefäß …</option></select></label>'
+    + '<div class="az-neufelder"' + (wahl === '__neu' || !liste.length ? '' : ' hidden') + '>'
+    + '<label><span class="lab">Name des neuen Gefäßes</span><input id="' + prefix + '-gname" value="' + esc(azNameVorschlag()) + '"></label>'
+    + '<label><span class="lab">Medium</span><select id="' + prefix + '-gmed">' + azMedienOptionen('wasser') + '</select></label></div>';
+}
+function azStandardGef(ohne){
+  const l = anzuchtDaten().gefaesse.filter(g=>g.id !== ohne);
+  return l.length ? l[l.length - 1].id : '__neu';
+}
+function azFreiHTML(){
+  return azZurueckHTML() + '<h3 class="az-titel">Frei eintragen</h3>'
+    + '<p class="az-unter">Für Stecklinge ohne Mutter in deiner Sammlung, etwa getauschte. Art und Sorte trägst du von Hand ein.</p>'
+    + '<div class="fgrid az-form">'
+    + '<label><span class="lab">Art</span><input id="az-fr-art" placeholder="z. B. Efeutute"></label>'
+    + '<label><span class="lab">Botanischer Name</span><input id="az-fr-bot" placeholder="z. B. Epipremnum aureum"></label>'
+    + '<label><span class="lab">Sorte</span><input id="az-fr-sorte" placeholder="z. B. Marble Queen"></label>'
+    + '<label><span class="lab">Methode</span><select id="az-fr-methode">'
+    + AZ_METHODEN.map(m=>'<option value="' + esc(m) + '">' + esc(m) + '</option>').join('') + '</select></label>'
+    + '<label><span class="lab">Wie viele?</span><input type="number" id="az-fr-zahl" min="1" max="500" step="1" inputmode="numeric" value="1"></label>'
+    + azGefWahlHTML('az-fr', azStandardGef(null), null)
+    + '</div><p class="az-fehler" id="az-fehler" hidden></p>'
+    + '<div class="tools"><button type="button" class="haupt" data-az="frei-los">In die Anzucht setzen</button></div>';
+}
+function azEntMerken(){
+  if(!AZ_ENT) return;
+  const z = document.getElementById('az-e-gef');
+  if(z) AZ_ENT.ziel = z.value;
+  const n = document.getElementById('az-e-gname');
+  if(n) AZ_ENT.gname = n.value;
+  const m = document.getElementById('az-e-gmed');
+  if(m) AZ_ENT.gmed = m.value;
+}
+function azEntnehmenHTML(){
+  const r = AZ_ENT && azGruppe(AZ_ENT.gruppe);
+  if(!r){ AZ_SICHT = {art:'liste'}; return azListeHTML(); }
+  const g = azGefaess(r.gefaess);
+  const n = AZ_ENT.anzahl = azZahl(AZ_ENT.anzahl, 1, r.anzahl, 1);
+  const wahl = (k, t, attr, ist) => '<button type="button" ' + attr + '="' + k + '" aria-pressed="' + (ist === k) + '">' + t + '</button>';
+  let h = '<button type="button" class="linkbtn az-zurueck" data-az-gef="' + esc(r.gefaess) + '">‹ Zurück zu '
+    + esc(g ? g.name : 'dem Gefäß') + '</button><h3 class="az-titel">Entnehmen</h3>'
+    + '<p class="az-unter">' + esc(azGruppeText(r) + (g ? ' · ' + g.name : '')) + '</p>'
+    + '<p class="as-frage">Wie viele?</p><div class="az-zahl">'
+    + '<button type="button" data-az-n="-1" aria-label="Einen weniger">−</button>'
+    + '<output id="az-n">' + n + '</output>'
+    + '<button type="button" data-az-n="1" aria-label="Einen mehr">+</button>'
+    + (r.anzahl > 1 ? '<button type="button" class="linkbtn" data-az-n="alle">alle ' + r.anzahl + '</button>' : '') + '</div>'
+    + '<p class="as-frage">Was passiert mit ihnen?</p><div class="ein-wahl" role="group" aria-label="Was passiert">'
+    + wahl('eintopfen', 'Eintopfen', 'data-az-was', AZ_ENT.was) + wahl('umsetzen', 'Umsetzen', 'data-az-was', AZ_ENT.was)
+    + wahl('ausfall', 'Ausfall', 'data-az-was', AZ_ENT.was) + '</div>';
+  let knopf = '';
+  if(AZ_ENT.was === 'eintopfen'){
+    h += '<p class="az-still">' + (azMutter(r)
+      ? 'Die Karte erbt von der Mutter wie bisher und hängt im Stammbaum unter ihr.'
+      : 'Ohne Mutter in der Sammlung: Art und Sorte kommen aus der Gruppe.') + '</p>';
+    if(n > 1) h += '<div class="ein-wahl" role="group" aria-label="Wie viele Karten">'
+      + wahl('einzeln', 'Je Steckling eine Karte', 'data-az-topf', AZ_ENT.topf)
+      + wahl('zusammen', 'Alle in einen Topf', 'data-az-topf', AZ_ENT.topf) + '</div>';
+    knopf = (n === 1 || AZ_ENT.topf === 'zusammen') ? 'Als Pflanze eintopfen' : n + ' Pflanzen anlegen';
+  } else if(AZ_ENT.was === 'umsetzen'){
+    if(!AZ_ENT.ziel || (AZ_ENT.ziel !== '__neu' && !azGefaess(AZ_ENT.ziel))) AZ_ENT.ziel = azStandardGef(r.gefaess);
+    h += '<div class="fgrid az-form">' + azGefWahlHTML('az-e', AZ_ENT.ziel, r.gefaess) + '</div>'
+      + '<p class="az-still">Der Verlauf wandert mit. Steht dort schon eine Gruppe derselben Herkunft, kommen sie dazu.</p>';
+    knopf = 'Umsetzen';
+  } else {
+    h += '<p class="az-still">Zählt nur herunter und trägt es in den Verlauf ein.</p>';
+    knopf = n === 1 ? 'Als Ausfall eintragen' : n + ' als Ausfall eintragen';
+  }
+  return h + '<div class="tools"><button type="button" class="haupt" data-az="entnehmen-los">' + esc(knopf) + '</button></div>';
+}
+function azZeichnen(){
+  const ziel = document.getElementById('az-ansicht');
+  if(!ziel) return;
+  const a = AZ_SICHT.art;
+  let h = a === 'gefaess' ? azGefaessHTML(AZ_SICHT.id)
+    : a === 'neuGefaess' ? azNeuGefaessHTML()
+    : a === 'bereich' ? azBereichHTML(AZ_SICHT.id)
+    : a === 'frei' ? azFreiHTML()
+    : a === 'entnehmen' ? azEntnehmenHTML()
+    : azListeHTML();
+  if(AZ_MELDUNG){ h = '<div class="alert info az-meldung">' + AZ_MELDUNG + '</div>' + h; AZ_MELDUNG = ''; }
+  ziel.innerHTML = h;
+}
+function azZeigen(sicht){
+  const vorher = AZ_SICHT.art;
+  AZ_SICHT = sicht || {art:'liste'};
+  const ans = document.getElementById('az-ansicht'), ass = document.getElementById('az-assistent');
+  if(!ans || !ass) return;
+  const assistent = AZ_SICHT.art === 'assistent';
+  ass.hidden = !assistent;
+  ans.hidden = assistent;
+  if(assistent){
+    if(vorher !== 'assistent') verWohin = 'anzucht';
+    return;
+  }
+  azZeichnen();
+  const rumpf = document.getElementById('sekm-rumpf');
+  if(rumpf) rumpf.scrollTop = 0;
+}
+function azAssistentNeu(){
+  verErledigt = false; verLetzterWeg = null; verPflanze = null; verMethode = null; VER_ABLEGER = [];
+  const meld = document.getElementById('ver-meldung');
+  if(meld){ meld.hidden = true; meld.innerHTML = ''; }
+  azZeigen({art:'assistent'});
+  verRender();
+  verStufeZeigen(1);
+}
+
+/* ── Stufe 3 des Assistenten: „Wohin?“ ── */
+function verAzLesen(){
+  const v = id => document.getElementById(id);
+  if(v('ver-az-gef')) VER_AZ.gef = v('ver-az-gef').value;
+  if(v('ver-az-gname')) VER_AZ.gname = v('ver-az-gname').value;
+  if(v('ver-az-gmed')) VER_AZ.gmed = v('ver-az-gmed').value;
+  if(v('ver-az-zahl')) VER_AZ.anzahl = azZahl(v('ver-az-zahl').value, 1, 500, 1);
+}
+function verWohinZeichnen(){
+  document.querySelectorAll('[data-verwohin]').forEach(b=>
+    b.setAttribute('aria-pressed', String(b.dataset.verwohin === verWohin)));
+  const az = document.getElementById('ver-az'), pf = document.getElementById('ver-pfl');
+  if(pf) pf.hidden = verWohin !== 'pflanzen';
+  if(!az) return;
+  az.hidden = verWohin !== 'anzucht';
+  if(verWohin !== 'anzucht') return;
+  if(VER_AZ.gef !== '__neu' && !azGefaess(VER_AZ.gef)) VER_AZ.gef = azStandardGef(null);
+  az.innerHTML = '<p class="as-unter">Die Stecklinge kommen als Gruppe in ein Gefäß. Eigene Karten bekommen sie erst beim Eintopfen.</p>'
+    + '<div class="fgrid az-form">' + azGefWahlHTML('ver-az', VER_AZ.gef, null)
+    + '<label><span class="lab">Wie viele Stecklinge?</span><input type="number" id="ver-az-zahl" min="1" max="500" step="1"'
+    + ' inputmode="numeric" value="' + VER_AZ.anzahl + '"></label></div>';
+  const gn = document.getElementById('ver-az-gname');
+  if(gn && VER_AZ.gname) gn.value = VER_AZ.gname;
+  const gm = document.getElementById('ver-az-gmed');
+  if(gm && AZ_MEDIEN[VER_AZ.gmed]) gm.value = VER_AZ.gmed;
+}
+function verInAnzucht(){
+  const meld = document.getElementById('ver-meldung');
+  if(!verPflanze || !verMethode) return null;
+  const mutter = allePflanzen().find(p=>p.id === verPflanze);
+  if(!mutter) return null;
+  verAzLesen();
+  const n = azZahl(VER_AZ.anzahl, 1, 500, 1);
+  let g = VER_AZ.gef !== '__neu' ? azGefaess(VER_AZ.gef) : null;
+  if(!g) g = azGefaessAnlegen({name: VER_AZ.gname, medium: VER_AZ.gmed});
+  const methode = AZ_AUS_VMETHODE[verMethode] || (V_METHODEN[verMethode] || {}).name || 'Steckling';
+  const r = azGruppeAnlegen({gefaess:g.id, anzahl:n, methode, methodeId:verMethode, mutter:mutter.id,
+    mutterName:nice(mutter), art:mutter.art, botanisch:mutter.botanisch, sorte:mutter.sorte});
+  azVerlauf(r, 'start', n + ' ' + azMethodeWort(methode, n) + ' angesetzt');
+  if(typeof ereignisDazu === 'function')
+    ereignisDazu(mutter.id, 'vermehrt', n + ' ' + azMethodeWort(methode, n) + ' in ' + g.name);
+  sichern();
+  if(meld){
+    meld.hidden = false;
+    meld.innerHTML = '<b>' + esc(azGruppeText(r) + (n === 1 ? ' steht' : ' stehen') + ' jetzt in ' + g.name + '.')
+      + '</b> Eigene Karten bekommen sie beim Eintopfen. '
+      + (g.abstand && !azVomBereich(g) ? esc(azMedium(g).rhythmus + ' alle ' + g.abstand + ' Tage steht im Gießplan. ') : '')
+      + '<button type="button" class="linkbtn" data-az-gef="' + esc(g.id) + '">Zum Gefäß</button>';
+  }
+  VER_AZ = {gef:g.id, anzahl:1, gname:'', gmed:'wasser'};
+  verMethode = null;
+  verErledigt = true;
+  verLetzterWeg = 'anzucht';
+  verFussZeichnen();
+  render();
+  return r;
+}
+
+function azFreiAnlegen(){
+  const v = id => String((document.getElementById(id) || {}).value || '');
+  const art = v('az-fr-art').trim(), bot = v('az-fr-bot').trim(), sorte = v('az-fr-sorte').trim();
+  const fehler = document.getElementById('az-fehler');
+  if(!art && !bot){
+    if(fehler){ fehler.hidden = false; fehler.textContent = 'Bitte Art oder botanischen Namen eintragen.'; }
+    return null;
+  }
+  const n = azZahl(v('az-fr-zahl'), 1, 500, 1);
+  const methode = AZ_METHODEN.indexOf(v('az-fr-methode')) !== -1 ? v('az-fr-methode') : AZ_METHODEN[0];
+  let g = v('az-fr-gef') && v('az-fr-gef') !== '__neu' ? azGefaess(v('az-fr-gef')) : null;
+  if(!g) g = azGefaessAnlegen({name: v('az-fr-gname'), medium: v('az-fr-gmed')});
+  const r = azGruppeAnlegen({gefaess:g.id, anzahl:n, methode, art, botanisch:bot, sorte});
+  azVerlauf(r, 'start', n + ' ' + azMethodeWort(methode, n) + ' angesetzt');
+  sichern();
+  render();
+  AZ_MELDUNG = esc(azGruppeText(r) + (n === 1 ? ' steht' : ' stehen') + ' jetzt in ' + g.name + '.');
+  azZeigen({art:'gefaess', id:g.id});
+  return r;
+}
+function azEntnehmenLos(){
+  azEntMerken();
+  const r = AZ_ENT && azGruppe(AZ_ENT.gruppe);
+  if(!r) return;
+  const n = azZahl(AZ_ENT.anzahl, 1, r.anzahl, 1);
+  const gid = r.gefaess;
+  if(AZ_ENT.was === 'ausfall'){
+    azAusfall(r, n);
+    AZ_MELDUNG = esc(n + ' als Ausfall eingetragen.');
+    render();
+    azZeigen({art:'gefaess', id:gid});
+    return;
+  }
+  if(AZ_ENT.was === 'umsetzen'){
+    let ziel = AZ_ENT.ziel && AZ_ENT.ziel !== '__neu' ? azGefaess(AZ_ENT.ziel) : null;
+    if(!ziel || ziel.id === gid) ziel = azGefaessAnlegen({name: AZ_ENT.gname, medium: AZ_ENT.gmed});
+    azUmsetzen(r, n, ziel.id);
+    AZ_MELDUNG = esc(n + ' nach ' + ziel.name + ' umgesetzt.');
+    render();
+    azZeigen({art:'gefaess', id:ziel.id});
+    return;
+  }
+  const neue = azEintopfen(r, n, AZ_ENT.topf === 'zusammen' && n > 1);
+  render();
+  AZ_MELDUNG = '<b>' + (neue.length === 1 ? 'Eine Karte ist angelegt.' : neue.length + ' Karten sind angelegt.') + '</b> '
+    + neue.map(p=>'<button type="button" class="linkbtn" data-go="' + esc(p.id) + '">' + esc(nice(p)) + '</button>').join(' ');
+  azZeigen({art:'gefaess', id:gid});
+}
+
+document.addEventListener('click', e=>{
+  const t = e.target;
+  if(!t || !t.closest) return;
+  const wo = t.closest('[data-verwohin]');
+  if(wo){ verAzLesen(); verWohin = wo.dataset.verwohin === 'pflanzen' ? 'pflanzen' : 'anzucht';
+          verWohinZeichnen(); verFussZeichnen(); return; }
+  const tat = t.closest('[data-az-tat]');
+  if(tat){ azErledigen(tat.dataset.azTat, tat.dataset.id); azZeichnen(); render(); return; }
+  const gef = t.closest('[data-az-gef]');
+  if(gef){
+    e.stopPropagation();
+    const imFenster = !!gef.closest('#wz-in-vermehren');
+    if(!imFenster){
+      sektionOeffnen('vermehren', gef);
+      if(typeof fensterHoch === 'function') fensterHoch();
+    }
+    azZeigen({art:'gefaess', id:gef.dataset.azGef});
+    return;
+  }
+  const be = t.closest('[data-az-bereich]');
+  if(be){ azZeigen({art:'bereich', id:be.dataset.azBereich}); return; }
+  const ent = t.closest('[data-az-ent]');
+  if(ent){
+    AZ_ENT = {gruppe:ent.dataset.azEnt, anzahl:1, was:'eintopfen', topf:'einzeln', ziel:'', gname:'', gmed:'wasser'};
+    azZeigen({art:'entnehmen'});
+    return;
+  }
+  const nb = t.closest('[data-az-n]');
+  if(nb && AZ_ENT){
+    azEntMerken();
+    const r = azGruppe(AZ_ENT.gruppe);
+    if(r) AZ_ENT.anzahl = nb.dataset.azN === 'alle' ? r.anzahl : azZahl(AZ_ENT.anzahl + parseInt(nb.dataset.azN, 10), 1, r.anzahl, 1);
+    azZeichnen();
+    return;
+  }
+  const was = t.closest('[data-az-was]');
+  if(was && AZ_ENT){ azEntMerken(); AZ_ENT.was = was.dataset.azWas; azZeichnen(); return; }
+  const topf = t.closest('[data-az-topf]');
+  if(topf && AZ_ENT){ azEntMerken(); AZ_ENT.topf = topf.dataset.azTopf; azZeichnen(); return; }
+  const vb = t.closest('[data-az-v]');
+  if(vb){
+    const r = azGruppe(vb.dataset.r);
+    if(!r) return;
+    if(vb.dataset.azV === 'notiz'){
+      const box = vb.closest('.az-gruppe');
+      const n = box && box.querySelector('.az-notiz');
+      if(n){ n.hidden = !n.hidden; const i = n.querySelector('input'); if(i && !n.hidden) i.focus(); }
+      return;
+    }
+    azVerlauf(r, vb.dataset.azV, vb.dataset.azV === 'wurzeln' ? 'Wurzeln sichtbar' : 'Erstes neues Blatt');
+    sichern();
+    azZeichnen();
+    return;
+  }
+  const nl = t.closest('[data-az-notizlos]');
+  if(nl){
+    const r = azGruppe(nl.dataset.azNotizlos);
+    const box = nl.closest('.az-notiz');
+    const i = box && box.querySelector('input');
+    const text = i ? String(i.value || '').trim() : '';
+    if(r && text){ azVerlauf(r, 'notiz', text); sichern(); azZeichnen(); }
+    return;
+  }
+  const fw = t.closest('[data-az-fotoweg]');
+  if(fw){
+    if(!confirm('Dieses Foto löschen?')) return;
+    const id = fw.dataset.g;
+    S.fotos[id] = (S.fotos[id] || []).filter(f=>f.key !== fw.dataset.azFotoweg);
+    if(!S.fotos[id].length) delete S.fotos[id];
+    sichern();
+    azZeichnen();
+    return;
+  }
+  const k = t.closest('[data-az]');
+  if(!k) return;
+  const a = k.dataset.az;
+  if(a === 'liste'){ azZeigen({art:'liste'}); return; }
+  if(a === 'neu-stecklinge'){ azAssistentNeu(); return; }
+  if(a === 'frei'){ azZeigen({art:'frei'}); return; }
+  if(a === 'neu-gefaess'){ azZeigen({art:'neuGefaess'}); return; }
+  if(a === 'neu-bereich'){ azZeigen({art:'bereich', id:null}); return; }
+  if(a === 'gef-anlegen'){
+    const g = azGefaessAnlegen(azGefaessLesen());
+    sichern(); render();
+    azZeigen({art:'gefaess', id:g.id});
+    return;
+  }
+  if(a === 'gef-speichern'){
+    const g = azGefaess(k.dataset.g);
+    if(!g) return;
+    const w = azGefaessLesen();
+    if(String(w.name).trim()) g.name = String(w.name).trim();
+    g.medium = w.medium;
+    g.bereich = azBereich(w.bereich) ? w.bereich : null;
+    g.abstand = w.medium === 'wasser' && !w.abstand ? AZ_MEDIEN.wasser.vorgabe : w.abstand;
+    g.start = w.start;
+    sichern(); render();
+    AZ_MELDUNG = 'Gespeichert.';
+    azZeichnen();
+    return;
+  }
+  if(a === 'gef-weg'){
+    const g = azGefaess(k.dataset.g);
+    if(!g || azZahlIn(g.id)) return;
+    if(!confirm('„' + g.name + '“ auflösen? Die Fotos des Gefäßes werden mit gelöscht.')) return;
+    const A = anzuchtDaten();
+    A.gefaesse = A.gefaesse.filter(x=>x !== g);
+    A.gruppen = A.gruppen.filter(x=>x.gefaess !== g.id);
+    delete S.fotos[g.id];
+    sichern(); render();
+    azZeigen({art:'liste'});
+    return;
+  }
+  if(a === 'bereich-speichern'){
+    const name = String((document.getElementById('az-b-name') || {}).value || '').trim();
+    const an = !!(document.getElementById('az-b-an') || {}).checked;
+    const tage = azZahl((document.getElementById('az-b-tage') || {}).value, 1, 60, AZ_BEREICH_VORGABE);
+    const b = azBereich(k.dataset.b);
+    if(b){ if(name) b.name = name; b.rhythmus = an ? tage : null; }
+    else azBereichAnlegen({name, rhythmus: an ? tage : null});
+    sichern(); render();
+    azZeigen({art:'liste'});
+    return;
+  }
+  if(a === 'bereich-weg'){
+    const b = azBereich(k.dataset.b);
+    if(!b || !confirm('Bereich „' + b.name + '“ auflösen? Die Gefäße darin bleiben, ohne Bereich.')) return;
+    const A = anzuchtDaten();
+    A.gefaesse.forEach(g=>{ if(g.bereich === b.id) g.bereich = null; });
+    A.bereiche = A.bereiche.filter(x=>x !== b);
+    sichern(); render();
+    azZeigen({art:'liste'});
+    return;
+  }
+  if(a === 'frei-los'){ azFreiAnlegen(); return; }
+  if(a === 'entnehmen-los'){ azEntnehmenLos(); return; }
+});
+document.addEventListener('change', e=>{
+  const t = e.target;
+  if(!t) return;
+  if(t.id === 'az-f-medium'){
+    const med = AZ_MEDIEN[t.value] || AZ_MEDIEN.wasser;
+    const lab = document.getElementById('az-f-abst-lab');
+    if(lab) lab.textContent = med.rhythmus + ' alle … Tage';
+    const aus = document.getElementById('az-f-aus-zeile');
+    if(aus) aus.hidden = t.value === 'wasser';
+    return;
+  }
+  if(/^(ver-az|az-fr|az-e)-gef$/.test(t.id || '')){
+    const box = t.closest('.az-form');
+    const neu = box && box.querySelector('.az-neufelder');
+    if(neu) neu.hidden = t.value !== '__neu';
+    if(t.id === 'ver-az-gef') VER_AZ.gef = t.value;
+    if(t.id === 'az-e-gef' && AZ_ENT) AZ_ENT.ziel = t.value;
+    return;
+  }
+  if(t.id === 'ver-az-zahl' || t.id === 'ver-az-gname' || t.id === 'ver-az-gmed'){ verAzLesen(); return; }
+  if(t.dataset && t.dataset.azFoto && t.files && t.files.length){
+    const id = t.dataset.azFoto;
+    const dateien = Array.prototype.slice.call(t.files);
+    t.value = '';
+    Promise.resolve(fotosHinzu(id, dateien)).then(()=>{ if(AZ_SICHT.art === 'gefaess') azZeichnen(); });
+  }
+});
+
 /* Nachtrag für bestehende Ableger. Der Aufruf in laden() kommt beim
    Start zu früh — ABLEGER_ERBE steht erst hier. */
 try{ ablegerNachtrag(); }catch(e){}
@@ -27804,6 +28751,7 @@ document.addEventListener('click', e=>{
     if(meld){ meld.hidden = true; meld.innerHTML = ''; }
     verPflanze = b.dataset.p; verMethode = null;
     sektionOeffnen('vermehren', b);
+    if(typeof azZeigen === 'function') azZeigen({art:'assistent'});
     verRender();
     /* Die Pflanze steht schon fest — dann faengt der Assistent beim
        Weg an, so wie der Substrat-Assistent beim Topf. */
