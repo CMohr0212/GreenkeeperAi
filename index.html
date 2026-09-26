@@ -4639,18 +4639,22 @@ const KLASSEN = {
 const GRUPPEN = {
   wuestenkaktus: {name:'Wüstenkaktus', hoch:1.15, runter:0.95, min:0.7, max:2.0,
     probe:'Topf anheben — spürbar leicht heißt gießen.',
+    probeWinter:'Winterruhe: kühl und trocken halten. Topf anheben — gegossen wird nur, wenn der Körper schrumpelt.',
     verdacht:'topf'},
   blattsukkulent: {name:'Blattsukkulente', hoch:1.15, runter:0.95, min:0.7, max:1.8,
     probe:'Blätter und Topfgewicht ansehen. Erst gießen, wenn der Ballen bis unten trocken ist.',
+    probeWinter:'Im Winter Topf anheben und Blätter ansehen. Erst gießen, wenn sie weich oder runzlig werden.',
     verdacht:'topf'},
   sommerruhe: {name:'Sukkulente mit Sommerruhe', hoch:1.15, runter:0.95, min:0.7, max:2.0,
     probe:'Im Sommer ruht sie — jetzt fast gar nicht gießen.',
     verdacht:'', umgekehrtesJahr:true},
   knollenspeicher: {name:'Rhizom- oder Knollenspeicher', hoch:1.2, runter:0.95, min:0.7, max:2.0,
     probe:'Topf anheben. Der Speicher trägt sie lange — im Zweifel warten.',
+    probeWinter:'Im Winter Topf anheben und lange warten. Der Speicher trägt sie — im Zweifel gar nicht gießen.',
     verdacht:'topf'},
   trockenruhe: {name:'Knolle mit Trockenruhe', hoch:1.1, runter:0.95, min:0.7, max:1.8,
     probe:'Treibt sie, wird gegossen. Ist sie eingezogen, gar nicht.',
+    probeWinter:'Ist sie eingezogen, gar nicht gießen. Treibt sie weiter, sparsam.',
     verdacht:''},
   hartlaub: {name:'Hartlaub', hoch:1.08, runter:0.85, min:0.6, max:1.5,
     probe:'Nicht die Oberfläche, den Ballen prüfen — einmal ganz durchgetrocknet treibt kein Holz nach.',
@@ -4663,18 +4667,22 @@ const GRUPPEN = {
     verdacht:'wurzelbund'},
   epiphyt: {name:'Rindenepiphyt', hoch:1.1, runter:0.9, min:0.6, max:1.6,
     probe:'Wurzeln ansehen und den Topf anheben. Silbrig und leicht heißt gießen.',
+    probeWinter:'Im Winter seltener: Wurzeln ansehen und den Topf anheben. Erst gießen, wenn sie silbrig und der Topf leicht ist.',
     verdacht:'substrat'},
   bromelie: {name:'Trichterbromelie', hoch:1.1, runter:0.9, min:0.7, max:1.6,
     probe:'Der Trichter wird gefüllt, nicht die Erde.',
+    probeWinter:'Im Winter nur wenig Wasser in den Trichter. Steht sie kühl, bleibt der Trichter leer und nur das Substrat wird leicht angefeuchtet.',
     verdacht:''},
   sumpf: {name:'Sumpfpflanze', hoch:1.05, runter:0.9, min:0.8, max:1.3,
     probe:'Untersetzer nachfüllen — er darf nicht leerlaufen.',
+    probeWinter:'Im Winter den Untersetzer nur knapp nachfüllen — leerlaufen darf er nicht.',
     verdacht:''},
   moorbeet: {name:'Moorbeet im Anstau', hoch:1, runter:1, min:1, max:1,
     probe:'Keine Fingerprobe. Wasserstand im Untersetzer ansehen.',
     verdacht:'', lernt:false},
   nepenthes: {name:'Kannenpflanze', hoch:1.05, runter:0.88, min:0.7, max:1.4,
     probe:'Oberfläche muss klamm bleiben — aber kein Wasser im Untersetzer.',
+    probeWinter:'Oberfläche muss klamm bleiben — aber kein Wasser im Untersetzer.',
     verdacht:'substrat'}
 };
 
@@ -11389,8 +11397,21 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.28.0';
+const FASSUNG = '3.28.1';
 const PATCHNOTES = [
+  {
+    nr: '3.28.1', datum: '2026-09-23', titel: 'Gießhinweise im Winter',
+    kurz: [
+      'Im Winter zeigt der Gießhinweis wieder, was zur Pflanze passt: Bromelien werden im Trichter gegossen, Kakteen und Sukkulenten gewogen.'
+    ],
+    besser: [
+      'Trichterbromelien, Kakteen, Blattsukkulenten, Knollenspeicher, Rindenepiphyten, Sumpfpflanzen, Kannenpflanzen und Knollen mit Trockenruhe haben einen eigenen Wintersatz.'
+    ],
+    behoben: [
+      'Seit Herbstbeginn stand bei vielen Pflanzen der allgemeine Wintersatz „tiefer prüfen“, auch bei Bromelien und Kakteen.',
+      'Ein Fenster, das sofort wieder zugeht, zieht den Fokus nicht mehr nachträglich in seinen versteckten Titel.'
+    ]
+  },
   {
     nr: '3.28.0', datum: '2026-09-22', titel: 'Anzucht',
     kurz: [
@@ -17726,7 +17747,11 @@ function _modalFokus(el){
   const ziel = kopf || el.querySelector('button,[href],input,select,textarea') || el;
   if(kopf && !kopf.hasAttribute('tabindex')) kopf.setAttribute('tabindex', '-1');
   if(ziel && typeof ziel.focus === 'function'){
-    setTimeout(()=>{ try{ ziel.focus(); }catch(e){} }, 0);
+    /* 3.28.1: Nur fokussieren, wenn das Fenster noch offen ist. Sonst
+       holte ein schnell wieder geschlossenes Fenster den Fokus nachtraeglich
+       von seinem Ausloeser weg in den versteckten Titel. */
+    setTimeout(()=>{ if(el.getAttribute('aria-modal') !== 'true') return;
+      try{ ziel.focus(); }catch(e){} }, 0);
   }
 }
 
@@ -22871,10 +22896,11 @@ function giessHinweisFuer(p){
 
   /* Der Satz kommt aus der Gruppe, nicht aus der Klasse: eine
      Karnivore im Anstau hat keine Fingerprobe, eine Bromelie wird im
-     Trichter gegossen, ein Kaktus wird gewogen. Im Winter behaelt die
-     Klasse ihren eigenen Satz, wo sie einen hat. */
+     Trichter gegossen, ein Kaktus wird gewogen. Im Winter gilt zuerst
+     der Wintersatz der Gruppe, dann der der Klasse. Ohne ihn verdraengte
+     der Klassensatz den der Gruppe (Bromelie: „tiefer pruefen“). */
   const g = (typeof gruppeVon === 'function') ? gruppeVon(p) : null;
-  const probe = winter ? (kl.probeWinter || (g && g.probe) || kl.probe)
+  const probe = winter ? ((g && g.probeWinter) || kl.probeWinter || (g && g.probe) || kl.probe)
                        : ((g && g.probe) || kl.probe);
   if(probe) teile.push(probe);
 

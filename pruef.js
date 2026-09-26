@@ -157,7 +157,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.28.0', w.__T('FASSUNG') === '3.28.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.28.1', w.__T('FASSUNG') === '3.28.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -298,6 +298,13 @@ setTimeout(async () => {
   w.__T("modalAuf('gift-modal', document.querySelector('[data-design-go=\\'klartext\\']'))");
   await zu('gift-modal');
   pruef('Fokus kehrt zum Auslöser zurück', d.activeElement === knopf, d.activeElement && d.activeElement.id);
+  /* 3.28.1: Sofort wieder geschlossen — der verzoegerte Titelfokus darf
+     danach nicht mehr in das versteckte Fenster springen. */
+  w.__T("modalAuf('gift-modal', document.querySelector('[data-design-go=\\'klartext\\']')); _modalWeg('gift-modal');");
+  await tick();
+  pruef('Sofort geschlossen: Fokus bleibt am Auslöser', d.activeElement === knopf, d.activeElement && (d.activeElement.id || d.activeElement.tagName));
+  try{ w.history.back(); }catch(e){}
+  await tick();
 
   /* Abschnittsfenster */
   const keys = ['doktor','giessplan','substrat','vermehren','stammbaum','grundriss',
@@ -1386,12 +1393,17 @@ setTimeout(async () => {
       w.__T(`duengAbstand(allePflanzen().find(x=>x.id==='${dp}'))`) === 0);
     w.__T(`(function(){ S.eigene.find(x=>x.id==='${dp}').duenger = 'normal'; sichern(); })()`);
 
+    /* 3.28.1: festes Datum statt Kalendermonat. Die App rechnet mit der
+       Jahreskurve (etwa Mitte Oktober bis Anfang März), der Test vorher
+       mit Oktober bis Februar — Anfang Oktober und Anfang März lief er rot. */
     w.__T("S.giess.winterpause = true; sichern()");
-    const m = new Date().getMonth() + 1;
-    const imWinter = (m >= 10 || m <= 2);
-    pruef('Winterpause greift nur von Oktober bis Februar',
-      ((w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'winter')
-        === imWinter, 'Monat ' + m);
+    const HEUTE_VOR_DP = w.__T('HEUTE.getTime()');
+    const sperreAm = (j, mo) => { w.__T('HEUTE = new Date(' + j + ', ' + mo + ', 15)');
+      return ((w.__T(`duengSperre(allePflanzen().find(x=>x.id==='${dp}'))`)||{}).code === 'winter'); };
+    const imJanuar = sperreAm(2027, 0), imJuli = sperreAm(2027, 6);
+    w.__T('HEUTE = new Date(' + HEUTE_VOR_DP + ')');
+    pruef('Winterpause greift im Januar, nicht im Juli',
+      imJanuar === true && imJuli === false, 'Januar ' + imJanuar + ' / Juli ' + imJuli);
     w.__T("S.giess.winterpause = false; sichern()");
 
     /* Frisch umgetopft \u2014 die Verknuepfung zum Umtopf-Assistenten */
@@ -6204,16 +6216,35 @@ setTimeout(async () => {
        Karte gleich. Eine Pflanze im Anstau hat keine Fingerprobe. */
     const hin = (bot, kl) => w.__T("giessHinweisFuer({id:'x', botanisch:" + JSON.stringify(bot)
       + ", klasse:" + JSON.stringify(kl || 'B') + ", sonne:'indirekt'}).text");
-    pruef('Der Anstau bekommt keine Fingerprobe',
+    /* 3.28.1: festes Datum. Ohne liefen die Tests seit Herbstbeginn rot,
+       weil im Winter der Klassensatz den Gruppensatz verdraengte. */
+    const HEUTE_VORHER = w.__T('HEUTE.getTime()');
+    w.__T('HEUTE = new Date(2026, 6, 15)');
+    pruef('Sommer: Der Anstau bekommt keine Fingerprobe',
       hin('Sarracenia purpurea', 'S').indexOf('Wasserstand') !== -1
       && hin('Sarracenia purpurea', 'S').indexOf('Zentimeter tief') === -1,
       hin('Sarracenia purpurea', 'S').slice(0, 60));
-    pruef('Die Bromelie wird im Trichter gegossen',
+    pruef('Sommer: Die Bromelie wird im Trichter gegossen',
       hin('Guzmania lingulata').indexOf('Trichter') !== -1);
-    pruef('Der Kaktus wird gewogen',
+    pruef('Sommer: Der Kaktus wird gewogen',
       hin('Mammillaria elongata').indexOf('anheben') !== -1);
     pruef('Zwei Gruppen bekommen zwei verschiedene Sätze',
       hin('Sarracenia purpurea', 'S') !== hin('Monstera deliciosa'));
+    w.__T('HEUTE = new Date(2026, 0, 15)');
+    pruef('Winter: Der Anstau bekommt keine Fingerprobe',
+      hin('Sarracenia purpurea', 'S').indexOf('Zentimeter tief') === -1
+      && hin('Sarracenia purpurea', 'S').indexOf('Untersetzer leeren') !== -1,
+      hin('Sarracenia purpurea', 'S').slice(0, 60));
+    pruef('Winter: Die Bromelie wird im Trichter gegossen',
+      hin('Guzmania lingulata').indexOf('Trichter') !== -1,
+      hin('Guzmania lingulata').slice(0, 60));
+    pruef('Winter: Der Kaktus wird gewogen, auch mit Klasse B',
+      hin('Mammillaria elongata').indexOf('anheben') !== -1,
+      hin('Mammillaria elongata').slice(0, 60));
+    pruef('Winter: Normales Laub behält den Satz der Klasse',
+      hin('Monstera deliciosa').indexOf('Im Winter tiefer prüfen') !== -1,
+      hin('Monstera deliciosa').slice(0, 60));
+    w.__T('HEUTE = new Date(' + HEUTE_VORHER + ')');
   }
 
   /* ══════════ Der Lernfaktor ══════════ */
@@ -6913,6 +6944,8 @@ setTimeout(async () => {
       }
       delete S.dueng['DGP1'];
       S.giess.dgStart = iso(HEUTE);
+      /* 3.28.1: sonst sperrt die Winterpause von Oktober bis März. */
+      S.giess.winterpause = false;
       sichern();
     `);
     pruef('Eine nie geduengte Pflanze zaehlt ab dem Stichtag',
@@ -7079,7 +7112,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.28.0', e0.nr === '3.28.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.28.1', e0.nr === '3.28.1', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7235,6 +7268,8 @@ setTimeout(async () => {
       if(S.dueng) delete S.dueng[${JSON.stringify(id)}];
       if(S.water) delete S.water[${JSON.stringify(id)}];
       if(S.zustand) delete S.zustand[${JSON.stringify(id)}];
+      /* 3.28.1: sonst sperrt die Winterpause von Oktober bis März. */
+      S.giess.winterpause = false;
       sichern();
       return allePflanzen().find(function(x){ return x.id === ${JSON.stringify(id)}; });
     })()`);

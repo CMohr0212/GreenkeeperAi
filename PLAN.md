@@ -1,138 +1,60 @@
 # PLAN — GreenkeeperAI
 
-Stand 22.09.2026 · Ausgangsfassung 3.27.0 · **nächste Zielversion 3.28.0, sw.js greenkeeperai-v123**
+Stand 23.09.2026 · Ausgangsfassung 3.28.0 · **Zielversion 3.28.1, sw.js greenkeeperai-v124**
 
-**Freigegeben am 22.09.2026 (Chris): 3.28.0 · Zielversion 3.28.0, sw.js greenkeeperai-v123.** 3.29.0 ist nicht freigegeben.
+**Freigegeben am 23.09.2026 (Chris): 3.28.1 · Zielversion 3.28.1, sw.js greenkeeperai-v124.** 3.29.0 ist nicht freigegeben.
 
-Erledigt und nicht mehr hier: Etappe A bis D, E1 (3.19.0), Lösch-Fix (3.19.1), Kartei-Seite (3.20.0), E2 (3.21.0), E2b (3.22.0), E4 + K (3.23.0), Kartei-Abschluss (3.24.0), E3 Pflegetexte (3.25.0), Kartei schneller (3.26.0), Verlässliche Sorten (3.27.0). Der Verlauf steht im CHANGELOG.
-
-Reihenfolge (Chris, 22.09.2026): **Anzucht** (3.28.0 und 3.29.0, zur Freigabe) → **Aufräumen** ohne neue Funktionen. Erst danach Sammel-Anlegen, **F**, **T**. Zurückgestellt: Claude-Anbindung.
-
-## Zweck der Kartei, von Chris am 16.09.2026 gesetzt
-
-- Die Kartei hält die Pflanzenkarten auf dem neuesten Stand: Steckbriefdaten, die Sorte und art- oder sortenspezifische Pflegetexte.
-- Nichts, was jede Pflanze braucht. Keine Töpfe, kein Zustand, kein Befund, keine Maßnahmen — das bleibt beim Doktor.
-- Geprüft werden feste Daten wie Frost und Felder, die das Anlegen leer gelassen hat.
-- Pflegetexte wie bei der Venusfliegenfalle („Pflegeschritte“, „Winterruhe“): die KI schreibt sie, wo keine da sind, und gleicht sie ab, wo welche da sind.
-- Die Sorte ermittelt die KI, am besten schon beim Anlegen.
-- Der Doktor verliert den Abgleich der Steckbriefdaten, den übernimmt die Kartei.
-
-## Reihenfolge (Chris, 21.09.2026)
-
-- 3.24.0 Kartei-Abschluss, 3.25.0 E3.
-- Claude-Anbindung zurückgestellt (Chris, 21.09.2026): Die API kostet je Anfrage, auch mit Claude Pro. Der Befund bleibt im Backlog: `KI_ANBIETER` kennt Anthropic mit `kann:false`, `kiFragen` ist fest auf Google gebaut.
-
-## Erledigt in 3.24.0
-
-- Abgleich-Fenster nur mit Kreuzen: × je Zeile, „Übrige übernehmen (n)“. Eigene Angaben sind hervorgehoben und gehen mit (Chris, 21.09.2026: „nur hervorheben, nicht gesondert“).
-- Anlegen: keine Sorte mehr im botanischen Namen, auch nicht aus einem Bibliothekseintrag mit Sorte. Die Sorte geht in den Vorschlag (mittel bei Bibliothekseintrag, sonst niedrig).
-- Frist in `kiFragen` gilt bis die Antwort gelesen ist. `karteiBilder` wartet höchstens 10 s.
-- Belegt (Code): „Wichtig“ wird in der Kartei nur per Übernehmen ersetzt, nie still. Kein Verstoß gegen 10.8.
-- Lauf mit mehreren Pflanzen am Gerät bestätigt (Chris, 21.09.2026).
+Reihenfolge (Chris, 23.09.2026): zuerst die roten Tests, dann 3.29.0, dann Aufräumen.
+Erledigt und nicht mehr hier: alles bis 3.28.0 (Anzucht). Verlauf im CHANGELOG. „Bereich auflösen“ in 3.28.0 nachträglich freigegeben (Chris, 23.09.2026).
 
 ---
 
-## Erledigt in 3.25.0 — E3 Pflegetexte
+# Freigegeben — Rote Tests · Zielversion 3.28.1
 
-- Anlegen und Kartei fragen `PFLEGE` und `WINTERRUHE` (Chris, 21.09.2026: Anlegen fragt mit, statt E1). Der Doktor-Auftrag bleibt wortgleich.
-- Fehlende Pflegeschritte und Winterruhe zählen als Lücke (Chris, 21.09.2026, statt E2). Geprüftes „keine“ steht als leere Liste bzw. leerer Text.
-- Kartei-Auftrag: „wie Karte“ für WICHTIG, PFLEGE, WINTERRUHE; die drei Texte der Karte gehen mit (E3).
-- Neues Feld `winterruheText`, Karte zeigt es statt des festen Venusfliegenfallen-Textes. `winterruhe` (ja/nein) setzt die KI nie (E4).
-- Pflegeschritte werden als Ganzes ersetzt (E5). Bearbeiten mit Stempel `hand` nur bei Änderung.
-- `winterruheText` in `ABLEGER_ERBE`; ein geprüftes „keine“ erbt mit.
-- Folge: „Nur mit Lücken“ nimmt zunächst fast jede Pflanze, bis ein Kartei-Lauf die Texte ergänzt hat.
-
-## Erledigt in 3.26.0 — Kartei schneller
-
-- Bündel zu fünf Pflanzen gleicher Art (mit oder ohne Foto), zwei gleichzeitig, Frist 90 s. Blöcke `PFLANZE: <Nummer> | <Name>`; falscher Name, doppelte oder fehlende Nummer → die Pflanze geht einzeln noch einmal (`S.kartei.einzeln`).
-- Niedrige Denkstufe nur für die Kartei: `thinkingLevel: low` ab Gemini 3, `thinkingBudget: 512` bei 2.5. Bei 400 einmal ohne, gemerkt in `KI_DENKEN_AUS`.
-- 429 mit Tageskontingent (`PerDay`) hält den Lauf an (`halt: 'tag'`), Minutenlimit bremst nach Googles `retryDelay`, sonst 60 s.
-- Laufzeit (`laufMs`, `laufAb`), Modell und Restzeit unter dem Balken; Dauer je Pflanze in der Ergebnisliste; Laufzeit in der Leiste.
-- Am Gerät bestätigt (Chris, 22.09.2026): 49 von 50 in 3 Minuten, Modell 3.6 Flash, Warten sichtbar. Eine Pflanze mit 503.
-
----
-
-# Erledigt in 3.27.0 — Verlässliche Sorten und Pflegeangaben
-
-- A: Kein Spitzname im Auftrag (`karteiBezeichnung`), Blockkopf nur Nummer. `SORTE_BELEG` und `SORTEN_VERWECHSLUNG` in Kartei (mit Foto) und Anlegen. `sorteGeprueft`: Spitzname (nur Gleichheit, damit „Thai“ „Thai Constellation“ nicht sperrt), Trivialname, ohne Foto, ohne Beleg → niedrig, Verwechslung → höchstens mittel. Vorhandene Sorte → „strittig“, nur einzeln.
-- B: Abweichung von der Bibliothek → Zeile `einzeln`, nicht im Sammelknopf. `Q_RANG` bleibt unverändert (betrifft nur stille Schreibwege; die Kartei schreibt nie still). Plausibilitätsregeln `PLAUSI_TROPISCH`, `PLAUSI_SUKKULENT`.
-- C: Fotobündel `thinkingLevel: medium` / `thinkingBudget: 2048`.
-- D: `herkunftZeileHTML` unter dem Steckbrief.
-- E: `karteiFragen` weicht nach 503 einmal aus.
-- F: Prüfstand in pruef.js (Beauty, King Green, Bogenhand, Thai Constellation gegen Albo, Aronstab-Grenzen, Kaktus, Bibliothek, Anlegen).
-
----
-
-# Zur Freigabe — Anzucht · Zielversion 3.28.0 und 3.29.0
-
-Chris am 22.09.2026: eigener Bereich mit allen Anzuchten, gegliedert in Anzuchtbereiche (z. B. das kleine Anzuchthaus) und Gefäße (Wassergläser). Wasserwechsel mit Abstand je Gefäß. Mehrere Stecklinge, auch verschiedene Sorten, werden oft zu einer Pflanze zusammengesetzt. Bestimmung über die Mutterpflanze aus der Galerie oder per KI. Fotos am Gefäß, Verlauf je Gruppe („beides“).
-
-Nachtrag Chris, 22.09.2026:
-- Der Wasserwechsel steht im **Gießplan** wie eine Gießaufgabe, nicht als Aufgabe — so wie bei Pflanzen in reinem Wasser.
-- Stecklinge müssen **einzeln aus einer Gruppe entnommen** werden können, etwa zum Eintopfen.
-- **„Vermehren“ und Anzucht zusammenführen** zu einem Werkzeug „Anzucht“, statt eines weiteren Eintrags unter Werkzeuge.
-
-## Begriffe
-
-- **Bereich:** ein Ort mit mehreren Gefäßen, z. B. „Anzuchthaus“. Freiwillig.
-- **Gefäß:** Glas, Schale, Topf. Medium Wasser, Substrat, Moos oder Perlite.
-- **Gruppe:** Stecklinge einer Herkunft in einem Gefäß — z. B. „15 Blattstecklinge Königsbegonie“. Ein Glas mit Red Emerald, Maranta, Adansonii und Pothos hat vier Gruppen.
+## Ziel
+pruef.js läuft unabhängig vom Datum und vom Zufall mit 0 Fehlschlägen, und der Gießhinweis verliert im Winter nicht mehr den Satz der Gießgruppe.
 
 ## Befund
+- **Belegt** (Prüflauf 23.09.): 2198 Prüfungen, 3 rot — Anstau, Bromelie, Kaktus. „Fokus kehrt zum Auslöser zurück“ war diesmal grün.
+- **Belegt** (Code, `giessHinweisFuer`): Im Winter (`sommer()` = `jahresLage() < 0.5`, also etwa seit Mitte September) gewinnt der Wintersatz der Klasse (`KLASSEN[x].probeWinter`) vor dem Satz der Gruppe. Folge in der App: Eine Bromelie liest „Im Winter tiefer prüfen …“ statt Trichter, ein Kaktus mit Klasse B verliert „Topf anheben“.
+- **Belegt**: Die drei Tests laufen ohne festes Datum, deshalb sind sie seit Herbstbeginn rot. Der Test ist nicht falsch, der Wintersatz verdrängt die Gruppe tatsächlich.
+- **Vermutet**: „Fokus“ wackelt durch ein Timing zwischen `modalZu` und `tick()` oder ein Neuzeichnen, das den Auslöser-Knopf ersetzt. Nicht belegt.
 
-- **Belegt** (Code): Pflanzen in Wasserkultur haben im Gießplan schon den Wasserwechsel statt des Gießens (`GIESSARTEN.wasser`: `wechsel:[5,7]`, Knopf „Wasser gewechselt“, `wechselIntervall`). Genau so sollen die Gläser erscheinen.
-- **Belegt** (Code): Gießliste, Gießmodus, Gießplan-Vorschau (`giessplanDaten`) und Heute bauen ausschließlich aus Pflanzen (`allePflanzen()`). Gefäße müssen dort als eigene Einträge hinein, ohne als Pflanzen zu gelten (sonst landen sie in Kartei, Lücken und Sammlungszahl).
-- **Belegt** (Code): Das Werkzeug „Vermehren“ ist ein Ablauf in drei Stufen: Mutterpflanze wählen → Weg wählen (Aussicht, Anleitung, KI-Nachfrage) → „Wie viele Ableger?“, die sofort als eigene Pflanzen angelegt werden (`ablegerAnlegen`).
-- **Belegt** (Code): Es gibt keinen Speicherort für Stecklinge; ein Ableger kennt genau eine Mutter (`eltern`) und eine Sorte.
-- **Belegt** (Code): Pflanzenfotos liegen in IndexedDB (`FOTO_DB`), `S` im localStorage. Gefäßfotos gehören in den Fotospeicher.
+## Änderungen
+- Gruppen bekommen einen eigenen Wintersatz (`probeWinter`), wo der Satz der Klasse falsch wäre. Reihenfolge im Winter: Gruppe-Winter → Klasse-Winter → Gruppe.
+- Neue Wintersätze (Wortlaut zur Freigabe):
+  - Trichterbromelie: „Im Winter nur wenig Wasser in den Trichter. Steht sie kühl, bleibt der Trichter leer und nur das Substrat wird leicht angefeuchtet.“
+  - Wüstenkaktus: „Winterruhe: kühl und trocken halten. Topf anheben — gegossen wird nur, wenn der Körper schrumpelt.“
+  - Blattsukkulente: „Im Winter Topf anheben und Blätter ansehen. Erst gießen, wenn sie weich oder runzlig werden.“
+  - Rhizom- oder Knollenspeicher: „Im Winter Topf anheben und lange warten. Der Speicher trägt sie — im Zweifel gar nicht gießen.“
+  - Rindenepiphyt: „Im Winter seltener: Wurzeln ansehen und den Topf anheben. Erst gießen, wenn sie silbrig und der Topf leicht ist.“
+  - Sumpfpflanze: „Im Winter den Untersetzer nur knapp nachfüllen — leerlaufen darf er nicht.“
+  - Kannenpflanze: „Oberfläche muss klamm bleiben — aber kein Wasser im Untersetzer.“ (wie im Sommer)
+  - Knolle mit Trockenruhe: „Ist sie eingezogen, gar nicht gießen. Treibt sie weiter, sparsam.“
+- Ohne eigenen Wintersatz, bleiben beim Satz der Klasse: Normales Laub, Dünnblättrige, Hartlaub, Moorbeet im Anstau (Klasse S „Untersetzer leeren“ ist gewollt).
+- pruef.js: Gießhinweis-Tests laufen mit festem Datum, einmal Sommer (15.07.), einmal Winter (15.01.); `HEUTE` wird danach zurückgesetzt. Neue Wintertests: Bromelie Trichter, Kaktus anheben, Anstau ohne Fingerprobe, Laub mit Klassensatz.
+- Datumsprobe: ein Prüflauf mit vorgetäuschtem Datum Januar und einer mit Juli, um weitere datumsabhängige Tests zu finden. Gefundene Tests bekommen ein festes Datum; Fehler in der App daraus → Backlog, nicht in diese Fassung.
+- Fokus-Test: der Modal-Block läuft zehnmal allein. Ist die Ursache danach belegt, wird der Test oder die App behoben. Sonst bleibt er, bekommt eine Messung (Auslöser noch im Dokument ja/nein, aktives Element) und geht ins Backlog.
+- Pflichtpaket nach Regel 6.2.
 
-## Aufteilung
+## Nicht angefasst
+Gießrhythmus und Lernfaktor, `KLASSEN` (Texte und Werte), Gruppe „Sukkulente mit Sommerruhe“ (umgekehrtes Jahr, eigener Winterfall), Kartei, Doktor, Anzucht, alle Punkte unter „Nicht anfassen“ der Übergabe.
 
-- **3.28.0:** Werkzeug „Anzucht“ (ersetzt „Vermehren“), Bereiche, Gefäße, Gruppen, Wasserwechsel im Gießplan, Verlauf, Fotos, Entnehmen (Ausfall, umsetzen, als eigene Pflanze eintopfen).
-- **3.29.0:** KI-Bestimmung per Foto, Mischtopf aus mehreren Gruppen und Sorten mit mehreren Müttern.
+## Risiken
+- Wintersätze sind Pflegeaussagen. Wortlaut von Chris prüfen lassen.
+- Die Datumsprobe kann weitere rote Tests zeigen; die Fassung wächst dadurch nicht, nur der Backlog.
+- Der Fokus-Test ist womöglich in dieser Fassung nicht lösbar (Zufall).
 
-## 3.28.0
+## Prüfung
+- pruef.js: Wintersatz je Gruppe, Sommersatz unverändert, Anstau ohne Fingerprobe in beiden Jahreszeiten, Gegenprobe (ohne Gruppen-Wintersatz schlägt der Bromelien-Wintertest fehl).
+- Nur am Handy: Wortlaut im Gießmodus und auf der Karte einer Bromelie oder eines Kaktus.
 
-**Werkzeug „Anzucht“ statt „Vermehren“**
-- Der Eintrag „Vermehren“ heißt künftig „Anzucht“, an derselben Stelle. Kein weiterer Eintrag, die Werkzeugseite sieht aus wie bisher.
-- Oben die Übersicht: Bereiche mit ihren Gefäßen, Gefäße ohne Bereich darunter. Je Gefäß Name, Medium, Zahl der Stecklinge, nächster Wasserwechsel.
-- Knopf „Neue Stecklinge“ startet den bisherigen Vermehren-Ablauf unverändert (Mutterpflanze → Weg mit Aussicht, Anleitung, KI-Nachfrage).
-- Stufe 3 fragt neu „Wohin?“:
-  - **In die Anzucht** (Vorgabe): Gefäß wählen oder neu anlegen, Anzahl — es entsteht eine Gruppe;
-  - **Gleich als eigene Pflanzen**: wie bisher, für schon bewurzelte Ableger.
-- „Frei eintragen“ für Stecklinge ohne Mutter in der Sammlung (getauscht): Art, botanischer Name, Sorte von Hand.
+## Größe
+klein
 
-**Gefäß**
-- Name, Medium, Bereich (oder keiner), Startdatum, Fotos mit Datum.
-- Bei Medium Wasser: „Wasser wechseln alle … Tage“, Vorgabe 7, je Gefäß änderbar.
-- Bei Substrat, Moos oder Perlite: „Befeuchten alle … Tage“, Vorgabe 10, je Gefäß änderbar oder aus.
-- Umbenennen, verschieben, auflösen (nur wenn leer).
+---
 
-**Bereich mit eigenem Rhythmus**
-- Ein Bereich kann selbst einen Rhythmus haben — gedacht für das Anzuchthaus: „Befeuchten alle … Tage“, Vorgabe 10.
-- Dann stehen die Gefäße darin nicht einzeln im Gießplan, sondern das Anzuchthaus als ein Eintrag mit Knopf „Befeuchtet“. Wassergläser in einem Bereich behalten ihren eigenen Wechsel.
-
-**Wasserwechsel im Gießplan**
-- Wassergläser erscheinen in Heute, im Gießmodus und in der Gießplan-Vorschau **wie eine Pflanze in Wasserkultur**: Eintrag mit dem Gefäßnamen und seinen Stecklingen, Knopf „Wasser gewechselt“, fällig nach dem eingestellten Abstand.
-- Substrat-Gefäße und Bereiche mit Rhythmus (Anzuchthaus) erscheinen genauso, mit Knopf „Befeuchtet“.
-- Sie sind dort eigene Einträge, keine Pflanzen: nicht in Kartei, Lücken, Sammlungszahl, Doktor.
-
-**Gruppe**
-- Anzahl, Methode (Blattsteckling, Kopfsteckling, Stammsteckling, Blattschnitt, Triebstück, Teilstück, Ausläufer), Startdatum, Herkunft.
-- Verlauf mit Datum: „Wurzeln sichtbar“, „erstes neues Blatt“, freie Notiz.
-
-**Entnehmen**
-- Aus jeder Gruppe lassen sich ein oder mehrere Stecklinge entnehmen, Anzahl wählbar:
-  - **Eintopfen als eigene Pflanze** — je entnommenem Steckling eine Karte oder alle zusammen in einen Topf als eine Karte; erbt von der Mutter wie bisher, hängt im Stammbaum unter ihr;
-  - **Umsetzen** in ein anderes Gefäß (vorhandene Gruppe derselben Herkunft oder neue Gruppe) — der Verlauf wandert mit;
-  - **Ausfall** — zählt nur herunter, mit Eintrag im Verlauf.
-- Eine leere Gruppe verschwindet aus dem Gefäß; der Verlauf bleibt am Ableger bzw. in der Mutterkarte.
-
-**Mutterpflanze**
-- Die Karte der Mutter zeigt: „In Anzucht: 15 Blattstecklinge · Glas 1“.
-
-**Sicherung**
-- `S.anzucht` geht in Datensicherung und Wiederherstellung mit, die Fotos wie die Pflanzenfotos.
+# Weiter offen, nicht freigegeben — Anzucht Teil 2 · Zielversion 3.29.0
 
 ## 3.29.0
 
@@ -143,24 +65,6 @@ Nachtrag Chris, 22.09.2026:
 - Eintopfen aus mehreren Gruppen, auch aus verschiedenen Gefäßen und Sorten, zu **einer** Pflanze (z. B. Golden Pothos mit Marble Queen).
 - Erbe über `ABLEGER_ERBE` von der Hauptgruppe (Vorgabe: die mit den meisten Stecklingen).
 - Neue Felder `muetter` und `mitImTopf`; die Karte zeigt „Mit im Topf: Marble Queen (2)“. `eltern` bleibt die Hauptmutter, der Stammbaum zeigt weitere Mütter mit.
-
-## Annahmen — ohne Einwand gelten sie mit der Freigabe
-
-- **Z1** Ein Glas im Gießplan heißt wie das Gefäß („Glas 1“) und nennt darunter seine Stecklinge.
-- **Z2** (entschieden, Chris 22.09.2026) Auch das Anzuchthaus steht im Gießplan: Es wird alle ein bis zwei Wochen mit etwas Wasser befüllt, damit die Feuchtigkeit bleibt. Vorgabe „Befeuchten alle 10 Tage“, einstellbar.
-- **Z3** Der Vermehren-Ablauf bleibt inhaltlich gleich (Aussicht, Anleitung, KI-Wege); neu ist nur „Wohin?“ in Stufe 3.
-- **Z4** Aufteilung auf 3.28.0 und 3.29.0 wie oben.
-
-## Nicht angefasst
-
-Kartei, Doktor, Gießlogik der Pflanzen, bestehende Ableger und `eltern`, `ABLEGER_ERBE` (nur gelesen), `giftEigenSetzen`, `fest`/`strittig`.
-
-## Risiken
-
-- Gießliste, Gießmodus, Vorschau und Heute bekommen einen zweiten Eintragstyp — jede Stelle, die heute „Pflanze“ annimmt, braucht einen Test mit Glas.
-- Fotos mehrerer Gefäße vergrößern den Fotospeicher; sie werden verkleinert wie Pflanzenfotos.
-
-**Pflichtpaket** je Fassung nach Regel 6.2.
 
 ---
 

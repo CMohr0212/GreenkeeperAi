@@ -4,6 +4,18 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.28.1 — 23. September 2026
+**Gießhinweise im Winter**
+
+### Behoben
+- Im Winter verdrängte der allgemeine Wintersatz der Gießklasse den Satz der Gießgruppe. Bromelien lasen „tiefer prüfen“ statt Trichter, Kakteen verloren „Topf anheben“.
+- Ein Fenster, das sofort wieder geschlossen wird, holt den Fokus nicht mehr nachträglich vom Knopf weg, der es geöffnet hat.
+
+### Anders
+- Eigene Wintersätze für Trichterbromelie, Wüstenkaktus, Blattsukkulente, Knollenspeicher, Rindenepiphyt, Sumpfpflanze, Kannenpflanze und Knolle mit Trockenruhe. Laub, Dünnblättrige, Hartlaub und Moorbeet behalten den Satz ihrer Klasse.
+
+---
+
 ## 3.28.0 — 22. September 2026
 **Anzucht**
 
