@@ -4,6 +4,25 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.29.0 — 26. September 2026
+**Anzucht, Teil 2**
+
+### Neu
+- Mischtopf: Beim Eintopfen „Mit anderen Gruppen zusammen“ wählen. Stecklinge aus mehreren Gruppen und Gefäßen, auch verschiedener Arten, werden eine Pflanze. Die Karte erbt von der Hauptpflanze (Vorgabe: die größte Gruppe) und zeigt „Mit im Topf: …“.
+- Gegossen wird im Mischtopf nach der Pflanze, die am längsten ohne Wasser auskommt. Passen die Gießklassen nicht zusammen, sagt es die App vor dem Eintopfen.
+- Ist eine Pflanze im Mischtopf giftiger als die Hauptpflanze, steht das auf der Karte.
+- Im Stammbaum stehen weitere Mütter unter dem Namen. Die Nebenmütter nennen den Ableger unter „Mit im Topf bei“.
+- „Per Foto bestimmen“ für Anzuchtgruppen ohne Mutter. Art und Sorte übernimmst du einzeln per Tipp. Ohne Schlüssel geht es über Kopieren und Einfügen.
+- „Bearbeiten“ an jeder Anzuchtgruppe: Gefäß, Anzahl, Methode und Start korrigieren, bei Gruppen ohne Mutter auch Art und Sorte. Das schreibt keinen Eintrag in den Verlauf.
+- Neuer Vermehrungsweg „Blattsteckling mit Stiel“ für Begonie, Peperomie und Usambaraveilchen.
+
+### Behoben
+- Unter „Wohin?“ hieß der Knopf wie die Wahl darüber. Jetzt nennt er das Gefäß, zum Beispiel „In Glas 2 setzen“.
+- Die Gefäßliste steht alphabetisch, Glas 2 vor Glas 10.
+- Oben stand die KI-Auskunft zur Art, darunter andere, geratene Wege. Jetzt zeigen die Kacheln die Wege der Auskunft.
+
+---
+
 ## 3.28.1 — 23. September 2026
 **Gießhinweise im Winter**
 

@@ -1,77 +1,120 @@
 # PLAN — GreenkeeperAI
 
-Stand 23.09.2026 · Ausgangsfassung 3.28.0 · **Zielversion 3.28.1, sw.js greenkeeperai-v124**
+Stand 26.09.2026 · Ausgangsfassung 3.28.1 · **Zielversion 3.29.0, sw.js greenkeeperai-v125**
 
-**Freigegeben am 23.09.2026 (Chris): 3.28.1 · Zielversion 3.28.1, sw.js greenkeeperai-v124.** 3.29.0 ist nicht freigegeben.
+**Freigegeben am 26.09.2026 (Chris): 3.29.0 · Zielversion 3.29.0, sw.js greenkeeperai-v125.** Umfang: A KI-Bestimmung, B Mischtopf (auch verschiedene Arten), C vier Funde aus der Handyprüfung 3.28.0 („mit rein“, Regel 4.3).
 
-Reihenfolge (Chris, 23.09.2026): zuerst die roten Tests, dann 3.29.0, dann Aufräumen.
-Erledigt und nicht mehr hier: alles bis 3.28.0 (Anzucht). Verlauf im CHANGELOG. „Bereich auflösen“ in 3.28.0 nachträglich freigegeben (Chris, 23.09.2026).
+Aufteilung: keine, auf Chris' Wunsch (Regel 0.2). Die Größe ist „groß“, eine Aufteilung nach Regel 3.4 war vorgeschlagen und wurde abgelehnt.
+Gerätekontrolle: 3.28.0 und 3.28.1 hat Chris am 26.09. am Handy geprüft, bis auf die Punkte in Teil C.
 
 ---
-
-# Freigegeben — Rote Tests · Zielversion 3.28.1
 
 ## Ziel
-pruef.js läuft unabhängig vom Datum und vom Zufall mit 0 Fehlschlägen, und der Gießhinweis verliert im Winter nicht mehr den Satz der Gießgruppe.
-
-## Befund
-- **Belegt** (Prüflauf 23.09.): 2198 Prüfungen, 3 rot — Anstau, Bromelie, Kaktus. „Fokus kehrt zum Auslöser zurück“ war diesmal grün.
-- **Belegt** (Code, `giessHinweisFuer`): Im Winter (`sommer()` = `jahresLage() < 0.5`, also etwa seit Mitte September) gewinnt der Wintersatz der Klasse (`KLASSEN[x].probeWinter`) vor dem Satz der Gruppe. Folge in der App: Eine Bromelie liest „Im Winter tiefer prüfen …“ statt Trichter, ein Kaktus mit Klasse B verliert „Topf anheben“.
-- **Belegt**: Die drei Tests laufen ohne festes Datum, deshalb sind sie seit Herbstbeginn rot. Der Test ist nicht falsch, der Wintersatz verdrängt die Gruppe tatsächlich.
-- **Vermutet**: „Fokus“ wackelt durch ein Timing zwischen `modalZu` und `tick()` oder ein Neuzeichnen, das den Auslöser-Knopf ersetzt. Nicht belegt.
+Anzucht Teil 2: Frei eingetragene Gruppen lassen sich per Foto bestimmen. Stecklinge aus mehreren Gruppen lassen sich zu einer Pflanze eintopfen. Die vier Funde aus der Handyprüfung von 3.28.0 sind behoben.
 
 ## Änderungen
-- Gruppen bekommen einen eigenen Wintersatz (`probeWinter`), wo der Satz der Klasse falsch wäre. Reihenfolge im Winter: Gruppe-Winter → Klasse-Winter → Gruppe.
-- Neue Wintersätze (Wortlaut zur Freigabe):
-  - Trichterbromelie: „Im Winter nur wenig Wasser in den Trichter. Steht sie kühl, bleibt der Trichter leer und nur das Substrat wird leicht angefeuchtet.“
-  - Wüstenkaktus: „Winterruhe: kühl und trocken halten. Topf anheben — gegossen wird nur, wenn der Körper schrumpelt.“
-  - Blattsukkulente: „Im Winter Topf anheben und Blätter ansehen. Erst gießen, wenn sie weich oder runzlig werden.“
-  - Rhizom- oder Knollenspeicher: „Im Winter Topf anheben und lange warten. Der Speicher trägt sie — im Zweifel gar nicht gießen.“
-  - Rindenepiphyt: „Im Winter seltener: Wurzeln ansehen und den Topf anheben. Erst gießen, wenn sie silbrig und der Topf leicht ist.“
-  - Sumpfpflanze: „Im Winter den Untersetzer nur knapp nachfüllen — leerlaufen darf er nicht.“
-  - Kannenpflanze: „Oberfläche muss klamm bleiben — aber kein Wasser im Untersetzer.“ (wie im Sommer)
-  - Knolle mit Trockenruhe: „Ist sie eingezogen, gar nicht gießen. Treibt sie weiter, sparsam.“
-- Ohne eigenen Wintersatz, bleiben beim Satz der Klasse: Normales Laub, Dünnblättrige, Hartlaub, Moorbeet im Anstau (Klasse S „Untersetzer leeren“ ist gewollt).
-- pruef.js: Gießhinweis-Tests laufen mit festem Datum, einmal Sommer (15.07.), einmal Winter (15.01.); `HEUTE` wird danach zurückgesetzt. Neue Wintertests: Bromelie Trichter, Kaktus anheben, Anstau ohne Fingerprobe, Laub mit Klassensatz.
-- Datumsprobe: ein Prüflauf mit vorgetäuschtem Datum Januar und einer mit Juli, um weitere datumsabhängige Tests zu finden. Gefundene Tests bekommen ein festes Datum; Fehler in der App daraus → Backlog, nicht in diese Fassung.
-- Fokus-Test: der Modal-Block läuft zehnmal allein. Ist die Ursache danach belegt, wird der Test oder die App behoben. Sonst bleibt er, bekommt eine Messung (Auslöser noch im Dokument ja/nein, aktives Element) und geht ins Backlog.
-- Pflichtpaket nach Regel 6.2.
+
+### A · KI-Bestimmung
+- Eine Gruppe ohne Mutter bekommt den Knopf „Per Foto bestimmen“. Gruppen mit Mutter bekommen ihn nicht.
+- Ein Foto aufnehmen oder auswählen. Das Foto wird nicht gespeichert.
+- Kurzer Auftrag nur mit ART, BOTANISCH, SICHERHEIT, SORTE, SORTE_BELEG und SORTEN_VERWECHSLUNG. Die Feldtexte kommen unverändert aus der vorhandenen Felddefinition. `ANTWORT_FORMAT` bleibt wortgleich. Kein Name aus einer Karte im Auftrag.
+- Die Sorte läuft durch `sorteGeprueft` (unverändert).
+- Das Ergebnis zeigt Art, botanischen Namen und Sorte mit Sicherheit und Beleg. Übernommen wird nur einzeln: Knopf „Art übernehmen“ und, wenn eine Sorte angeboten wird, Knopf „Sorte übernehmen“ (Regel 10.8, Vorschlag 10.13).
+- Die Übernahme schreibt `art`, `botanisch` und `sorte` in die Gruppe und einen Verlaufseintrag „Per Foto bestimmt: …“.
+- Ohne API-Schlüssel oder nach einem Fehlschlag gibt es den Weg über Kopieren und Einfügen (Regel 10.6).
+
+### B · Mischtopf
+- Im Schritt „Eintopfen“ gibt es die neue Wahl „Mit anderen Gruppen zusammen“. Darunter stehen alle Gruppen aller Gefäße, jede mit eigener Anzahl. **Verschiedene Arten sind erlaubt** (Chris, 26.09.).
+- Hauptgruppe ist vorgegeben die Gruppe mit den meisten Stecklingen. Sie ist änderbar.
+- Die Karte erbt über `ablegerErbe` von der Mutter der Hauptgruppe. Ohne Mutter kommen die Angaben aus der Gruppe. `ABLEGER_ERBE` bleibt unverändert.
+- **Gießen, trockenste Pflanze gewinnt** (Chris, 26.09.): Klassen von nass nach trocken S → A → B → C. Hat eine Nebenmutter eine trockenere Klasse als die Hauptmutter, übernimmt die Karte deren Klasse, Gießgruppe und Gießart. Gruppen ohne Mutter haben keine bekannte Klasse und zählen dabei nicht.
+- **Hinweis vor dem Eintopfen**, wenn die Klassen nicht zusammenpassen. Zusammen passen gleiche oder benachbarte Klassen (A–B, B–C), S nur mit S. Der Hinweis nennt die Pflanzen und sagt, nach welcher Pflanze gegossen wird. Das Eintopfen wird nicht gesperrt.
+- Neue Felder an der Karte:
+  - `muetter`: alle Mütter aus der Sammlung, die Hauptmutter zuerst.
+  - `mitImTopf`: Liste `{art, sorte, anzahl}` der Nebengruppen.
+- `eltern` bleibt die Hauptmutter.
+- Die Karte zeigt „Mit im Topf: Marble Queen (2)“.
+- **Giftigkeit:** Ist eine Nebenmutter giftig und die Hauptmutter nicht, zeigt die Karte „Mit im Topf: [Name] ist giftig“. Die Giftlogik wird nicht angefasst, das ist nur eine Anzeige.
+- Stammbaum: Weitere Mütter stehen als Zeile „+ Name“ unter dem Knoten, ohne zweite Linie. Die Nebenmütter nennen den Ableger unter „Nachkommen“ mit dem Zusatz „mit im Topf“.
+- Jede Gruppe zählt herunter und bekommt einen Verlaufseintrag. Der Verlauf aller Gruppen geht an die neue Karte.
+
+### C · Funde aus der Handyprüfung von 3.28.0
+1. **Doppeltes „In die Anzucht“:** Der Knopf unten nennt das Ziel, also „In Glas 2 setzen“ oder „In neues Gefäß setzen“. Er folgt der Auswahl im Feld „Gefäß“.
+2. **Gefäßliste sortiert:** Alle Gefäß-Auswahllisten stehen alphabetisch mit natürlichen Zahlen (Glas 2 vor Glas 10). „Neues Gefäß …“ bleibt am Ende. Die Vorauswahl bleibt wie bisher.
+3. **Wege passen zur Auskunft:**
+   - Liegt eine KI-Auskunft zur Art vor, zeigen die Kacheln genau deren Wege, in deren Reihenfolge. Aussicht und Dauer kommen aus der Auskunft, das Schild zeigt „KI“ statt „geraten“.
+   - Die Namen der Auskunft werden den Wegen im Katalog zugeordnet (Kopf-, Trieb-, Stammsteckling, Blattsteckling, Rhizomteilung, Teilung, Kindel, Ausläufer, Absenker, Abmoosen, Aussaat, Wurzelschnittling).
+   - Neu im Katalog ist ein allgemeiner Weg **„Blattsteckling mit Stiel“** (Begonie, Peperomie, Usambaraveilchen). Der bisherige Blattsteckling gilt nur für Dickblattgewächse.
+   - Ein Weg ohne Zuordnung bekommt eine Kachel nur mit den Angaben der Auskunft, ohne Schritt-für-Schritt.
+   - Ohne Auskunft bleibt alles wie bisher.
+4. **Gruppe bearbeiten:** Jede Gruppe bekommt den Knopf „Bearbeiten“. Änderbar sind Gefäß, Anzahl, Methode und Startdatum. Bei Gruppen ohne Mutter auch Art, botanischer Name und Sorte. Das ist eine Korrektur und schreibt keinen Verlaufseintrag. Steht im Zielgefäß schon eine Gruppe derselben Herkunft, werden beide zusammengelegt (wie beim Umsetzen). Das „Umsetzen“ unter „Entnehmen“ bleibt für echtes Umsetzen mit Verlaufseintrag.
+
+### Pflichtpaket
+Nach Regel 6.2.
 
 ## Nicht angefasst
-Gießrhythmus und Lernfaktor, `KLASSEN` (Texte und Werte), Gruppe „Sukkulente mit Sommerruhe“ (umgekehrtes Jahr, eigener Winterfall), Kartei, Doktor, Anzucht, alle Punkte unter „Nicht anfassen“ der Übergabe.
+- `sorteGeprueft` und `ANTWORT_FORMAT`
+- `ABLEGER_ERBE` und `giftEigenSetzen`
+- `KLASSEN`-Texte
+- Die Regeln in `vermehrungFuer` (nur ergänzt: Begonie und Peperomie → „Blattsteckling mit Stiel“)
+- Stammbaum-Layout (nur die Zusatzzeile)
+- Zustand „Steckling“ nach dem Eintopfen (Backlog)
+- Kartei und Doktor
+- Alle Punkte unter „Nicht anfassen“ der Übergabe
 
 ## Risiken
-- Wintersätze sind Pflegeaussagen. Wortlaut von Chris prüfen lassen.
-- Die Datumsprobe kann weitere rote Tests zeigen; die Fassung wächst dadurch nicht, nur der Backlog.
-- Der Fokus-Test ist womöglich in dieser Fassung nicht lösbar (Zufall).
+- Größe „groß“ in einer Sitzung. Bricht die Sitzung ab, gilt Regel 7.1. Baureihenfolge: C, dann A, dann B, damit die kleinen Korrekturen zuerst fertig sind.
+- „Blattsteckling mit Stiel“ und die Zuordnung sind Pflegeaussagen. **Den Wortlaut prüfst du am Handy.**
+- Bei verschiedenen Arten richten sich Steckbrief, Sonne und Frost nur nach der Hauptart. Nur das Gießen folgt der trockensten Pflanze.
+- Die Wegeliste mit KI-Auskunft zeigt keine Regelwege mehr. Hat die KI einen guten Weg vergessen, fehlt er in der Liste. Abhilfe ist „Neu nachfragen“.
+- Beim Bearbeiten ändert sich mit Art oder Sorte die Herkunft der Gruppe. Gruppen werden danach anders zusammengelegt.
+- Alte Sicherungen ohne `muetter` und `mitImTopf` müssen fehlerfrei laden. Eine gelöschte Nebenmutter darf nichts kaputt machen.
 
 ## Prüfung
-- pruef.js: Wintersatz je Gruppe, Sommersatz unverändert, Anstau ohne Fingerprobe in beiden Jahreszeiten, Gegenprobe (ohne Gruppen-Wintersatz schlägt der Bromelien-Wintertest fehl).
-- Nur am Handy: Wortlaut im Gießmodus und auf der Karte einer Bromelie oder eines Kaktus.
+
+pruef.js mit Gegenproben nach Regel 5.2:
+- **A:**
+  - Knopf nur bei Gruppen ohne Mutter
+  - Auftrag mit genau sechs Feldern
+  - Sorte ohne Beleg → „niedrig“
+  - Trivialname wird nicht angeboten
+  - Nichts ändert sich vor dem Tipp
+  - Übernahme schreibt Felder und Verlauf
+  - Rückfallweg ohne Schlüssel
+- **B:**
+  - 2 und 3 Gruppen aus verschiedenen Gefäßen
+  - Verschiedene Arten
+  - Vorgabe der Hauptgruppe
+  - Erbe nur von der Hauptmutter
+  - Trockenste Klasse gewinnt, samt Gießgruppe
+  - Hinweis bei A mit C und bei S mit B, kein Hinweis bei A mit B
+  - `muetter` und `mitImTopf` stimmen
+  - Gifthinweis
+  - Gelöschte Nebenmutter
+  - Alte Daten
+- **C:**
+  - Knopftext folgt dem Gefäß
+  - Sortierung Glas 2 vor Glas 10
+  - Mit Auskunft „Blattsteckling, Rhizomteilung“ zeigen die Kacheln genau diese zwei, ohne „geraten“
+  - Ohne Auskunft unverändert
+  - Bearbeiten verschiebt die Gruppe ohne Verlaufseintrag und legt sie zusammen
+  - Art ist nur bei Gruppen ohne Mutter änderbar
+
+Nur am Handy prüfbar: Kamera und Fotoauswahl, echte Gemini-Antwort, Bedienung der Gruppenliste im Mischtopf, Stammbaum-Zusatzzeile, Wortlaut „Blattsteckling mit Stiel“, Aussehen der Kacheln und des Bearbeiten-Formulars.
 
 ## Größe
-klein
-
----
-
-# Weiter offen, nicht freigegeben — Anzucht Teil 2 · Zielversion 3.29.0
-
-## 3.29.0
-
-**KI-Bestimmung**
-- „Per Foto bestimmen“ in der Gruppe: kurzer Auftrag nur mit ART, BOTANISCH, SICHERHEIT, SORTE, SORTE_BELEG, SORTEN_VERWECHSLUNG; Regeln aus 3.27.0 (`sorteGeprueft`); gespeichert erst per Tipp.
-
-**Mischtopf**
-- Eintopfen aus mehreren Gruppen, auch aus verschiedenen Gefäßen und Sorten, zu **einer** Pflanze (z. B. Golden Pothos mit Marble Queen).
-- Erbe über `ABLEGER_ERBE` von der Hauptgruppe (Vorgabe: die mit den meisten Stecklingen).
-- Neue Felder `muetter` und `mitImTopf`; die Karte zeigt „Mit im Topf: Marble Queen (2)“. `eltern` bleibt die Hauptmutter, der Stammbaum zeigt weitere Mütter mit.
+groß (eine Fassung, auf Chris' Wunsch)
 
 ---
 
 # Danach: Aufräumen · keine neuen Funktionen
 
-Chris am 22.09.2026: Nach der Anzucht wird die App grundlegend aufgeräumt, alle restlichen Kinderschuhfehler beseitigt und alles auf 100 % funktional gebracht, bevor wieder etwas Neues kommt.
+Chris am 22.09.2026: Nach der Anzucht wird die App grundlegend aufgeräumt, bevor wieder etwas Neues kommt. Alle restlichen Kinderschuhfehler werden beseitigt und alles wird auf 100 % funktional gebracht.
 
-- Umfang wird vor Beginn gemeinsam festgelegt (Durchgang durch alle Bereiche, Fehlerliste, Reihenfolge).
-- Dazu gehören die vier alten roten Tests (Anstau, Bromelie, Kaktus, Fokus) und die offene Statuszeile unter „Mehr“.
+- Der Umfang wird vor Beginn gemeinsam festgelegt: Durchgang durch alle Bereiche, Fehlerliste, Reihenfolge.
+- Dazu gehören:
+  - die Statuszeile „Kartei auffrischen“ unter „Mehr“ (Screenshot nötig)
+  - die Meldung, die nach der letzten Kartei-Übernahme ins Leere geht
+  - die alten uneinheitlichen Werte
+  - die offenen Gerätekontrollen
 - Sammel-Anlegen, F, T, Claude-Anbindung und alle anderen neuen Punkte warten bis danach.

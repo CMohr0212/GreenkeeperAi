@@ -157,7 +157,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.28.1', w.__T('FASSUNG') === '3.28.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.29.0', w.__T('FASSUNG') === '3.29.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7112,7 +7112,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.28.1', e0.nr === '3.28.1', e0.nr);
+    pruef('Der oberste Eintrag ist 3.29.0', e0.nr === '3.29.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -9641,7 +9641,7 @@ setTimeout(async () => {
     T(`verPflanze = 'AZT-M'; verMethode = 'blatt_sukkulent'; verStufeZeigen(3)`);
     pruef('3.28.0: Stufe 3 steht auf „In die Anzucht“',
       T('verWohin') === 'anzucht' && d.getElementById('ver-az').hidden === false && d.getElementById('ver-pfl').hidden === true
-      && d.getElementById('ver-weiter').textContent === 'In die Anzucht setzen', d.getElementById('ver-weiter').textContent);
+      && d.getElementById('ver-weiter').textContent === 'In neues Gefäß setzen', d.getElementById('ver-weiter').textContent);
     d.getElementById('ver-az-zahl').value = '15';
     d.getElementById('ver-az-gname').value = 'Glas 1';
     d.getElementById('ver-weiter').click();
@@ -9753,6 +9753,258 @@ setTimeout(async () => {
     T(`(function(){ S.anzucht = {}; S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,3) !== 'AZT'
       && p.eltern !== 'AZT-M' && p.art !== 'Efeutute'; }); verErledigt = false; verPflanze = null; verMethode = null;
       verLetzterWeg = null; sichern(); return 1; })()`);
+  }
+
+  /* ══ 3.29.0: Anzucht Teil 2 ══ */
+  {
+    const T = c => w.__T(c);
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+    T(`(function(){ S.anzucht = {}; S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,3) !== 'AZN'; });
+      function pf(o){ S.eigene.push(Object.assign({eigen:true, sorte:'', notiz:'', todo:[], log:[]}, o)); }
+      pf({id:'AZN-GP', name:'Goldi', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Golden Pothos', klasse:'B'});
+      pf({id:'AZN-MQ', name:'Queeny', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Marble Queen', klasse:'B'});
+      pf({id:'AZN-KA', name:'Stachel', art:'Warzenkaktus', botanisch:'Mammillaria elongata', klasse:'C'});
+      pf({id:'AZN-NA', name:'Nass', art:'Fettkraut', botanisch:'Pinguicula moranensis', klasse:'S'});
+      pf({id:'AZN-GL', name:'Spinne', art:'Grünlilie', botanisch:'Chlorophytum comosum', klasse:'B'});
+      pf({id:'AZN-FB', name:'Forelle', art:'Forellenbegonie', botanisch:'Begonia maculata', klasse:'A',
+        vermehrungKi:{wege:[{methode:'Blattsteckling', quote:85, zeit:'Frühjahr bis Sommer', medium:'feuchte Anzuchterde mit Sand', dauer:'4 bis 6 Wochen'},
+          {methode:'Rhizomteilung', quote:80, zeit:'Frühjahr', medium:'lockere Anzuchterde mit Perlite', dauer:'3 bis 5 Wochen'}],
+          quelle:'Gemini', datum:'2026-09-17'}});
+      pf({id:'AZN-SE', name:'Segment', art:'Drehfrucht', botanisch:'Streptocarpus', klasse:'B',
+        vermehrungKi:{wege:[{methode:'Blattsegment', quote:60, zeit:'Sommer', medium:'Anzuchterde', dauer:'8 Wochen'}], quelle:'Gemini', datum:'2026-09-17'}});
+      sichern(); return 1; })()`);
+    T("sektionOeffnen('vermehren')");
+    await tick();
+    T(`(function(){ window.__g2 = azGefaessAnlegen({name:'Glas 2', medium:'wasser'}).id;
+      window.__g10 = azGefaessAnlegen({name:'Glas 10', medium:'wasser'}).id;
+      window.__gB = azGefaessAnlegen({name:'Begonien Schale 1', medium:'substrat'}).id; sichern(); return 1; })()`);
+
+    /* C1: Der Knopf nennt das Ziel */
+    T(`azAssistentNeu(); verPflanze = 'AZN-GP'; verMethode = 'kopfsteckling'; VER_AZ = {gef:'', anzahl:1, gname:'', gmed:'wasser'}; verStufeZeigen(3)`);
+    const kn0 = d.getElementById('ver-weiter').textContent;
+    pruef('3.29.0: Der Knopf nennt das vorgewählte Gefäß, nicht „In die Anzucht“', kn0 === 'In Begonien Schale 1 setzen', kn0);
+    const sel = d.getElementById('ver-az-gef');
+    sel.value = T('__g2'); sel.dispatchEvent(new w.Event('change', {bubbles:true}));
+    pruef('3.29.0: Der Knopf folgt der Auswahl', d.getElementById('ver-weiter').textContent === 'In Glas 2 setzen', d.getElementById('ver-weiter').textContent);
+    /* C2: sortiert, natürliche Zahlen, „Neues Gefäß“ am Ende */
+    const opts = Array.prototype.map.call(sel.options, o=>o.textContent.split(' · ')[0]);
+    pruef('3.29.0: Gefäßliste sortiert, Glas 2 vor Glas 10', JSON.stringify(opts) === JSON.stringify(['Begonien Schale 1', 'Glas 2', 'Glas 10', 'Neues Gefäß …']), JSON.stringify(opts));
+    sel.value = '__neu'; sel.dispatchEvent(new w.Event('change', {bubbles:true}));
+    pruef('3.29.0: Neues Gefäß im Knopf', d.getElementById('ver-weiter').textContent === 'In neues Gefäß setzen', d.getElementById('ver-weiter').textContent);
+    pruef('3.29.0: Die Vorauswahl bleibt das zuletzt angelegte Gefäß', T('azStandardGef(null)') === T('__gB'));
+
+    /* C3: Wege aus der KI-Auskunft */
+    const fbWege = JSON.parse(T(`JSON.stringify(verWegeFuer(allePflanzen().find(function(p){ return p.id === 'AZN-FB'; })).map(function(x){ return x.id + ':' + x.eignung; }))`));
+    pruef('3.29.0: Mit Auskunft genau deren Wege, in deren Reihenfolge', JSON.stringify(fbWege) === '["blatt_stiel:ki","rhizomteilung:ki"]', JSON.stringify(fbWege));
+    T(`verPflanze = 'AZN-FB'; verMethode = null; verRender(); verStufeZeigen(2)`);
+    const kach = d.getElementById('ver-inhalt').textContent;
+    pruef('3.29.0: Kacheln zeigen die Wege der Auskunft', /Blattsteckling mit Stiel/.test(kach) && /Rhizom teilen/.test(kach), kach.replace(/\s+/g, ' '));
+    pruef('3.29.0: Kein „geraten“ und kein Kopfsteckling neben der Auskunft', !/geraten/i.test(kach) && !/Kopfsteckling/.test(kach), kach.replace(/\s+/g, ' '));
+    pruef('3.29.0: Aussicht und Dauer aus der Auskunft', /85 %/.test(kach) && /4 bis 6 Wochen/.test(kach), kach.replace(/\s+/g, ' '));
+    pruef('3.29.0: Schild „KI“ statt Eignung', d.querySelectorAll('#ver-inhalt .ver-eig.ki').length === 2);
+    const gpA = T(`JSON.stringify(vermehrungFuer(allePflanzen().find(function(p){ return p.id === 'AZN-GP'; })).map(function(x){ return x.id; }))`);
+    const gpB = T(`JSON.stringify(verWegeFuer(allePflanzen().find(function(p){ return p.id === 'AZN-GP'; })).map(function(x){ return x.id; }))`);
+    pruef('3.29.0: Ohne Auskunft bleibt die Wegeliste gleich', gpA === gpB, gpA + ' | ' + gpB);
+    pruef('3.29.0: Begonie ohne Auskunft bekommt den Blattsteckling mit Stiel',
+      T(`vermehrungFuer({art:'Königsbegonie', botanisch:'Begonia rex'}).some(function(x){ return x.id === 'blatt_stiel'; })`) === true);
+    pruef('3.29.0: Blattsteckling bei Dickblatt bleibt der Dickblatt-Weg',
+      T(`vKiMethodeId('Blattsteckling', {art:'Echeverie', botanisch:'Echeveria elegans', familie:'Dickblattgewächse'})`) === 'blatt_sukkulent');
+    pruef('3.29.0: Zuordnung Kopfsteckling', T(`vKiMethodeId('Kopfstecklinge', {})`) === 'kopfsteckling');
+    const seW = JSON.parse(T(`JSON.stringify(verWegeFuer(allePflanzen().find(function(p){ return p.id === 'AZN-SE'; })).map(function(x){ return x.id; }))`));
+    pruef('3.29.0: Weg ohne Zuordnung bekommt eine eigene Kachel', JSON.stringify(seW) === '["ki-blattsegment"]', JSON.stringify(seW));
+    T(`verPflanze = 'AZN-SE'; verMethode = null; verRender()`);
+    pruef('3.29.0: … ohne Schritt-für-Schritt', /keine Schritt-für-Schritt-Anleitung/.test(d.getElementById('ver-anleitung').textContent));
+    const seP = JSON.parse(T(`JSON.stringify(ablegerAnlegen('AZN-SE', 'ki-blattsegment'))`));
+    pruef('3.29.0: … und lässt sich trotzdem anlegen', !!seP && seP.eltern === 'AZN-SE' && /Blattsegment/.test(seP.notiz), JSON.stringify(seP));
+    T(`S.eigene = S.eigene.filter(function(p){ return p.eltern !== 'AZN-SE'; }); sichern()`);
+    T(`verPflanze = 'AZN-FB'; verMethode = 'blatt_stiel'; VER_AZ = {gef:__g2, anzahl:2, gname:'', gmed:'wasser'}; verStufeZeigen(3)`);
+    const fbR = JSON.parse(T('JSON.stringify(verInAnzucht())'));
+    pruef('3.29.0: Weg aus der Auskunft landet in der Anzucht', fbR && fbR.methode === 'Blattsteckling' && fbR.methodeId === 'blatt_stiel', JSON.stringify(fbR));
+
+    /* C4: Gruppe bearbeiten */
+    T(`(function(){ var a = azGruppeAnlegen({gefaess:__g10, anzahl:1, methode:'Kopfsteckling', art:'Zebrakraut'});
+      azVerlauf(a, 'start', '1 Kopfsteckling angesetzt');
+      var b = azGruppeAnlegen({gefaess:__g2, anzahl:2, methode:'Kopfsteckling', art:'Zebrakraut'});
+      azVerlauf(b, 'start', '2 Kopfstecklinge angesetzt');
+      window.__ra = a.id; window.__rb = b.id; sichern(); return 1; })()`);
+    T(`azZeigen({art:'gefaess', id:__g10})`);
+    const bk = d.querySelector('[data-az-bearb="' + T('__ra') + '"]');
+    pruef('3.29.0: Jede Gruppe hat „Bearbeiten“', !!bk);
+    if(bk) bk.click();
+    pruef('3.29.0: Bearbeiten öffnet das Formular', T('AZ_SICHT.art') === 'bearbeiten' && !!d.getElementById('az-gb-gef'));
+    if(d.getElementById('az-gb-gef')){
+      d.getElementById('az-gb-gef').value = T('__g2');
+      d.getElementById('az-gb-zahl').value = '1';
+      d.querySelector('[data-az="gruppe-speichern"]').click();
+    }
+    const zb = JSON.parse(T(`JSON.stringify(azGruppenIn(__g2).filter(function(r){ return r.art === 'Zebrakraut'; }))`));
+    pruef('3.29.0: Verschoben und mit der gleichen Gruppe zusammengelegt', zb.length === 1 && zb[0].anzahl === 3 && T(`azGruppenIn(__g10).length`) === 0, JSON.stringify(zb));
+    pruef('3.29.0: Korrektur schreibt keinen Verlaufseintrag', zb.length === 1 && zb[0].verlauf.length === 2
+      && !zb[0].verlauf.some(function(v){ return /umgesetzt/.test(v.text); }), JSON.stringify(zb[0] && zb[0].verlauf));
+    pruef('3.29.0: Danach zeigt die App das Zielgefäß', T('AZ_SICHT.art') === 'gefaess' && T('AZ_SICHT.id') === T('__g2'));
+    const zid = zb.length ? zb[0].id : '';
+    T(`azZeigen({art:'bearbeiten', id:'${zid}'})`);
+    if(d.getElementById('az-gb-art')){
+      d.getElementById('az-gb-art').value = 'Efeutute';
+      d.getElementById('az-gb-sorte').value = 'Neon';
+      d.getElementById('az-gb-methode').value = 'Stammsteckling';
+      d.querySelector('[data-az="gruppe-speichern"]').click();
+    }
+    const zb2 = JSON.parse(T(`JSON.stringify(azGruppe('${zid}'))`));
+    pruef('3.29.0: Art, Sorte und Methode lassen sich korrigieren', zb2 && zb2.art === 'Efeutute' && zb2.sorte === 'Neon' && zb2.methode === 'Stammsteckling', JSON.stringify(zb2));
+    T(`azZeigen({art:'bearbeiten', id:'${zid}'})`);
+    d.getElementById('az-gb-art').value = ''; d.getElementById('az-gb-bot').value = '';
+    d.querySelector('[data-az="gruppe-speichern"]').click();
+    pruef('3.29.0: Ohne Art kein Speichern', T(`azGruppe('${zid}').art`) === 'Efeutute' && d.getElementById('az-gb-fehler').hidden === false);
+    T(`window.__rm = azGruppeAnlegen({gefaess:__g10, anzahl:3, methode:'Kopfsteckling', methodeId:'kopfsteckling', mutter:'AZN-GP',
+      mutterName:'Goldi', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Golden Pothos'}).id; sichern()`);
+    T(`azZeigen({art:'bearbeiten', id:__rm})`);
+    pruef('3.29.0: Bei Gruppen mit Mutter ist die Art nicht änderbar', !d.getElementById('az-gb-art') && !!d.getElementById('az-gb-zahl'));
+
+    /* A: Per Foto bestimmen */
+    T(`azZeigen({art:'gefaess', id:__g2})`);
+    pruef('3.29.0: „Per Foto bestimmen“ bei Gruppe ohne Mutter', !!d.querySelector('[data-az-best="' + zid + '"]'));
+    T(`azZeigen({art:'gefaess', id:__g10})`);
+    pruef('3.29.0: … nicht bei Gruppe mit Mutter', !d.querySelector('[data-az-best="' + T('__rm') + '"]') && !!d.querySelector('[data-az-ent="' + T('__rm') + '"]'));
+    const auf = T(`azBestimmenAuftrag(azGruppe('${zid}'))`);
+    const felder = Array.from(new Set((auf.match(/^([A-ZÄÖÜ_]{3,}):/gm) || []).map(x=>x.slice(0, -1))));
+    pruef('3.29.0: Auftrag mit genau sechs Feldern', JSON.stringify(felder.sort()) === JSON.stringify(['ART','BOTANISCH','SICHERHEIT','SORTE','SORTEN_VERWECHSLUNG','SORTE_BELEG']), JSON.stringify(felder));
+    pruef('3.29.0: Auftrag ohne Vermehrung, Maßnahmen und Kartennamen', !/VERMEHRUNG|MASSNAHME|Goldi|Queeny/.test(auf) && /Alle sechs Schlüsselwörter/.test(auf), auf.slice(0, 400));
+    const l1 = JSON.parse(T(`JSON.stringify(azBestimmenLesen('ART: Efeutute\\nBOTANISCH: Epipremnum aureum\\nSICHERHEIT: hoch\\nSORTE: Marble Queen | hoch\\nSORTE_BELEG: keine\\nSORTEN_VERWECHSLUNG: keine'))`));
+    pruef('3.29.0: Sorte ohne Beleg nur „niedrig“', l1.sorte && l1.sorte.sicher === 'niedrig', JSON.stringify(l1));
+    const l2 = JSON.parse(T(`JSON.stringify(azBestimmenLesen('ART: Efeutute\\nBOTANISCH: Epipremnum aureum\\nSICHERHEIT: hoch\\nSORTE: Efeutute | hoch\\nSORTE_BELEG: marmoriert\\nSORTEN_VERWECHSLUNG: keine'))`));
+    pruef('3.29.0: Trivialname als Sorte wird nicht angeboten', !l2.sorte && l2.verworfen && /Trivialname/.test(l2.verworfen.verworfen), JSON.stringify(l2));
+    T(`kiSchluesselSetzen('${ATTRAPPE_LANG}'); S.kiModelle = [{id:'gemini-9.9-flash', anzeige:'9.9 Flash'}]; S.kiModell = 'gemini-9.9-flash'`);
+    w.__ki.fehler = null; w.__ki.verzug = 20;
+    w.__ki.antwort = '```\nART: Efeutute\nBOTANISCH: Epipremnum aureum\nSICHERHEIT: hoch\nSORTE: Marble Queen | hoch\nSORTE_BELEG: weiß-grün marmorierte Blätter\nSORTEN_VERWECHSLUNG: keine\n```';
+    T(`azZeigen({art:'gefaess', id:__g2})`);
+    const bb = d.querySelector('[data-az-best="' + zid + '"]');
+    if(bb) bb.click();
+    pruef('3.29.0: Bestimmen öffnet ohne Foto mit gesperrtem Knopf', T('AZ_SICHT.art') === 'bestimmen' && d.querySelector('[data-az="best-los"]').disabled === true);
+    T(`AZ_BEST.bild = {mime:'image/jpeg', daten:'AAAA', vorschau:'data:image/jpeg;base64,AAAA'}; azZeichnen()`);
+    const vorher = T(`JSON.stringify(azGruppe('${zid}'))`);
+    d.querySelector('[data-az="best-los"]').click();
+    await warte(300);
+    pruef('3.29.0: Die Frage geht mit genau einem Bild raus', T('AZ_BEST.erg && !AZ_BEST.erg.fehler') === true, T('JSON.stringify(AZ_BEST)').slice(0, 300));
+    pruef('3.29.0: Vor dem Tipp ändert sich nichts an der Gruppe', T(`JSON.stringify(azGruppe('${zid}'))`) === vorher);
+    const erg = d.getElementById('az-ansicht').textContent;
+    pruef('3.29.0: Ergebnis mit Art und Sorte', /Epipremnum aureum/.test(erg) && /Marble Queen/.test(erg) && /Sicherheit hoch/.test(erg), erg.replace(/\s+/g, ' ').slice(0, 400));
+    const ersetz = d.querySelector('[data-az="best-sorte"]');
+    pruef('3.29.0: Andere Sorte wird als Ersetzen benannt', !!ersetz && /Sorte ersetzen \(bisher Neon\)/.test(ersetz.textContent), ersetz && ersetz.textContent);
+    pruef('3.29.0: Kein Sammelknopf', !d.querySelector('[data-az="best-alles"]') && d.querySelectorAll('.az-best-erg button').length === 2);
+    if(ersetz) ersetz.click();
+    const nachS = JSON.parse(T(`JSON.stringify(azGruppe('${zid}'))`));
+    pruef('3.29.0: Sorte erst per Tipp übernommen', nachS.sorte === 'Marble Queen' && nachS.botanisch === '' && /Per Foto bestimmt: Sorte Marble Queen/.test(nachS.verlauf.map(v=>v.text).join('|')), JSON.stringify(nachS));
+    const ak = d.querySelector('[data-az="best-art"]');
+    if(ak) ak.click();
+    const nachA = JSON.parse(T(`JSON.stringify(azGruppe('${zid}'))`));
+    pruef('3.29.0: Art per Tipp übernommen', nachA.art === 'Efeutute' && nachA.botanisch === 'Epipremnum aureum', JSON.stringify(nachA));
+    T(`kiSchluesselSetzen(''); AZ_BEST.erg = null; azZeichnen()`);
+    d.querySelector('[data-az="best-los"]').click();
+    await tick();
+    pruef('3.29.0: Ohne Schlüssel öffnet der Weg über Kopieren und Einfügen', T('AZ_BEST.handweg') === true
+      && d.querySelector('#az-ansicht details.kiprompt').open === true && T('AZ_BEST.erg') === null);
+    d.getElementById('az-best-paste').value = 'ART: Grünlilie\nBOTANISCH: Chlorophytum comosum\nSICHERHEIT: mittel\nSORTE: keine\nSORTE_BELEG: keine\nSORTEN_VERWECHSLUNG: keine';
+    d.querySelector('[data-az="best-paste"]').click();
+    pruef('3.29.0: Eingefügte Antwort wird ausgewertet, ohne zu übernehmen', T('AZ_BEST.erg.bot') === 'Chlorophytum comosum'
+      && T(`azGruppe('${zid}').art`) === 'Efeutute' && /Keine Sorte erkennbar/.test(d.getElementById('az-ansicht').textContent));
+
+    /* B: Mischtopf */
+    T(`(function(){ S.anzucht.gruppen = []; 
+      window.__mGP = azGruppeAnlegen({gefaess:__g10, anzahl:3, methode:'Kopfsteckling', methodeId:'kopfsteckling', mutter:'AZN-GP', mutterName:'Goldi', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Golden Pothos'}).id;
+      window.__mMQ = azGruppeAnlegen({gefaess:__g2, anzahl:2, methode:'Kopfsteckling', methodeId:'kopfsteckling', mutter:'AZN-MQ', mutterName:'Queeny', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Marble Queen'}).id;
+      window.__mKA = azGruppeAnlegen({gefaess:__gB, anzahl:1, methode:'Kopfsteckling', methodeId:'kopfsteckling', mutter:'AZN-KA', mutterName:'Stachel', art:'Warzenkaktus', botanisch:'Mammillaria elongata'}).id;
+      window.__mFR = azGruppeAnlegen({gefaess:__g2, anzahl:2, methode:'Kopfsteckling', art:'Efeutute', sorte:'Neon'}).id;
+      sichern(); return 1; })()`);
+    T(`azZeigen({art:'gefaess', id:__g10})`);
+    d.querySelector('[data-az-ent="' + T('__mGP') + '"]').click();
+    const mk = d.querySelector('[data-az-topf="misch"]');
+    pruef('3.29.0: Eintopfen bietet „Mit anderen Gruppen zusammen“', !!mk);
+    if(mk) mk.click();
+    const zeilen = d.querySelectorAll('.az-misch-zeile').length;
+    pruef('3.29.0: Alle anderen Gruppen aller Gefäße stehen zur Wahl', zeilen === 3, String(zeilen));
+    pruef('3.29.0: Ohne Auswahl ist der Knopf gesperrt', d.querySelector('[data-az="entnehmen-los"]').disabled === true);
+    const plus = id => { const b = d.querySelector('[data-az-mn="' + id + '"][data-d="1"]'); if(b) b.click(); };
+    plus(T('__mMQ')); plus(T('__mMQ')); plus(T('__mMQ'));
+    pruef('3.29.0: Anzahl je Gruppe höchstens ihr Bestand', T(`AZ_ENT.misch[__mMQ]`) === 2);
+    d.querySelector('[data-az-n="alle"]').click();
+    pruef('3.29.0: Hauptpflanze ist vorgegeben die größte Gruppe', d.getElementById('az-e-haupt').value === T('__mGP'));
+    pruef('3.29.0: Gleiche Gießklasse, kein Gießhinweis', !d.getElementById('az-misch-giessen'));
+    d.querySelector('[data-az="entnehmen-los"]').click();
+    const mp = JSON.parse(T(`JSON.stringify(S.eigene.filter(function(p){ return Array.isArray(p.muetter); }).slice(-1)[0] || null)`));
+    pruef('3.29.0: Eine Karte, erbt von der Hauptmutter', mp && mp.eltern === 'AZN-GP' && mp.sorte === 'Golden Pothos', JSON.stringify(mp));
+    pruef('3.29.0: muetter und mitImTopf stimmen', mp && JSON.stringify(mp.muetter) === '["AZN-GP","AZN-MQ"]'
+      && mp.mitImTopf.length === 1 && mp.mitImTopf[0].sorte === 'Marble Queen' && mp.mitImTopf[0].anzahl === 2, JSON.stringify(mp && [mp.muetter, mp.mitImTopf]));
+    pruef('3.29.0: Beide Gruppen sind leer und verschwunden', !T('azGruppe(__mGP)') && !T('azGruppe(__mMQ)'));
+    const ab = T(`abstammungHTML(allePflanzen().find(function(p){ return p.id === '${mp && mp.id}'; }))`);
+    pruef('3.29.0: Die Karte zeigt „Mit im Topf“', /Mit im Topf: Marble Queen \(2\)/.test(ab) && /Weitere Mutter/.test(ab) && /Queeny/.test(ab), ab.replace(/\s+/g, ' '));
+    pruef('3.29.0: Die Nebenmutter nennt den Ableger', /Mit im Topf bei/.test(T(`abstammungHTML(allePflanzen().find(function(p){ return p.id === 'AZN-MQ'; }))`)));
+    pruef('3.29.0: Stammbaum: Zusatzzeile, keine zweite Linie', /\+ Queeny/.test(T(`sbPlusZeile(allePflanzen().find(function(p){ return p.id === '${mp && mp.id}'; }))`)));
+
+    /* Gießen: trockenste Pflanze gewinnt */
+    const mix = (a, b, haupt) => JSON.parse(T(`(function(){
+      var ra = azGruppeAnlegen({gefaess:__g2, anzahl:2, methode:'Kopfsteckling', mutter:'${a}', art:'A'});
+      var rb = azGruppeAnlegen({gefaess:__g2, anzahl:1, methode:'Kopfsteckling', mutter:'${b}', art:'B'});
+      var t = [{r:ra, n:2}, {r:rb, n:1}];
+      var h = ${haupt ? "rb.id" : "null"};
+      var txt = azMischGiessText(azMischGiessen(t, azMischHaupt(t, h)));
+      var p = azMischEintopfen(t, h);
+      return JSON.stringify({klasse:p.klasse, gruppe:p.gruppe || null, eltern:p.eltern, txt:txt});
+    })()`));
+    const bc = mix('AZN-GP', 'AZN-KA');
+    pruef('3.29.0: Kaktus im Topf: Karte gießt nach Klasse C samt Gießgruppe', bc.klasse === 'C' && bc.gruppe === T(`gruppeVon(allePflanzen().find(function(p){ return p.id === 'AZN-KA'; })).id`) && bc.eltern === 'AZN-GP', JSON.stringify(bc));
+    pruef('3.29.0: B mit C passt, Hinweis nennt nur die trockenste', /^Gegossen wird nach Stachel/.test(bc.txt) && !/unterschiedlich/.test(bc.txt), bc.txt);
+    const ac = mix('AZN-FB', 'AZN-KA');
+    pruef('3.29.0: A mit C: Hinweis „unterschiedlich“', /^Diese Pflanzen gießt man unterschiedlich/.test(ac.txt) && ac.klasse === 'C', JSON.stringify(ac));
+    const sb = mix('AZN-GP', 'AZN-NA');
+    pruef('3.29.0: S mit B: Hinweis, gegossen wird nach B', /unterschiedlich/.test(sb.txt) && sb.klasse === 'B' && sb.gruppe === null, JSON.stringify(sb));
+    const ab2 = mix('AZN-FB', 'AZN-GP');
+    pruef('3.29.0: A mit B: kein „unterschiedlich“', !/unterschiedlich/.test(ab2.txt) && ab2.klasse === 'B', JSON.stringify(ab2));
+    const kh = mix('AZN-GP', 'AZN-KA', true);
+    pruef('3.29.0: Hauptpflanze wählbar', kh.eltern === 'AZN-KA' && kh.klasse === 'C', JSON.stringify(kh));
+    const frei = JSON.parse(T(`(function(){
+      var ra = azGruppeAnlegen({gefaess:__g2, anzahl:3, methode:'Kopfsteckling', art:'Unbekannt'});
+      var rb = azGruppeAnlegen({gefaess:__g2, anzahl:1, methode:'Kopfsteckling', mutter:'AZN-FB', art:'Forellenbegonie'});
+      var p = azMischEintopfen([{r:ra, n:3}, {r:rb, n:1}], null);
+      return JSON.stringify({klasse:p.klasse, eltern:p.eltern, muetter:p.muetter, art:p.art});
+    })()`));
+    pruef('3.29.0: Hauptgruppe ohne Mutter: Klasse der bekannten Mutter', frei.klasse === 'A' && frei.eltern === null && frei.art === 'Unbekannt'
+      && JSON.stringify(frei.muetter) === '["AZN-FB"]', JSON.stringify(frei));
+
+    /* Gift und Hinweis vor dem Eintopfen */
+    const gl = T(`giftFuer(allePflanzen().find(function(p){ return p.id === 'AZN-GL'; }), 'katze').stufe`);
+    const gp = T(`giftFuer(allePflanzen().find(function(p){ return p.id === 'AZN-GP'; }), 'katze').stufe`);
+    pruef('3.29.0: Testvoraussetzung Gift (Grünlilie keine, Efeutute giftig)', gl === 'keine' && T(`giftRang('${gp}')`) >= 2, gl + ' / ' + gp);
+    T(`(function(){ window.__gGL = azGruppeAnlegen({gefaess:__g10, anzahl:3, methode:'Kopfsteckling', mutter:'AZN-GL', art:'Grünlilie', botanisch:'Chlorophytum comosum'}).id;
+      window.__gGP = azGruppeAnlegen({gefaess:__g2, anzahl:1, methode:'Kopfsteckling', mutter:'AZN-GP', art:'Efeutute', botanisch:'Epipremnum aureum', sorte:'Golden Pothos'}).id;
+      window.__gKA = azGruppeAnlegen({gefaess:__gB, anzahl:1, methode:'Kopfsteckling', mutter:'AZN-KA', art:'Warzenkaktus', botanisch:'Mammillaria elongata'}).id;
+      sichern(); return 1; })()`);
+    T(`AZ_ENT = {gruppe:__gGL, anzahl:3, was:'eintopfen', topf:'misch', ziel:'', gname:'', gmed:'wasser', misch:{}, haupt:null}; AZ_ENT.misch[__gGP] = 1; AZ_ENT.misch[__gKA] = 1; azZeigen({art:'entnehmen'})`);
+    const hin = Array.prototype.map.call(d.querySelectorAll('.az-misch-gift'), x=>x.textContent).join(' | ');
+    pruef('3.29.0: Vor dem Eintopfen: Gifthinweis', /Mit im Topf: Golden Pothos ist .*giftig für/.test(hin), hin);
+    pruef('3.29.0: Vor dem Eintopfen: Gießhinweis', /Gegossen wird nach Stachel/.test((d.getElementById('az-misch-giessen') || {}).textContent || ''));
+    d.querySelector('[data-az="entnehmen-los"]').click();
+    const gk = JSON.parse(T(`JSON.stringify(S.eigene.filter(function(p){ return p.eltern === 'AZN-GL'; }).slice(-1)[0])`));
+    const gkab = T(`abstammungHTML(allePflanzen().find(function(p){ return p.id === '${gk.id}'; }))`);
+    pruef('3.29.0: Die Karte zeigt den Gifthinweis', /ab-zeile warn/.test(gkab) && /Golden Pothos ist .*giftig/.test(gkab), gkab.replace(/\s+/g, ' '));
+    pruef('3.29.0: Giftwert der Karte bleibt der der Hauptmutter', T(`giftFuer(allePflanzen().find(function(p){ return p.id === '${gk.id}'; }), 'katze').stufe`) === 'keine');
+
+    /* Gelöschte Nebenmutter, alte Daten */
+    T(`S.eigene = S.eigene.filter(function(p){ return p.id !== 'AZN-MQ'; }); sichern()`);
+    let ok = true, ab3 = '';
+    try { ab3 = T(`abstammungHTML(allePflanzen().find(function(p){ return p.id === '${mp && mp.id}'; }))`)
+      + T(`sbPlusZeile(allePflanzen().find(function(p){ return p.id === '${mp && mp.id}'; }))`); } catch(e){ ok = false; ab3 = String(e); }
+    pruef('3.29.0: Gelöschte Nebenmutter bricht nichts', ok && /Mit im Topf: Marble Queen/.test(ab3) && !/Queeny/.test(ab3), ab3.replace(/\s+/g, ' '));
+    let ok2 = true;
+    try { T(`abstammungHTML({id:'alt1', eltern:null}) + abstammungHTML({id:'alt2', eltern:null, mitImTopf:'kaputt', muetter:null}) + sbPlusZeile({id:'alt3'})`); } catch(e){ ok2 = false; }
+    pruef('3.29.0: Alte Daten ohne die Felder laden fehlerfrei', ok2 && T(`abstammungHTML({id:'alt1', eltern:null})`) === '');
+
+    T("modalZu('sek-modal')");
+    await tick();
+    T(`(function(){ S.anzucht = {}; AZ_ENT = null; AZ_BEST = null; VER_AZ = {gef:'__neu', anzahl:1, gname:'', gmed:'wasser'};
+      S.eigene = S.eigene.filter(function(p){ var m = Array.isArray(p.muetter) ? p.muetter.join(',') : '';
+        return String(p.id).slice(0,3) !== 'AZN' && String(p.eltern || '').slice(0,3) !== 'AZN' && m.indexOf('AZN') < 0; });
+      verErledigt = false; verPflanze = null; verMethode = null; verLetzterWeg = null; sichern(); return 1; })()`);
   }
 
   console.log('\n── Ergebnis ──');
