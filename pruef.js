@@ -131,6 +131,7 @@ const dom = new JSDOM(html, {
     };
     w.alert = () => {};
     w.confirm = () => true;
+    w.prompt = () => null;
     w.addEventListener('error', e => fehler.push('Laufzeit: ' + (e.error && e.error.stack || e.message)));
   }
 });
@@ -157,7 +158,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.29.0', w.__T('FASSUNG') === '3.29.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.30.0', w.__T('FASSUNG') === '3.30.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2671,11 +2672,6 @@ setTimeout(async () => {
           pflanzeSetzen('${frostP}', '${zweitR}', 60, 60);
         })()`);
         w.__T(`SONNE_CACHE = {}; SONNE_CACHE_SIG = ''`);
-        console.log('DBG2 frostMin', w.__T(`allePflanzen().find(function(x){return x.id==='${frostP}';}).frostMin`),
-          'ort', JSON.stringify(w.__T(`pflanzenOrt('${frostP}')`)),
-          'dach', w.__T(`raeume().find(function(x){return x.id==='${zweitR}';}).dach`),
-          'monat', w.__T('pMonat'),
-          'imBalkon', w.__T(`pflanzenIm('${zweitR}').length`));
         const nurEiner = w.__T(`umzugHTML('${rid2}')`);
         const alle = w.__T('umzugHTML()');
         pruef('Der Frostkasten des Nachbarraums taucht dort nicht auf',
@@ -5318,8 +5314,10 @@ setTimeout(async () => {
      Bildformat setzt, muss mindestens gleichziehen, sonst bleibt
      jede Kachel quadratisch. */
   /* Die Rasterkachel traegt nur Name und Standzeile. */
+  /* 3.30.0: Die interne Kennung steht auf keiner Karte mehr, auch nicht
+     in der Liste. */
   pruef('Kachel zeigt keine Kennung',
-    /\.sam-raster \.card:not\(\.open\) \.card-id,/.test(stil3));
+    !/\.card-id/.test(stil3) && !/class="card-id"/.test(w.__T('String(cardHTML)')));
   pruef('Kachel zeigt keinen botanischen Zweitnamen',
     /\.sam-raster \.card:not\(\.open\) \.card-bot,/.test(stil3));
   pruef('Kachel zeigt keinen Standort',
@@ -6525,7 +6523,7 @@ setTimeout(async () => {
     const zahlZu = t => {
       const felder = new Set();
       String(t).split('\n').forEach(z=>{
-        const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
+        const m = z.trim().match(/^([A-ZÄÖÜ][A-ZÄÖÜ_]{2,}):/);   /* 3.30.0: mit Unterstrich */
         if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
       });
       return w.__T('ZAHLWORT')[felder.size];
@@ -7112,7 +7110,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.29.0', e0.nr === '3.29.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.30.0', e0.nr === '3.30.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -7906,19 +7904,19 @@ setTimeout(async () => {
       var bild = 'data:image/jpeg;base64,' + new Array(41).join('A');
       S.eigene.push({id:'KA1', eigen:true, name:'Kartei Voll', art:'Efeutute',
         botanisch:'Epipremnum aureum', typ:'Kletterpflanze', klasse:'IV',
-        sonne:'indirekt', wichtig:'keine', frostMin:10, pflege:[], winterruheText:''});
+        sonne:'indirekt', wichtig:'keine', frostMin:10, duenger:'normal', pflege:[], winterruheText:''});
       S.eigene.push({id:'KA2', eigen:true, name:'Kartei Luecke', art:'Unbekannt', klasse:'IV'});
       S.eigene.push({id:'KA3', eigen:true, name:'Kartei ohne Foto', art:'Bogenhanf',
         botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
-        sonne:'hell', wichtig:'keine', frostMin:10, pflege:[], winterruheText:''});
+        sonne:'hell', wichtig:'keine', frostMin:10, duenger:'sparsam', pflege:[], winterruheText:''});
       /* Zwei weitere ohne Foto: erst mit mehr Pflanzen als Spuren in
          der Schlange faellt auf, ob ein Fehlschlag den Rest mitreisst. */
       S.eigene.push({id:'KA4', eigen:true, name:'Kartei vier', art:'Bogenhanf',
         botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
-        sonne:'hell', wichtig:'keine', frostMin:10, pflege:[], winterruheText:''});
+        sonne:'hell', wichtig:'keine', frostMin:10, duenger:'sparsam', pflege:[], winterruheText:''});
       S.eigene.push({id:'KA5', eigen:true, name:'Kartei fuenf', art:'Bogenhanf',
         botanisch:'Dracaena trifasciata', typ:'Sukkulente', klasse:'IV',
-        sonne:'hell', wichtig:'keine', frostMin:10, pflege:[], winterruheText:''});
+        sonne:'hell', wichtig:'keine', frostMin:10, duenger:'sparsam', pflege:[], winterruheText:''});
       S.fotos['KA1'] = [{key:'k1', src:bild, datum:'2026-09-01'}];
       S.fotos['KA2'] = [{key:'k2', src:bild, datum:'2026-09-01'}];
       S.kiModelle = [{id:'models/gemini-3-flash', anzeige:'3 flash', empfohlen:true}];
@@ -7995,13 +7993,12 @@ setTimeout(async () => {
         const b = n.indexOf('SO SIEHT EINE RICHTIGE ANTWORT AUS');
         const set = new Set();
         n.slice(a, b > a ? b : undefined).split('\n').forEach(z=>{
-          const m = z.match(/^([A-ZÄÖÜ]{3,}):/);
+          const m = z.match(/^([A-ZÄÖÜ][A-ZÄÖÜ_]{2,}):/);   /* 3.30.0: mit Unterstrich */
           if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') set.add(m[1]);
         });
         return set.size;
       };
-      const wort = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
-        'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+      const wort = w.__T('ZAHLWORT');
       [['Text', aText], ['voll', aVoll], ['Abgleich', aTeil]].forEach(([n, t])=>{
         pruef('Schlüsselwortzahl stimmt (' + n + ')',
           zahl(t) === wort[felder(t)], zahl(t) + ' vs ' + felder(t));
@@ -8022,12 +8019,12 @@ setTimeout(async () => {
       const lu = o => w.__T(`karteiLuecken(${JSON.stringify(o)}).join(',')`);
       pruef('Frostgrenze und Wuchsform aus der Bibliothek sind keine Lücke',
         lu({id:'LX1', art:'Efeutute', botanisch:'Epipremnum aureum', typ:'', klasse:'B',
-            sonne:'hell', wichtig:'x', frostMin:null, pflege:[], winterruheText:''}) === '',
+            sonne:'hell', wichtig:'x', frostMin:null, duenger:'normal', pflege:[], winterruheText:''}) === '',
         lu({id:'LX1', art:'Efeutute', botanisch:'Epipremnum aureum', typ:'', klasse:'B',
-            sonne:'hell', wichtig:'x', frostMin:null, pflege:[], winterruheText:''}));
+            sonne:'hell', wichtig:'x', frostMin:null, duenger:'normal', pflege:[], winterruheText:''}));
       pruef('Ohne Bibliothek bleibt die leere Frostgrenze eine Lücke',
         lu({id:'LX2', art:'Testkraut', botanisch:'Fictus probatus', typ:'Kraut', klasse:'B',
-            sonne:'hell', wichtig:'x', frostMin:null, pflege:[], winterruheText:''}) === 'frostMin');
+            sonne:'hell', wichtig:'x', frostMin:null, duenger:'normal', pflege:[], winterruheText:''}) === 'frostMin');
     }
     pruef('Die Lücken-Menge lässt die vollständige stehen', lueMenge().indexOf('KA1') === -1);
 
@@ -9218,18 +9215,18 @@ setTimeout(async () => {
     T(`(function(){
       S.eigene = S.eigene.filter(function(p){ return String(p.id).slice(0,2) !== 'PF'; });
       S.eigene.push({id:'PF1', eigen:true, name:'Pflege leer', art:'Testranke', botanisch:'Fictus rankens',
-        typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'Nie ins Herz gießen', frostMin:7});
+        typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'Nie ins Herz gießen', frostMin:7, duenger:'normal'});
       S.eigene.push({id:'PF2', eigen:true, name:'Pflege voll', art:'Testranke', botanisch:'Fictus rankens',
-        typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'Nie ins Herz gießen', frostMin:7,
+        typ:'Kletterpflanze', klasse:'B', sonne:'hell', wichtig:'Nie ins Herz gießen', frostMin:7, duenger:'normal',
         pflege:['Alte Triebe im Frühjahr kappen'], winterruheText:'Kühl bei 12 °C', quellen:{pflege:'hand'}});
       S.eigene.push({id:'PF3', eigen:true, name:'Venus alt', art:'Venusfliegenfalle', botanisch:'Dionaea muscipula',
-        typ:'Karnivore', klasse:'S', sonne:'voll', wichtig:'keine', frostMin:-5, winterruhe:true});
+        typ:'Karnivore', klasse:'S', sonne:'voll', wichtig:'keine', frostMin:-5, duenger:'nie', winterruhe:true});
       sichern(); return 1; })()`);
     const lu = id => T(`karteiLuecken(allePflanzen().find(function(x){return x.id==='${id}';})).join(',')`);
     pruef('E3: Fehlende Pflegeschritte und Winterruhe sind eine Lücke', lu('PF1') === 'pflege,winterruheText', lu('PF1'));
     pruef('E3: Mit Texten keine Lücke', lu('PF2') === '', lu('PF2'));
     pruef('E3: Ein geprüftes „keine“ ist keine Lücke',
-      T(`karteiLuecken({botanisch:'Fictus rankens', typ:'x', klasse:'B', sonne:'hell', frostMin:1, wichtig:'x', pflege:[], winterruheText:''}).length`) === 0);
+      T(`karteiLuecken({botanisch:'Fictus rankens', typ:'x', klasse:'B', sonne:'hell', frostMin:1, duenger:'normal', wichtig:'x', pflege:[], winterruheText:''}).length`) === 0);
     pruef('E3: Die Lücke steht als Name im Auftrag',
       /Pflegeschritte, Winterruhe/.test(T(`karteiKontext(allePflanzen().find(function(x){return x.id==='PF1';})).join(' ')`)));
 
@@ -10005,6 +10002,165 @@ setTimeout(async () => {
       S.eigene = S.eigene.filter(function(p){ var m = Array.isArray(p.muetter) ? p.muetter.join(',') : '';
         return String(p.id).slice(0,3) !== 'AZN' && String(p.eltern || '').slice(0,3) !== 'AZN' && m.indexOf('AZN') < 0; });
       verErledigt = false; verPflanze = null; verMethode = null; verLetzterWeg = null; sichern(); return 1; })()`);
+  }
+
+  /* ══ 3.30.0: Aufräumen, Sitzung 1 — Fehler und Daten ══
+     Jeder Test legt seine Daten selbst an und räumt sie wieder weg. */
+  {
+    const T = c => w.__T(c);
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+
+    /* Kartei-Meldung: Das Fenster geht über den Verlauf zu, danach
+       zeichnet dessen Aufräumen den Abschnitt neu. */
+    T("ansichtZeigen('mehr'); karteiAbschnitt()");
+    T("modalAuf('kartei-abgleich')");
+    await tick();
+    T("modalZu('kartei-abgleich'); karteiAbschnitt(); karteiMeldung('P330 ist durchgesehen.', 'ok')");
+    await tick(); await warte(1000);
+    const km = (d.getElementById('kartei-meld') || {}).textContent || '';
+    pruef('3.30.0: Kartei-Meldung steht nach dem Schließen noch da', km === 'P330 ist durchgesehen.', JSON.stringify(km));
+    pruef('3.30.0: … mit ihrer Art', /\bok\b/.test((d.getElementById('kartei-meld') || {}).className || ''));
+    T("karteiMeldung('')");
+    /* Ein neuer Lauf nimmt die alte Meldung weg. Starten und Schlüssel
+       sind hier nachgestellt; es geht nur um die Meldung. */
+    const neuLauf = T(`(function(){ var ks = karteiStarten, kb = kiBereit, ka = kiAnbieter;
+      karteiStarten = function(){ return true; }; kiBereit = function(){ return true; }; kiAnbieter = function(){ return null; };
+      try{ karteiMeldung('Alte Meldung', 'ok'); karteiLos(['x']); return KARTEI_MELD.txt; }
+      finally { karteiStarten = ks; kiBereit = kb; kiAnbieter = ka; } })()`);
+    pruef('3.30.0: Ein neuer Lauf nimmt die alte Kartei-Meldung weg', neuLauf === '', JSON.stringify(neuLauf));
+
+    /* Düngung als Lücke */
+    pruef('3.30.0: Fehlende Düngung ist eine Kartei-Lücke',
+      T(`karteiLuecken({id:'L330', art:'X', botanisch:'X y', klasse:'B', duenger:null}).indexOf('duenger') > -1`) === true);
+    pruef('3.30.0: Vorhandene Düngung ist keine Lücke',
+      T(`karteiLuecken({id:'L330', art:'X', botanisch:'X y', klasse:'B', duenger:'normal'}).indexOf('duenger') === -1`) === true);
+    const duBib = T(`(function(){ S.eigene.push({id:'KD330', eigen:true, name:'Dünger330', art:'Fensterblatt', botanisch:'Monstera deliciosa', klasse:'B', sonne:'indirekt', duenger:null});
+      var p = allePflanzen().find(function(x){ return x.id === 'KD330'; }); return karteiBibWert(p, 'duenger') || ''; })()`);
+    pruef('3.30.0: Testvoraussetzung Bibliothek kennt die Düngung', !!duBib, duBib);
+    const duZeile = T(`(function(){ var p = allePflanzen().find(function(x){ return x.id === 'KD330'; });
+      return karteiAbweichungen(p, {stand:'ok', felder:{duenger:'${duBib}'}}).zeilen.some(function(z){ return z.key === 'duenger'; }); })()`);
+    pruef('3.30.0: Ohne eigene Angabe wird die Düngung angeboten, auch wenn sie der Bibliothek gleicht', duZeile === true);
+    T(`S.eigene = S.eigene.filter(function(x){ return x.id !== 'KD330'; }); sichern()`);
+
+    /* Kartei-Streifen einklappen */
+    T(`(function(){ S.kartei = {aktiv:false, pausiert:true, offen:['a','b'], fertig:{}, gesamt:2, alle:['a','b'], start:Date.now()}; karteiLeiste(); })()`);
+    const ks = () => d.getElementById('kartei-streifen');
+    pruef('3.30.0: Der Streifen hat einen Einklappknopf', !!(ks() && ks().querySelector('[data-do="kartei-streifen-zu"]')));
+    pruef('3.30.0: Offen hält die Seite unten Platz frei', d.body.classList.contains('ks-platz'));
+    if(ks() && ks().querySelector('[data-do="kartei-streifen-zu"]')) ks().querySelector('[data-do="kartei-streifen-zu"]').click();
+    await tick();
+    pruef('3.30.0: Eingeklappt bleibt nur die Marke', !!ks() && ks().classList.contains('klein')
+      && !!ks().querySelector('[data-do="kartei-streifen-auf"]') && !ks().querySelector('[data-do="kartei-weiter"]'),
+      ks() && ks().innerHTML.slice(0, 200));
+    pruef('3.30.0: Eingeklappt kein zusätzlicher Platz', !d.body.classList.contains('ks-platz'));
+    T('karteiLeiste()');
+    pruef('3.30.0: Der Zustand übersteht das Neuzeichnen', !!ks() && ks().classList.contains('klein'));
+    pruef('3.30.0: Die Marke zeigt Anteil und Zeit', !!ks() && /%/.test(ks().textContent) && /\d:\d\d/.test(ks().textContent), ks() && ks().textContent);
+    if(ks() && ks().querySelector('[data-do="kartei-streifen-auf"]')) ks().querySelector('[data-do="kartei-streifen-auf"]').click();
+    await tick();
+    pruef('3.30.0: Ein Tipp klappt wieder auf', !!ks() && !ks().classList.contains('klein') && !!ks().querySelector('[data-do="kartei-weiter"]'));
+    T('delete S.kartei; sichern(); karteiLeiste()');
+    pruef('3.30.0: Ohne Lauf kein Streifen und kein Platz', !ks() && !d.body.classList.contains('ks-platz'));
+
+    /* Zählwort */
+    const zw = T(`(function(){ var tiere = S.tiere; S.tiere = {aktiv:true, arten:['katze']};
+      var t = anlegenPromptBauen(); S.tiere = tiere; var n = new Set();
+      t.split(String.fromCharCode(10)).forEach(function(l){ var m = l.trim().match(/^([A-ZÄÖÜ][A-ZÄÖÜ_]{2,}):/);
+        if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') n.add(m[1]); });
+      var z = (t.match(/Alle (\\S+) Schlüsselwörter/) || [])[1];
+      return JSON.stringify({zahl:n.size, wort:z, soll:ZAHLWORT[n.size], sorteBeleg:n.has('SORTE_BELEG')}); })()`);
+    const zwo = JSON.parse(zw);
+    pruef('3.30.0: Anlegen-Auftrag nennt die richtige Zahl, samt SORTE_BELEG', zwo.sorteBeleg && !!zwo.soll && zwo.wort === zwo.soll, zw);
+    pruef('3.30.0: Mit Tierfrage sind es einundzwanzig', zwo.zahl === 21 && zwo.wort === 'einundzwanzig', zw);
+    pruef('3.30.0: Bestimmen-Auftrag nennt weiter sechs', /Alle sechs Schlüsselwörter/.test(T(`azBestimmenAuftrag({art:'x'})`)));
+
+    /* Datum nach Ortszeit: 00:30 Uhr in Berlin ist in UTC noch gestern. */
+    const tzAlt = process.env.TZ;
+    process.env.TZ = 'Europe/Berlin';
+    const gh = T(`(function(){ var O = Date; var fest = new O(2026, 8, 27, 0, 30).getTime();
+      function F(a){ return arguments.length ? new O(a) : new O(fest); }
+      F.now = function(){ return fest; }; F.prototype = O.prototype; F.UTC = O.UTC; F.parse = O.parse;
+      Date = F; var r;
+      try{ r = [giftHeute(), (vermehrungLesen('Kopfsteckling | 80 | Frühling | Wasser | 3 Wochen') || {}).datum]; } finally { Date = O; }
+      return JSON.stringify(r); })()`);
+    if(tzAlt === undefined) delete process.env.TZ; else process.env.TZ = tzAlt;
+    pruef('3.30.0: Giftprüfung nimmt um 0:30 Uhr das heutige Datum', JSON.parse(gh)[0] === '2026-09-27', gh);
+    pruef('3.30.0: Vermehrungsauskunft nimmt um 0:30 Uhr das heutige Datum', JSON.parse(gh)[1] === '2026-09-27', gh);
+
+    /* Gesperrte Knöpfe */
+    const stil330 = Array.prototype.map.call(d.querySelectorAll('style'), s => s.textContent).join('\n');
+    pruef('3.30.0: Jeder gesperrte Knopf wird blass', /(^|\})\s*button:disabled\{opacity:\.45/m.test(stil330));
+
+    /* KI-Weg ohne Katalogplatz übersteht das Neuladen */
+    const kiw = T(`(function(){
+      S.eigene.push({id:'KW330', eigen:true, name:'Segment330', art:'Bogenhanf-Test', botanisch:'Testia segmentis', klasse:'C',
+        vermehrungKi:{wege:[{methode:'Blattsegment', quote:60, zeit:'Sommer', medium:'Anzuchterde', dauer:'8 Wochen'}], quelle:'Gemini', datum:'2026-09-20'}});
+      var p = allePflanzen().find(function(x){ return x.id === 'KW330'; });
+      var wege = verWegeFuer(p); var id = (wege.find(function(x){ return /^ki-/.test(x.id); }) || {}).id;
+      if(!id) return 'kein ki-Weg';
+      var g = azGefaessAnlegen({name:'Glas 330'});
+      var r = azGruppeAnlegen({gefaess:g.id, anzahl:2, methode:'Blattsegment', methodeId:id, art:'Bogenhanf-Test', botanisch:'Testia segmentis'});
+      window.__kw330 = {id:id, g:g.id, r:r.id};
+      S.eigene = S.eigene.filter(function(x){ return x.id !== 'KW330'; });
+      sichern(); delete VER_KI_METHODEN[id]; laden();
+      var m = vMethode(id);
+      return m ? m.name : 'weg'; })()`);
+    pruef('3.30.0: KI-Weg ohne Katalogplatz übersteht das Neuladen', kiw === 'Blattsegment', kiw);
+    T(`(function(){ var A = anzuchtDaten(); var k = window.__kw330 || {};
+      A.gruppen = A.gruppen.filter(function(r){ return r.id !== k.r; }); A.gefaesse = A.gefaesse.filter(function(g){ return g.id !== k.g; });
+      if(k.id) delete VER_KI_METHODEN[k.id]; sichern(); return 1; })()`);
+
+    /* Keine interne Nummer auf der Karte */
+    T(`(function(){ S.eigene.push({id:'E-9330', eigen:true, name:'Nummer330', art:'Efeutute', botanisch:'Epipremnum aureum', klasse:'B', sonne:'indirekt', duenger:'normal'}); sichern(); render(); })()`);
+    T("ansichtZeigen('sammlung')");
+    await tick();
+    const karte330 = d.querySelector('[data-karte="E-9330"]');
+    pruef('3.30.0: Die Karte zeigt die interne Nummer nicht', !!karte330 && karte330.textContent.indexOf('E-9330') === -1,
+      karte330 ? karte330.textContent.replace(/\s+/g, ' ').slice(0, 120) : 'keine Karte');
+    T(`S.eigene = S.eigene.filter(function(x){ return x.id !== 'E-9330'; }); sichern(); render()`);
+
+    /* Einheitliche Werte */
+    const mig = JSON.parse(T(`(function(){
+      var alt = S.eigene; var altE = S.ereignisse; var altW = S.water;
+      S.ereignisse = {'M3': [{datum:'2026-08-23', typ:'gesehen', text:''}, {datum:'2026-08-21', typ:'notiz', text:''}]};
+      S.water = {'M3': ['2026-08-25']};
+      S.eigene = [
+        {id:'M1', botanisch:"Dracaena trifasciata 'Hahnii Golden' (Bogenhanf)", sorte:'Hahnii Golden', seit:'ca. 01.08.2026'},
+        {id:'M2', botanisch:'Begonia x hiemalis (Elatior-Begonie)', seit:'6.9.2026'},
+        {id:'M3', botanisch:'Monstera deliciosa Variegata (Monstera Albo)', sorte:'Albo Borsigiana', seit:'selbst angelegt'},
+        {id:'M4', botanisch:'Sansevieria trifasciata (syn. Dracaena trifasciata)', seit:'2026-07-01'},
+        {id:'M5', botanisch:"Philodendron hederaceum 'Brasil'", seit:'selbst angelegt'},
+        {id:'M6', botanisch:'Mentha × piperita', seit:''}
+      ];
+      var n1 = datenVereinheitlichen();
+      var raus = S.eigene.map(function(p){ return [p.botanisch, p.seit]; });
+      var n2 = datenVereinheitlichen();
+      S.eigene = alt; S.ereignisse = altE; S.water = altW;
+      return JSON.stringify({raus:raus, n1:n1, n2:n2}); })()`));
+    const mr = mig.raus;
+    pruef('3.30.0: Trivialname und Sorte in Anführung verlassen den botanischen Namen', mr[0][0] === 'Dracaena trifasciata', mr[0][0]);
+    pruef('3.30.0: Klammer mit deutschem Namen fällt weg', mr[1][0] === 'Begonia x hiemalis' && mr[2][0] === 'Monstera deliciosa Variegata', mr[1][0] + ' / ' + mr[2][0]);
+    pruef('3.30.0: Ein Synonym in Klammern bleibt', mr[3][0] === 'Sansevieria trifasciata (syn. Dracaena trifasciata)', mr[3][0]);
+    pruef('3.30.0: Eine Sorte ohne eigenes Feld bleibt im Namen stehen', mr[4][0] === "Philodendron hederaceum 'Brasil'", mr[4][0]);
+    pruef('3.30.0: „ca. 01.08.2026“ und „6.9.2026“ werden zu Datumsangaben', mr[0][1] === '2026-08-01' && mr[1][1] === '2026-09-06', mr[0][1] + ' / ' + mr[1][1]);
+    pruef('3.30.0: „selbst angelegt“ wird das früheste bekannte Datum', mr[2][1] === '2026-08-21', mr[2][1]);
+    pruef('3.30.0: Ohne bekanntes Datum bleibt „seit“ leer', mr[4][1] === '' && mr[5][1] === '', mr[4][1] + ' / ' + mr[5][1]);
+    pruef('3.30.0: Ein richtiges Datum bleibt unverändert', mr[3][1] === '2026-07-01');
+    pruef('3.30.0: Der zweite Lauf ändert nichts mehr', mig.n1 > 0 && mig.n2 === 0, mig.n1 + ' / ' + mig.n2);
+
+    /* KI-Antwort: der deutsche Name gehört nicht in den botanischen */
+    pruef('3.30.0: KI-Antwort ohne Trivialname im botanischen Namen',
+      T(`geminiLesen('ART: Efeutute\\nBOTANISCH: Epipremnum aureum (Efeutute)').bot`) === 'Epipremnum aureum',
+      T(`geminiLesen('ART: Efeutute\\nBOTANISCH: Epipremnum aureum (Efeutute)').bot`));
+
+    /* Neue Einträge schreiben „seit“ als Datum */
+    const ab330 = T(`(function(){ S.eigene.push({id:'MU330', eigen:true, name:'Mutter330', art:'Efeutute', botanisch:'Epipremnum aureum', klasse:'B', sonne:'indirekt', duenger:'normal'});
+      var k = ablegerAnlegen('MU330', 'kopfsteckling'); var s = k ? k.seit : 'kein Ableger';
+      S.eigene = S.eigene.filter(function(x){ return x.id !== 'MU330' && x.eltern !== 'MU330'; }); sichern(); return s; })()`);
+    pruef('3.30.0: Ein Ableger bekommt „seit“ als Datum', ab330 === T('iso(HEUTE)'), ab330);
+    pruef('3.30.0: Keine Schreibstelle mehr mit „selbst angelegt“ oder deutschem Datum',
+      !/seit:\s*'selbst angelegt'/.test(html) && !/seit:\s*new Date\(\)\.toLocaleDateString/.test(html)
+      && !/seit:\s*heute,/.test(html));
   }
 
   console.log('\n── Ergebnis ──');

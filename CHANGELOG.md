@@ -4,6 +4,30 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.30.0 — 26. September 2026
+**Aufräumen, Teil 1**
+
+### Neu
+- Der Kartei-Streifen („Prüfe 1 von 50“) lässt sich einklappen. Eingeklappt bleibt rechts unten eine kleine Marke mit Anteil und Laufzeit; ein Tipp klappt ihn wieder auf. Der Zustand gilt bis zum Ende des Laufs.
+
+### Behoben
+- Nach der letzten Übernahme in der Kartei verschwand die Meldung nach einem Augenblick.
+- Der offene Kartei-Streifen verdeckte die letzte Zeile der Seite.
+- Die Kartei meldete „Alles ausgefüllt“, obwohl bei manchen Pflanzen der Düngebedarf fehlte. Die Karte zeigte dann nichts, der Düngeplan rechnete still mit „Normal“.
+- Der Anlegen-Auftrag nannte der KI achtzehn statt zwanzig Schlüsselwörter.
+- Zwischen Mitternacht und zwei Uhr trugen Giftprüfung und Vermehrungsauskunft den Vortag ein.
+- Vermehrungswege, die nur aus der KI-Auskunft stammen (z. B. „Blattsegment“), gingen beim Neuladen verloren.
+- Gesperrte Knöpfe sahen an vielen Stellen tippbar aus, etwa „Bestimmen“ ohne Foto.
+- „Neu in diesem Monat“ zählte immer null.
+- „Ueber“ statt „Über“ im Gießcenter.
+
+### Anders
+- Die interne Nummer (etwa „E-106“) steht auf keiner Karte mehr.
+- Im botanischen Namen steht nur noch der botanische Name. Ein deutscher Name in Klammern oder eine Sorte in Anführungszeichen werden beim Laden entfernt, auch aus alten Sicherungen und aus neuen KI-Antworten. Ein Synonym in Klammern bleibt.
+- „Seit“ steht bei allen Pflanzen als Datum. Aus „selbst angelegt“ wird der früheste Eintrag der Pflanze; gibt es keinen, bleibt das Feld leer.
+
+---
+
 ## 3.29.0 — 26. September 2026
 **Anzucht, Teil 2**
 

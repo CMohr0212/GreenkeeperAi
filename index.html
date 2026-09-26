@@ -486,7 +486,6 @@ h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2.4rem,8vw,4.2re
   border-right:1px solid var(--line)}
 img.thumb{object-fit:cover;object-position:center}
 .card-body{padding:16px 16px 15px;flex:1;min-width:0}
-.card-id{display:block;font-family:var(--f-data);font-size:var(--t-mono);letter-spacing:.12em;color:var(--peat)}
 .card-name{display:block;font-family:var(--f-display);font-weight:600;font-size:1.42rem;letter-spacing:-.02em;
   line-height:1.1;margin:3px 0 2px;overflow-wrap:anywhere;hyphens:auto}
 .card-bot{display:block;font-style:italic;font-size:var(--t-md);color:var(--peat);margin:0 0 11px;overflow-wrap:anywhere}
@@ -1897,6 +1896,10 @@ body.vollbild #plan-flaeche{touch-action:none}
 .pk-zu{position:absolute;top:6px;right:8px;border:0;background:none;font-size:1.3rem;line-height:1;color:var(--ink-2);cursor:pointer;padding:2px 6px}
 .pk .tools{margin-top:10px}
 
+/* 3.30.0: Jeder gesperrte Knopf sieht gesperrt aus. Vorher galt das nur
+   an fünf Einzelstellen — „Bestimmen“ ohne Foto sah tippbar aus. */
+button:disabled{opacity:.45;cursor:default}
+
 /* ── Reiter-Navigation ───────────────────────────────────── */
 .ans-aus{display:none!important}
 body{padding-bottom:76px}
@@ -2800,7 +2803,6 @@ body.einfach #zonen-sec{display:none!important}
 .sam-raster .card:not(.open) .icons{margin-top:7px;gap:7px}
 .sam-raster .card:not(.open) .ico{font-size:var(--t-mono)}
 .sam-raster .card:not(.open) .ico svg{width:13px;height:13px;flex:0 0 13px}
-.sam-raster .card:not(.open) .card-id,
 .sam-raster .card:not(.open) .card-bot,
 .sam-raster .card:not(.open) .card-lage,
 .sam-raster .card:not(.open) .zbadge,
@@ -3484,6 +3486,20 @@ body.vollbild #moebel-bearb.on{position:absolute;left:52px;right:0;bottom:0;z-in
 #kartei-streifen .ks-balken i{display:block;height:100%;background:var(--paper);
   transition:width var(--dauer)}
 @media(min-width:760px){#kartei-streifen{bottom:var(--a-4);left:auto;right:var(--a-4);max-width:420px}}
+/* 3.30.0: Einklappen. Der Streifen deckte unten eine ganze Zeile zu und
+   liess sich nicht wegschieben. Eingeklappt bleibt eine kleine Marke
+   rechts unten mit Anteil und Laufzeit; ein Tipp klappt wieder auf. */
+#kartei-streifen button.ks-zu{border-color:transparent;padding:8px 10px;font-size:var(--t-m);line-height:1}
+#kartei-streifen.klein{left:auto;right:var(--a-3);padding:0;background:none;box-shadow:none;gap:0}
+#kartei-streifen.klein button.ks-auf{display:flex;flex-direction:column;align-items:stretch;gap:5px;
+  background:var(--ink);color:var(--paper);border:0;border-radius:var(--r-gross);padding:9px 14px;
+  box-shadow:var(--sch-streifen);font-size:var(--t-s);font-variant-numeric:tabular-nums}
+#kartei-streifen.klein .ks-auf span{flex:none;font-size:var(--t-s)}
+#kartei-streifen.klein .ks-balken{flex:none;width:100%}
+/* Solange der Streifen offen steht, reicht die Seite um seine Hoehe
+   weiter nach unten — sonst liegt die letzte Zeile unter ihm. */
+body.ks-platz{padding-bottom:calc(76px + var(--ks-h, 96px) + var(--a-3))}
+@media(min-width:760px){body.ks-platz{padding-bottom:calc(var(--ks-h, 96px) + var(--a-4))}}
 
 #kartei-gitter{margin:var(--a-3) 0}
 #kartei-such{width:100%;margin-bottom:var(--a-2)}
@@ -4355,7 +4371,12 @@ const GIFT_TIERE = ['katze','hund','nager','vogel'];
    weiter unten in der Datei; ein Zugriff von hier aus wirft, solange
    die Zeile noch nicht gelaufen ist — und `typeof` fängt das bei
    const nicht ab. */
-function giftHeute(){ return new Date().toISOString().slice(0, 10); }
+/* 3.30.0: nach Ortszeit. toISOString() rechnet in UTC und schrieb
+   zwischen Mitternacht und zwei Uhr den Vortag. */
+function giftHeute(){
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+}
 const GIFT_CODES = {0:'keine', 1:'leicht', 2:'mittel', 3:'schwer', u:'unklar'};
 
 function giftStufeVon(code){ return GIFT_CODES[code] || 'unklar'; }
@@ -6037,7 +6058,9 @@ PRÜFE VOR DEM ABSENDEN
    ein „fünfzehn“, die zweite zog sofort noch einmal ab. Der Prompt nannte
    dann vierzehn Schlüsselwörter und listete fünfzehn. */
 const ZAHLWORT = ['null','ein','zwei','drei','vier','fünf','sechs','sieben','acht','neun','zehn',
-  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig'];
+  'elf','zwölf','dreizehn','vierzehn','fünfzehn','sechzehn','siebzehn','achtzehn','neunzehn','zwanzig',
+  /* 3.30.0: Mit SORTE_BELEG und SORTEN_VERWECHSLUNG hat der Anlegen-Auftrag bis zu 21 Felder. */
+  'einundzwanzig','zweiundzwanzig','dreiundzwanzig','vierundzwanzig','fünfundzwanzig'];
 
 function promptZahlSetzen(txt){
   const t = String(txt);
@@ -6045,7 +6068,9 @@ function promptZahlSetzen(txt){
      also alles außer den mehrfach erlaubten VERMEHRUNG und MASSNAHME. */
   const felder = new Set();
   t.split('\n').forEach(z => {
-    const m = z.trim().match(/^([A-ZÄÖÜ]{3,}):/);
+    /* 3.30.0: auch Namen mit Unterstrich (SORTE_BELEG). Vorher nannte
+       der Anlegen-Auftrag achtzehn statt zwanzig. */
+    const m = z.trim().match(/^([A-ZÄÖÜ][A-ZÄÖÜ_]{2,}):/);
     if(m && m[1] !== 'VERMEHRUNG' && m[1] !== 'MASSNAHME') felder.add(m[1]);
   });
   const n = felder.size;
@@ -6463,7 +6488,10 @@ function geminiLesen(txt){
   const kern = codeblockInhalt(txt);
   const quelle = (kern !== null && kern.trim()) ? kern : String(txt || '');
   const alsJson = jsonLesen(quelle);
-  if(alsJson) return alsJson;
+  if(alsJson){
+    if(typeof alsJson.bot === 'string') alsJson.bot = botKlammerWeg(alsJson.bot);
+    return alsJson;
+  }
   const raus = {};
   let letztes = null;
   const doppelt = [];
@@ -6548,6 +6576,9 @@ function geminiLesen(txt){
     if(!raus[k]) delete raus[k];
   });
   if(doppelt.length) raus.__doppelt = doppelt;
+  /* 3.30.0: „Epipremnum aureum (Efeutute)“ — der deutsche Name gehört
+     nicht in den botanischen. So kam er in sechs Karten. */
+  if(raus.bot) raus.bot = botKlammerWeg(raus.bot);
   return raus;
 }
 
@@ -8784,7 +8815,19 @@ function vKiMethodeId(name, p){
    Kachel. Ihre Angaben liegen hier, damit Anlegen und Anzucht sie
    finden. */
 const VER_KI_METHODEN = {};
-function vMethode(id){ return (id && (V_METHODEN[id] || VER_KI_METHODEN[id])) || null; }
+function vMethode(id){
+  if(!id) return null;
+  if(V_METHODEN[id] || VER_KI_METHODEN[id]) return V_METHODEN[id] || VER_KI_METHODEN[id];
+  /* 3.30.0: Nach dem Neuladen ist VER_KI_METHODEN leer. Die Gruppe in
+     der Anzucht trägt die Angaben ihres Wegs selbst mit (`methodeKi`);
+     vorher fiel das Eintopfen solcher Gruppen auf den Kopfsteckling. */
+  if(/^ki-/.test(id)){
+    const gr = (S && S.anzucht && Array.isArray(S.anzucht.gruppen)) ? S.anzucht.gruppen : [];
+    const g = gr.find(x=>x && x.methodeId === id && x.methodeKi && typeof x.methodeKi === 'object');
+    if(g){ VER_KI_METHODEN[id] = Object.assign({}, g.methodeKi); return VER_KI_METHODEN[id]; }
+  }
+  return null;
+}
 function vDauerTage(t){
   const m = String(t || '').match(/(\d+)(?:\s*(?:bis|-|–)\s*(\d+))?\s*(woche|tag|monat)/i);
   if(!m) return 35;
@@ -11518,8 +11561,30 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.29.0';
+const FASSUNG = '3.30.0';
 const PATCHNOTES = [
+  {
+    nr: '3.30.0', datum: '2026-09-26', titel: 'Aufräumen, Teil 1',
+    kurz: [
+      'Aufräumen, erster Teil: Fehler behoben und alte, uneinheitliche Angaben an den Pflanzen vereinheitlicht. Der Kartei-Streifen lässt sich einklappen.'
+    ],
+    besser: [
+      'Der Streifen „Prüfe 1 von 50“ lässt sich einklappen. Dann bleibt rechts unten eine kleine Marke mit Anteil und Laufzeit, ein Tipp klappt ihn wieder auf. Offen verdeckt er die letzte Zeile nicht mehr.',
+      'Die Kartei meldet eine fehlende Düngeangabe als Lücke.',
+      'Die interne Nummer (etwa „E-106“) steht auf keiner Karte mehr.',
+      'Gesperrte Knöpfe sehen überall blass aus.',
+      'Im botanischen Namen steht nur noch der botanische Name. Ein deutscher Name in Klammern oder eine Sorte in Anführungszeichen wurden entfernt; die Sorte steht in ihrem eigenen Feld.',
+      '„Seit“ steht bei allen Pflanzen als Datum. Wo „selbst angelegt“ stand, gilt der früheste Eintrag der Pflanze.'
+    ],
+    behoben: [
+      'Nach der letzten Übernahme in der Kartei war die Meldung nach einem Augenblick wieder weg.',
+      'Der Anlegen-Auftrag nannte der KI achtzehn statt zwanzig Schlüsselwörter.',
+      'Zwischen Mitternacht und zwei Uhr bekamen Giftprüfung und Vermehrungsauskunft das Datum vom Vortag.',
+      'Vermehrungswege, die nur aus der KI-Auskunft stammen, gingen beim Neuladen verloren. Das Eintopfen fiel dann auf den Kopfsteckling zurück.',
+      '„Neu in diesem Monat“ zählte immer null.',
+      'Tippfehler im Gießcenter: „Ueber“ statt „Über“.'
+    ]
+  },
   {
     nr: '3.29.0', datum: '2026-09-26', titel: 'Anzucht, Teil 2',
     kurz: [
@@ -13287,6 +13352,67 @@ function grundwerteErgaenzen(){
    'weg','ereignisse','gesehen','orte'].forEach(k=>{
     if(!S[k] || typeof S[k] !== 'object' || Array.isArray(S[k])) S[k] = {};
   });
+  datenVereinheitlichen();
+}
+
+/* ── Einheitliche Werte (3.30.0) ─────────────────────────────
+   Ältere Fassungen haben zwei Felder uneinheitlich geschrieben:
+   - `botanisch` trug manchmal den deutschen Namen in Klammern oder die
+     Sorte in Anführungszeichen mit: „Epipremnum aureum (Efeutute)“.
+   - `seit` stand als „selbst angelegt“, „6.9.2026“ oder
+     „ca. 01.08.2026“ — gelesen wird aber nur JJJJ-MM-TT.
+   Die Funktion bringt beides in eine Form. Sie ändert nur, was nicht
+   passt, und läuft deshalb bei jedem Laden gefahrlos mit — auch für
+   eine alte Sicherung. Sie steht vor iso() und HEUTE in der Datei und
+   darf beides nicht benutzen. */
+function botKlammerWeg(t){
+  let b = String(t || '').trim();
+  /* Eine Klammer am Ende ist ein Trivialname — außer sie nennt ein
+     Synonym, das gehört zum Namen. */
+  const m = b.match(/^(.*\S)\s*\(([^()]*)\)$/);
+  if(m && !/^\s*(syn\b|syn\.|synonym)/i.test(m[2])) b = m[1].trim();
+  return b;
+}
+function botOhneSortenAnfuehrung(bot, sorte){
+  const so = String(sorte || '').replace(/^[\s'"\u201e\u201c\u201a\u2018\u2019\u201d]+|[\s'"\u201e\u201c\u201a\u2018\u2019\u201d]+$/g, '').trim();
+  if(!so) return bot;
+  const q = '[\'"\u201e\u201c\u201a\u2018\u2019\u201d]';
+  const esc2 = so.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(bot).replace(new RegExp('\\s*' + q + '\\s*' + esc2 + '\\s*' + q, 'i'), '').replace(/\s+/g, ' ').trim();
+}
+function seitDatum(w){
+  const t = String(w || '').trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  const m = t.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(!m) return '';
+  const z = n => String(n).padStart(2, '0');
+  const tag = parseInt(m[1], 10), mon = parseInt(m[2], 10);
+  if(!(tag >= 1 && tag <= 31 && mon >= 1 && mon <= 12)) return '';
+  return m[3] + '-' + z(mon) + '-' + z(tag);
+}
+function fruehestesDatum(id){
+  const daten = [];
+  ((S.ereignisse || {})[id] || []).forEach(e=>{ if(e && /^\d{4}-\d{2}-\d{2}$/.test(e.datum || '')) daten.push(e.datum); });
+  ((S.water || {})[id] || []).forEach(d=>{ const t = typeof d === 'string' ? d : (d && d.datum); if(/^\d{4}-\d{2}-\d{2}/.test(t || '')) daten.push(t.slice(0, 10)); });
+  daten.sort();
+  return daten[0] || '';
+}
+function datenVereinheitlichen(){
+  let n = 0;
+  (S.eigene || []).forEach(p=>{
+    if(!p || typeof p !== 'object') return;
+    if(typeof p.botanisch === 'string' && p.botanisch){
+      const b = botOhneSortenAnfuehrung(botKlammerWeg(p.botanisch), p.sorte);
+      if(b && b !== p.botanisch){ p.botanisch = b; n++; }
+    }
+    /* Ein leeres Feld heißt „unbekannt“ und bleibt leer — sonst setzte
+       ein späteres Gießen beim nächsten Laden ein falsches Datum. */
+    if(p.seit && !/^\d{4}-\d{2}-\d{2}$/.test(String(p.seit))){
+      const d = seitDatum(p.seit) || fruehestesDatum(p.id);
+      if(d !== p.seit){ p.seit = d; n++; }
+    }
+  });
+  return n;
 }
 
 function laden(){
@@ -15926,7 +16052,6 @@ function cardHTML(p){
   const thumb = pf
     ? `<img class="thumb" src="${pf.src}" alt="" loading="lazy" decoding="async" data-mass>`
     : '';
-  const st = giessStatus(p);
   /* Ueberschrift der Karte: der Spitzname, wenn einer vergeben ist,
      sonst der botanische Name. `nice()` haengt beides aneinander
      („Monstera deliciosa (Fensterblatt)") — auf einer Kachel sind
@@ -15944,7 +16069,6 @@ function cardHTML(p){
     <button class="card-btn" data-t="${p.id}" aria-haspopup="dialog">
       ${thumb}
       <span class="card-body">
-        <span class="card-id">${p.id}${st.stand==='over'?' · überfällig':''}</span>
         <span class="card-name">${esc(titel)}</span>
         <span class="card-bot">${unter}</span>
         ${lageVon(p)?`<span class="card-lage">${esc(lageVon(p))}</span>`:''}
@@ -20479,7 +20603,7 @@ async function alSpeichern(){
     duenger: a ? a.duenger : null,
     intervall: KLASSE_IV[kl] || [8,12],
     bib: a ? a.bot : null,
-    eltern:null, linie:null, seit:'selbst angelegt',
+    eltern:null, linie:null, seit:iso(HEUTE),
     notiz: $('#f-notiz').value.trim(), todo:[], log:[],
     giessart: $('#f-giessart').value || '',
     wichtig: $('#f-wichtig').value.trim(),
@@ -24026,7 +24150,7 @@ const WASSER_ART = {
   leitung:     {name:'Leitungswasser',
     text:'Passt für die meisten Zimmerpflanzen. Bei Karnivoren, Calathea und Orchideen meldet sich die App, weil die es nicht vertragen.'},
   abgestanden: {name:'Leitungswasser, abgestanden',
-    text:'Ueber Nacht stehen lassen treibt Chlor aus und bringt es auf Zimmertemperatur. Am Kalk ändert es nichts — der bleibt.'},
+    text:'Über Nacht stehen lassen treibt Chlor aus und bringt es auf Zimmertemperatur. Am Kalk ändert es nichts — der bleibt.'},
   regen:       {name:'Regenwasser',
     text:'Weich und kalkfrei, das Beste für fast alles. Nur aus einer offenen Tonne im Sommer nicht über Wochen stehen lassen.'},
   osmose:      {name:'Osmose oder destilliert',
@@ -24035,7 +24159,7 @@ const WASSER_ART = {
 const HAERTE_TEXT = {
   weich:  'Unter 8 °dH. Du kannst fast alles direkt aus dem Hahn gießen.',
   mittel: '8 bis 14 °dH. Für die meisten unproblematisch, empfindliche Arten danken Regenwasser.',
-  hart:   'Ueber 14 °dH. Kalkränder auf der Erde und braune Blattspitzen bei empfindlichen Arten sind zu erwarten.',
+  hart:   'Über 14 °dH. Kalkränder auf der Erde und braune Blattspitzen bei empfindlichen Arten sind zu erwarten.',
   '':     'Nicht gesetzt. Die App warnt dann nur bei Arten, die grundsätzlich kein Leitungswasser vertragen.'
 };
 const DGART_TEXT = {
@@ -26245,7 +26369,7 @@ function vermehrungLesen(roh, dienst){
   if(!raus.length) return null;
   raus.sort((a,b)=>(b.quote == null ? -1 : b.quote) - (a.quote == null ? -1 : a.quote));
   return { wege: raus.slice(0,3), quelle: dienst || 'KI',
-           datum: new Date().toISOString().slice(0,10) };
+           datum: iso(new Date()) };
 }
 
 /* Steht schon etwas da, wird es ersetzt — aber sichtbar. */
@@ -28078,7 +28202,7 @@ function ablegerAnlegen(mutterId, methodeId){
     intervall: (mutter.intervallEigen && mutter.intervall) ? mutter.intervall.slice() : undefined,
     intervallEigen: !!mutter.intervallEigen,
     bib: null,
-    eltern: mutterId, linie:null, seit: heute,
+    eltern: mutterId, linie:null, seit: iso(HEUTE),
     notiz: m.name + ' am ' + heute + ', genommen von ' + nice(mutter) + '.\n'
          + 'Erwartete Bewurzelung in etwa ' + Math.round(m.dauer/7) + ' Wochen.',
     todo:[], log:[]
@@ -28206,6 +28330,12 @@ function azGruppeAnlegen(o){
              mutter: o.mutter || null, mutterName: o.mutterName || '',
              art: o.art || '', botanisch: o.botanisch || '', sorte: o.sorte || '',
              start: o.start || iso(HEUTE), verlauf: Array.isArray(o.verlauf) ? o.verlauf : []};
+  /* 3.30.0: Ein Weg nur aus der KI-Auskunft wird an der Gruppe
+     mitgespeichert, damit er das Neuladen übersteht. */
+  if(r.methodeId && /^ki-/.test(r.methodeId)){
+    const km = o.methodeKi || vMethode(r.methodeId);
+    if(km) r.methodeKi = JSON.parse(JSON.stringify(km));
+  }
   anzuchtDaten().gruppen.push(r);
   return r;
 }
@@ -28293,7 +28423,7 @@ function azPflanzeFrei(r){
   const id = neueId();
   const p = {id, eigen:true, name: azHerkunft(r), art: r.art || '', botanisch: r.botanisch || '',
     sorte: r.sorte || '', sortenmerkmale:'', familie:'', klasse:'B', raum:'', stellplatz:'',
-    bib:null, eltern:null, linie:null, seit: new Date().toLocaleDateString('de-DE'),
+    bib:null, eltern:null, linie:null, seit: iso(HEUTE),
     notiz:'', todo:[], log:[]};
   S.eigene = S.eigene || [];
   S.eigene.push(p);
@@ -28338,7 +28468,7 @@ function azUmsetzen(r, n, zielId){
     z.verlauf.sort((a, b)=>a.datum.localeCompare(b.datum));
   } else {
     z = azGruppeAnlegen({gefaess:zielId, anzahl:n, methode:r.methode, methodeId:r.methodeId,
-      mutter:r.mutter, mutterName:r.mutterName, art:r.art, botanisch:r.botanisch, sorte:r.sorte,
+      methodeKi:r.methodeKi, mutter:r.mutter, mutterName:r.mutterName, art:r.art, botanisch:r.botanisch, sorte:r.sorte,
       start:r.start, verlauf:kopie});
   }
   azVerlauf(z, 'umgesetzt', n + ' aus ' + (quelle ? quelle.name : 'einem anderen Gefäß') + ' dazu');
@@ -28388,6 +28518,7 @@ function azGruppeBearbeiten(r, o){
     r.methode = String(o.methode);
     const id = Object.keys(AZ_AUS_VMETHODE).find(k=>AZ_AUS_VMETHODE[k] === r.methode);
     r.methodeId = id || null;
+    delete r.methodeKi;
   }
   if(/^\d{4}-\d{2}-\d{2}$/.test(String(o.start || ''))) r.start = o.start;
   if(frei){ r.art = art; r.botanisch = bot; r.sorte = String(o.sorte || '').trim(); }
@@ -28456,9 +28587,9 @@ function azBestimmenAuftrag(r){
       ? bisher[0] + ' (' + bisher[1] + ')' : bisher[0]) + '. Prüfe das am Foto und widersprich, wenn es nicht passt.', '');
   let f = auftragMitTieren(AZ_BEST_FELDER, AZ_BEST_SONICHT, AZ_BEST_PRUEFLISTE);
   f = f.replace(' Danach folgen ein bis drei VERMEHRUNG-Zeilen und ein bis drei MASSNAHME-Zeilen.', '')
-    .replace(' Was du an der Sorte siehst, gehört in MERKMALE.', '')
-    /* promptZahlSetzen zählt Namen mit Unterstrich nicht mit. */
-    .replace(/Alle \S+ Schlüsselwörter/, 'Alle sechs Schlüsselwörter');
+    .replace(' Was du an der Sorte siehst, gehört in MERKMALE.', '');
+  /* Die Zeilen oben sind entfernt; die Zahl wird neu gezählt. */
+  f = promptZahlSetzen(f);
   z.push(f);
   return z.join('\n');
 }
@@ -29707,10 +29838,13 @@ const KARTEI_VERSUCHE = 2;
 /* Pflegeschritte und Winterruhe zählen ab 3.25.0 als Lücke (Chris,
    21.09.2026). Geprüft „keine“ steht als leere Liste bzw. leerer Text
    und ist keine Lücke mehr. */
-const KARTEI_PFLICHT = ['botanisch', 'typ', 'klasse', 'sonne', 'frostMin', 'wichtig', 'pflege', 'winterruheText'];
+/* 3.30.0: Düngung gehört dazu. Ohne Angabe zeigte die Karte nichts,
+   der Düngeplan rechnete still mit „Normal“ — und die Kartei meldete
+   trotzdem „Alles ausgefüllt“. */
+const KARTEI_PFLICHT = ['botanisch', 'typ', 'klasse', 'sonne', 'frostMin', 'duenger', 'wichtig', 'pflege', 'winterruheText'];
 const KARTEI_PFLICHT_NAME = {
   botanisch:'botanischer Name', typ:'Wuchsform', klasse:'Gießklasse',
-  sonne:'Lichtbedarf', frostMin:'Frostgrenze', wichtig:'wichtigster Pflegehinweis',
+  sonne:'Lichtbedarf', frostMin:'Frostgrenze', duenger:'Düngebedarf', wichtig:'wichtigster Pflegehinweis',
   pflege:'Pflegeschritte', winterruheText:'Winterruhe'
 };
 
@@ -30088,6 +30222,8 @@ function karteiBalkenSetzen(){
   document.querySelectorAll('.kartei-info').forEach(x=>{ x.textContent = info; });
   const kz = document.querySelector('#kartei-streifen .ks-zeit');
   if(kz) kz.textContent = karteiUhrzeit(karteiLaufzeit(karteiStand()));
+  const kt = document.querySelector('#kartei-streifen .ks-teil');
+  if(kt) kt.textContent = f.teil + ' %';
   return f;
 }
 function karteiUhrAn(){
@@ -30434,7 +30570,7 @@ function karteiWiederaufnehmen(){
 function karteiLeiste(){
   const k = karteiStand();
   let s = document.getElementById('kartei-streifen');
-  if(!k){ karteiUhrAus(); if(s) s.remove(); return; }
+  if(!k){ karteiUhrAus(); if(s) s.remove(); karteiPlatz(null); return; }
   if(!s){
     s = document.createElement('div');
     s.id = 'kartei-streifen';
@@ -30443,6 +30579,17 @@ function karteiLeiste(){
   const f = karteiFortschritt(k);
   const laeuft = f.laeuft;
   if(laeuft) karteiUhrAn(); else karteiUhrAus();
+  /* 3.30.0: eingeklappt nur die Marke. Der Zustand haengt am Lauf und
+     verschwindet mit ihm. */
+  s.classList.toggle('klein', !!k.klein);
+  if(k.klein){
+    s.innerHTML = '<button type="button" class="ks-auf" data-do="kartei-streifen-auf"'
+      + ' aria-label="Fortschritt aufklappen"><span><b class="ks-teil">' + f.teil + ' %</b> · '
+      + '<b class="ks-zeit">' + esc(karteiUhrzeit(karteiLaufzeit(k))) + '</b></span>'
+      + '<span class="ks-balken" aria-hidden="true"><i style="width:' + f.teil + '%"></i></span></button>';
+    karteiPlatz(null);
+    return;
+  }
   s.innerHTML = '<div class="ks-balken" aria-hidden="true"><i style="width:' + f.teil + '%"></i></div>'
     + '<span>' + esc(k.halt === 'tag' ? 'Tageskontingent erschöpft' : f.text)
     + ' · <b class="ks-zeit">' + esc(karteiUhrzeit(karteiLaufzeit(k))) + '</b></span>'
@@ -30450,7 +30597,18 @@ function karteiLeiste(){
       : k.pausiert ? (Array.isArray(k.alle)
           ? '<button type="button" class="haupt" data-do="kartei-weiter">Fortsetzen</button>' : '')
       : '<button type="button" class="haupt" data-do="kartei-ansehen">Ansehen</button>')
-    + (laeuft ? '' : '<button type="button" data-do="kartei-weg" aria-label="Ergebnis verwerfen">\u00d7</button>');
+    + (laeuft ? '' : '<button type="button" data-do="kartei-weg" aria-label="Ergebnis verwerfen">\u00d7</button>')
+    + '<button type="button" class="ks-zu" data-do="kartei-streifen-zu" aria-label="Einklappen">\u2304</button>';
+  karteiPlatz(s);
+}
+/* Haelt unten so viel Platz frei, wie der offene Streifen hoch ist. */
+function karteiPlatz(s){
+  const b = document.body;
+  if(!b) return;
+  if(!s){ b.classList.remove('ks-platz'); return; }
+  const h = s.offsetHeight;
+  if(h > 0) b.style.setProperty('--ks-h', h + 'px');
+  b.classList.add('ks-platz');
 }
 
 /* ── Der Abschnitt unter Mehr ───────────────────────────────── */
@@ -30825,7 +30983,10 @@ function karteiAbweichungen(p, erg){
     const duAlt = p.duenger || karteiBibWert(p, 'duenger') || '';
     const duRef = karteiBibWert(p, 'duenger');
     const duAbw = !!duRef && duRef !== duNeu;
-    if(duNeu !== duAlt)
+    /* 3.30.0: Steht an der Pflanze selbst nichts, wird die Angabe auch
+       dann angeboten, wenn sie der Bibliothek gleicht — sonst bliebe
+       die Lücke für immer offen. */
+    if(duNeu !== duAlt || !p.duenger)
       zeilen.push({key:'duenger', name:'Düngebedarf', einzeln:duAbw || undefined,
         wirkung:duAbw ? 'Weicht von der Bibliothek ab (' + ((DUENGER[duRef] || {}).text || duRef) + '). Nur einzeln übernehmbar.' : undefined,
         alt:DUENGER[duAlt] ? DUENGER[duAlt].text : '', neu:DUENGER[duNeu].text,
@@ -31090,6 +31251,10 @@ if(typeof modalAnmelden === 'function')
     nachZu: ()=>{ KA_PFLANZE = null; karteiAbschnitt(); }});
 
 function karteiAbschnitt(){
+  karteiAbschnittBauen();
+  karteiMeldungZeigen();
+}
+function karteiAbschnittBauen(){
   const box = document.getElementById('kartei-innen');
   if(!box) return;
   const k = karteiStand();
@@ -31201,11 +31366,21 @@ function karteiAbschnitt(){
   karteiKaestchen();
 }
 
+/* 3.30.0: Die Meldung wird gemerkt. Nach der letzten Übernahme geht das
+   Fenster über den Verlauf zu, und dessen Aufräumen zeichnet den Abschnitt
+   neu — erst danach. Vorher stand die Meldung im alten Abschnitt und war
+   nach einem Augenblick weg. Jetzt schreibt jedes Neuzeichnen sie wieder
+   hinein, bis die nächste Meldung sie ersetzt. */
+let KARTEI_MELD = {txt:'', art:''};
 function karteiMeldung(txt, art){
+  KARTEI_MELD = {txt: txt || '', art: art || ''};
+  karteiMeldungZeigen();
+}
+function karteiMeldungZeigen(){
   const m = document.getElementById('kartei-meld');
   if(!m) return;
-  m.textContent = txt || '';
-  m.className = 'kihinweis' + (art ? ' ' + art : '');
+  m.textContent = KARTEI_MELD.txt;
+  m.className = 'kihinweis' + (KARTEI_MELD.art ? ' ' + KARTEI_MELD.art : '');
 }
 
 function karteiLos(ids, behalten){
@@ -31219,7 +31394,9 @@ function karteiLos(ids, behalten){
     return;
   }
   if(!ids.length){ karteiMeldung('Keine Pflanze ausgewählt.', 'warn'); return; }
+  /* Eine alte Meldung gehört nicht zum neuen Lauf. */
   if(!karteiStarten(ids, behalten)) karteiMeldung('Es läuft bereits eine Prüfung.', 'warn');
+  else karteiMeldung('');
 }
 
 document.addEventListener('click', e=>{
@@ -31230,6 +31407,11 @@ document.addEventListener('click', e=>{
     if(a === 'kartei-stopp'){ karteiAbbrechen(); return; }
     if(a === 'kartei-weiter'){ karteiFortsetzen(); return; }
     if(a === 'kartei-weg'){ karteiVerwerfen(); return; }
+    if(a === 'kartei-streifen-zu' || a === 'kartei-streifen-auf'){
+      const k = karteiStand();
+      if(k){ k.klein = a === 'kartei-streifen-zu'; sichern(); karteiLeiste(); }
+      return;
+    }
     if(a === 'kartei-ansehen'){
       if(typeof ansichtZeigen === 'function') ansichtZeigen('mehr');
       const kopf = document.querySelector('[data-mh-go="kartei"]');

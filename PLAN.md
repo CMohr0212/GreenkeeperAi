@@ -1,120 +1,121 @@
 # PLAN — GreenkeeperAI
 
-Stand 26.09.2026 · Ausgangsfassung 3.28.1 · **Zielversion 3.29.0, sw.js greenkeeperai-v125**
+Stand 26.09.2026 · Ausgangsfassung 3.29.0 · **Zielversion 3.30.0, sw.js greenkeeperai-v126**
 
-**Freigegeben am 26.09.2026 (Chris): 3.29.0 · Zielversion 3.29.0, sw.js greenkeeperai-v125.** Umfang: A KI-Bestimmung, B Mischtopf (auch verschiedene Arten), C vier Funde aus der Handyprüfung 3.28.0 („mit rein“, Regel 4.3).
+**Sitzung 1 freigegeben am 26.09.2026 (Chris).** Kartei-Streifen: Variante (a).
 
-Aufteilung: keine, auf Chris' Wunsch (Regel 0.2). Die Größe ist „groß“, eine Aufteilung nach Regel 3.4 war vorgeschlagen und wurde abgelehnt.
-Gerätekontrolle: 3.28.0 und 3.28.1 hat Chris am 26.09. am Handy geprüft, bis auf die Punkte in Teil C.
+3.29.0 ist geliefert, der Verlauf steht im CHANGELOG. Hier steht jetzt nur noch das Aufräumen.
 
 ---
 
+# Aufräumen · Überblick
+
+Chris am 22.09.2026: Nach der Anzucht wird die App grundlegend aufgeräumt, bevor etwas Neues kommt.
+
+Grundlage: Analyse vom 26.09.2026 (Code, Prüfstand, 344 Klicks durch alle Bereiche, Sicherung vom 26.09.).
+
+Größe insgesamt: groß. Deshalb die Aufteilung nach Regel 3.4:
+
+| Sitzung | Thema | Größe | Ziel |
+|---|---|---|---|
+| 1 | Fehler und Daten | mittel | 3.30.0 |
+| 2 | Scrollfehler | offen | erst Messwerte, Regel 5.6 |
+| 3 | Ballast | mittel | toter Code, Altlasten |
+| 4 | App Tour neu | groß | zuletzt, weil 1–3 die Oberfläche ändern |
+
+Danach wieder Neues: Sammel-Anlegen, F, T, Claude-Anbindung, Browser-Dialoge durch App-Fenster ersetzen (Backlog).
+
+---
+
+# Sitzung 1 · Fehler und Daten → Zielversion 3.30.0, sw.js greenkeeperai-v126
+
 ## Ziel
-Anzucht Teil 2: Frei eingetragene Gruppen lassen sich per Foto bestimmen. Stecklinge aus mehreren Gruppen lassen sich zu einer Pflanze eintopfen. Die vier Funde aus der Handyprüfung von 3.28.0 sind behoben.
+Die belegten Fehler aus der Analyse sind behoben, und die uneinheitlichen Werte in den Pflanzendaten sind einmalig vereinheitlicht.
 
 ## Änderungen
 
-### A · KI-Bestimmung
-- Eine Gruppe ohne Mutter bekommt den Knopf „Per Foto bestimmen“. Gruppen mit Mutter bekommen ihn nicht.
-- Ein Foto aufnehmen oder auswählen. Das Foto wird nicht gespeichert.
-- Kurzer Auftrag nur mit ART, BOTANISCH, SICHERHEIT, SORTE, SORTE_BELEG und SORTEN_VERWECHSLUNG. Die Feldtexte kommen unverändert aus der vorhandenen Felddefinition. `ANTWORT_FORMAT` bleibt wortgleich. Kein Name aus einer Karte im Auftrag.
-- Die Sorte läuft durch `sorteGeprueft` (unverändert).
-- Das Ergebnis zeigt Art, botanischen Namen und Sorte mit Sicherheit und Beleg. Übernommen wird nur einzeln: Knopf „Art übernehmen“ und, wenn eine Sorte angeboten wird, Knopf „Sorte übernehmen“ (Regel 10.8, Vorschlag 10.13).
-- Die Übernahme schreibt `art`, `botanisch` und `sorte` in die Gruppe und einen Verlaufseintrag „Per Foto bestimmt: …“.
-- Ohne API-Schlüssel oder nach einem Fehlschlag gibt es den Weg über Kopieren und Einfügen (Regel 10.6).
+### Fehler
+- **Kartei-Meldung bleibt stehen:** Nach der letzten Übernahme wird die Seite nicht mehr neu gezeichnet, nachdem die Meldung geschrieben ist. Heute verschwindet die Meldung nach etwa 0,3 s.
+- **Kartei-Streifen einklappbar:** Ein Knopf am Streifen verkleinert ihn zu einer kleinen Marke unten rechts mit Fortschritt und Zeit. Ein Tipp auf die Marke klappt ihn wieder auf. Der Zustand bleibt bis zum Ende des Laufs gemerkt. Solange der Streifen offen ist, bekommt die Seite unten genug Platz, damit er nichts verdeckt. *(Variante (a), Chris 26.09.)*
+- **Düngung zählt als Lücke:** Die Kartei meldet eine fehlende Düngeangabe. Betroffen sind heute Brigitte, Beate und Jimmini. Die Karte zeigt bei ihnen nichts an, der Düngeplan rechnet dagegen still mit „Normal“.
+- **Zählwort im KI-Auftrag:** Feldnamen mit Unterstrich (SORTE_BELEG, SORTEN_VERWECHSLUNG) werden mitgezählt. Das betrifft den Anlegen- und den Kartei-Auftrag.
+- **Datum nach Ortszeit:** Giftprüfung und Vermehrungsauskunft schreiben das Datum nach Ortszeit. Heute tragen sie zwischen 0 und 2 Uhr den Vortag ein.
+- **Gesperrte Knöpfe sehen gesperrt aus:** Eine allgemeine Regel macht jeden gesperrten Knopf blass. Bisher gilt das nur an fünf Einzelstellen. Das betrifft auch „Bestimmen“ ohne Foto.
+- **Vermehrungswege ohne Katalogplatz** (z. B. „Blattsegment“) werden an der Gruppe gespeichert. Heute fällt das Eintopfen solcher Gruppen nach dem Neuladen auf „Kopfsteckling“ zurück.
+- **Interne Nummer weg:** „E-106“ und Ähnliches erscheint auf keiner Karte mehr.
+- **Umlaute:** „Ueber 14 °dH“ und „Ueber Nacht“ (Gießcenter, Wasser).
 
-### B · Mischtopf
-- Im Schritt „Eintopfen“ gibt es die neue Wahl „Mit anderen Gruppen zusammen“. Darunter stehen alle Gruppen aller Gefäße, jede mit eigener Anzahl. **Verschiedene Arten sind erlaubt** (Chris, 26.09.).
-- Hauptgruppe ist vorgegeben die Gruppe mit den meisten Stecklingen. Sie ist änderbar.
-- Die Karte erbt über `ablegerErbe` von der Mutter der Hauptgruppe. Ohne Mutter kommen die Angaben aus der Gruppe. `ABLEGER_ERBE` bleibt unverändert.
-- **Gießen, trockenste Pflanze gewinnt** (Chris, 26.09.): Klassen von nass nach trocken S → A → B → C. Hat eine Nebenmutter eine trockenere Klasse als die Hauptmutter, übernimmt die Karte deren Klasse, Gießgruppe und Gießart. Gruppen ohne Mutter haben keine bekannte Klasse und zählen dabei nicht.
-- **Hinweis vor dem Eintopfen**, wenn die Klassen nicht zusammenpassen. Zusammen passen gleiche oder benachbarte Klassen (A–B, B–C), S nur mit S. Der Hinweis nennt die Pflanzen und sagt, nach welcher Pflanze gegossen wird. Das Eintopfen wird nicht gesperrt.
-- Neue Felder an der Karte:
-  - `muetter`: alle Mütter aus der Sammlung, die Hauptmutter zuerst.
-  - `mitImTopf`: Liste `{art, sorte, anzahl}` der Nebengruppen.
-- `eltern` bleibt die Hauptmutter.
-- Die Karte zeigt „Mit im Topf: Marble Queen (2)“.
-- **Giftigkeit:** Ist eine Nebenmutter giftig und die Hauptmutter nicht, zeigt die Karte „Mit im Topf: [Name] ist giftig“. Die Giftlogik wird nicht angefasst, das ist nur eine Anzeige.
-- Stammbaum: Weitere Mütter stehen als Zeile „+ Name“ unter dem Knoten, ohne zweite Linie. Die Nebenmütter nennen den Ableger unter „Nachkommen“ mit dem Zusatz „mit im Topf“.
-- Jede Gruppe zählt herunter und bekommt einen Verlaufseintrag. Der Verlauf aller Gruppen geht an die neue Karte.
-
-### C · Funde aus der Handyprüfung von 3.28.0
-1. **Doppeltes „In die Anzucht“:** Der Knopf unten nennt das Ziel, also „In Glas 2 setzen“ oder „In neues Gefäß setzen“. Er folgt der Auswahl im Feld „Gefäß“.
-2. **Gefäßliste sortiert:** Alle Gefäß-Auswahllisten stehen alphabetisch mit natürlichen Zahlen (Glas 2 vor Glas 10). „Neues Gefäß …“ bleibt am Ende. Die Vorauswahl bleibt wie bisher.
-3. **Wege passen zur Auskunft:**
-   - Liegt eine KI-Auskunft zur Art vor, zeigen die Kacheln genau deren Wege, in deren Reihenfolge. Aussicht und Dauer kommen aus der Auskunft, das Schild zeigt „KI“ statt „geraten“.
-   - Die Namen der Auskunft werden den Wegen im Katalog zugeordnet (Kopf-, Trieb-, Stammsteckling, Blattsteckling, Rhizomteilung, Teilung, Kindel, Ausläufer, Absenker, Abmoosen, Aussaat, Wurzelschnittling).
-   - Neu im Katalog ist ein allgemeiner Weg **„Blattsteckling mit Stiel“** (Begonie, Peperomie, Usambaraveilchen). Der bisherige Blattsteckling gilt nur für Dickblattgewächse.
-   - Ein Weg ohne Zuordnung bekommt eine Kachel nur mit den Angaben der Auskunft, ohne Schritt-für-Schritt.
-   - Ohne Auskunft bleibt alles wie bisher.
-4. **Gruppe bearbeiten:** Jede Gruppe bekommt den Knopf „Bearbeiten“. Änderbar sind Gefäß, Anzahl, Methode und Startdatum. Bei Gruppen ohne Mutter auch Art, botanischer Name und Sorte. Das ist eine Korrektur und schreibt keinen Verlaufseintrag. Steht im Zielgefäß schon eine Gruppe derselben Herkunft, werden beide zusammengelegt (wie beim Umsetzen). Das „Umsetzen“ unter „Entnehmen“ bleibt für echtes Umsetzen mit Verlaufseintrag.
+### Daten (einmalig beim Laden, danach nie wieder)
+- **Botanischer Name:** Ein angehängter deutscher Name in Klammern und eine Sorte in Anführungszeichen werden aus dem Feld entfernt. Die Sorte bleibt in ihrem eigenen Feld. Betroffen sind 6 Pflanzen:
+  - Bernd: „Dracaena trifasciata 'Hahnii Golden' (Bogenhanf)“ → „Dracaena trifasciata“
+  - Beate: „Begonia x hiemalis (Elatior-Begonie)“ → „Begonia x hiemalis“
+  - Pfeffi: „Mentha × piperita (Pfefferminze)“ → „Mentha × piperita“
+  - Tutti: „Epipremnum aureum (Efeutute)“ → „Epipremnum aureum“
+  - Manni und Mathilda: „Monstera deliciosa Variegata (Monstera Albo)“ → „Monstera deliciosa Variegata“
+- **Die Stelle, die so etwas schreibt, wird gesucht.** Findet sich eine, die heute noch aktiv ist, wird sie mit behoben. Findet sich keine, steht das in der Übergabe.
+- **„Seit“-Datum einheitlich:** Heute gibt es vier Formen: „selbst angelegt“ (39 Pflanzen), „6.9.2026“, „ca. 01.08.2026“ und kein einziges Datum in der Form, die die App lesen kann. Die Kennzahl „neu in diesem Monat“ zeigt deshalb immer 0.
+  - Datumsangaben werden umgeschrieben. Aus „ca. 01.08.2026“ wird der 01.08.2026, das „ca.“ entfällt.
+  - Bei „selbst angelegt“ gilt das früheste bekannte Datum der Pflanze (Ereignis, Gießen). Gibt es keins, bleibt das Feld leer.
+  - Alle drei Stellen, die das Feld schreiben (Anlegen, Ableger, Eintopfen aus der Anzucht), schreiben künftig dieselbe Form.
 
 ### Pflichtpaket
 Nach Regel 6.2.
 
 ## Nicht angefasst
-- `sorteGeprueft` und `ANTWORT_FORMAT`
-- `ABLEGER_ERBE` und `giftEigenSetzen`
-- `KLASSEN`-Texte
-- Die Regeln in `vermehrungFuer` (nur ergänzt: Begonie und Peperomie → „Blattsteckling mit Stiel“)
-- Stammbaum-Layout (nur die Zusatzzeile)
-- Zustand „Steckling“ nach dem Eintopfen (Backlog)
-- Kartei und Doktor
+- Scrollprotokoll (bleibt als Messwerkzeug bis Sitzung 2)
+- App Tour (Sitzung 4)
+- Toter Code, tote CSS-Regeln, Altlasten und Löschreste (Sitzung 3)
+- `sorteGeprueft`, `ANTWORT_FORMAT`, `ABLEGER_ERBE`, `giftEigenSetzen`, `KLASSEN`-Texte
 - Alle Punkte unter „Nicht anfassen“ der Übergabe
 
 ## Risiken
-- Größe „groß“ in einer Sitzung. Bricht die Sitzung ab, gilt Regel 7.1. Baureihenfolge: C, dann A, dann B, damit die kleinen Korrekturen zuerst fertig sind.
-- „Blattsteckling mit Stiel“ und die Zuordnung sind Pflegeaussagen. **Den Wortlaut prüfst du am Handy.**
-- Bei verschiedenen Arten richten sich Steckbrief, Sonne und Frost nur nach der Hauptart. Nur das Gießen folgt der trockensten Pflanze.
-- Die Wegeliste mit KI-Auskunft zeigt keine Regelwege mehr. Hat die KI einen guten Weg vergessen, fehlt er in der Liste. Abhilfe ist „Neu nachfragen“.
-- Beim Bearbeiten ändert sich mit Art oder Sorte die Herkunft der Gruppe. Gruppen werden danach anders zusammengelegt.
-- Alte Sicherungen ohne `muetter` und `mitImTopf` müssen fehlerfrei laden. Eine gelöschte Nebenmutter darf nichts kaputt machen.
+- **Datenbereinigung:** Sie läuft genau einmal und schreibt an echten Pflanzen. Prüfung an einer Kopie deiner Sicherung vom 26.09., vorher und nachher Feld für Feld verglichen. Vor dem ersten Start mit 3.30.0 lädst du eine frische Sicherung herunter.
+- **Botanischer Name:** Kürzen darf nur, was sicher kein Teil des Namens ist. Klammern mit Zusätzen wie „syn.“ bleiben stehen.
+- **Monstera „Variegata“:** Das ist kein gültiger Sortenname, bleibt aber stehen. Die Sorte „Albo Borsigiana“ steht schon im eigenen Feld.
+- **„Seit“ ohne Datum:** Die Pflanze zählt nirgends als neu. Das ist ehrlicher als ein erfundenes Datum.
+- **Kartei:** Die neue Lücke „Düngung“ setzt die Anzeige „Alles ausgefüllt“ zurück, bis die drei Pflanzen aufgefrischt sind.
 
 ## Prüfung
-
 pruef.js mit Gegenproben nach Regel 5.2:
-- **A:**
-  - Knopf nur bei Gruppen ohne Mutter
-  - Auftrag mit genau sechs Feldern
-  - Sorte ohne Beleg → „niedrig“
-  - Trivialname wird nicht angeboten
-  - Nichts ändert sich vor dem Tipp
-  - Übernahme schreibt Felder und Verlauf
-  - Rückfallweg ohne Schlüssel
-- **B:**
-  - 2 und 3 Gruppen aus verschiedenen Gefäßen
-  - Verschiedene Arten
-  - Vorgabe der Hauptgruppe
-  - Erbe nur von der Hauptmutter
-  - Trockenste Klasse gewinnt, samt Gießgruppe
-  - Hinweis bei A mit C und bei S mit B, kein Hinweis bei A mit B
-  - `muetter` und `mitImTopf` stimmen
-  - Gifthinweis
-  - Gelöschte Nebenmutter
-  - Alte Daten
-- **C:**
-  - Knopftext folgt dem Gefäß
-  - Sortierung Glas 2 vor Glas 10
-  - Mit Auskunft „Blattsteckling, Rhizomteilung“ zeigen die Kacheln genau diese zwei, ohne „geraten“
-  - Ohne Auskunft unverändert
-  - Bearbeiten verschiebt die Gruppe ohne Verlaufseintrag und legt sie zusammen
-  - Art ist nur bei Gruppen ohne Mutter änderbar
+- Kartei: Die Meldung steht nach dem Schließen des Fensters noch da, auch 1 s später.
+- Kartei: fehlende Düngung ist eine Lücke, vorhandene nicht.
+- Streifen: einklappen, aufklappen, Zustand bleibt nach dem Neuzeichnen.
+- Zählwort: Anlegen- und Kartei-Auftrag nennen die richtige Zahl.
+- Datum: 00:30 Uhr Ortszeit ergibt das heutige Datum.
+- Gesperrter Knopf: Die allgemeine Regel greift.
+- Vermehrungsweg ohne Katalogplatz überlebt `laden()`.
+- Keine Karte enthält „E-1“ als sichtbaren Text.
+- Bereinigung an deiner Sicherung: die 6 Namen wie oben, keine andere Pflanze verändert, alle „Seit“-Werte lesbar, zweiter Start ändert nichts mehr.
+- pruef.js bekommt die fehlende prompt-Attrappe (Regel 10.2), die Debug-Ausgabe „DBG2“ fliegt raus.
 
-Nur am Handy prüfbar: Kamera und Fotoauswahl, echte Gemini-Antwort, Bedienung der Gruppenliste im Mischtopf, Stammbaum-Zusatzzeile, Wortlaut „Blattsteckling mit Stiel“, Aussehen der Kacheln und des Bearbeiten-Formulars.
+Nur am Handy prüfbar: Aussehen und Bedienung des Streifens, Platz unten, blasse gesperrte Knöpfe, Kartenbild ohne Nummer.
 
 ## Größe
-groß (eine Fassung, auf Chris' Wunsch)
+mittel
+
+## Entscheidung
+- **Kartei-Streifen:** (a) einklappbar zu einer kleinen Marke (Chris, 26.09.)
 
 ---
 
-# Danach: Aufräumen · keine neuen Funktionen
+# Sitzung 2 · Scrollfehler
+Er wurde mehrfach ohne Erfolg angegangen, deshalb gilt Regel 5.6: kein Fix auf Verdacht. Nötig von Chris:
+- wo es passiert (Reiter, Fenster, was du gerade tust)
+- was genau passiert (springt nach oben, ruckelt, bleibt hängen)
+- der Text aus Mehr → Scrollprotokoll direkt danach
 
-Chris am 22.09.2026: Nach der Anzucht wird die App grundlegend aufgeräumt, bevor wieder etwas Neues kommt. Alle restlichen Kinderschuhfehler werden beseitigt und alles wird auf 100 % funktional gebracht.
+Protokoll von Chris liegt vor (26.09., Sammlung, Raster). Der Plan folgt in Sitzung 2.
 
-- Der Umfang wird vor Beginn gemeinsam festgelegt: Durchgang durch alle Bereiche, Fehlerliste, Reihenfolge.
-- Dazu gehören:
-  - die Statuszeile „Kartei auffrischen“ unter „Mehr“ (Screenshot nötig)
-  - die Meldung, die nach der letzten Kartei-Übernahme ins Leere geht
-  - die alten uneinheitlichen Werte
-  - die offenen Gerätekontrollen
-- Sammel-Anlegen, F, T, Claude-Anbindung und alle anderen neuen Punkte warten bis danach.
+# Sitzung 3 · Ballast
+- Die Schicht „mitgelieferte Pflanzen“ entfernen (die Liste ist leer): Papierkorb, „aus der Sammlung nehmen“, „Zurückholen“, `S.weg` und die `S.edits`-Überlagerung. In deinen Daten ist `S.edits` leer, dabei geht also nichts verloren.
+- Löschreste beim Löschen einer Pflanze mit entfernen und die vorhandenen Reste aufräumen (5 gelöschte Pflanzen mit Ereignissen, Umtopfplan und „gesehen“).
+- Alte Gießintervall-Kopien ohne „eigen“ entfernen (40 Pflanzen). Sie werden heute schon ignoriert.
+- 22 Funktionen ohne Aufrufer, 75 CSS-Klassen ohne Verwendung, 3 CSS-IDs ohne Element, der tote Aufruf beim Dichte-Umschalter.
+- Grundwerte: Alle 21 fehlenden Felder kommen in die Liste der Grundwerte.
+- Patchnotes in der App auf die letzten zehn Fassungen kürzen, der Rest steht im CHANGELOG.
+- Scrollprotokoll: raus, sobald Sitzung 2 den Fehler behoben hat.
+
+# Sitzung 4 · App Tour neu
+- Alle 16 Kapitel werden gegen die aktuelle App neu geschrieben.
+- Der Prüfstand erkennt künftig versteckte Ziele. Heute zeigen zwei Schritte der „Kurzen Runde“ auf den versteckten Leerstart, sobald Pflanzen da sind.
+- Umfang und Kapitelliste werden vor Beginn gemeinsam festgelegt, eventuell mit Vorschau.html.
