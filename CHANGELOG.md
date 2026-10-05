@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.31.0 — 27. September 2026
+**Aufräumen, Teil 2**
+
+### Neu
+- Fassungen, die alte Daten löschen, verlangen vorher eine Sicherung. Beim ersten Start erscheint ein Fenster mit „Sicherung herunterladen“. Es lässt sich nicht wegtippen, auch nicht mit Zurück, und geht zu, sobald der Download startet. Erst danach wird aufgeräumt. Klappt der Download nicht, gibt es einen zweiten Versuch und danach zusätzlich „Ohne Sicherung weiter“. Dann bleibt alles, wie es ist, und das Fenster kommt beim nächsten Start wieder. Ohne Pflanzen und Gießeinträge erscheint es nicht. 3.31.0 ist die erste solche Fassung.
+
+### Anders
+- Beim Löschen einer Pflanze verschwinden auch ihre Ereignisse, „gesehen“ und der Umtopfplan.
+- Reste bereits gelöschter Pflanzen werden einmal entfernt. Ereignisse von Eltern- und Mutterpflanzen, auch von Müttern einer Anzucht, bleiben stehen. Die höchste je vergebene Nummer bleibt gemerkt, damit keine alte Nummer neu vergeben wird.
+- Alte Kopien des Gießabstands ohne „eigener Rhythmus“ werden entfernt. Die App hat sie schon vorher nicht mehr gelesen.
+- Der Bereich „Aus der Sammlung genommen“ unter Mehr ist weg, ebenso „Auf Originalwerte zurück“ in der Karte. Beides gehörte zu mitgelieferten Pflanzen, und die gibt es nicht mehr.
+- Unter „Was sich geändert hat“ stehen die letzten zehn Fassungen. Alle älteren stehen hier; der Link steht unter der Liste.
+- Nicht mehr benutzter Code und nicht mehr benutzte Gestaltungsregeln sind entfernt.
+- Felder, die in den Grundwerten fehlten, stehen jetzt dort: ablegerErbe, ansicht, anzucht, einfach, fassungGesehen, gruppierung, hinweisWeg, histAnsicht, installBandWeg, installiert, kartei, kartenTab, kiDienst, pflegehinweise, samAnsicht, sicherTage, sortierung, speicherFest, speicherGefragt, teilenDefekt, umtopfPlan.
+
+---
+
 ## 3.30.0 — 26. September 2026
 **Aufräumen, Teil 1**
 

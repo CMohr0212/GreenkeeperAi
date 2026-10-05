@@ -158,7 +158,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.30.0', w.__T('FASSUNG') === '3.30.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.31.0', w.__T('FASSUNG') === '3.31.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -309,8 +309,8 @@ setTimeout(async () => {
 
   /* Abschnittsfenster */
   const keys = ['doktor','giessplan','substrat','vermehren','stammbaum','grundriss',
-                'sicherung','urlaub','tiere','rundgang','ansicht','tour','rueck','install','weg','melde','patch'];
-  pruef('17 Abschnitte auffindbar',
+                'sicherung','urlaub','tiere','rundgang','ansicht','tour','rueck','install','melde','patch'];
+  pruef('16 Abschnitte auffindbar',
     keys.every(k => w.__T(`!!sekAbschnitt('${k}')`)),
     keys.filter(k => !w.__T(`!!sekAbschnitt('${k}')`)).join(','));
 
@@ -1800,16 +1800,6 @@ setTimeout(async () => {
         sig1 !== sig2, 'Signatur unver\u00e4ndert');
       w.__T("raeume()[0].moebel[0].etagen = [20,40,60,80]");
 
-      /* Ein Brettwert ist der Mittelwert ueber das Brett, kein
-         einzelner Punkt in seiner Mitte. */
-      const bs = w.__T('brettStunden(raeume()[0], raeume()[0].moebel[0], 0, 6)');
-      pruef('Ein Boden hat einen eigenen Sonnenwert',
-        typeof bs === 'number' && isFinite(bs), String(bs));
-      const sp = JSON.parse(w.__T(
-        'JSON.stringify(brettSpanne(raeume()[0], raeume()[0].moebel[0], 3))'));
-      pruef('Ein Boden kennt seine dunkelste und hellste Ecke',
-        sp.min <= sp.max && sp.min >= 0 && sp.max <= 4, JSON.stringify(sp));
-
       /* Der Ort merkt sich die Etage, und ein Umzug verliert sie
          nicht — solange das neue Moebel sie hat. */
       const pid = w.__T('allePflanzen()[0].id');
@@ -1913,9 +1903,6 @@ setTimeout(async () => {
         !d.getElementById('mf-modal'));
       pruef('Der Weg dorthin aus dem M\u00f6belformular ebenfalls',
         !d.getElementById('btn-mb-front'));
-      pruef('Die Rechnung dahinter bleibt',
-        typeof w.__T('typeof brettStunden') === 'string'
-        && w.__T('typeof brettStunden') === 'function');
     }
 
     /* ── Der Maßstab der Grundhelligkeit ──────────────────
@@ -4317,9 +4304,9 @@ setTimeout(async () => {
     pruef('Jeder Menüpunkt liegt in einer Gruppe',
       alle.length === gruppiert.length,
       alle.filter(x=>gruppiert.indexOf(x) === -1).join(','));
-    pruef('Fünfzehn Punkte in der Liste', alle.length === 15, String(alle.length));
+    pruef('Vierzehn Punkte in der Liste (3.31.0: „Aus der Sammlung genommen“ ist weg)', alle.length === 14, String(alle.length));
     pruef('Kein Punkt ist ersatzlos weg',
-      d.querySelectorAll('section[data-mh]').length === 26,
+      d.querySelectorAll('section[data-mh]').length === 25,
       String(d.querySelectorAll('section[data-mh]').length));
     /* Stillgelegt heisst nicht unerreichbar: der KI-Dienst steht
        nicht in der Liste, aber eine Zeile in den Einstellungen fuehrt
@@ -4328,7 +4315,7 @@ setTimeout(async () => {
       d.querySelector('section[data-mh="kidienst"]').classList.contains('mh-still'));
     pruef('KI-Dienst ist aus den Einstellungen erreichbar',
       !!d.querySelector('#mh-in-einstell [data-mh-go="kidienst"]'));
-    ['aufgaben','wunsch','weg','giess','wetter','bibliothek','sicherung','einstell',
+    ['aufgaben','wunsch','giess','wetter','bibliothek','sicherung','einstell',
      'tour','install','patch','rueck','melde','sprot','ansicht','tiere','rundgang'].forEach(k=>{
       if(k === 'ansicht' || k === 'tiere' || k === 'rundgang') return;
       pruef('Punkt ' + k + ' vorhanden', alle.indexOf(k) !== -1);
@@ -4827,7 +4814,6 @@ setTimeout(async () => {
     });
     w.__T(`S.ereignisse['${pid3}'] = (S.ereignisse['${pid3}']||[])
       .filter(e=>e.typ!=='vermehrt' && e.typ!=='umgetopft')`);
-    w.__T(`if(S.edits) delete S.edits['${pid3}']`);
     w.__T('sichern()');
     pruef('Testspuren wieder entfernt',
       w.__T('allePflanzen().length') === vorPflanzen);
@@ -4837,7 +4823,7 @@ setTimeout(async () => {
     pruef('Vormerken l\u00e4sst sich aufrufen',
       w.__T(`umtopfVormerken('${pid3}', 'Topf zu klein, stark durchwurzelt')`) === true);
     pruef('Die Pflanze steht auf der Liste',
-      w.__T(`umtopfVorgemerkt().some(x=>x.id==='${pid3}')`));
+      w.__T(`!!(S.umtopfPlan||{})['${pid3}']`));
     w.__T('utAufbauen()');
     pruef('Vorgemerkte stehen vorn und tragen eine Marke',
       d.querySelector('#ut-gitter [data-utp]').getAttribute('data-utp') === pid3
@@ -4851,10 +4837,10 @@ setTimeout(async () => {
     /* Nach dem Eintragen ist die Vormerkung erledigt */
     w.__T("UT.stecklinge = false; UT.gruende = ['klein']; utEintragen()");
     pruef('Eintragen l\u00f6scht die Vormerkung',
-      !w.__T(`umtopfVorgemerkt().some(x=>x.id==='${pid3}')`));
+      !w.__T(`!!(S.umtopfPlan||{})['${pid3}']`));
 
     w.__T(`S.ereignisse['${pid3}'] = (S.ereignisse['${pid3}']||[])
-      .filter(e=>e.typ!=='umgetopft'); if(S.edits) delete S.edits['${pid3}'];
+      .filter(e=>e.typ!=='umgetopft');
       if(S.zustand) delete S.zustand['${pid3}']; sichern()`);
 
     /* Vollbild: Pflanzen setzen und M\u00f6bel wieder verlassen. */
@@ -7110,7 +7096,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.30.0', e0.nr === '3.30.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.31.0', e0.nr === '3.31.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -8837,27 +8823,6 @@ setTimeout(async () => {
       w.__T(`S.eigene.some(p=>p.id==='${lid}')`) === false);
     pruef('Die Mutter bleibt stehen', w.__T(`S.eigene.some(p=>p.id==='LO1')`) === true);
 
-    /* Mitgelieferte Pflanze: aus der Sammlung nehmen und zurückholen */
-    /* Die App liefert derzeit keine Pflanzen mit — der Test legt sich
-       eine an und nimmt sie am Ende wieder heraus. */
-    const mid = w.__T(`(function(){
-      PFLANZEN.push({id:'LOM', name:'Loesch mitgeliefert', art:'Efeutute',
-        klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0], todo:[], log:[]});
-      render(); return 'LOM';
-    })()`);
-    knopf = await oeffneBearbeiten(mid);
-    pruef('Mitgelieferte Pflanze hat „Aus der Sammlung nehmen“',
-      !!knopf && /Aus der Sammlung nehmen/.test(knopf.textContent));
-    if (knopf) { knopf.click(); await tick(); await tick(); }
-    pruef('Aus der Sammlung nehmen setzt den Vermerk', w.__T(`!!(S.weg||{})['${mid}']`) === true);
-    pruef('Der Vermerk ist gespeichert', !!(gespeichert().weg || {})[mid]);
-    pruef('Auch dann schließt die Karte', w.__T(`modalOffen('karte-modal')`) === false);
-    w.__T(`papierkorbRender()`);
-    const zurueck = d.querySelector('[data-do="zurueckholen"][data-p="' + mid + '"]');
-    pruef('Zurückholen steht bereit', !!zurueck);
-    if (zurueck) { zurueck.click(); await tick(); }
-    pruef('Zurückholen bringt sie wieder', w.__T(`!(S.weg||{})['${mid}']`) === true);
-
     /* Löschen während eines laufenden Abgleichs */
     w.__T(`(function(){
       S.eigene.push({id:'LO2', eigen:true, name:'Loeschlauf zwei', art:'Efeutute', klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0]});
@@ -8887,9 +8852,6 @@ setTimeout(async () => {
     w.__ki.verzug = 40;
     w.__T(`(function(){
       if(modalOffen('karte-modal')) modalZu('karte-modal');
-      var mi = PFLANZEN.findIndex(function(p){ return p.id === 'LOM'; });
-      if(mi !== -1) PFLANZEN.splice(mi, 1);
-      if(S.weg) delete S.weg['LOM'];
       delete S.kartei; KARTEI_CTRL = {};
       S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,2) !== 'LO'; });
       kiSchluesselSetzen('');
@@ -10161,6 +10123,175 @@ setTimeout(async () => {
     pruef('3.30.0: Keine Schreibstelle mehr mit „selbst angelegt“ oder deutschem Datum',
       !/seit:\s*'selbst angelegt'/.test(html) && !/seit:\s*new Date\(\)\.toLocaleDateString/.test(html)
       && !/seit:\s*heute,/.test(html));
+  }
+
+  /* ══ 3.31.0: Aufräumen, Sitzung 2 — Ballast und Sicherung vorab ══
+     Jeder Test legt seine Daten selbst an und stellt den Stand danach
+     wieder her. */
+  {
+    const T = c => w.__T(c);
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+    const stand = T('JSON.stringify(S)');
+    const zurueck = () => T(`(function(){ S = JSON.parse(${JSON.stringify(stand)}); sichern(); return 1; })()`);
+
+    /* Löschen über den Knopf nimmt alle Reste mit */
+    T(`(function(){
+      S.eigene.push({id:'E-9311', eigen:true, name:'Weg331', art:'Efeutute', klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0]});
+      S.water['E-9311'] = ['2026-09-01']; S.ereignisse['E-9311'] = [{id:'x1', datum:'2026-09-01', typ:'notiz', text:''}];
+      S.gesehen['E-9311'] = '2026-09-02'; S.umtopfPlan = S.umtopfPlan || {}; S.umtopfPlan['E-9311'] = {seit:'2026-09-03', warum:''};
+      sichern(); return 1; })()`);
+    const lk = d.createElement('button'); lk.setAttribute('data-do', 'bearb-weg'); lk.setAttribute('data-p', 'E-9311');
+    d.body.appendChild(lk); w.confirm = () => true; lk.click(); await tick(); lk.remove();
+    pruef('3.31.0: Löschen entfernt die Pflanze', T(`!S.eigene.some(function(p){ return p.id === 'E-9311'; })`) === true);
+    pruef('3.31.0: Löschen nimmt Ereignisse mit', T(`!('E-9311' in S.ereignisse)`) === true);
+    pruef('3.31.0: Löschen nimmt „gesehen“ mit', T(`!('E-9311' in S.gesehen)`) === true);
+    pruef('3.31.0: Löschen nimmt den Umtopfplan mit', T(`!('E-9311' in (S.umtopfPlan || {}))`) === true);
+    zurueck();
+
+    /* Bereinigung */
+    const ber = JSON.parse(T(`(function(){
+      S.edits = {'X': {topf: 12}}; S.weg = {'Y': '2026-01-01'}; S.ansichtsart = 'alt';
+      S.eigene = [
+        {id:'E-9320', name:'A', intervall:[5,7]},
+        {id:'E-9321', name:'B', intervall:[9,9], intervallEigen:true},
+        {id:'E-9322', name:'C', intervall:[4,4], intervallEigen:false, eltern:'E-9330', muetter:['E-9331']}
+      ];
+      S.anzucht = {gruppen:[{id:'g1', mutter:'E-9332', anzahl:1}]};
+      S.ereignisse = {'E-9320':[{datum:'2026-09-01'}], 'E-9330':[{datum:'2026-09-01'}], 'E-9331':[{datum:'2026-09-01'}],
+                      'E-9332':[{datum:'2026-09-01'}], 'E-9350':[{datum:'2026-09-01'}], 'az:g1':[{datum:'2026-09-01'}]};
+      S.gesehen = {'E-9350':'2026-09-01', 'E-9321':'2026-09-01'};
+      S.umtopfPlan = {'E-9350':{seit:'2026-09-01'}, 'E-9320':{seit:'2026-09-01'}};
+      S.idHoch = null;
+      var n1 = ballastBereinigen();
+      var r = {n1:n1,
+        edits:'edits' in S, weg:'weg' in S, art:'ansichtsart' in S,
+        a:'intervall' in S.eigene[0], b:JSON.stringify(S.eigene[1].intervall), c:'intervall' in S.eigene[2],
+        er:Object.keys(S.ereignisse).sort().join(','), ge:Object.keys(S.gesehen).join(','),
+        um:Object.keys(S.umtopfPlan).join(','), hoch:S.idHoch, neu:neueId()};
+      r.n2 = ballastBereinigen();
+      return JSON.stringify(r); })()`));
+    zurueck();
+    pruef('3.31.0: edits, weg und ansichtsart sind weg', !ber.edits && !ber.weg && !ber.art, JSON.stringify(ber));
+    pruef('3.31.0: Intervall ohne intervallEigen ist weg', ber.a === false && ber.c === false);
+    pruef('3.31.0: Intervall mit intervallEigen bleibt', ber.b === '[9,9]', ber.b);
+    pruef('3.31.0: Verwaiste Ereignisse sind weg, Pflanze, Eltern, Mütter, Anzucht und Gefäße bleiben',
+      ber.er === 'E-9320,E-9330,E-9331,E-9332,az:g1', ber.er);
+    pruef('3.31.0: Verwaistes „gesehen“ ist weg', ber.ge === 'E-9321', ber.ge);
+    pruef('3.31.0: Verwaister Umtopfplan ist weg', ber.um === 'E-9320', ber.um);
+    pruef('3.31.0: Die höchste Nummer bleibt gemerkt', ber.hoch === 9350 && ber.neu === 'E-9351', ber.hoch + ' / ' + ber.neu);
+    pruef('3.31.0: Der zweite Lauf ändert nichts', ber.n1 > 0 && ber.n2 === 0, ber.n1 + ' / ' + ber.n2);
+
+    /* Grundwerte */
+    const gw = JSON.parse(T(`JSON.stringify(Object.keys(LEERSTAND()))`));
+    const fehlend = ['ablegerErbe','ansicht','anzucht','einfach','fassungGesehen','gruppierung','hinweisWeg','histAnsicht',
+      'installBandWeg','installiert','kartei','kartenTab','kiDienst','pflegehinweise','samAnsicht','sicherTage','sortierung',
+      'speicherFest','speicherGefragt','teilenDefekt','umtopfPlan'].filter(k => gw.indexOf(k) < 0);
+    pruef('3.31.0: Alle 21 Felder stehen in den Grundwerten', fehlend.length === 0, fehlend.join(','));
+    pruef('3.31.0: Nach dem Laden ist jedes Grundfeld gesetzt',
+      T(`(function(){ var alt = S; S = {}; grundwerteErgaenzen(); var ok = Object.keys(LEERSTAND()).every(function(k){ return k in S; }); S = alt; return ok; })()`) === true);
+    pruef('3.31.0: edits und weg stehen nicht mehr in den Grundwerten', gw.indexOf('edits') < 0 && gw.indexOf('weg') < 0);
+
+    /* Sperre: Mit Daten wartet die Bereinigung auf die Sicherung */
+    const sp = JSON.parse(T(`(function(){
+      S = Object.assign(LEERSTAND(), {eigene:[{id:'E-9340', name:'S', intervall:[3,3]}], edits:{'X':{}}, water:{}});
+      grundwerteErgaenzen();
+      var r = {offen:sicherungPflichtOffen(), editsVor:'edits' in S, ivVor:'intervall' in S.eigene[0]};
+      sicherungGemerkt();
+      r.editsNach = 'edits' in S; r.ivNach = 'intervall' in S.eigene[0]; r.fass = S.bereinigtFassung; r.offenNach = sicherungPflichtOffen();
+      S = Object.assign(LEERSTAND(), {edits:{'X':{}}});
+      grundwerteErgaenzen();
+      r.leerEdits = 'edits' in S; r.leerFass = S.bereinigtFassung;
+      return JSON.stringify(r); })()`));
+    zurueck();
+    pruef('3.31.0: Mit Daten und ohne Sicherung ist das Fenster fällig', sp.offen === true);
+    pruef('3.31.0: Vor der Sicherung ist nichts bereinigt', sp.editsVor === true && sp.ivVor === true, JSON.stringify(sp));
+    pruef('3.31.0: Nach der Sicherung ist bereinigt', sp.editsNach === false && sp.ivNach === false && sp.fass === '3.31.0' && sp.offenNach === false, JSON.stringify(sp));
+    pruef('3.31.0: Ohne Daten wird sofort bereinigt', sp.leerEdits === false && sp.leerFass === '3.31.0', JSON.stringify(sp));
+    const ohneKenn = T(`(function(){ var e = PATCHNOTES[0]; var vor = e.sicherung; e.sicherung = false;
+      S = Object.assign(LEERSTAND(), {eigene:[{id:'E-9341', name:'K'}]}); grundwerteErgaenzen();
+      var r = sicherungPflichtOffen(); e.sicherung = vor; return r; })()`);
+    zurueck();
+    pruef('3.31.0: Eine Fassung ohne Kennung zeigt kein Fenster', ohneKenn === false);
+
+    /* Das Fenster */
+    const altHer = T('String(sicherungHerunterladen)');
+    T(`(function(){ S = Object.assign(LEERSTAND(), {eigene:[{id:'E-9342', name:'F', art:'Efeutute', klasse:Object.keys(KLASSEN)[0], sonne:Object.keys(SONNE)[0]}], edits:{'X':{}}});
+      grundwerteErgaenzen(); S.fassungGesehen = '3.30.0'; _sichPflichtFrei = false; _sichPflichtFehler = 0; sichern(); render(); return 1; })()`);
+    await T('fotosVorbereiten()');
+    await tick();
+    pruef('3.31.0: Nach dem Laden der Fotos geht das Fenster auf', T(`modalOffen('sich-pflicht')`) === true);
+    pruef('3.31.0: Das Fenster geht auf', T(`sicherungPflichtZeigen()`) === true && T(`modalOffen('sich-pflicht')`) === true);
+    await tick();
+    T(`modalZu('sich-pflicht')`); await tick();
+    pruef('3.31.0: modalZu schließt es nicht', T(`modalOffen('sich-pflicht')`) === true);
+    d.getElementById('sich-pflicht').click(); await tick();
+    pruef('3.31.0: Tippen daneben schließt es nicht', T(`modalOffen('sich-pflicht')`) === true);
+    d.dispatchEvent(new w.KeyboardEvent('keydown', {key:'Escape', bubbles:true})); await tick();
+    pruef('3.31.0: Esc schließt es nicht', T(`modalOffen('sich-pflicht')`) === true);
+    try{ w.history.back(); }catch(e){}
+    await tick(); await tick();
+    pruef('3.31.0: Zurück schließt es nicht', T(`modalOffen('sich-pflicht')`) === true);
+    pruef('3.31.0: Kein anderes Fenster darüber', T(`modalAuf('neu-modal')`) === false && T(`modalOffen('neu-modal')`) === false);
+    T(`fassungPruefen()`);
+    pruef('3.31.0: „Neu in Fassung“ wartet', T(`modalOffen('neu-modal')`) === false && T('S.fassungGesehen') === '3.30.0');
+    pruef('3.31.0: Kein Kreuz, ein Knopf', !d.querySelector('#sich-pflicht .modal-x, #sich-pflicht [data-zu]')
+      && !!d.getElementById('sich-pflicht-los') && d.getElementById('sich-pflicht-ohne').hidden === true);
+    /* Download scheitert */
+    T(`sicherungHerunterladen = async function(){ throw new Error('Speicher voll'); }`);
+    d.getElementById('sich-pflicht-los').click(); await tick();
+    pruef('3.31.0: Nach dem ersten Fehlschlag: noch ein Versuch',
+      d.getElementById('sich-pflicht-los').textContent === 'Noch einmal versuchen' && d.getElementById('sich-pflicht-ohne').hidden === true,
+      d.getElementById('sich-pflicht-los').textContent);
+    pruef('3.31.0: Die Fehlermeldung steht da', /Speicher voll/.test(d.getElementById('sich-pflicht-fehler').textContent)
+      && !d.getElementById('sich-pflicht-fehler').hidden);
+    pruef('3.31.0: Das Fenster bleibt nach dem Fehlschlag offen', T(`modalOffen('sich-pflicht')`) === true);
+    d.getElementById('sich-pflicht-los').click(); await tick();
+    pruef('3.31.0: Nach dem zweiten Fehlschlag: „Ohne Sicherung weiter“', d.getElementById('sich-pflicht-ohne').hidden === false);
+    d.getElementById('sich-pflicht-ohne').click(); await tick(); await tick();
+    pruef('3.31.0: Ohne Sicherung weiter schließt', T(`modalOffen('sich-pflicht')`) === false);
+    pruef('3.31.0: Ohne Sicherung wird nichts bereinigt', T(`'edits' in S`) === true && T('sicherungPflichtOffen()') === true);
+    if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
+    /* Beim nächsten Start kommt es wieder, und ein echter Download schließt es */
+    T(`_sichPflichtFrei = false; _sichPflichtFehler = 0; S.fassungGesehen = '3.30.0'; sicherungHerunterladen = ${altHer}; 1`);
+    const altUrl = w.URL.createObjectURL, altRev = w.URL.revokeObjectURL, altKlick = w.HTMLAnchorElement.prototype.click;
+    let geladen = null;
+    w.URL.createObjectURL = () => 'blob:test'; w.URL.revokeObjectURL = () => {};
+    w.HTMLAnchorElement.prototype.click = function(){ geladen = this.download; };
+    pruef('3.31.0: Das Fenster kommt wieder', T(`sicherungPflichtZeigen()`) === true);
+    await tick();
+    pruef('3.31.0: Der Knopf ist wieder „Sicherung herunterladen“', d.getElementById('sich-pflicht-los').textContent === 'Sicherung herunterladen'
+      && d.getElementById('sich-pflicht-ohne').hidden === true);
+    d.getElementById('sich-pflicht-los').click(); await tick(); await tick();
+    w.URL.createObjectURL = altUrl; w.URL.revokeObjectURL = altRev; w.HTMLAnchorElement.prototype.click = altKlick;
+    pruef('3.31.0: Der Download startet mit dem Sicherungsnamen', geladen === 'pflanzen-sicherung.json', String(geladen));
+    pruef('3.31.0: Nach dem Download ist das Fenster zu', T(`modalOffen('sich-pflicht')`) === false);
+    pruef('3.31.0: Nach dem Download ist bereinigt', T(`'edits' in S`) === false && T('S.bereinigtFassung') === '3.31.0');
+    pruef('3.31.0: Danach kommt „Neu in Fassung“', T(`modalOffen('neu-modal')`) === true);
+    if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
+    pruef('3.31.0: Ein zweiter Start zeigt kein Fenster', T(`sicherungPflichtZeigen()`) === false);
+    zurueck(); T('render()');
+
+    /* Patchnotes, Mehr, toter Code */
+    const pn = JSON.parse(T(`JSON.stringify(PATCHNOTES.map(function(e){ return [e.nr, !!e.sicherung]; }))`));
+    pruef('3.31.0: Zehn Fassungen in den Patchnotes', pn.length === 10, pn.length);
+    pruef('3.31.0: Oben steht 3.31.0 mit Kennung', pn[0][0] === '3.31.0' && pn[0][1] === true);
+    pruef('3.31.0: Nur 3.31.0 trägt die Kennung', pn.filter(x => x[1]).length === 1);
+    T('patchListe()');
+    const cl = d.getElementById('patch-changelog');
+    pruef('3.31.0: Link auf das CHANGELOG im Repo',
+      !!cl && cl.getAttribute('href') === 'https://github.com/cmohr0212/GreenkeeperAi/blob/HEAD/CHANGELOG.md' && cl.getAttribute('target') === '_blank',
+      cl && cl.getAttribute('href'));
+    pruef('3.31.0: „Aus der Sammlung genommen“ ist weg', !d.getElementById('weg-sec') && !d.querySelector('[data-mh="weg"]'));
+    const tot = ['aenderungen','pflanzeMitAenderung','aenderungenZuruecksetzen','papierkorbRender','bearbeitenHTML',
+      'brettSpanne','brettStunden','fensterAuf','fensterZu','giessAbstaende','giftPruefungFaellig','heuteStatusHTML',
+      'kantenArt','kantenAzimut','lichtName','massnahmenZuAufgaben','pflanzenAuswahlHTML','raumKnoepfeHTML',
+      'schaedlingErkennen','sonnenstunden','imLicht','umtopfVorgemerkt','wannSetzen','werkzeugZeichnen']
+      .filter(n => T(`typeof ${n}`) !== 'undefined');
+    pruef('3.31.0: Die toten Funktionen sind weg', tot.length === 0, tot.join(','));
+    pruef('3.31.0: merkmaleVon bleibt', T('typeof merkmaleVon') === 'function');
+    pruef('3.31.0: PFLANZEN gibt es nicht mehr', T('typeof PFLANZEN') === 'undefined');
+    pruef('3.31.0: Kein Aufruf von karteNeuZeichnen', html.indexOf('karteNeuZeichnen') === -1);
+    pruef('3.31.0: Keine CSS-Regel für #weg-liste und .raum-batch', html.indexOf('#weg-liste') === -1 && html.indexOf('.raum-batch') === -1);
   }
 
   console.log('\n── Ergebnis ──');
