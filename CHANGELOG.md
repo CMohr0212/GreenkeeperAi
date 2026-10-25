@@ -4,6 +4,30 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.32.0 — 25. Oktober 2026
+**KI: eine Anfrage pro Tipp**
+
+### Neu
+- Unter Mehr, Einstellungen, KI-Dienst stehen unter „Letzte Anfragen“ die letzten 20 Anfragen an Google: Uhrzeit, Zweck (Anlegen, Doktor, Anzucht, Kartei, Prüfung), Modell, Ergebnis mit Googles Kurztext, Dauer, Zahl der Zeichen und Bilder. Damit lässt sich das Diagramm in Google AI Studio nachzählen. Das Protokoll liegt nur auf dem Gerät und geht nicht in die Sicherung.
+- Schlägt eine Frage fehl, stehen darunter „Noch einmal“ und „Mit … versuchen“ (das nächste Modell der Liste), beim Anlegen, im Doktor und beim Bestimmen in der Anzucht. „Mit … versuchen“ ändert die Auswahl nicht.
+
+### Anders
+- Ein Tipp auf „Fragen“ schickt genau eine Anfrage. Bis 3.31.0 fasste die App bei Überlastung und nach 30 Sekunden nach und wich danach auf zwei weitere Modelle aus, bis zu vier Anfragen je Tipp.
+- Die App bricht eine Frage nicht mehr nach 30 Sekunden ab. Die Laufanzeige nennt das Modell und zählt die Sekunden hoch, abbrechen kannst du selbst. Erst nach zwei Minuten gibt die App auf.
+- In der Modellliste stehen nur noch Modelle der Form „Gemini Zahl Flash“ und „Gemini Zahl Flash Lite“. Beim Holen der Liste bekommt jedes eine kurze Prüfanfrage. Antwortet Google mit „limit: 0“, ist das Modell nicht kostenlos und fällt heraus. Leitet Google ein Modell auf ein anderes der Liste um, fällt es ebenfalls heraus. Die Meldung nach dem Holen nennt, was ausgeblendet wurde.
+- Antwortet ein Modell später im Gebrauch mit „limit: 0“, wird es aus der Liste genommen.
+- Eine ältere gespeicherte Liste zeigt Modelle außerhalb dieser Form nicht mehr an.
+- Beim Anlegen und beim Bestimmen in der Anzucht denkt das Modell nur kurz nach (Denkstufe niedrig).
+- Lehnt ein Modell die Denkstufe ab, merkt sich die App das. Beim Anlegen, im Doktor und in der Anzucht geht der nächste Tipp ohne Denkstufe; nur die Kartei fragt sofort ein zweites Mal ohne.
+- Die Kartei weicht bei Überlastung nicht mehr auf ein anderes Modell aus. Die Wiederholung je Pflanze in der Warteschlange bleibt. Ein Fotobündel darf zwei Minuten statt 90 Sekunden brauchen.
+
+### Behoben
+- Bei jedem abgelehnten Bild stand „Meist ist der Schlüssel falsch kopiert“. Die Meldungen nennen jetzt das Modell und Googles Text. Vom Schlüssel ist nur die Rede, wenn Google den Schlüssel ablehnt.
+- Die Fehlermeldung stammte vom letzten Ausweichmodell, das Auswahlfeld zeigte aber das gewählte.
+- Der Anlege-Auftrag kündigte „ein bis drei MASSNAHME-Zeilen“ an, die er gar nicht fragt. Der Satz fällt weg, auch im kopierten Prompt.
+
+---
+
 ## 3.31.0 — 27. September 2026
 **Aufräumen, Teil 2**
 

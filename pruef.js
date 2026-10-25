@@ -158,7 +158,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.31.0', w.__T('FASSUNG') === '3.31.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.32.0', w.__T('FASSUNG') === '3.32.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -869,16 +869,11 @@ setTimeout(async () => {
      Ohne Frist wartete sie unbegrenzt, wenn Google langsam antwortete
      statt „\u00fcberlastet" zu melden. */
   {
-    pruef('Es gibt eine Frist f\u00fcr Anfragen mit Bild',
-      w.__T('KI_FRIST_BILD') === 30000, String(w.__T('KI_FRIST_BILD')));
-    pruef('und eine k\u00fcrzere f\u00fcr Anfragen ohne',
-      w.__T('KI_FRIST_TEXT') === 15000, String(w.__T('KI_FRIST_TEXT')));
-    pruef('Die Frist mit Bild ist die l\u00e4ngere',
-      w.__T('KI_FRIST_BILD') > w.__T('KI_FRIST_TEXT'));
-    pruef('Nachgefasst wird nur noch einmal',
-      w.__T('KI_NACHFASSEN.length') === 1, String(w.__T('KI_NACHFASSEN.length')));
-    pruef('und zwar z\u00fcgig',
-      w.__T('KI_NACHFASSEN[0]') <= 2000, String(w.__T('KI_NACHFASSEN[0]')));
+    /* 3.32.0: eine Grenze von zwei Minuten als Sicherheitsnetz, kein Nachfassen. */
+    pruef('Es gibt eine Frist f\u00fcr Anfragen (3.32.0: 120 s)',
+      w.__T('KI_FRIST') === 120000, String(w.__T('KI_FRIST')));
+    pruef('Nachgefasst wird nicht mehr (3.32.0)',
+      w.__T("typeof KI_NACHFASSEN") === 'undefined' && w.__T("typeof kiFragenHartnaeckig") === 'undefined');
   }
 
   /* Die eigene Frage: sie ist der Anlass und muss im Prompt stehen. */
@@ -3163,8 +3158,8 @@ setTimeout(async () => {
     }`);
     await w.__T('kiModelleHolen()');
     const liste = w.__T('kiModelle()');
-    pruef('Embedding und Imagen fliegen aus der Liste',
-      liste.length === 3, JSON.stringify(liste.map(m=>m.id)));
+    pruef('Embedding, Imagen und Vorschau fliegen aus der Liste (3.32.0: Positivliste)',
+      liste.length === 2, JSON.stringify(liste.map(m=>m.id)));
     pruef('Empfohlen ist das neueste stabile Modell',
       liste[0].id === 'models/gemini-3-flash' && liste[0].empfohlen === true, liste[0].id);
     pruef('Das Empfohlene ist gesetzt', w.__T('S.kiModell') === 'models/gemini-3-flash');
@@ -3198,7 +3193,11 @@ setTimeout(async () => {
       catch(e){ return String(e.message || e); }
     };
     const f400 = await fehler(400);
-    pruef('400 nennt den Schlüssel', /400/.test(f400) && /Schl/.test(f400), f400);
+    pruef('400 nennt das Modell, nicht den Schlüssel (3.32.0)', /400/.test(f400) && !/Schl/.test(f400) && /3 Flash/.test(f400), f400);
+    w.__T('window.fetch = () => Promise.resolve({ok:false, status:400, json:()=>Promise.resolve({error:{message:"API key not valid. Please pass a valid API key."}})})');
+    let f400k = '';
+    try{ await w.__T("kiFragen('x', [])"); }catch(e){ f400k = String(e.message || e); }
+    pruef('400 mit Schlüsselfehler nennt den Schlüssel (3.32.0)', /400/.test(f400k) && /Schl/.test(f400k), f400k);
     const f429 = await fehler(429);
     pruef('429 nennt das Kontingent', /Kontingent/.test(f429), f429);
     const f403 = await fehler(403);
@@ -3279,8 +3278,9 @@ setTimeout(async () => {
       String(d.querySelectorAll('.ki-modell-wahl').length));
     w.__T('kiModellZeichnen()');
     const wahlen = [...d.querySelectorAll('.ki-modell-wahl')];
+    /* 3.32.0: Die Vorschau fällt aus der Liste (Positivliste), es bleiben zwei. */
     pruef('Alle Auswahlen zeigen dieselbe Liste',
-      wahlen.length === 4 && wahlen.every(x => x.options.length === 3));
+      wahlen.length === 4 && wahlen.every(x => x.options.length === 2));
     pruef('Das Empfohlene trägt ein Häkchen',
       wahlen[0].options[0].textContent.indexOf('\u2713') > -1, wahlen[0].options[0].textContent);
     pruef('Das Abzeichen steht am empfohlenen Modell',
@@ -3544,104 +3544,24 @@ setTimeout(async () => {
     await tick();
   }
 
-  /* ══ 503: nachfassen und ausweichen ════════════════════════════
-     Ein 503 heisst, dass Google die Rechenleistung ausgeht — nicht,
-     dass der Schluessel falsch waere oder die Bilder zu gross. Vorher
-     abfragen laesst sich das nicht, also wird es abgefangen. */
+  /* ══ 503: seit 3.32.0 kein Nachfassen und kein Ausweichen ══════
+     Ein Tipp, eine Anfrage. Der Nutzer entscheidet, ob noch einmal
+     oder mit einem anderen Modell gefragt wird. */
   {
     w.__T("kiSchluesselSetzen('" + ATTRAPPE + "')");
     w.__T(`S.kiModelle = [
       {id:'models/gemini-3.6-flash', anzeige:'3.6 Flash', empfohlen:true},
       {id:'models/gemini-3.5-flash', anzeige:'3.5 Flash'},
-      {id:'models/gemini-3-flash', anzeige:'3 Flash'},
-      {id:'models/gemini-3-flash-lite', anzeige:'3 Flash Lite'},
-      {id:'models/gemini-2.5-flash', anzeige:'2.5 Flash'}];
+      {id:'models/gemini-3-flash', anzeige:'3 Flash'}];
       S.kiModell = 'models/gemini-3.6-flash'`);
-    /* Die Wartezeiten werden fuer den Pruefstand auf 5 ms gekuerzt.
-       Die LAENGE bleibt, wie sie in der App steht — sie bestimmt,
-       wie oft nachgefasst wird, und darf hier nicht verstellt
-       werden, sonst prueft man eine andere Leiter als die echte. */
-    w.__T('KI_NACHFASSEN.forEach(function(_, i){ KI_NACHFASSEN[i] = 5; })');
-
-    const kette = () => w.__T("kiAusweichModelle('models/gemini-3.6-flash').map(m=>m.anzeige)");
-    pruef('Ausgewichen wird auf das naechstaeltere, nicht auf irgendein altes',
-      JSON.stringify(kette()) === '["3.5 Flash","3 Flash"]', JSON.stringify(kette()));
-    pruef('Auf eine Lite-Variante nie',
-      kette().every(x => !/Lite/.test(x)));
-    pruef('Nie mehr als eine Generation zurueck',
-      kette().every(x => !/2\.5/.test(x)));
-    pruef('Hoechstens zwei Schritte', kette().length <= 2);
-
-    /* Kurze Lastspitze: dasselbe Modell, zweiter Versuch klappt.
-       Seit 3.3.1 wird genau einmal nachgefasst — wer laenger wartet,
-       wartet meistens umsonst. */
-    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
-      return window.__n < 2
-        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
-        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
-    }`);
-    const r1 = await w.__T("kiFragenHartnaeckig('x', [])");
-    pruef('Bei 503 wird einmal nachgefasst', w.__T('window.__n') === 2,
-      String(w.__T('window.__n')));
-    pruef('Dafuer braucht es keinen Modellwechsel',
-      r1.gewechselt === false && r1.modell.id === 'models/gemini-3.6-flash');
-    pruef('Die Antwort kommt trotzdem an', r1.text === 'ART: Efeutute');
-
-    /* Beim dritten Fehlschlag desselben Modells ist Schluss mit
-       Nachfassen — dann zaehlt Tempo. */
-    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
-    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
-      return window.__n < 3
-        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
-        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
-    }`);
-    const r1b = await w.__T("kiFragenHartnaeckig('x', [])");
-    pruef('Beim zweiten Fehlschlag wird gewechselt statt gewartet',
-      r1b.gewechselt === true && r1b.modell.id === 'models/gemini-3.5-flash',
-      r1b.modell.id);
-
-    /* Bleibt es voll, uebernimmt das naechste Modell. */
-    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
-    w.__T(`window.__n = 0; window.fetch = (u) => { window.__n++;
-      return String(u).indexOf('3.6-flash') > -1
-        ? Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})})
-        : Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({candidates:[{content:{parts:[{text:'ART: Efeutute'}]}, finishReason:'STOP'}]})});
-    }`);
-    const r2 = await w.__T("kiFragenHartnaeckig('x', [])");
-    pruef('Bleibt es voll, antwortet das naechste Modell',
-      r2.gewechselt === true && r2.modell.anzeige === '3.5 Flash');
-    pruef('Ein volles Modell wird gemerkt',
-      w.__T("kiIstUeberlastet('models/gemini-3.6-flash')") === true);
-    pruef('Ein freies Modell wird nicht gemerkt',
-      w.__T("kiIstUeberlastet('models/gemini-3.5-flash')") === false);
-
-    /* Ein 400 wird durch Warten nicht besser. */
-    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
-    w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
-      return Promise.resolve({ok:false, status:400, json:()=>Promise.resolve({error:{message:'bad key'}})}); }`);
-    let f400 = '';
-    try{ await w.__T("kiFragenHartnaeckig('x', [])"); }catch(e){ f400 = String(e.message || e); }
-    pruef('Ein 400 wird kein zweites Mal versucht', w.__T('window.__n') === 1);
-    pruef('Und meldet weiterhin den Schluessel', /Schl/.test(f400), f400);
-
-    /* Ist alles voll, sagt die Meldung auch das. */
-    w.__T('for(const k in KI_UEBERLASTET) delete KI_UEBERLASTET[k]');
     w.__T(`window.__n = 0; window.fetch = () => { window.__n++;
       return Promise.resolve({ok:false, status:503, json:()=>Promise.resolve({error:{message:'high demand'}})}); }`);
-    /* Seit 3.3.1: nachgefasst wird nur beim ersten Modell, danach
-       zaehlt Tempo. Erwartet sind also zwei Versuche fuer das erste
-       und je einer fuer die Ausweichmodelle. Die Kettenlaenge muss
-       VOR dem Lauf stehen — waehrenddessen werden alle Modelle als
-       voll gemerkt und fallen aus der Kette. */
-    const ketteN = w.__T('kiAusweichModelle(kiModellAktiv().id).length + 1');
-    let voll = '';
-    try{ await w.__T("kiFragenHartnaeckig('x', [])"); }catch(e){ voll = String(e.message || e); }
-    pruef('Nur das erste Modell wird zweimal gefragt',
-      w.__T('window.__n') === ketteN + 1,
-      w.__T('window.__n') + ' Anfragen bei ' + ketteN + ' Modellen');
-    pruef('Die Meldung nennt die Ausweichversuche',
-      /Ausweichmodelle/.test(voll), voll.slice(-60));
-
+    let voll = '', vollModell = '';
+    try{ await w.__T("kiFragenEinmal('x', [])"); }catch(e){ voll = String(e.message || e); vollModell = e.modell; }
+    pruef('Bei 503 genau eine Anfrage (3.32.0)', w.__T('window.__n') === 1, String(w.__T('window.__n')));
+    pruef('Die Meldung nennt das Modell', /3\.6 Flash/.test(voll) && /berlastet/.test(voll), voll);
+    pruef('Der Fehler trägt das Modell für die Knöpfe', vollModell === 'models/gemini-3.6-flash', vollModell);
+    pruef('Das nächste Modell für „Mit … versuchen“', w.__T("kiNaechstesModell('models/gemini-3.6-flash').id") === 'models/gemini-3.5-flash');
     w.__T("kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null");
     w.__T("window.fetch = () => Promise.reject(new Error('offline'))");
   }
@@ -7096,7 +7016,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.31.0', e0.nr === '3.31.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.32.0', e0.nr === '3.32.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -9330,13 +9250,28 @@ setTimeout(async () => {
     await haengt(T(`kiFragen('x', null)`));
     const l3 = w.__leiber[w.__leiber.length - 1];
     pruef('3.26.0: Ohne Option keine Denkstufe (Anlegen, Doktor)', !!l3 && !l3.generationConfig.thinkingConfig);
-    w.__plan = [{status:400}, {text:'ok'}];
+    w.__plan = [{status:400, fehler:{error:{message:'Thinking level is not supported for this model.'}}}, {text:'ok'}];
     const vor = w.__leiber.length;
-    const t4 = await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig'})`));
-    pruef('3.26.0: Lehnt das Modell die Denkstufe ab, einmal ohne',
+    const t4 = await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig', denkenNochmal:true})`));
+    pruef('3.26.0: Lehnt das Modell die Denkstufe ab, fragt die Kartei einmal ohne',
       t4 === 'ok' && w.__leiber.length === vor + 2 && !w.__leiber[vor + 1].generationConfig.thinkingConfig);
     pruef('3.26.0: und das Modell wird gemerkt', T(`KI_DENKEN_AUS['models/gemini-3-flash'] === true`) === true);
     T(`(function(){ delete KI_DENKEN_AUS['models/gemini-3-flash']; return 1; })()`);
+    /* 3.32.0: Ohne denkenNochmal bleibt es bei einer Anfrage. */
+    w.__plan = [{status:400, fehler:{error:{message:'Thinking level is not supported for this model.'}}}, {text:'ok'}];
+    const vor2 = w.__leiber.length;
+    let t5 = '';
+    try{ await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig'})`)); t5 = 'kam durch'; }catch(e){ t5 = String(e.message || e); }
+    pruef('3.32.0: Ein Tipp mit abgelehnter Denkstufe bleibt eine Anfrage',
+      w.__leiber.length === vor2 + 1 && /Denkstufe/.test(t5), w.__leiber.length - vor2 + ' | ' + t5);
+    pruef('3.32.0: und der nächste geht ohne Denkstufe', T(`KI_DENKEN_AUS['models/gemini-3-flash'] === true`) === true);
+    T(`(function(){ delete KI_DENKEN_AUS['models/gemini-3-flash']; return 1; })()`);
+    /* 3.32.0: Ein anderer 400 löst keine zweite Anfrage aus. */
+    w.__plan = [{status:400, fehler:{error:{message:'Image input modality is not enabled for this model'}}}, {text:'ok'}];
+    const vor3 = w.__leiber.length;
+    try{ await haengt(T(`kiFragen('x', null, null, null, {denken:'niedrig', denkenNochmal:true})`)); }catch(e){}
+    pruef('3.32.0: Ein anderer 400 wird auch in der Kartei nicht wiederholt', w.__leiber.length === vor3 + 1, String(w.__leiber.length - vor3));
+    pruef('3.32.0: und das Modell wird nicht als ohne Denkstufe gemerkt', T(`!KI_DENKEN_AUS['models/gemini-3-flash']`) === true);
 
     /* Kontingent lesen */
     const tag = {error:{message:'Quota exceeded', details:[{'@type':'type.googleapis.com/google.rpc.QuotaFailure',
@@ -9556,9 +9491,9 @@ setTimeout(async () => {
     w.__leiber = [];
     let r503 = '';
     try{ r503 = await T(`karteiFragen('x', null, null, {denken:'niedrig'}, KARTEI_GEN)`); }catch(e){ r503 = 'Fehler: ' + e.message; }
-    const letzte = w.__leiber[w.__leiber.length - 1];
-    pruef('3.27.0: Nach 503 weicht die Kartei einmal auf das nächste Modell aus',
-      r503 === 'ausgewichen' && /gemini-3-pro/.test(letzte.u), r503 + ' | ' + (letzte && letzte.u));
+    pruef('3.32.0: Nach 503 weicht die Kartei nicht mehr aus',
+      /^Fehler: /.test(r503) && w.__leiber.length === 1 && /gemini-3-flash/.test(w.__leiber[0].u), r503 + ' | ' + w.__leiber.length);
+    w.__plan = [];
     T(`(function(){ window.setTimeout = window.__st1; return 1; })()`);
     w.fetch = fetch0;
 
@@ -9581,7 +9516,9 @@ setTimeout(async () => {
   /* ══ 3.28.0: Anzucht ══ */
   {
     const T = c => w.__T(c);
-    const vor = t => `iso(new Date(HEUTE.getTime() - ${t}*86400000))`;
+    /* Kalendertage statt 24-Stunden-Schritten: am Tag der Zeitumstellung
+       lag „vor 8 Tagen“ sonst kurz vor Mitternacht auf dem falschen Tag. */
+    const vor = t => `iso(new Date(HEUTE.getFullYear(), HEUTE.getMonth(), HEUTE.getDate() - ${t}))`;
     T(`(function(){ S.anzucht = {}; S.eigene = (S.eigene||[]).filter(function(p){ return String(p.id).slice(0,3) !== 'AZT'; });
       S.eigene.push({id:'AZT-M', eigen:true, name:'Rexi', art:'Königsbegonie', botanisch:'Begonia rex', sorte:'', klasse:'B', notiz:'', todo:[], log:[]});
       sichern(); return 1; })()`);
@@ -9858,6 +9795,25 @@ setTimeout(async () => {
     if(ak) ak.click();
     const nachA = JSON.parse(T(`JSON.stringify(azGruppe('${zid}'))`));
     pruef('3.29.0: Art per Tipp übernommen', nachA.art === 'Efeutute' && nachA.botanisch === 'Epipremnum aureum', JSON.stringify(nachA));
+    /* 3.32.0: Anzucht bestimmen — eine Anfrage, Knöpfe nach einem Fehlschlag */
+    T(`S.kiModelle = [{id:'gemini-9.9-flash', anzeige:'9.9 Flash'}, {id:'gemini-9.8-flash', anzeige:'9.8 Flash'}]; S.kiModell = 'gemini-9.9-flash'; AZ_BEST.erg = null; azZeichnen()`);
+    w.__ki.fehler = 503;
+    const az0 = w.__ki.zaehler;
+    d.querySelector('[data-az="best-los"]').click();
+    await warte(300);
+    pruef('3.32.0: Anzucht bei 503: genau eine Anfrage', w.__ki.zaehler - az0 === 1, String(w.__ki.zaehler - az0));
+    const azNoch = d.querySelector('#az-ansicht [data-az="best-nochmal"]'), azAnders = d.querySelector('#az-ansicht [data-az="best-anders"]');
+    pruef('3.32.0: Anzucht zeigt „Noch einmal“ und „Mit 9.8 Flash versuchen“',
+      !!azNoch && !!azAnders && azAnders.textContent === 'Mit 9.8 Flash versuchen', azAnders && azAnders.textContent);
+    w.__ki.fehler = null;
+    const az1 = w.__ki.zaehler;
+    if(azAnders) azAnders.click();
+    await warte(300);
+    const azProt = JSON.parse(T('JSON.stringify(kiProtokoll()[0] || {})'));
+    pruef('3.32.0: Anzucht „Mit … versuchen“ fragt einmal das andere Modell',
+      w.__ki.zaehler - az1 === 1 && azProt.modell === 'gemini-9.8-flash' && azProt.zweck === 'Anzucht' && azProt.ergebnis === 'ok', JSON.stringify(azProt));
+    pruef('3.32.0: Anzucht nach Erfolg ohne Fehlerknöpfe, Auswahl unverändert',
+      !d.querySelector('#az-ansicht [data-az="best-nochmal"]') && T('S.kiModell') === 'gemini-9.9-flash' && /Geantwortet hat 9\.8 Flash/.test(d.getElementById('az-ansicht').textContent));
     T(`kiSchluesselSetzen(''); AZ_BEST.erg = null; azZeichnen()`);
     d.querySelector('[data-az="best-los"]').click();
     await tick();
@@ -10207,7 +10163,7 @@ setTimeout(async () => {
     pruef('3.31.0: Vor der Sicherung ist nichts bereinigt', sp.editsVor === true && sp.ivVor === true, JSON.stringify(sp));
     pruef('3.31.0: Nach der Sicherung ist bereinigt', sp.editsNach === false && sp.ivNach === false && sp.fass === '3.31.0' && sp.offenNach === false, JSON.stringify(sp));
     pruef('3.31.0: Ohne Daten wird sofort bereinigt', sp.leerEdits === false && sp.leerFass === '3.31.0', JSON.stringify(sp));
-    const ohneKenn = T(`(function(){ var e = PATCHNOTES[0]; var vor = e.sicherung; e.sicherung = false;
+    const ohneKenn = T(`(function(){ var e = PATCHNOTES.find(function(x){ return x.sicherung === true; }); var vor = e.sicherung; e.sicherung = false;
       S = Object.assign(LEERSTAND(), {eigene:[{id:'E-9341', name:'K'}]}); grundwerteErgaenzen();
       var r = sicherungPflichtOffen(); e.sicherung = vor; return r; })()`);
     zurueck();
@@ -10274,7 +10230,7 @@ setTimeout(async () => {
     /* Patchnotes, Mehr, toter Code */
     const pn = JSON.parse(T(`JSON.stringify(PATCHNOTES.map(function(e){ return [e.nr, !!e.sicherung]; }))`));
     pruef('3.31.0: Zehn Fassungen in den Patchnotes', pn.length === 10, pn.length);
-    pruef('3.31.0: Oben steht 3.31.0 mit Kennung', pn[0][0] === '3.31.0' && pn[0][1] === true);
+    pruef('3.31.0: 3.31.0 trägt die Kennung', pn.some(x => x[0] === '3.31.0' && x[1] === true));
     pruef('3.31.0: Nur 3.31.0 trägt die Kennung', pn.filter(x => x[1]).length === 1);
     T('patchListe()');
     const cl = d.getElementById('patch-changelog');
@@ -10292,6 +10248,223 @@ setTimeout(async () => {
     pruef('3.31.0: PFLANZEN gibt es nicht mehr', T('typeof PFLANZEN') === 'undefined');
     pruef('3.31.0: Kein Aufruf von karteNeuZeichnen', html.indexOf('karteNeuZeichnen') === -1);
     pruef('3.31.0: Keine CSS-Regel für #weg-liste und .raum-batch', html.indexOf('#weg-liste') === -1 && html.indexOf('.raum-batch') === -1);
+  }
+
+  /* ══ 3.32.0: KI — eine Anfrage pro Tipp ══
+     Ein Tipp schickte bis zu vier Anfragen (nachfassen, zwei
+     Ausweichmodelle), darunter Modelle ohne Gratis-Kontingent. */
+  {
+    const T = c => w.__T(c);
+    const fetch0 = w.fetch;
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+    const haengt = pr => Promise.race([pr, new Promise((_, nein)=>setTimeout(()=>nein(new Error('hängt')), 5000))]);
+    /* Der Download-Test davor stellt URL.revokeObjectURL zurück, das es
+       in jsdom nicht gibt; die App ruft es zeitversetzt auf. */
+    if(typeof w.URL.revokeObjectURL !== 'function') w.URL.revokeObjectURL = () => {};
+    w.localStorage.removeItem(T('KI_PROTOKOLL_FACH'));
+    w.__aufrufe = [];
+    w.__antwort = {};
+    w.__verzug = 10;
+    w.fetch = (u, o) => {
+      const url = String(u);
+      let leib = null; try{ leib = JSON.parse(o && o.body); }catch(e){}
+      w.__aufrufe.push({u:url, leib:leib});
+      if(url.indexOf('/models?') > -1) return Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({models:w.__liste})});
+      const m = (url.match(/models\/([^:]+):/) || [])[1];
+      const f = w.__antwort[m] || w.__antwort['*'];
+      const a = f ? f(leib) : {status:200, body:{candidates:[{finishReason:'STOP', content:{parts:[{text:'ok'}]}}]}};
+      return new Promise(res => setTimeout(() => res({ok:a.status === 200, status:a.status, json:()=>Promise.resolve(a.body)}), w.__verzug));
+    };
+    const ok = (text, extra) => ({status:200, body:Object.assign({candidates:[{finishReason:'STOP', content:{parts:[{text:text || 'ok'}]}}]}, extra || {})});
+    const err = (st, msg) => ({status:st, body:{error:{message:msg}}});
+    const posts = () => w.__aufrufe.filter(a => a.u.indexOf(':generateContent') > -1);
+    const modell = name => ({name:'models/' + name,
+      displayName:'Gemini ' + name.replace('gemini-', '').split('-').map(x => x.charAt(0).toUpperCase() + x.slice(1)).join(' '),
+      supportedGenerationMethods:['generateContent']});
+    w.__liste = ['gemini-3.8-flash','gemini-3.7-flash','gemini-3.6-flash','gemini-3.5-flash-lite','gemini-2.5-flash',
+      'gemini-4-argon','gemini-3.5-transcribe','gemini-3.8-flash-tts','gemini-nano-banana-2.1','gemini-3-flash-preview',
+      'gemini-3.1-pro-preview'].map(modell);
+    w.__antwort = {
+      'gemini-3.7-flash': () => ok('ok', {modelVersion:'gemini-3.8-flash'}),
+      'gemini-3.5-flash-lite': () => err(429, 'Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-3.5-flash-lite'),
+      'gemini-2.5-flash': leib => (leib && leib.generationConfig && leib.generationConfig.thinkingConfig)
+        ? err(400, 'Thinking budget is not supported for this model.') : ok('ok')
+    };
+
+    /* Modellliste: Positivliste und Prüfung */
+    T(`kiSchluesselSetzen('${ATTRAPPE_ECHT}'); S.kiModelle = null; S.kiModell = null`);
+    await haengt(T('kiModelleHolen()'));
+    const ids = JSON.parse(T('JSON.stringify(kiModelle().map(function(m){ return m.id; }))'));
+    const gefragt = posts().map(a => (a.u.match(/models\/([^:]+):/) || [])[1]);
+    pruef('3.32.0: Geprüft werden nur Flash-Modelle der Positivliste',
+      JSON.stringify(Array.from(new Set(gefragt)).sort()) === JSON.stringify(['gemini-2.5-flash','gemini-3.5-flash-lite','gemini-3.6-flash','gemini-3.7-flash','gemini-3.8-flash']),
+      JSON.stringify(gefragt));
+    pruef('3.32.0: Argon, Transcribe, TTS, Bild- und Vorschaumodelle werden nie gefragt',
+      !gefragt.some(x => /argon|transcribe|tts|banana|preview/.test(x)));
+    pruef('3.32.0: Je Modell eine Prüfanfrage, nur bei abgelehnter Denkstufe zwei',
+      gefragt.length === 6 && gefragt.filter(x => x === 'gemini-2.5-flash').length === 2, String(gefragt.length));
+    pruef('3.32.0: „limit: 0“ fällt heraus', ids.indexOf('models/gemini-3.5-flash-lite') === -1, JSON.stringify(ids));
+    pruef('3.32.0: Ein weitergeleitetes Modell fällt heraus', ids.indexOf('models/gemini-3.7-flash') === -1, JSON.stringify(ids));
+    pruef('3.32.0: Die freien bleiben, das neueste vorn und gesetzt',
+      JSON.stringify(ids) === JSON.stringify(['models/gemini-3.8-flash','models/gemini-3.6-flash','models/gemini-2.5-flash'])
+      && T('S.kiModell') === 'models/gemini-3.8-flash', JSON.stringify(ids));
+    pruef('3.32.0: Eine abgelehnte Denkstufe ist am Modell gemerkt',
+      T(`S.kiModelle.find(function(m){ return m.id === 'models/gemini-2.5-flash'; }).denken`) === false);
+    const ausgebl = T('kiAusgeblendetText()');
+    pruef('3.32.0: Die Meldung nennt, was ausgeblendet ist', /nicht kostenlos/.test(ausgebl) && /weitergeleitet/.test(ausgebl), ausgebl);
+    w.__aufrufe = [];
+    try{ await haengt(T(`kiFragen('x', null, 'models/gemini-2.5-flash', null, {denken:'niedrig'})`)); }catch(e){}
+    pruef('3.32.0: Ein Modell ohne Denkstufe bekommt im Gebrauch keine',
+      posts().length === 1 && !posts()[0].leib.generationConfig.thinkingConfig, JSON.stringify(posts().map(a => a.leib.generationConfig)));
+
+    /* Eine ältere Liste zeigt nur noch Modelle der Positivliste */
+    const altListe = T(`(function(){ var alt = S.kiModelle; S.kiModelle = [{id:'models/gemini-4-argon', anzeige:'4 Argon', empfohlen:true},
+      {id:'models/gemini-3.5-transcribe', anzeige:'3.5 Transcribe'}, {id:'models/gemini-3.8-flash', anzeige:'3.8 Flash'}];
+      var r = JSON.stringify(kiModelle()); S.kiModelle = alt; return r; })()`);
+    pruef('3.32.0: Eine alte Liste blendet Argon und Transcribe aus, das erste übrige ist empfohlen',
+      altListe === JSON.stringify([{id:'models/gemini-3.8-flash', anzeige:'3.8 Flash', empfohlen:true}]), altListe);
+
+    /* Anlegen: eine Anfrage, Denkstufe niedrig, Knöpfe */
+    w.__aufrufe = [];
+    w.__antwort = {'*': () => err(503, 'The model is overloaded.')};
+    T(`alStart(); neuWegSetzen('ki'); KI_BILDER.anlegen.length = 0;
+      KI_BILDER.anlegen.push({mime:'image/jpeg', daten:'QUJD', vorschau:'data:image/jpeg;base64,QUJD'})`);
+    await haengt(T(`kiDirektLos('anlegen')`));
+    const p1 = posts();
+    pruef('3.32.0: Anlegen bei 503: genau eine Anfrage', p1.length === 1, String(p1.length));
+    pruef('3.32.0: Anlegen fragt mit Denkstufe niedrig',
+      !!p1[0] && !!p1[0].leib.generationConfig.thinkingConfig && p1[0].leib.generationConfig.thinkingConfig.thinkingLevel === 'low',
+      p1[0] && JSON.stringify(p1[0].leib.generationConfig));
+    pruef('3.32.0: Der Anlege-Auftrag kündigt keine MASSNAHME-Zeilen an',
+      !!p1[0] && p1[0].leib.contents[0].parts[0].text.indexOf('MASSNAHME') === -1);
+    pruef('3.32.0: Der kopierte Anlege-Prompt auch nicht', T('anlegenPromptBauen()').indexOf('MASSNAHME') === -1);
+    pruef('3.32.0: Das Antwortformat des Doktors bleibt wortgleich',
+      T('ANTWORT_FORMAT').indexOf('und ein bis drei MASSNAHME-Zeilen') > -1 && T('GEMINI_PROMPT').indexOf('MASSNAHME-Zeilen') > -1);
+    const meld = d.getElementById('ki-hinweis').textContent;
+    pruef('3.32.0: Die Meldung nennt das Modell und nicht den Schlüssel',
+      /3\.8 Flash/.test(meld) && /berlastet/.test(meld) && !/Schl/.test(meld), meld);
+    const noch = d.querySelector('#ki-lauf-anlegen [data-do="ki-nochmal"]');
+    const anders = d.querySelector('#ki-lauf-anlegen [data-do="ki-anders"]');
+    pruef('3.32.0: Knopf „Noch einmal“', !!noch && d.getElementById('ki-lauf-anlegen').hidden === false
+      && noch.dataset.kimodell === 'models/gemini-3.8-flash');
+    pruef('3.32.0: Knopf „Mit 3.6 Flash versuchen“',
+      !!anders && /^Mit 3\.6 Flash versuchen$/.test(anders.textContent) && anders.dataset.kimodell === 'models/gemini-3.6-flash',
+      anders && anders.textContent);
+    w.__aufrufe = [];
+    w.__antwort = {'*': () => ok('```\nART: Efeutute\nBOTANISCH: Epipremnum aureum\n```')};
+    if(anders) anders.click();
+    await warte(250);
+    const p2 = posts();
+    pruef('3.32.0: „Mit … versuchen“ fragt genau einmal das andere Modell',
+      p2.length === 1 && /models\/gemini-3\.6-flash:/.test(p2[0].u), p2.map(a => a.u.replace(/\?.*/, '')).join(' '));
+    pruef('3.32.0: und ändert die Auswahl nicht', T('S.kiModell') === 'models/gemini-3.8-flash');
+    pruef('3.32.0: Die Erfolgsmeldung nennt das antwortende Modell',
+      /Geantwortet hat 3\.6 Flash/.test(d.getElementById('ki-hinweis').textContent), d.getElementById('ki-hinweis').textContent);
+    pruef('3.32.0: Nach Erfolg keine Fehlerknöpfe', !d.querySelector('#ki-lauf-anlegen .ki-nochmal'));
+
+    /* Fehlerknöpfe gehören nicht ins nächste Anlegen */
+    T(`kiFehlerKnoepfe('anlegen', 'models/gemini-3.8-flash')`);
+    const vorLeeren = !!d.querySelector('#ki-lauf-anlegen .ki-nochmal');
+    T('formularLeeren()');
+    pruef('3.32.0: Formular leeren nimmt die Fehlerknöpfe weg',
+      vorLeeren && !d.querySelector('#ki-lauf-anlegen .ki-nochmal') && d.getElementById('ki-lauf-anlegen').hidden === true);
+    T(`kiFehlerKnoepfe('doktor', 'models/gemini-3.6-flash')`);
+    pruef('3.32.0: Auch der Doktor bekommt die Knöpfe',
+      !!d.querySelector('#ki-lauf-doktor [data-do="ki-nochmal"][data-kiwo="doktor"]')
+      && /Mit 2\.5 Flash versuchen/.test(d.getElementById('ki-lauf-doktor').textContent), d.getElementById('ki-lauf-doktor').textContent);
+    T(`kiLaufZeigen('doktor', false)`);
+
+    /* Laufanzeige: Modell und Sekunden statt „nach dreißig steige ich um“ */
+    w.__verzug = 1400;
+    w.__antwort = {'*': () => ok('```\nART: Efeutute\n```')};
+    T(`alStart(); neuWegSetzen('ki'); KI_BILDER.anlegen.length = 0;
+      KI_BILDER.anlegen.push({mime:'image/jpeg', daten:'QUJD', vorschau:'data:image/jpeg;base64,QUJD'})`);
+    const lauf = T(`kiDirektLos('anlegen')`);
+    await warte(50);
+    const t0 = d.querySelector('#ki-lauf-anlegen .kilauf-txt');
+    pruef('3.32.0: Die Laufanzeige nennt Modell und Sekunden',
+      !!t0 && t0.textContent === 'Die Frage an 3.8 Flash läuft · 0\u00a0s', t0 && t0.textContent);
+    pruef('3.32.0: mit Abbrechen-Knopf', !!d.querySelector('#ki-lauf-anlegen [data-do="ki-stop"]'));
+    await warte(1100);
+    const t1 = d.querySelector('#ki-lauf-anlegen .kilauf-txt');
+    pruef('3.32.0: Die Sekunden zählen hoch', !!t1 && / · 1\u00a0s$/.test(t1.textContent), t1 && t1.textContent);
+    await haengt(lauf);
+    w.__verzug = 10;
+    pruef('3.32.0: Kein „steige ich um“ mehr in der App', html.indexOf('steige ich auf ein anderes Modell um') === -1);
+
+    /* Zeitgrenze: zwei Minuten, keine zweite Anfrage */
+    pruef('3.32.0: Die Frist ist 120 Sekunden, auch für Fotobündel der Kartei',
+      T('KI_FRIST') === 120000 && T('KARTEI_FRIST_BUENDEL') === 120000);
+    w.__aufrufe = [];
+    T(`(function(){ window.__st2 = window.setTimeout;
+      window.setTimeout = function(f, ms){ return window.__st2(f, Math.min(ms || 0, 60)); }; return 1; })()`);
+    w.fetch = (u, o) => { w.__aufrufe.push({u:String(u), leib:null});
+      return new Promise((ja, nein) => { o.signal.addEventListener('abort', () => nein(Object.assign(new Error('ab'), {name:'AbortError'}))); }); };
+    let zeit = '';
+    try{ await haengt(T(`kiFragenEinmal('x', [])`)); }catch(e){ zeit = String(e.message || e); }
+    T(`(function(){ window.setTimeout = window.__st2; return 1; })()`);
+    pruef('3.32.0: Nach der Frist kommt keine zweite Anfrage', w.__aufrufe.length === 1 && /nicht rechtzeitig/.test(zeit) && /120 Sekunden/.test(zeit),
+      w.__aufrufe.length + ' | ' + zeit);
+    w.fetch = (u, o) => {
+      const url = String(u);
+      let leib = null; try{ leib = JSON.parse(o && o.body); }catch(e){}
+      w.__aufrufe.push({u:url, leib:leib});
+      const m = (url.match(/models\/([^:]+):/) || [])[1];
+      const f = w.__antwort[m] || w.__antwort['*'];
+      const a = f ? f(leib) : ok('ok');
+      return new Promise(res => setTimeout(() => res({ok:a.status === 200, status:a.status, json:()=>Promise.resolve(a.body)}), w.__verzug));
+    };
+
+    /* 429: „limit: 0“ nimmt das Modell aus der Liste, ein volles Kontingent nicht */
+    w.__aufrufe = [];
+    w.__antwort = {'*': () => err(429, 'Resource has been exhausted (e.g. check quota).')};
+    let f429 = '';
+    try{ await haengt(T(`kiFragenEinmal('x', [])`)); }catch(e){ f429 = String(e.message || e); }
+    pruef('3.32.0: Ein volles Kontingent lässt das Modell in der Liste',
+      posts().length === 1 && T('S.kiModell') === 'models/gemini-3.8-flash' && /Kontingent/.test(f429), f429);
+    w.__aufrufe = [];
+    w.__antwort = {'*': () => err(429, 'Quota exceeded for metric: generate_content_free_tier_requests, limit: 0, model: gemini-3.8-flash')};
+    let f0 = '';
+    try{ await haengt(T(`kiFragenEinmal('x', [])`)); }catch(e){ f0 = String(e.message || e); }
+    const nachIds = JSON.parse(T('JSON.stringify(kiModelle().map(function(m){ return m.id; }))'));
+    pruef('3.32.0: „limit: 0“ im Gebrauch: eine Anfrage, Modell aus der Liste',
+      posts().length === 1 && nachIds.indexOf('models/gemini-3.8-flash') === -1 && T('S.kiModell') === 'models/gemini-3.6-flash', JSON.stringify(nachIds));
+    pruef('3.32.0: und die Meldung sagt es', /nicht enthalten/.test(f0) && /3\.8 Flash/.test(f0), f0);
+
+    /* Fehlertexte */
+    w.__antwort = {'*': () => err(400, 'Image input modality is not enabled for this model')};
+    let f400 = '';
+    try{ await haengt(T(`kiFragenEinmal('x', [])`)); }catch(e){ f400 = String(e.message || e); }
+    pruef('3.32.0: Ein 400 nennt Modell und Googles Text, nicht den Schlüssel',
+      /3\.6 Flash/.test(f400) && /Image input modality/.test(f400) && !/Schl/.test(f400), f400);
+
+    /* Protokoll */
+    T(`kiProtokollZeichnen()`);
+    const prot = JSON.parse(T('JSON.stringify(kiProtokoll())'));
+    const anl = prot.find(e => e.zweck === 'Anlegen' && /^503/.test(e.ergebnis));
+    pruef('3.32.0: Das Protokoll führt die Anlegen-Anfrage mit allen Angaben',
+      !!anl && anl.modell === 'models/gemini-3.8-flash' && anl.zeichen > 1000 && anl.bilder === 1 && typeof anl.dauer === 'number' && /overloaded/.test(anl.ergebnis),
+      JSON.stringify(anl));
+    pruef('3.32.0: Das Protokoll führt die Prüfanfragen', prot.some(e => e.zweck === 'Prüfung' && /limit: 0/.test(e.ergebnis)));
+    pruef('3.32.0: Die Liste unter KI-Dienst zeigt jeden Eintrag',
+      d.querySelectorAll('#ki-protokoll li').length === prot.length && prot.length > 0, String(d.querySelectorAll('#ki-protokoll li').length));
+    T(`(function(){ for(var i = 0; i < 25; i++) kiProtokollEintragen({zweck:'Test ' + i, modell:'models/gemini-3.6-flash', ergebnis:'ok'}); return 1; })()`);
+    const prot2 = JSON.parse(T('JSON.stringify(kiProtokoll())'));
+    pruef('3.32.0: Höchstens 20 Einträge, der neueste oben', prot2.length === 20 && prot2[0].zweck === 'Test 24', prot2.length + ' / ' + (prot2[0] && prot2[0].zweck));
+    pruef('3.32.0: Das Protokoll steht nicht in der Sicherung', JSON.stringify(T('sicherungInhalt()')).indexOf('Test 24') === -1);
+
+    /* Kartei: kein Ausweichen, eine abgelehnte Denkstufe einmal ohne */
+    w.__aufrufe = [];
+    w.__antwort = {'*': () => err(503, 'The model is overloaded.')};
+    let fk = '';
+    try{ await haengt(T(`karteiFragen('x', null, null, {denken:'niedrig'}, KARTEI_GEN)`)); }catch(e){ fk = String(e.message || e); }
+    pruef('3.32.0: Die Kartei fragt bei 503 kein anderes Modell', posts().length === 1 && /3\.6 Flash/.test(fk), posts().length + ' | ' + fk);
+
+    w.localStorage.removeItem(T('KI_PROTOKOLL_FACH'));
+    T(`kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null; KI_BILDER.anlegen.length = 0`);
+    T(`modalZu('anleg-modal')`);
+    await tick();
+    w.fetch = fetch0;
   }
 
   console.log('\n── Ergebnis ──');

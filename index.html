@@ -2314,6 +2314,13 @@ html[data-design="terrarium"] .nt{box-shadow:var(--glanz)}
 .kigalerie button[aria-pressed="true"]{border-color:var(--moss);box-shadow:0 0 0 2px var(--moss) inset}
 .kigalerie img{width:100%;height:100%;object-fit:cover;display:block}
 .kilauf{display:flex;align-items:center;gap:9px;margin-top:8px;font-size:var(--t-s);color:var(--ink-2)}
+.ki-nochmal{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ki-prot-box{margin-top:10px}
+.ki-prot-box summary{cursor:pointer;font-size:var(--t-s);color:var(--ink)}
+.ki-prot{list-style:none;margin:6px 0 0;padding:0;font-size:var(--t-xs);line-height:1.45;color:var(--ink-2)}
+.ki-prot li{padding:6px 0;border-top:1px solid var(--line)}
+.ki-prot li b{display:block;font-weight:600;color:var(--ink)}
+.ki-prot li.warn span{color:var(--terra)}
 .kispin{width:15px;height:15px;flex:0 0 auto;border:2px solid var(--line);border-top-color:var(--water);
   border-radius:50%;animation:kidreh .8s linear infinite}
 @keyframes kidreh{to{transform:rotate(360deg)}}
@@ -6042,6 +6049,9 @@ function auftragMitTieren(namen, sonicht, pruefliste){
 
 function anlegenFormat(){
   let f = auftragMitTieren(ANLEGEN_FELDER, ANLEGEN_SONICHT, ANLEGEN_PRUEFLISTE);
+  /* 3.32.0: Die Regelzeile kündigt MASSNAHME-Zeilen an, die das Anlegen
+     nicht fragt. Gemini hat über den Widerspruch nachgedacht. */
+  f = f.replace(' und ein bis drei MASSNAHME-Zeilen', '');
   if(typeof formatZeileErgaenzen === 'function'){
     f = formatZeileErgaenzen(f, 'MERKMALE', KI_MERKMALE_REGEL);
     f = formatZeileErgaenzen(f, 'LICHT', KI_LICHT_PANASCHIERT);
@@ -10549,7 +10559,13 @@ function pflanzeEntfernen(id){
         <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
         <button id="btn-ki-modelle" type="button">Neu holen</button>
       </div>
-      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. Vorausgewählt ist das neueste stabile Modell; daran erkennst du das Häkchen. Das neueste ist allerdings oft auch das vollste: Google gibt neuen Modellen anfangs wenig Rechenleistung, und dann kommt „überlastet“ zurück. Passiert das ständig, wähl hier eine Stufe tiefer — die App weicht sonst von selbst dorthin aus.</p>
+      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. In der Liste stehen nur Flash-Modelle, die mit deinem Schlüssel kostenlos laufen; das prüft die App beim Holen mit je einer kurzen Anfrage. Vorausgewählt ist das neueste (Häkchen). Meldet Google „überlastet“, kannst du direkt ein anderes Modell versuchen. Von selbst wechselt die App nicht, weil jeder Versuch dein Kontingent kostet.</p>
+
+      <details class="ki-prot-box">
+        <summary>Letzte Anfragen <span id="ki-protokoll-zahl"></span></summary>
+        <p class="fhint">Jede Anfrage an Google, auch die Prüfung beim Holen der Liste. Damit lässt sich das Diagramm in Google AI Studio nachzählen. Es stehen höchstens 20 Einträge hier, der neueste oben.</p>
+        <div id="ki-protokoll"></div>
+      </details>
 
       <p class="ein-abschnitt">Wo der Schlüssel herkommt</p>
       <ol class="ki-schritte">
@@ -11203,7 +11219,7 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.31.0';
+const FASSUNG = '3.32.0';
 /* Unter Mehr stehen nur die letzten zehn Fassungen, alle weiteren im
    CHANGELOG. `sicherung:true` heißt: Diese Fassung löscht alte Daten
    und verlangt vorher eine Sicherung. Der neueste so markierte Eintrag
@@ -11211,6 +11227,29 @@ const FASSUNG = '3.31.0';
    Fassung die Kennung trägt. */
 const CHANGELOG_URL = REPO_URL + '/blob/HEAD/CHANGELOG.md';
 const PATCHNOTES = [
+  {
+    nr: '3.32.0', datum: '2026-10-25', titel: 'KI: eine Anfrage pro Tipp',
+    kurz: [
+      'Ein Tipp auf „Fragen“ schickt jetzt genau eine Anfrage an Google. Vorher konnten es bis zu vier sein.',
+      'In der Modellliste stehen nur noch Flash-Modelle, die mit deinem Schlüssel kostenlos laufen. Hol die Liste einmal neu: Mehr, Einstellungen, KI-Dienst, „Neu holen“.',
+      'Schlägt eine Frage fehl, stehen darunter „Noch einmal“ und „Mit … versuchen“.'
+    ],
+    neu: [
+      'Unter KI-Dienst stehen die letzten 20 Anfragen mit Uhrzeit, Zweck, Modell, Ergebnis und Dauer. Damit lässt sich das Diagramm in Google AI Studio nachzählen.',
+      'Schlägt eine Frage fehl, stehen darunter „Noch einmal“ und „Mit … versuchen“, beim Anlegen, im Doktor und beim Bestimmen in der Anzucht.'
+    ],
+    besser: [
+      'Die App bricht eine Frage nicht mehr nach 30 Sekunden ab und wechselt nicht mehr von selbst das Modell. Die Sekunden zählen sichtbar mit, abbrechen kannst du selbst. Erst nach zwei Minuten gibt die App auf.',
+      'Beim Holen der Modellliste prüft die App jedes Flash-Modell mit einer kurzen Anfrage. Modelle ohne Gratis-Kontingent und Modelle, die Google auf ein anderes umleitet, fallen heraus.',
+      'Beim Anlegen und beim Bestimmen in der Anzucht denkt das Modell nur kurz nach. Das geht schneller.',
+      'Die Kartei weicht nicht mehr auf ein anderes Modell aus.'
+    ],
+    behoben: [
+      'Bei jedem abgelehnten Bild stand „Meist ist der Schlüssel falsch kopiert“. Die Meldung nennt jetzt das Modell und Googles Text. Vom Schlüssel ist nur die Rede, wenn Google ihn ablehnt.',
+      'Die Fehlermeldung kam vom letzten Ausweichmodell, das Auswahlfeld zeigte aber das gewählte.',
+      'Der Anlege-Auftrag kündigte MASSNAHME-Zeilen an, die er gar nicht fragt.'
+    ]
+  },
   {
     nr: '3.31.0', datum: '2026-09-27', titel: 'Aufräumen, Teil 2', sicherung: true,
     kurz: [
@@ -11367,22 +11406,6 @@ const PATCHNOTES = [
       'Beim Anlegen konnte ein Sortenname der KI im botanischen Namen landen, etwa „Brasil“. Er steht jetzt nur noch als unsichere Vermutung unter dem Feld Sorte.',
       'Eine stockende Antwort hielt den Kartei-Balken unbegrenzt kurz vor dem Ziel. Die Zeitgrenze gilt jetzt, bis die Antwort ganz gelesen ist.',
       'Ein Foto, das nicht lädt, hält den Kartei-Lauf nicht mehr an. Nach zehn Sekunden geht die Anfrage ohne Bild.'
-    ]
-  },
-  {
-    nr: '3.23.0', datum: '2026-09-16', titel: 'Die KI erkennt die Sorte',
-    kurz: [
-      'Beim Anlegen und in der Kartei nennt die KI jetzt die Sorte und wie sicher sie sich ist. In die Karte kommt sie erst, wenn du es bestätigst.'
-    ],
-    neu: [
-      'Beim Anlegen steht eine sicher erkannte Sorte schon im Feld, mit dem Hinweis „KI-Vorschlag“ und der Sicherheit. Bei unsicherer Erkennung steht nur „Vielleicht“ darunter, mit dem Knopf „Als Sorte eintragen“. Was du selbst eingetragen hast, bleibt.',
-      'Die Kartei bietet die Sorte als eigene Zeile an. Eine unsichere Vermutung erscheint nur als Hinweis.',
-      'Steht eine Sorte noch im botanischen Namen, etwa „Philodendron hederaceum Brasil“, bietet die Kartei an, sie ins Feld Sorte zu verschieben.',
-      'Ableger erben auch, ob die Sorte von der KI oder von dir stammt.'
-    ],
-    besser: [
-      'Der Balken der Kartei bewegt sich, während eine Anfrage läuft, und bleibt kurz vor dem Ziel stehen, bis die Antwort da ist. Die Prozentzahl im Text ist weg.',
-      'In der Ergebnisliste führt „Durchsehen ›“ zu den Abweichungen. Die Kästchen erscheinen erst nach „Noch einmal prüfen“.'
     ]
   }
 ];
@@ -15829,6 +15852,8 @@ function formularLeeren(){
     KI_BILDER.anlegen.length = 0;
     if(typeof kiBilderZeichnen === 'function') kiBilderZeichnen('anlegen');
   }
+  /* 3.32.0: Die Knöpfe nach einem Fehlschlag gehören nicht ins nächste Anlegen. */
+  if(typeof kiFehlerKnoepfeWeg === 'function') kiFehlerKnoepfeWeg('anlegen');
   gewaehlteArt = null; artManuell = false; letzteKiAntwort = null;
   $('#bib-gewaehlt').hidden = true; $('#bib-liste').hidden = true;
   $('#paste-box').hidden = true; $('#paste-meld').hidden = true;
@@ -17526,7 +17551,9 @@ function kiAnbieter(v){
    die Liste abgerufen und nach einer Regel bewertet, statt einen
    Namen zu raten: höchste Versionsnummer zuerst, flash vor pro,
    Vorschauen und Experimente nur, wenn nichts Stabiles da ist. */
-const KI_MODELL_AUS = /embedding|aqa|imagen|veo|image-generation|-tts|native-audio|-live|gemma/i;
+/* 3.32.0: Positivliste statt Ausschlussliste. In die Liste kommen nur „gemini-Zahl-flash“
+   und „gemini-Zahl-flash-lite“ ohne weiteren Zusatz. */
+const KI_MODELL_MUSTER = /^(?:models\/)?gemini-\d+(?:\.\d+)?-flash(?:-lite)?$/;
 
 function kiModellPunkte(id){
   const n = String(id).replace(/^models\//, '');
@@ -17548,13 +17575,20 @@ function kiModellPunkte(id){
 function kiModellVersion(id){
   return parseFloat((String(id).match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || '0');
 }
-function kiIstLite(id){ return /lite|-8b/i.test(String(id)); }
 
 function kiModellAnzeige(m){
   if(m.displayName) return String(m.displayName).replace(/^Gemini\s*/i, '').trim() || String(m.displayName);
   return String(m.name || '').replace(/^models\/gemini-/, '').replace(/-/g, ' ');
 }
-function kiModelle(){ return Array.isArray(S.kiModelle) ? S.kiModelle : []; }
+/* 3.32.0: Eine ältere Liste kann noch Modelle außerhalb der Positiv-
+   liste enthalten (Argon, Transcribe). Sie fallen beim Lesen heraus;
+   neu gespeichert wird erst beim nächsten Holen. Empfohlen ist das
+   erste der übrigen. */
+function kiModelle(){
+  if(!Array.isArray(S.kiModelle)) return [];
+  return S.kiModelle.filter(m => m && KI_MODELL_MUSTER.test(m.id || ''))
+    .map((m, i) => Object.assign({}, m, {empfohlen:i === 0}));
+}
 function kiModellAktiv(){
   const l = kiModelle();
   if(!l.length) return null;
@@ -17562,17 +17596,177 @@ function kiModellAktiv(){
   return l[0];
 }
 
-async function kiFehlerText(r){
-  let m = '';
-  try{ const d = await r.json(); m = (d && d.error && d.error.message) || ''; try{ r._gk = d && d.error; }catch(e2){} }catch(e){}
-  const an = m ? ' Google meldet: ' + m : '';
-  if(r.status === 400) return 'Google hat die Anfrage abgelehnt (400). Meist ist der Schlüssel falsch kopiert.' + an;
+/* ── 3.32.0: Fehlertexte nennen das Modell ─────────────────────
+   Vorher stand bei jedem 400 „Meist ist der Schlüssel falsch kopiert“,
+   auch wenn Google etwas ganz anderes meldete. Und die Meldung stammte
+   vom letzten Ausweichmodell, während das Auswahlfeld das gewählte
+   zeigte. Jetzt steht das Modell im Satz, und vom Schlüssel ist nur
+   die Rede, wenn Google den Schlüssel ablehnt. */
+function kiNameVon(m){
+  if(!m) return '';
+  if(typeof m === 'object' && m.anzeige) return m.anzeige;
+  const id = typeof m === 'object' ? m.id : m;
+  const l = Array.isArray(S.kiModelle) ? S.kiModelle : [];
+  const da = l.find(x => x && x.id === id);
+  if(da && da.anzeige) return da.anzeige;
+  return String(id || '').replace(/^models\//, '').replace(/^gemini-/, '').replace(/-/g, ' ')
+    .replace(/\b([a-z])/g, c => c.toUpperCase());
+}
+/* Ein Modell ohne Gratis-Kontingent antwortet mit 429 und
+   „limit: 0, model: …“ (belegt im Google-Forum, Oktober 2026). */
+function kiNichtKostenlos(roh){
+  const t = typeof roh === 'string' ? roh : JSON.stringify(roh || {});
+  return /limit\W{0,3}0(?![\d.])/i.test(t) || /"quotaValue"\s*:\s*"0"/.test(t);
+}
+async function kiFehlerText(r, m){
+  let text = '', roh = null;
+  try{ const d = await r.json(); roh = (d && d.error) || null; text = (roh && roh.message) || ''; try{ r._gk = roh; }catch(e2){} }catch(e){}
+  const an = text ? ' Google meldet: ' + text : '';
+  const name = m ? kiNameVon(m) : '';
+  if(r.status === 400){
+    if(/api[ _-]?key/i.test(text + ' ' + JSON.stringify(roh || {})))
+      return 'Google lehnt den Schlüssel ab (400). Prüf ihn unter Mehr, Einstellungen, KI-Dienst.' + an;
+    return (name ? 'Google hat die Anfrage an ' + name + ' abgelehnt (400).' : 'Google hat die Anfrage abgelehnt (400).') + an;
+  }
   if(r.status === 401 || r.status === 403)
     return 'Der Schlüssel ist ungültig oder nicht freigeschaltet (' + r.status + ').' + an;
-  if(r.status === 404) return 'Dieses Modell gibt es nicht mehr (404). Hol die Modellliste in den Einstellungen neu.' + an;
-  if(r.status === 429) return 'Das kostenlose Kontingent ist für den Moment erschöpft (429). In ein paar Minuten noch einmal — oder heute über die Zwischenablage.' + an;
-  if(r.status === 500 || r.status === 503) return 'Google ist gerade überlastet (' + r.status + '). Gleich noch einmal versuchen.' + an;
-  return 'Die Anfrage ist fehlgeschlagen (' + r.status + ').' + an;
+  if(r.status === 404)
+    return (name ? name + ' gibt es bei Google nicht mehr (404).' : 'Google kennt die Adresse nicht (404).')
+      + ' Hol die Modellliste in den Einstellungen neu.' + an;
+  if(r.status === 429){
+    if(kiNichtKostenlos(roh || text))
+      return (name || 'Dieses Modell') + ' ist im kostenlosen Kontingent nicht enthalten (429). Es ist aus der Liste genommen.' + an;
+    return 'Das kostenlose Kontingent ' + (name ? 'von ' + name + ' ' : '')
+      + 'ist für den Moment erschöpft (429). In ein paar Minuten noch einmal — oder heute über die Zwischenablage.' + an;
+  }
+  if(r.status === 500 || r.status === 503)
+    return (name || 'Google') + ' ist gerade überlastet (' + r.status + '). Noch einmal versuchen oder ein anderes Modell wählen.' + an;
+  return 'Die Anfrage ' + (name ? 'an ' + name + ' ' : '') + 'ist fehlgeschlagen (' + r.status + ').' + an;
+}
+
+/* ── 3.32.0: Protokoll der Anfragen ────────────────────────────
+   Damit sich jede Zahl im Diagramm von Google AI Studio nachzählen
+   lässt: die letzten 20 Anfragen mit Zweck, Modell, Ergebnis und
+   Dauer. Eigenes Fach im lokalen Speicher, nicht in S — es gehört
+   nicht in die Sicherung. */
+const KI_PROTOKOLL_FACH = KEY + ':kiprotokoll';
+const KI_PROTOKOLL_MAX = 20;
+function kiProtokoll(){
+  try{
+    const l = JSON.parse(localStorage.getItem(KI_PROTOKOLL_FACH) || '[]');
+    return Array.isArray(l) ? l : [];
+  }catch(e){ return []; }
+}
+function kiProtokollEintragen(e){
+  const l = kiProtokoll();
+  const eintrag = Object.assign({zeit:Date.now(), zweck:'Frage', modell:'', ergebnis:'', dauer:0, zeichen:0, bilder:0, kb:0}, e || {});
+  eintrag.ergebnis = String(eintrag.ergebnis || '').slice(0, 200);
+  l.unshift(eintrag);
+  try{ localStorage.setItem(KI_PROTOKOLL_FACH, JSON.stringify(l.slice(0, KI_PROTOKOLL_MAX))); }catch(err){}
+  if(typeof kiProtokollZeichnen === 'function') kiProtokollZeichnen();
+}
+function kiZahlText(n){ return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function kiProtokollZeichnen(){
+  const box = document.getElementById('ki-protokoll');
+  if(!box) return;
+  const l = kiProtokoll();
+  const zahl = document.getElementById('ki-protokoll-zahl');
+  if(zahl) zahl.textContent = l.length ? '(' + l.length + ')' : '';
+  if(!l.length){ box.innerHTML = '<p class="fhint">Noch keine Anfrage.</p>'; return; }
+  const zwei = n => String(n).padStart(2, '0');
+  box.innerHTML = '<ol class="ki-prot">' + l.map(e => {
+    const d = new Date(e.zeit);
+    const zeit = zwei(d.getDate()) + '.' + zwei(d.getMonth() + 1) + '. '
+      + zwei(d.getHours()) + ':' + zwei(d.getMinutes()) + ':' + zwei(d.getSeconds());
+    const ok = e.ergebnis === 'ok';
+    const sek = (Math.round((e.dauer || 0) / 100) / 10).toString().replace('.', ',') + ' s';
+    const bild = e.bilder ? ' · ' + e.bilder + (e.bilder === 1 ? ' Bild, ' : ' Bilder, ') + kiZahlText(e.kb) + ' kB' : '';
+    return '<li class="' + (ok ? 'ok' : 'warn') + '"><b>' + esc(zeit + ' · ' + e.zweck + ' · ' + (kiNameVon(e.modell) || '—'))
+      + '</b><span>' + esc(e.ergebnis) + ' · ' + esc(sek) + ' · ' + kiZahlText(e.zeichen) + ' Zeichen' + esc(bild) + '</span></li>';
+  }).join('') + '</ol>';
+}
+
+/* ── 3.32.0: Nur Flash-Modelle, die kostenlos laufen ───────────
+   Positivliste statt Ausschlussliste: Neue Modellfamilien (Argon,
+   Transcribe, Nano Banana) rutschten sonst als Ausweichmodell durch.
+   Googles Modellliste sagt nicht, was kostenlos ist. Deshalb bekommt
+   beim Holen jedes Flash-Modell eine Mini-Anfrage — einmal je Modell,
+   nicht bei jeder Frage. */
+const KI_PRUEF_FRIST = 30000;
+let KI_PRUEF_AUS = [];
+function kiDenkCfg(id, stufe){
+  if(stufe !== 'niedrig' && stufe !== 'mittel') return null;
+  const gv = kiModellVersion(id), mittel = stufe === 'mittel';
+  if(gv >= 3) return {thinkingLevel: mittel ? 'medium' : 'low'};
+  if(gv >= 2.5) return {thinkingBudget: mittel ? 2048 : 512};
+  return null;
+}
+async function kiModellPruefen(k, m, alleIds){
+  const prompt = 'Antworte nur mit: ok';
+  const versuch = async mitDenken => {
+    const cfg = {temperature:0};
+    const dc = mitDenken ? kiDenkCfg(m.id, 'niedrig') : null;
+    if(dc) cfg.thinkingConfig = dc;
+    const t0 = Date.now();
+    const c = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const uhr = c ? setTimeout(()=>{ try{ c.abort(); }catch(e){} }, KI_PRUEF_FRIST) : null;
+    let r, d = null;
+    try{
+      r = await fetch(KI_BASIS + '/' + m.id + ':generateContent?key=' + encodeURIComponent(k), {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{role:'user', parts:[{text:prompt}]}], generationConfig:cfg}),
+        signal:c ? c.signal : undefined});
+      try{ d = await r.json(); }catch(e){ d = null; }
+    }catch(e){
+      if(uhr) clearTimeout(uhr);
+      const zeit = !!(e && e.name === 'AbortError');
+      kiProtokollEintragen({zweck:'Prüfung', modell:m.id, ergebnis:zeit ? 'Zeitgrenze' : 'keine Verbindung',
+        dauer:Date.now() - t0, zeichen:prompt.length});
+      return {status:0, netz:!zeit, dc:!!dc};
+    }
+    if(uhr) clearTimeout(uhr);
+    const fehler = (d && d.error) || null;
+    kiProtokollEintragen({zweck:'Prüfung', modell:m.id,
+      ergebnis:r.ok ? 'ok' : String(r.status) + (fehler && fehler.message ? ' · ' + fehler.message : ''),
+      dauer:Date.now() - t0, zeichen:prompt.length});
+    return {status:r.ok ? 200 : r.status, d:d, fehler:fehler, dc:!!dc};
+  };
+  let e = await versuch(true);
+  let denken = true;
+  /* Lehnt ein Modell die Denkstufe ab, einmal ohne. Das Ergebnis wird
+     gemerkt, damit es im Gebrauch nicht noch einmal passiert. */
+  if(e.status === 400 && e.dc && /think/i.test(JSON.stringify(e.fehler || ''))){
+    denken = false;
+    e = await versuch(false);
+  }
+  if(e.netz) return {netz:true};
+  if(e.status === 200){
+    /* Leitet Google ein altes Modell auf ein neues um, nennt die
+       Antwort das neue. Das alte stünde sonst doppelt in der Liste. */
+    const echt = String((e.d && e.d.modelVersion) || '').replace(/^models\//, '');
+    const gefragt = m.id.replace(/^models\//, '');
+    const ziel = echt && echt.indexOf(gefragt) !== 0
+      ? (alleIds || []).find(id => id !== m.id && echt.indexOf(id.replace(/^models\//, '')) === 0) : null;
+    if(ziel) return {frei:false, grund:'weitergeleitet auf ' + kiNameVon(ziel)};
+    return {frei:true, denken:denken};
+  }
+  if(e.status === 429)
+    return kiNichtKostenlos(e.fehler) ? {frei:false, grund:'nicht kostenlos'} : {frei:true, denken:denken};
+  if(e.status === 401 || e.status === 403) return {schluessel:true, status:e.status, fehler:e.fehler};
+  /* Überlastet oder zu langsam heißt nicht „kostenpflichtig“. */
+  if(e.status === 0 || e.status === 500 || e.status === 503) return {frei:true, denken:denken};
+  return {frei:false, grund:'Fehler ' + e.status};
+}
+function kiAusgeblendetText(){
+  if(!KI_PRUEF_AUS.length) return '';
+  return ' Ausgeblendet: ' + KI_PRUEF_AUS.map(x => x.anzeige + ' (' + x.grund + ')').join(', ') + '.';
+}
+function kiModellAusblenden(id){
+  if(!Array.isArray(S.kiModelle)) return;
+  S.kiModelle = S.kiModelle.filter(m => m && m.id !== id);
+  if(S.kiModell === id){ const l = kiModelle(); S.kiModell = l.length ? l[0].id : null; }
+  sichern();
+  if(typeof kiModellZeichnen === 'function') kiModellZeichnen();
 }
 
 async function kiModelleHolen(schluessel){
@@ -17588,74 +17782,50 @@ async function kiModelleHolen(schluessel){
   let d;
   try{ d = await r.json(); }catch(e){ throw new Error('Die Antwort von Google war nicht lesbar.'); }
   const roh = (d && d.models) || [];
-  const liste = roh
+  const kandidaten = roh
     .filter(m => (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0)
-    .filter(m => !KI_MODELL_AUS.test(m.name || ''))
+    .filter(m => KI_MODELL_MUSTER.test(m.name || ''))
     .map(m => ({id:m.name, anzeige:kiModellAnzeige(m), punkte:kiModellPunkte(m.name)}))
     .sort((a, b) => b.punkte - a.punkte);
+  if(!kandidaten.length)
+    throw new Error('Der Schlüssel funktioniert, aber Google bietet kein Flash-Modell an, das Bilder beantworten kann.');
+  const ids = kandidaten.map(m => m.id);
+  const erg = await Promise.all(kandidaten.map(m => kiModellPruefen(k, m, ids)));
+  if(erg.some(e => e.netz)) throw new Error(KI_NETZ);
+  const schl = erg.find(e => e.schluessel);
+  if(schl) throw new Error('Der Schlüssel ist ungültig oder nicht freigeschaltet (' + schl.status + ').'
+    + (schl.fehler && schl.fehler.message ? ' Google meldet: ' + schl.fehler.message : ''));
+  KI_PRUEF_AUS = kandidaten.map((m, i) => erg[i].frei ? null : {anzeige:m.anzeige, grund:erg[i].grund})
+    .filter(Boolean);
+  const liste = kandidaten.map((m, i) => erg[i].frei ? Object.assign({}, m, {denken:erg[i].denken}) : null)
+    .filter(Boolean);
   if(!liste.length)
-    throw new Error('Der Schlüssel funktioniert, aber es kam kein Modell zurück, das Bilder beantworten kann.');
-  S.kiModelle = liste.map((m, i) => ({id:m.id, anzeige:m.anzeige, empfohlen:i === 0}));
+    throw new Error('Keines der Flash-Modelle läuft mit diesem Schlüssel kostenlos.' + kiAusgeblendetText()
+      + ' Prüf in Google AI Studio, ob das Projekt im kostenlosen Kontingent ist.');
+  S.kiModelle = liste.map((m, i) => {
+    const o = {id:m.id, anzeige:m.anzeige, empfohlen:i === 0};
+    if(m.denken === false) o.denken = false;
+    return o;
+  });
   if(!S.kiModell || !S.kiModelle.some(m => m.id === S.kiModell)) S.kiModell = S.kiModelle[0].id;
   sichern();
   return S.kiModelle;
 }
 
 /* ── Die Anfrage ───────────────────────────────────────────────
-   Ein 503 heißt nicht „falscher Schlüssel“ und nicht „Bild zu groß“,
-   sondern: Google fehlt gerade die Rechenleistung. Das trifft Gratis-
-   wie Firmenkunden gleichermaßen und lässt sich vorher nicht
-   abfragen — die API kennt keinen Endpunkt für Auslastung. Man merkt
-   es erst beim Versuchen.
-
-   Neue Modelle bekommen anfangs wenig Kapazität, und ausgerechnet das
-   neueste schlägt die Empfehlungsregel vor. Deshalb zwei Notausgänge:
-   kurz nachfassen, und wenn das nicht hilft, eine Stufe zurück. */
+   3.32.0: Ein Tipp, eine Anfrage. Bis 3.31.0 fasste die App bei 503
+   und nach 30 Sekunden nach und wich danach auf zwei weitere Modelle
+   aus — bis zu vier Anfragen je Tipp, darunter Modelle ohne
+   Gratis-Kontingent und solche, die Google auf das erste zurück-
+   leitet. Eine Anfrage, die die App selbst abbricht, rechnet Google
+   trotzdem ab. Jetzt entscheidet der Nutzer: „Noch einmal“ oder
+   ein anderes Modell. */
 let KI_LAEUFT = null;
-/* Eine Anfrage darf nicht ewig laufen. Ohne Zeitgrenze wartete die App
-   unbegrenzt, wenn Google langsam antwortete statt „ueberlastet" zu
-   melden — vier Minuten vor einem drehenden Rad waren moeglich.
-   Mit Bildern dauert eine ehrliche Antwort selten laenger als 30 s. */
-const KI_FRIST_BILD = 30000;
-const KI_FRIST_TEXT = 15000;
-/* Nur noch ein Nachfassen, und nur beim ersten Modell. Ist das voll,
-   ist es meistens laenger voll — dann bringt Warten weniger als der
-   Wechsel. Frueher: zwei Wiederholungen je Modell mit 2 s und 6 s. */
-const KI_NACHFASSEN = [1500];         /* Wartezeit vor Versuch 2 */
-const KI_MERK_DAUER = 10 * 60 * 1000; /* so lange gilt ein Modell als voll */
-const KI_UEBERLASTET = {};            /* Modellkennung → Zeitpunkt */
-
-function kiUeberlastetMerken(id){ KI_UEBERLASTET[id] = Date.now(); }
-function kiIstUeberlastet(id){
-  const t = KI_UEBERLASTET[id];
-  return !!t && (Date.now() - t) < KI_MERK_DAUER;
-}
-
-/* Wohin ausgewichen wird. Die Liste ist bereits nach der
-   Empfehlungsregel sortiert, das nächste Modell ist also das
-   nächstältere — nicht irgendein altes. Zwei Bremsen: nie auf eine
-   Lite-Variante, weil die bei feinen Bildunterschieden abbaut, und
-   nie mehr als eine Generation zurück. Lieber eine ehrliche
-   Fehlermeldung als eine Antwort, der man nicht trauen kann. */
-function kiAusweichModelle(startId){
-  const liste = kiModelle();
-  const i = liste.findIndex(m => m.id === startId);
-  if(i < 0) return [];
-  const v0 = kiModellVersion(startId);
-  return liste.slice(i + 1)
-    .filter(m => !kiIstLite(m.id))
-    .filter(m => kiModellVersion(m.id) >= v0 - 1)
-    .filter(m => !kiIstUeberlastet(m.id))
-    .slice(0, 2);
-}
+/* Nur noch ein Sicherheitsnetz. Abbrechen kann jeder selbst. */
+const KI_FRIST = 120000;
 
 function warte(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-/* `ctrl`: Wer mehrere Anfragen gleichzeitig laufen lässt — die
-   Sammelprüfung tut das —, bringt seinen eigenen Abbrecher mit.
-   Sonst überschriebe jede neue Anfrage KI_LAEUFT, und kiAbbrechen
-   träfe nur die zuletzt gestartete. Ohne Argument bleibt alles,
-   wie es war. */
 /* Modelle, die eine Denkstufe abgelehnt haben (3.26.0). */
 const KI_DENKEN_AUS = {};
 /* Tageskontingent oder Minutenlimit? Google nennt es in den Details
@@ -17666,20 +17836,25 @@ function kiKontingentLesen(fehler, info){
   const w = roh.match(/retryDelay"?\s*:\s*"(\d+(?:\.\d+)?)s"/) || roh.match(/retry in (\d+(?:\.\d+)?)\s*s/i);
   if(w) fehler.warte = Math.min(300000, Math.ceil(parseFloat(w[1]) * 1000));
 }
-/* `opt` (3.26.0): {denken:'niedrig'} setzt eine niedrige Denkstufe,
-   {frist:ms} eine eigene Zeitgrenze. Ohne `opt` bleibt alles wie bisher. */
+/* `ctrl`: Wer mehrere Anfragen gleichzeitig laufen lässt — die
+   Sammelprüfung tut das —, bringt seinen eigenen Abbrecher mit.
+   `opt`: {denken:'niedrig'|'mittel'} Denkstufe, {frist:ms} eigene
+   Zeitgrenze, {zweck:'Anlegen'} für das Protokoll, {denkenNochmal:true}
+   fragt nach einer abgelehnten Denkstufe einmal ohne (nur Kartei). */
 async function kiFragen(prompt, bilder, modellId, ctrl, opt){
   opt = opt || {};
   const k = kiSchluessel();
   if(!k) throw new Error('Kein Schlüssel hinterlegt.');
   const m = modellId ? (kiModelle().find(x => x.id === modellId) || {id:modellId}) : kiModellAktiv();
   if(!m) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
+  const mit = (bilder || []).slice(0, KI_BILD_MAX);
   const teile = [{text:String(prompt || '')}];
-  (bilder || []).slice(0, KI_BILD_MAX).forEach(b => {
+  mit.forEach(b => {
     teile.push({inline_data:{mime_type:b.mime || 'image/jpeg', data:b.daten}});
   });
   const c = ctrl || ((typeof AbortController !== 'undefined') ? new AbortController() : null);
   if(!ctrl) KI_LAEUFT = c;
+  const fristMs = opt.frist || KI_FRIST;
   /* Die Frist bricht selbst ab. Damit der Aufrufer den Abbruch von
      einem Abbruch durch den Nutzer unterscheiden kann, wird er hier
      gemerkt und weiter unten in einen „voll"-Fehler uebersetzt. */
@@ -17687,16 +17862,23 @@ async function kiFragen(prompt, bilder, modellId, ctrl, opt){
   const uhr = c ? setTimeout(()=>{
     frist = true;
     try{ c.abort(); }catch(e){}
-  }, opt.frist || ((bilder && bilder.length) ? KI_FRIST_BILD : KI_FRIST_TEXT)) : null;
+  }, fristMs) : null;
   /* Denkstufe: Gemini 3 kennt thinkingLevel, 2.5 thinkingBudget. Der
      falsche Parameter gibt einen Fehler — deshalb nach Generation. */
   const genCfg = {temperature:0.2};
-  if((opt.denken === 'niedrig' || opt.denken === 'mittel') && !KI_DENKEN_AUS[m.id]){
-    const gv = kiModellVersion(m.id);
-    const mittel = opt.denken === 'mittel';
-    if(gv >= 3) genCfg.thinkingConfig = {thinkingLevel: mittel ? 'medium' : 'low'};
-    else if(gv >= 2.5) genCfg.thinkingConfig = {thinkingBudget: mittel ? 2048 : 512};
+  if(m.denken !== false && !KI_DENKEN_AUS[m.id]){
+    const dc = kiDenkCfg(m.id, opt.denken);
+    if(dc) genCfg.thinkingConfig = dc;
   }
+  const t0 = Date.now();
+  const prot = ergebnis => kiProtokollEintragen({zweck:opt.zweck || 'Frage', modell:m.id, ergebnis:ergebnis,
+    dauer:Date.now() - t0, zeichen:String(prompt || '').length, bilder:mit.length,
+    kb:Math.round(mit.reduce((n, b) => n + String((b && b.daten) || '').length * 0.75, 0) / 1024)});
+  const fristFehler = () => {
+    const f = new Error((kiNameVon(m) || 'Das Modell') + ' hat nicht rechtzeitig geantwortet (nach '
+      + Math.round(fristMs / 1000) + ' Sekunden).');
+    f.voll = true; f.modell = m.id; return f;
+  };
   let r;
   try{
     r = await fetch(KI_BASIS + '/' + m.id + ':generateContent?key=' + encodeURIComponent(k), {
@@ -17719,51 +17901,57 @@ async function kiFragen(prompt, bilder, modellId, ctrl, opt){
   }catch(e){
     if(uhr) clearTimeout(uhr);
     if(!ctrl) KI_LAEUFT = null;
-    if(frist){
-      const f = new Error('Das Modell hat nicht rechtzeitig geantwortet.');
-      f.voll = true; f.modell = m.id;
-      throw f;
-    }
-    if(e && e.name === 'AbortError') throw e;
-    throw new Error(KI_NETZ);
+    if(frist){ prot('Zeitgrenze'); throw fristFehler(); }
+    if(e && e.name === 'AbortError'){ prot('abgebrochen'); throw e; }
+    prot('keine Verbindung');
+    const f = new Error(KI_NETZ); f.modell = m.id;
+    throw f;
   }
   /* Die Frist läuft weiter, bis die Antwort gelesen ist (3.24.0). Vorher
      endete sie mit dem Kopf der Antwort, und ein stockender Rumpf hielt
      den Kartei-Balken unbegrenzt bei 85 %. */
-  const fristFehler = () => { const f = new Error('Das Modell hat nicht rechtzeitig geantwortet.');
-    f.voll = true; f.modell = m.id; return f; };
   const ende = () => { if(uhr) clearTimeout(uhr); if(!ctrl) KI_LAEUFT = null; };
   if(!r.ok){
     ende();
-    /* Lehnt das Modell die Denkstufe ab, einmal ohne sie (3.26.0). */
-    if(r.status === 400 && genCfg.thinkingConfig){
+    const fehler = new Error(await kiFehlerText(r, m));
+    const gk = r._gk || null;
+    prot(String(r.status) + (gk && gk.message ? ' · ' + gk.message : ''));
+    /* Lehnt das Modell die Denkstufe ab, wird es gemerkt. Noch einmal
+       ohne fragt nur, wer es ausdrücklich will (die Kartei). Sonst gilt
+       ein Tipp, eine Anfrage — der nächste Tipp geht ohne Denkstufe. */
+    if(r.status === 400 && genCfg.thinkingConfig && /think/i.test(JSON.stringify(gk || ''))){
       KI_DENKEN_AUS[m.id] = true;
-      return kiFragen(prompt, bilder, m.id, ctrl, opt);
+      if(opt.denkenNochmal) return kiFragen(prompt, bilder, m.id, ctrl, Object.assign({}, opt, {denkenNochmal:false}));
+      fehler.message = (kiNameVon(m) || 'Das Modell') + ' kennt die gewählte Denkstufe nicht. Noch einmal tippen, dann geht es ohne.';
     }
-    const fehler = new Error(await kiFehlerText(r));
-    if(r.status === 429) kiKontingentLesen(fehler, r._gk);
+    if(r.status === 429){
+      kiKontingentLesen(fehler, gk);
+      if(kiNichtKostenlos(gk || '')){ fehler.nichtKostenlos = true; kiModellAusblenden(m.id); }
+    }
     /* Der Aufrufer muss 503 von 400 unterscheiden können: das eine
        lohnt einen zweiten Versuch, das andere nie. */
     fehler.status = r.status;
-    fehler.voll = (r.status === 503 || r.status === 500 || r.status === 429);
+    fehler.voll = (r.status === 503 || r.status === 500 || r.status === 429) && !fehler.nichtKostenlos;
     fehler.modell = m.id;
     throw fehler;
   }
   let d;
   try{ d = await r.json(); }catch(e){
     ende();
-    if(frist) throw fristFehler();
-    if(e && e.name === 'AbortError') throw e;
+    if(frist){ prot('Zeitgrenze'); throw fristFehler(); }
+    if(e && e.name === 'AbortError'){ prot('abgebrochen'); throw e; }
+    prot('Antwort nicht lesbar');
     throw new Error('Die Antwort von Google war nicht lesbar.');
   }
   ende();
   const sperre = d && d.promptFeedback && d.promptFeedback.blockReason;
-  if(sperre) throw new Error('Google hat die Anfrage zurückgewiesen (' + sperre + ').');
+  if(sperre){ prot('zurückgewiesen · ' + sperre); throw new Error('Google hat die Anfrage zurückgewiesen (' + sperre + ').'); }
   const kand = ((d && d.candidates) || [])[0];
   const grund = kand && kand.finishReason;
   const txt = (kand && kand.content && Array.isArray(kand.content.parts))
     ? kand.content.parts.map(p => p.text || '').join('') : '';
   if(!String(txt).trim()){
+    prot('leere Antwort' + (grund ? ' · ' + grund : ''));
     throw new Error(grund === 'MAX_TOKENS'
       ? 'Die Antwort brach ab, bevor etwas Lesbares kam. Schick weniger Bilder mit.'
       : grund === 'SAFETY' ? 'Google hat die Antwort zurückgehalten (Sicherheitsfilter).'
@@ -17772,9 +17960,12 @@ async function kiFragen(prompt, bilder, modellId, ctrl, opt){
   /* Kam Text UND ein Abbruch, war die Antwort bisher stillschweigend
      halb — der Leser fand ein paar Felder und trug sie ein, der Rest
      fehlte ohne ein Wort. Ein Rest ist keine Antwort. */
-  if(grund === 'MAX_TOKENS')
+  if(grund === 'MAX_TOKENS'){
+    prot('abgeschnitten');
     throw new Error('Die Antwort wurde mittendrin abgeschnitten. '
       + 'Versuch es mit weniger Bildern oder einem anderen Modell.');
+  }
+  prot('ok');
   return txt;
 }
 function kiAbbrechen(){
@@ -17783,53 +17974,38 @@ function kiAbbrechen(){
 }
 let KI_ABGEBROCHEN = false;
 
-/* Zuerst dreimal dasselbe Modell mit wachsender Pause — kurze
-   Lastspitzen sind damit erledigt. Erst danach eine Stufe zurück.
-   Meldet der Aufrufer zurück, was unterwegs passiert, damit der
-   Nutzer nicht zwanzig Sekunden vor einem stummen Knopf sitzt. */
-async function kiFragenHartnaeckig(prompt, bilder, sagen){
+/* Genau eine Anfrage. `modellId` fragt einmalig ein anderes Modell
+   („Mit … versuchen“), ohne die Auswahl zu ändern. */
+async function kiFragenEinmal(prompt, bilder, modellId, opt){
   KI_ABGEBROCHEN = false;
-  const start = kiModellAktiv();
-  if(!start) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
-  const kette = [start].concat(kiAusweichModelle(start.id));
-  let letzter = null;
-
-  for(let mi = 0; mi < kette.length; mi++){
-    const m = kette[mi];
-    if(mi > 0){
-      if(sagen) sagen('Das Modell antwortet nicht. Ich versuche es mit ' + m.anzeige + ' …');
-      if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
-    }
-    /* Nachgefasst wird nur beim ersten Modell. Ab dem zweiten zaehlt
-       Tempo mehr als Beharrlichkeit — der Nutzer wartet schon. */
-    const versuche = mi === 0 ? KI_NACHFASSEN.length : 0;
-    for(let v = 0; v <= versuche; v++){
-      if(v > 0){
-        if(sagen) sagen('Google ist gerade voll. Zweiter Versuch in '
-          + Math.round(KI_NACHFASSEN[v - 1] / 1000) + ' Sekunden …');
-        await warte(KI_NACHFASSEN[v - 1]);
-        if(KI_ABGEBROCHEN) throw Object.assign(new Error('Abgebrochen.'), {name:'AbortError'});
-      }
-      try{
-        const txt = await kiFragen(prompt, bilder, m.id);
-        return {text:txt, modell:m, gewechselt:mi > 0};
-      }catch(e){
-        if(e && e.name === 'AbortError') throw e;
-        letzter = e;
-        if(!e.voll) throw e;          /* 400 wird durch Warten nicht besser */
-        kiUeberlastetMerken(m.id);
-        if(e.status === 429) break;   /* Kontingent: anderes Modell hilft nicht durch Warten */
-      }
-    }
-  }
-  if(letzter){
-    letzter.message = (letzter.message || '')
-      + (kette.length > 1
-          ? ' Auch ' + (kette.length - 1) + ' Ausweichmodell'
-            + (kette.length > 2 ? 'e waren' : ' war') + ' nicht frei.'
-          : '');
-  }
-  throw letzter || new Error('Die Anfrage ist fehlgeschlagen.');
+  const m = modellId ? kiModelle().find(x => x.id === modellId) : kiModellAktiv();
+  if(!m) throw new Error('Kein Modell gewählt. Hol die Modellliste in den Einstellungen.');
+  const txt = await kiFragen(prompt, bilder, m.id, null, opt);
+  return {text:txt, modell:m};
+}
+/* Das Modell für „Mit … versuchen“: das nächste in der Liste. Die
+   Liste enthält nur kostenlose Modelle. */
+function kiNaechstesModell(id){
+  const l = kiModelle();
+  const i = l.findIndex(m => m.id === id);
+  if(i < 0) return l[0] || null;
+  if(l.length < 2) return null;
+  return l[(i + 1) % l.length];
+}
+/* Knöpfe nach einem Fehlschlag. `attr` erzeugt die Datenattribute
+   des jeweiligen Bereichs (Anlegen und Doktor: data-do, Anzucht:
+   data-az). */
+function kiNochmalHTML(id, attr){
+  const l = kiModelle();
+  /* Ist das gescheiterte Modell aus der Liste geflogen (nicht
+     kostenlos), fragt „Noch einmal“ das ausgewählte. */
+  const noch = l.some(m => m.id === id) ? id : '';
+  const basis = noch || ((kiModellAktiv() || {}).id || '');
+  const alt = kiNaechstesModell(basis);
+  return '<span class="tools ki-nochmal">'
+    + '<button type="button" ' + attr('nochmal', noch) + '>Noch einmal</button>'
+    + (alt && alt.id !== basis ? '<button type="button" ' + attr('anders', alt.id) + '>Mit ' + esc(alt.anzeige) + ' versuchen</button>' : '')
+    + '</span>';
 }
 
 /* ── Bilder ──────────────────────────────────────────────────── */
@@ -17914,6 +18090,8 @@ document.addEventListener('click', e => {
   if(weg){ kiBildWeg(weg.dataset.kiwo, parseInt(weg.dataset.kibildWeg, 10) || 0); return; }
   const stop = e.target.closest('[data-do="ki-stop"]');
   if(stop){ kiAbbrechen(); return; }
+  const noch = e.target.closest('[data-do="ki-nochmal"],[data-do="ki-anders"]');
+  if(noch){ kiDirektLos(noch.dataset.kiwo, noch.dataset.kimodell || null); return; }
   const gal = e.target.closest('[data-kigal]');
   if(gal){
     const src = gal.dataset.kigal;
@@ -17975,6 +18153,7 @@ function kiSchluesselZeichnen(){
   const zeile = document.getElementById('ein-u-kidienst');
   if(zeile) zeile.textContent = da ? 'Schlüssel hinterlegt' : 'Noch kein Schlüssel';
   kiModellZeichnen();
+  kiProtokollZeichnen();
 }
 
 function kiKeyMeldung(txt, ton){
@@ -17993,23 +18172,34 @@ function kiDirektMeldung(wo, txt, ton){
 }
 
 /* Der Wartezustand ist gesprächig, weil das Warten sonst wie ein
-   Hänger aussieht: bei zwei Wiederholungen und einem Modellwechsel
-   vergeht eine gute Minute. */
+   Hänger aussieht. */
 function kiLaufText(wo, txt){
   const el = document.querySelector('#ki-lauf-' + wo + ' .kilauf-txt');
   if(el) el.textContent = txt;
 }
-function kiLaufZeigen(wo, laeuft){
+/* 3.32.0: Statt „nach dreißig steige ich um“ zählen die Sekunden
+   hoch. Die App bricht nicht mehr selbst ab und wechselt kein Modell. */
+const KI_UHREN = {};
+function kiLaufSatz(m, sek){
+  const name = kiNameVon(m || kiModellAktiv());
+  /* Geschütztes Leerzeichen: „12 s“ bricht nicht um. */
+  return (name ? 'Die Frage an ' + name + ' läuft' : 'Die Frage läuft') + ' · ' + sek + '\u00a0s';
+}
+function kiLaufZeigen(wo, laeuft, m){
   const p = document.getElementById('ki-lauf-' + wo);
   const knopf = document.getElementById(wo === 'anlegen' ? 'btn-gemini' : 'btn-dok-ki');
+  if(KI_UHREN[wo]){ clearInterval(KI_UHREN[wo]); delete KI_UHREN[wo]; }
   if(p){
     p.hidden = !laeuft;
     p.innerHTML = laeuft
       ? '<span class="kilauf"><span class="kispin"></span>'
-        + '<span class="kilauf-txt">Die Frage läuft. Mit Bildern dauert das gut zwanzig Sekunden. '
-        + 'Nach dreißig steige ich auf ein anderes Modell um.</span>'
+        + '<span class="kilauf-txt">' + esc(kiLaufSatz(m, 0)) + '</span>'
         + '<button type="button" data-do="ki-stop">Abbrechen</button></span>'
       : '';
+    if(laeuft){
+      const t0 = Date.now();
+      KI_UHREN[wo] = setInterval(()=>kiLaufText(wo, kiLaufSatz(m, Math.round((Date.now() - t0) / 1000))), 1000);
+    }
   }
   if(knopf){
     knopf.disabled = !!laeuft;
@@ -18081,6 +18271,19 @@ function kiZurEinrichtung(){
 }
 
 /* ── Der Lauf ────────────────────────────────────────────────── */
+/* 3.32.0: Nach einem Fehlschlag entscheidet der Nutzer: noch einmal
+   oder ein anderes Modell. Von selbst fragt die App nichts nach. */
+function kiFehlerKnoepfe(wo, id){
+  const p = document.getElementById('ki-lauf-' + wo);
+  if(!p) return;
+  p.hidden = false;
+  p.innerHTML = kiNochmalHTML(id, (was, mid) => 'data-do="ki-' + was + '" data-kiwo="' + wo + '"'
+    + (mid ? ' data-kimodell="' + esc(mid) + '"' : ''));
+}
+function kiFehlerKnoepfeWeg(wo){
+  const p = document.getElementById('ki-lauf-' + wo);
+  if(p && p.querySelector('.ki-nochmal')){ p.hidden = true; p.innerHTML = ''; }
+}
 /* Ein base64-Bild wieder zu einer Datei machen. Der Weg zurück ist
    nötig, weil fotosHinzu Dateien erwartet — dieselbe Funktion, die
    auch die Galerie füllt. */
@@ -18129,7 +18332,7 @@ function kiAntwortEinsetzen(wo, txt){
   if(knopf) knopf.click();
 }
 
-async function kiDirektLos(wo){
+async function kiDirektLos(wo, modellId){
   if(!kiBereit()){
     kiDirektMeldung(wo, 'Dafür fehlt noch der Schlüssel. Er steht unter Mehr, Einstellungen, KI-Dienst — das dauert eine Minute.', 'warn');
     return;
@@ -18153,25 +18356,29 @@ async function kiDirektLos(wo){
     return;
   }
   const prompt = wo === 'anlegen' ? anlegenPromptBauen() : dokPromptBauen();
+  /* 3.32.0: Beim Anlegen denkt das Modell nur kurz nach. */
+  const opt = wo === 'anlegen' ? {denken:'niedrig', zweck:'Anlegen'} : {zweck:'Doktor'};
+  const ziel = (modellId && kiModelle().find(x => x.id === modellId)) || kiModellAktiv();
   kiDirektMeldung(wo, '', '');
-  kiLaufZeigen(wo, true);
+  kiLaufZeigen(wo, true, ziel);
+  let fehler = null;
   try{
-    const erg = await kiFragenHartnaeckig(prompt, KI_BILDER[wo],
-      txt => kiLaufText(wo, txt));
+    const erg = await kiFragenEinmal(prompt, KI_BILDER[wo], ziel ? ziel.id : null, opt);
     kiAntwortEinsetzen(wo, erg.text);
     const n = wo === 'anlegen' ? kiBilderUebernehmen() : 0;
+    const anders = !!(modellId && erg.modell && S.kiModell !== erg.modell.id);
     kiDirektMeldung(wo, 'Antwort ist da und übernommen.'
-      + (erg.gewechselt ? ' Geantwortet hat ' + erg.modell.anzeige
-          + ', weil das gewählte Modell überlastet war.' : '')
+      + (anders ? ' Geantwortet hat ' + erg.modell.anzeige + '.' : '')
       + (n ? ' ' + (n === 1 ? 'Das Bild liegt' : 'Die ' + n + ' Bilder liegen')
              + ' schon in der Fotoauswahl — dort kannst du sie wieder herausnehmen.' : '')
       + ' Was in die Karte geht, steht unten zum Bestätigen.', 'ok');
   }catch(e){
     if(e && e.name === 'AbortError') kiDirektMeldung(wo, 'Abgebrochen.', '');
-    else kiDirektMeldung(wo, e.message || String(e), 'warn');
+    else { kiDirektMeldung(wo, e.message || String(e), 'warn'); fehler = e; }
   }finally{
     kiLaufZeigen(wo, false);
   }
+  if(fehler) kiFehlerKnoepfe(wo, fehler.modell || (ziel && ziel.id) || '');
 }
 
 /* ── Einrichtung unter Mehr ──────────────────────────────────── */
@@ -18198,7 +18405,7 @@ async function kiDirektLos(wo){
       feld.value = '';
       const m = kiModellAktiv();
       kiKeyMeldung('Der Schlüssel funktioniert. ' + kiModelle().length
-        + ' Modelle gefunden, vorausgewählt ist ' + (m ? m.anzeige : '—') + '.', 'ok');
+        + ' kostenlose Modelle gefunden, vorausgewählt ist ' + (m ? m.anzeige : '—') + '.' + kiAusgeblendetText(), 'ok');
       kiSchluesselZeichnen();
       kiModusZeigen();
       if(typeof mehrNebenzeilen === 'function') mehrNebenzeilen();
@@ -18236,11 +18443,11 @@ async function kiDirektLos(wo){
   if(hol) hol.onclick = async ()=>{
     if(!kiBereit()){ kiKeyMeldung('Erst einen Schlüssel eintragen.', 'warn'); return; }
     hol.disabled = true;
-    kiKeyMeldung('Modellliste wird geholt …', '');
+    kiKeyMeldung('Modellliste wird geholt und jedes Flash-Modell kurz geprüft …', '');
     try{
       await kiModelleHolen();
       const m = kiModellAktiv();
-      kiKeyMeldung(kiModelle().length + ' Modelle. Empfohlen und gesetzt: ' + (m ? m.anzeige : '—') + '.', 'ok');
+      kiKeyMeldung(kiModelle().length + ' kostenlose Modelle. Empfohlen und gesetzt: ' + (m ? m.anzeige : '—') + '.' + kiAusgeblendetText(), 'ok');
       kiModellZeichnen();
     }catch(err){ kiKeyMeldung(err.message || String(err), 'warn'); }
     finally{ hol.disabled = false; }
@@ -26979,7 +27186,7 @@ function azBestimmenStart(id){
   AZ_BEST = {gruppe:id, bild:null, erg:null, meldung:'', handweg:false, laeuft:false, artDa:false, sorteDa:false};
   azZeigen({art:'bestimmen'});
 }
-async function azBestimmenLos(){
+async function azBestimmenLos(modellId){
   const r = AZ_BEST && azGruppe(AZ_BEST.gruppe);
   if(!r || AZ_BEST.laeuft) return;
   const sag = t => { if(AZ_BEST){ AZ_BEST.meldung = t; if(AZ_SICHT.art === 'bestimmen') azZeichnen(); } };
@@ -26992,18 +27199,32 @@ async function azBestimmenLos(){
     return;
   }
   AZ_BEST.laeuft = true;
-  AZ_BEST.erg = null; AZ_BEST.artDa = false; AZ_BEST.sorteDa = false;
+  AZ_BEST.erg = null; AZ_BEST.artDa = false; AZ_BEST.sorteDa = false; AZ_BEST.fehlerModell = null;
   sag('Frage läuft …');
+  let uhr = null, ziel = null;
   try{
     if(!kiModelle().length) await kiModelleHolen();
-    const erg = await kiFragenHartnaeckig(azBestimmenAuftrag(r), [AZ_BEST.bild], sag);
+    ziel = (modellId && kiModelle().find(x => x.id === modellId)) || kiModellAktiv();
+    /* 3.32.0: Sekunden statt Modellwechsel. */
+    const t0 = Date.now();
+    sag(kiLaufSatz(ziel, 0));
+    uhr = setInterval(()=>{
+      if(!AZ_BEST) return;
+      AZ_BEST.meldung = kiLaufSatz(ziel, Math.round((Date.now() - t0) / 1000));
+      const el = document.getElementById('az-best-meld');
+      if(el) el.textContent = AZ_BEST.meldung;
+    }, 1000);
+    const erg = await kiFragenEinmal(azBestimmenAuftrag(r), [AZ_BEST.bild], ziel ? ziel.id : null,
+      {denken:'niedrig', zweck:'Anzucht'});
     AZ_BEST.erg = azBestimmenLesen(erg.text);
-    AZ_BEST.meldung = erg.gewechselt ? 'Geantwortet hat ' + erg.modell.anzeige + ', weil das gewählte Modell überlastet war.' : '';
+    AZ_BEST.meldung = (modellId && S.kiModell !== erg.modell.id) ? 'Geantwortet hat ' + erg.modell.anzeige + '.' : '';
   }catch(e){
     AZ_BEST.handweg = true;
+    if(!(e && e.name === 'AbortError')) AZ_BEST.fehlerModell = (e && e.modell) || (ziel && ziel.id) || '-';
     AZ_BEST.meldung = e && e.name === 'AbortError' ? 'Abgebrochen.'
       : ((e && e.message) || String(e)) + ' Du kannst es über Kopieren und Einfügen versuchen.';
   }finally{
+    if(uhr) clearInterval(uhr);
     AZ_BEST.laeuft = false;
     if(AZ_SICHT.art === 'bestimmen') azZeichnen();
   }
@@ -27039,6 +27260,9 @@ function azBestimmenHTML(){
     + '<input type="file" accept="image/*" capture="environment" hidden data-az-bfoto="1"></label></div>'
     + '<div class="tools"><button type="button" class="haupt" data-az="best-los"' + (!B.bild || B.laeuft ? ' disabled' : '') + '>Bestimmen</button></div>'
     + (B.meldung ? '<p class="az-still" id="az-best-meld">' + esc(B.meldung) + '</p>' : '')
+    + (B.laeuft ? '<div class="tools"><button type="button" data-do="ki-stop">Abbrechen</button></div>' : '')
+    + (B.fehlerModell && !B.laeuft ? kiNochmalHTML(B.fehlerModell, (was, mid) => 'data-az="best-' + was + '"'
+        + (mid ? ' data-kimodell="' + esc(mid) + '"' : '')) : '')
     + '<details class="kiprompt"' + (B.handweg ? ' open' : '') + '><summary>Ohne Schlüssel: kopieren und einfügen</summary>'
     + '<p class="az-still">Auftrag kopieren, zusammen mit dem Foto in Gemini stellen und die Antwort hier einfügen.</p>'
     + '<div class="tools"><button type="button" data-az="best-kopieren">Auftrag kopieren</button></div>'
@@ -27785,6 +28009,7 @@ document.addEventListener('click', e=>{
   if(a === 'frei-los'){ azFreiAnlegen(); return; }
   if(a === 'gruppe-speichern'){ azBearbeitenLos(k.dataset.r); return; }
   if(a === 'best-los'){ azBestimmenLos(); return; }
+  if(a === 'best-nochmal' || a === 'best-anders'){ azBestimmenLos(k.dataset.kimodell || null); return; }
   if(a === 'best-art' || a === 'best-sorte'){ azBestUebernehmen(a === 'best-art' ? 'art' : 'sorte'); render(); azZeichnen(); return; }
   if(a === 'best-kopieren'){
     const r = AZ_BEST && azGruppe(AZ_BEST.gruppe);
@@ -28349,7 +28574,7 @@ function karteiFormat(art){
    Bis zu fünf Pflanzen gleicher Art (alle mit oder alle ohne Foto) in
    einer Anfrage. Jeder Block der Antwort beginnt mit PFLANZE: <Nummer>. */
 const KARTEI_BUENDEL = 5;
-const KARTEI_FRIST_BUENDEL = 90000;
+const KARTEI_FRIST_BUENDEL = 120000;
 /* Wie eine Pflanze im Auftrag heißt: Art, botanischer Name, Sorte —
    nie der Spitzname (3.27.0). */
 function karteiBezeichnung(p){
@@ -28798,16 +29023,11 @@ async function karteiEineInnen(id){
   }
 }
 
-/* 503 nach den Wiederholungen: einmal das nächste Modell (3.27.0). */
+/* 3.32.0: Kein Ausweichen mehr auf ein anderes Modell. Die
+   Wiederholung je Pflanze in der Warteschlange bleibt. Lehnt ein
+   Modell die Denkstufe ab, fragt die Kartei einmal ohne. */
 async function karteiFragen(text, bilder, c, opt, gen){
-  try{ return await kiFragen(text, bilder, null, c, opt); }
-  catch(e){
-    if(!e || e.status !== 503 || (gen !== undefined && gen !== KARTEI_GEN)) throw e;
-    const m0 = (typeof kiModellAktiv === 'function') ? kiModellAktiv() : null;
-    const alt = m0 ? kiAusweichModelle(m0.id)[0] : null;
-    if(!alt) throw e;
-    return kiFragen(text, bilder, alt.id, c, opt);
-  }
+  return kiFragen(text, bilder, null, c, Object.assign({zweck:'Kartei', denkenNochmal:true}, opt || {}));
 }
 async function karteiBuendelFragen(ids){
   KARTEI_AKTIV++;
