@@ -4,6 +4,19 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.33.0 — 26. Oktober 2026
+**Richtige Art, schnelles Modell**
+
+### Anders
+- Beim Holen der Modellliste misst die App die Dauer jeder Prüfanfrage. Braucht sie länger als 15 Sekunden oder läuft sie in die Zeitgrenze, steht das Modell mit „(langsam)“ in der Auswahl und wird nicht vorausgewählt. Vorausgewählt ist das neueste schnelle Modell. War ein langsames gewählt, stellt „Neu holen“ auf das empfohlene um; eine schnelle Wahl von Hand bleibt. Die Meldung nach dem Holen nennt die langsamen Modelle.
+- Anlegen und „Kartei auffrischen“ bitten die KI, eine Kreuzung zweier Arten als Formel zu schreiben (Gattung art × art) und den Sortennamen nur unter Sorte.
+
+### Behoben
+- Beim Übernehmen einer KI-Antwort reichte ein Teiltreffer in der Bibliothek: Aus „Drosera“ wurde „Drosera capensis“, aus „Sonnentau“ der Kap-Sonnentau, mit dessen Licht, Gießklasse und Giftigkeit. Jetzt gilt die Bibliothek nur bei gleichem botanischem Namen (Sortenzusatz in Anführungszeichen zählt nicht) oder gleichem deutschen Namen, und nie bei einer Kreuzung. Sonst gelten die Angaben der KI.
+- Bei einer Kreuzung stand nur die Gattung im botanischen Namen.
+
+---
+
 ## 3.32.0 — 25. Oktober 2026
 **KI: eine Anfrage pro Tipp**
 

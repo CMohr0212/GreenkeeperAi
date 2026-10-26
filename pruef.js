@@ -158,7 +158,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.32.0', w.__T('FASSUNG') === '3.32.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.33.0', w.__T('FASSUNG') === '3.33.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -7016,7 +7016,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.32.0', e0.nr === '3.32.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.33.0', e0.nr === '3.33.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -10464,6 +10464,113 @@ setTimeout(async () => {
     T(`kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null; KI_BILDER.anlegen.length = 0`);
     T(`modalZu('anleg-modal')`);
     await tick();
+    w.fetch = fetch0;
+  }
+
+  /* ══ 3.33.0: Art richtig zuordnen, schnelles Modell empfehlen ══
+     „Drosera“ wurde per Teiltreffer zum Kap-Sonnentau, und 3.8 Flash
+     war empfohlen, obwohl seine Prüfanfrage in die Zeitgrenze lief. */
+  {
+    const T = c => w.__T(c);
+    const fetch0 = w.fetch;
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+    const haengt = pr => Promise.race([pr, new Promise((_, nein)=>setTimeout(()=>nein(new Error('hängt')), 5000))]);
+
+    /* Bibliothek nur bei genau dieser Art */
+    const anl = text => JSON.parse(T(`(function(){ alStart(); neuWegSetzen('ki');
+      document.getElementById('f-paste').value = ${JSON.stringify(text)};
+      document.getElementById('btn-paste-los').click();
+      return JSON.stringify({art:gewaehlteArt ? gewaehlteArt.bot : null, bot:document.getElementById('f-bot').value,
+        sonne:document.getElementById('f-sonne').value, sorte:document.getElementById('f-sorte').value}); })()`));
+    const g1 = anl('ART: Sonnentau\nBOTANISCH: Drosera\nLICHT: indirekt');
+    pruef('3.33.0: Nur die Gattung holt keine Art aus der Bibliothek', g1.art === null && g1.bot === 'Drosera', JSON.stringify(g1));
+    pruef('3.33.0: dann gilt das Licht der KI', g1.sonne === 'indirekt', g1.sonne);
+    const g2 = anl('ART: Sonnentau\nBOTANISCH: Drosera prolifera × schizandra\nSORTE: Andromeda | hoch\nSORTE_BELEG: breite, rundliche Blattspreiten, rote Tentakel\nLICHT: indirekt');
+    pruef('3.33.0: Eine Kreuzung holt keine Art aus der Bibliothek', g2.art === null && g2.sonne === 'indirekt', JSON.stringify(g2));
+    pruef('3.33.0: Die Kreuzungsformel bleibt im botanischen Namen', g2.bot === 'Drosera prolifera × schizandra', g2.bot);
+    pruef('3.33.0: Die Sorte steht in Sorte', g2.sorte === 'Andromeda', g2.sorte);
+    const g3 = anl('ART: Sonnentau\nBOTANISCH: Drosera prolifera x schizandra\nLICHT: indirekt');
+    pruef('3.33.0: Auch „x“ als Kreuzungszeichen holt nichts', g3.art === null && g3.bot === 'Drosera prolifera x schizandra', JSON.stringify(g3));
+    /* Eine Elternart steht in der Bibliothek: ohne Kreuzungsregel träfe „Drosera capensis“. */
+    const g3b = anl('ART: Sonnentau\nBOTANISCH: Drosera capensis \u00d7 aliciae\nLICHT: indirekt');
+    pruef('3.33.0: Auch wenn eine Elternart in der Bibliothek steht, holt die Kreuzung nichts', g3b.art === null && g3b.sonne === 'indirekt', JSON.stringify(g3b));
+    const g4 = anl('ART: Feige\nBOTANISCH: Ficus\nLICHT: hell');
+    pruef('3.33.0: „Ficus“ allein wird kein Gummibaum', g4.art === null, JSON.stringify(g4));
+    const g5 = anl('ART: Kap-Sonnentau\nBOTANISCH: Drosera capensis\nLICHT: indirekt');
+    pruef('3.33.0: Die genaue Art trifft weiter', g5.art === 'Drosera capensis' && g5.sonne === 'voll', JSON.stringify(g5));
+    const g6 = anl('ART: Kap-Sonnentau\nLICHT: indirekt');
+    pruef('3.33.0: Der genaue deutsche Name trifft weiter', g6.art === 'Drosera capensis', JSON.stringify(g6));
+    /* Eine Sorte, die nicht in der Bibliothek steht, und kein genauer deutscher Name. */
+    const g7 = anl("ART: Monstera\nBOTANISCH: Monstera deliciosa 'Pruefsorte'\nLICHT: hell");
+    pruef('3.33.0: Ein Sortenzusatz in Anführungszeichen stört nicht', g7.art === 'Monstera deliciosa', JSON.stringify(g7));
+    T(`modalZu('anleg-modal')`);
+    await tick();
+
+    /* Auftrag: Kreuzungen */
+    pruef('3.33.0: Der Anlege-Auftrag nennt die Kreuzungsformel',
+      /^BOTANISCH:.*Gattung art × art, etwa Drosera prolifera × schizandra/m.test(T('anlegenPromptBauen()')));
+    pruef('3.33.0: Der Kartei-Auftrag mit und ohne Foto auch',
+      /^BOTANISCH:.*Gattung art × art/m.test(T(`karteiFormat('foto')`)) && /^BOTANISCH:.*Gattung art × art/m.test(T(`karteiFormat('text')`)));
+    pruef('3.33.0: Das Antwortformat des Doktors bleibt wortgleich',
+      T('ANTWORT_FORMAT').indexOf('Gattung art') === -1 && T('GEMINI_PROMPT').indexOf('Gattung art') === -1);
+
+    /* Modell nach Tempo */
+    const echtJetzt = w.Date.now.bind(w.Date);
+    w.__plus = 0;
+    w.Date.now = () => echtJetzt() + w.__plus;
+    w.__langsam = {};
+    const modell = name => ({name:'models/' + name,
+      displayName:'Gemini ' + name.replace('gemini-', '').split('-').map(x => x.charAt(0).toUpperCase() + x.slice(1)).join(' '),
+      supportedGenerationMethods:['generateContent']});
+    w.fetch = (u, o) => {
+      const url = String(u);
+      if(url.indexOf('/models?') > -1) return Promise.resolve({ok:true, status:200, json:()=>Promise.resolve({models:
+        ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite'].map(modell)})});
+      const m = (url.match(/models\/([^:]+):/) || [])[1];
+      const lahm = !!w.__langsam[m];
+      return new Promise(res => setTimeout(() => {
+        if(lahm) w.__plus += 20000;
+        res({ok:true, status:200, json:()=>Promise.resolve({candidates:[{finishReason:'STOP', content:{parts:[{text:'ok'}]}}]})});
+      }, lahm ? 80 : 10));
+    };
+    T(`kiSchluesselSetzen('${ATTRAPPE_ECHT}'); S.kiModelle = null; S.kiModell = 'models/gemini-3.8-flash'`);
+    w.__langsam = {'gemini-3.8-flash':true};
+    await haengt(T('kiModelleHolen()'));
+    const l1 = JSON.parse(T('JSON.stringify(kiModelle())'));
+    pruef('3.33.0: Eine Prüfung über 15 s macht das Modell langsam',
+      l1.length === 3 && l1[0].langsam === true && !l1[1].langsam && !l1[2].langsam, JSON.stringify(l1));
+    pruef('3.33.0: Empfohlen ist das neueste schnelle Modell', l1[1].empfohlen === true && !l1[0].empfohlen, JSON.stringify(l1));
+    pruef('3.33.0: Eine langsame Wahl wird umgestellt', T('S.kiModell') === 'models/gemini-3.6-flash', T('S.kiModell'));
+    T('kiModellZeichnen()');
+    const opt = Array.from(d.querySelector('.ki-modell-wahl').options).map(o => o.textContent);
+    pruef('3.33.0: In der Auswahl steht „(langsam)“, das Häkchen beim schnellen',
+      opt[0] === '3.8 Flash (langsam)' && opt[1] === '3.6 Flash ✓', JSON.stringify(opt));
+    pruef('3.33.0: Die Meldung nennt das langsame Modell',
+      /Langsam, nicht vorausgewählt: 3\.8 Flash\./.test(T('kiAusgeblendetText()')), T('kiAusgeblendetText()'));
+    T(`S.kiModell = 'models/gemini-3.5-flash-lite'`);
+    await haengt(T('kiModelleHolen()'));
+    pruef('3.33.0: Eine schnelle Wahl von Hand bleibt', T('S.kiModell') === 'models/gemini-3.5-flash-lite', T('S.kiModell'));
+    w.__langsam = {'gemini-3.8-flash':true, 'gemini-3.6-flash':true, 'gemini-3.5-flash-lite':true};
+    T(`S.kiModell = null`);
+    await haengt(T('kiModelleHolen()'));
+    const l3 = JSON.parse(T('JSON.stringify(kiModelle())'));
+    pruef('3.33.0: Sind alle langsam, ist das neueste empfohlen und gesetzt',
+      l3[0].empfohlen === true && T('S.kiModell') === 'models/gemini-3.8-flash', JSON.stringify(l3));
+    w.Date.now = echtJetzt;
+
+    /* Zeitgrenze bei der Prüfung heißt langsam, nicht kostenpflichtig */
+    T(`(function(){ window.__st3 = window.setTimeout;
+      window.setTimeout = function(f, ms){ return window.__st3(f, Math.min(ms || 0, 60)); }; return 1; })()`);
+    w.fetch = (u, o) => new Promise((ja, nein) => {
+      o.signal.addEventListener('abort', () => nein(Object.assign(new Error('ab'), {name:'AbortError'}))); });
+    let zp = null;
+    try{ zp = await haengt(T(`kiModellPruefen('${ATTRAPPE_ECHT}', {id:'models/gemini-3.8-flash', anzeige:'3.8 Flash'}, [])`)); }catch(e){ zp = {fehler:String(e.message || e)}; }
+    T(`(function(){ window.setTimeout = window.__st3; return 1; })()`);
+    pruef('3.33.0: Läuft die Prüfung in die Zeitgrenze, ist das Modell frei, aber langsam',
+      !!zp && zp.frei === true && zp.langsam === true, JSON.stringify(zp));
+
+    w.localStorage.removeItem(T('KI_PROTOKOLL_FACH'));
+    T(`kiSchluesselSetzen(''); S.kiModelle = null; S.kiModell = null`);
     w.fetch = fetch0;
   }
 

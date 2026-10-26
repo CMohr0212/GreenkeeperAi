@@ -5592,6 +5592,34 @@ function bibSuche(q, max){ return bibSucheWert(q, max).map(t=>t.a); }
 function bibTreffer(q, max){ return bibSucheWert(q, max||5); }
 const SICHERER_TREFFER = 300;
 
+/* 3.33.0: Beim Übernehmen einer KI-Antwort gilt die Bibliothek nur
+   für genau diese Art. Vorher reichte ein Teiltreffer: „Drosera“ ist
+   der Anfang von „Drosera capensis“, „Sonnentau“ steckt in
+   „Kap-Sonnentau“ — und eine Andromeda bekam volle Sonne. Eine
+   Kreuzung (×) übernimmt nie Werte einer ihrer Elternarten. */
+function bibKreuzung(bot){ return /\u00d7|\s[x]\s/i.test(' ' + String(bot || '') + ' '); }
+function bibExakt(bot, art){
+  const b = String(bot || '').trim();
+  if(b && bibKreuzung(b)) return null;
+  if(b){
+    if(BIB_NACH_BOT[b]) return BIB_NACH_BOT[b];
+    /* Sortenzusatz in Anführungszeichen und Klammern zählen nicht. */
+    const kern = norm(b.replace(/\([^()]*\)/g, ' ')
+      .replace(/['"\u201e\u201c\u201a\u2018\u2019\u201d][^'"\u201e\u201c\u201a\u2018\u2019\u201d]*['"\u201e\u201c\u201a\u2018\u2019\u201d]?/g, ' '))
+      .split(' ').slice(0, 2).join(' ');
+    if(kern.indexOf(' ') > 0){
+      const t = BIB.find(a => norm(a.bot) === kern);
+      if(t) return t;
+    }
+  }
+  const a = norm(art);
+  if(a){
+    const t = BIB.find(x => norm(x.de) === a || norm(x.bot) === a);
+    if(t) return t;
+  }
+  return null;
+}
+
 function verwechslungFuer(bot){
   const raus = [];
   VERWECHSLUNG.forEach(([gruppe, arten])=>{
@@ -6053,6 +6081,7 @@ function anlegenFormat(){
      nicht fragt. Gemini hat über den Widerspruch nachgedacht. */
   f = f.replace(' und ein bis drei MASSNAHME-Zeilen', '');
   if(typeof formatZeileErgaenzen === 'function'){
+    f = formatZeileErgaenzen(f, 'BOTANISCH', KI_KREUZUNG_REGEL);
     f = formatZeileErgaenzen(f, 'MERKMALE', KI_MERKMALE_REGEL);
     f = formatZeileErgaenzen(f, 'LICHT', KI_LICHT_PANASCHIERT);
   }
@@ -6061,6 +6090,9 @@ function anlegenFormat(){
 /* Zusätze für Anlegen und Kartei (3.27.0). */
 const KI_MERKMALE_REGEL = 'Nur Merkmale der Sorte: Farbe, Muster, Blattform. Nie Größe, Alter, Zustand oder dass es ein Steckling ist.';
 const KI_LICHT_PANASCHIERT = 'Bei einer panaschierten Sorte gilt der Lichtbedarf der Sorte, nicht der Art — weniger Blattgrün braucht mehr Licht.';
+/* 3.33.0: Kreuzungen bekamen bisher nur die Gattung, weil die Zeile
+   sagt „Bist du dir nur bei der Gattung sicher, nenne nur die Gattung“. */
+const KI_KREUZUNG_REGEL = 'Ist die Pflanze eine Kreuzung zweier Arten, schreib sie als Gattung art \u00d7 art, etwa Drosera prolifera \u00d7 schizandra, auch wenn du die Sorte erkennst. Einen Sortennamen wie Andromeda schreibst du nur in SORTE.';
 
 /* Zur Sicherheit: Stellen, die den Prompt ohne Kontext brauchen. */
 const GEMINI_PROMPT = ANLEGEN_KOPF + '\n\n' + ANTWORT_FORMAT;
@@ -10559,7 +10591,7 @@ function pflanzeEntfernen(id){
         <span class="ki-empf ki-modell-abz" hidden>empfohlen</span>
         <button id="btn-ki-modelle" type="button">Neu holen</button>
       </div>
-      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. In der Liste stehen nur Flash-Modelle, die mit deinem Schlüssel kostenlos laufen; das prüft die App beim Holen mit je einer kurzen Anfrage. Vorausgewählt ist das neueste (Häkchen). Meldet Google „überlastet“, kannst du direkt ein anderes Modell versuchen. Von selbst wechselt die App nicht, weil jeder Versuch dein Kontingent kostet.</p>
+      <p class="fhint">Die Liste kommt von Google und wechselt mit jeder Modellgeneration — deshalb steht in dieser App kein Modellname fest eingebaut. In der Liste stehen nur Flash-Modelle, die mit deinem Schlüssel kostenlos laufen; das prüft die App beim Holen mit je einer kurzen Anfrage und misst dabei das Tempo. Braucht ein Modell dafür länger als 15 Sekunden, steht es mit „(langsam)“ da. Vorausgewählt ist das neueste schnelle (Häkchen). Meldet Google „überlastet“, kannst du direkt ein anderes Modell versuchen. Von selbst wechselt die App nicht, weil jeder Versuch dein Kontingent kostet.</p>
 
       <details class="ki-prot-box">
         <summary>Letzte Anfragen <span id="ki-protokoll-zahl"></span></summary>
@@ -11219,7 +11251,7 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '3.32.0';
+const FASSUNG = '3.33.0';
 /* Unter Mehr stehen nur die letzten zehn Fassungen, alle weiteren im
    CHANGELOG. `sicherung:true` heißt: Diese Fassung löscht alte Daten
    und verlangt vorher eine Sicherung. Der neueste so markierte Eintrag
@@ -11227,6 +11259,22 @@ const FASSUNG = '3.32.0';
    Fassung die Kennung trägt. */
 const CHANGELOG_URL = REPO_URL + '/blob/HEAD/CHANGELOG.md';
 const PATCHNOTES = [
+  {
+    nr: '3.33.0', datum: '2026-10-26', titel: 'Richtige Art, schnelles Modell',
+    kurz: [
+      'Die Bibliothek gibt ihre Werte nur noch, wenn genau diese Art in ihr steht. Aus „Drosera“ wird kein Kap-Sonnentau mehr.',
+      'Kreuzungen stehen als Formel im botanischen Namen, etwa Drosera prolifera × schizandra; der Sortenname steht in Sorte.',
+      'Langsame Modelle stehen mit „(langsam)“ in der Liste und werden nicht mehr vorausgewählt. Hol die Liste einmal neu.'
+    ],
+    besser: [
+      'Beim Holen der Modellliste misst die App das Tempo jedes Modells. Braucht die Prüfanfrage länger als 15 Sekunden, steht das Modell mit „(langsam)“ da. Vorausgewählt ist das neueste schnelle; war ein langsames gewählt, stellt „Neu holen“ um.',
+      'Die KI schreibt Kreuzungen zweier Arten als Formel, auch beim Auffrischen der Kartei.'
+    ],
+    behoben: [
+      'Eine KI-Antwort mit nur der Gattung oder einem allgemeinen deutschen Namen bekam die Werte einer bestimmten Art aus der Bibliothek, etwa „Drosera“ die volle Sonne des Kap-Sonnentaus. Jetzt gelten in diesem Fall die Angaben der KI.',
+      'Bei einer Kreuzung stand nur die Gattung im botanischen Namen.'
+    ]
+  },
   {
     nr: '3.32.0', datum: '2026-10-25', titel: 'KI: eine Anfrage pro Tipp',
     kurz: [
@@ -11391,21 +11439,6 @@ const PATCHNOTES = [
     ],
     behoben: [
       'Jede Pflanze mit Winterruhe bekam den Text der Venusfliegenfalle. Steht ein eigener Text da, gilt jetzt dieser.'
-    ]
-  },
-  {
-    nr: '3.24.0', datum: '2026-09-21', titel: 'Kartei: Kreuzen statt Anhaken',
-    kurz: [
-      'Im Abgleich-Fenster kreuzt du weg, was nicht passt, und übernimmst den Rest mit einem Tipp.'
-    ],
-    besser: [
-      'Die Kästchen im Abgleich-Fenster sind weg. Jede Zeile hat nur noch ihr ×, unten steht „Übrige übernehmen“ mit Anzahl.',
-      'Angaben, die du selbst gesetzt hast, sind deutlicher markiert. Sie gehen beim Übernehmen mit, wenn du sie nicht wegkreuzt.'
-    ],
-    behoben: [
-      'Beim Anlegen konnte ein Sortenname der KI im botanischen Namen landen, etwa „Brasil“. Er steht jetzt nur noch als unsichere Vermutung unter dem Feld Sorte.',
-      'Eine stockende Antwort hielt den Kartei-Balken unbegrenzt kurz vor dem Ziel. Die Zeitgrenze gilt jetzt, bis die Antwort ganz gelesen ist.',
-      'Ein Foto, das nicht lädt, hält den Kartei-Lauf nicht mehr an. Nach zehn Sekunden geht die Anfrage ohne Bild.'
     ]
   }
 ];
@@ -17586,8 +17619,11 @@ function kiModellAnzeige(m){
    erste der übrigen. */
 function kiModelle(){
   if(!Array.isArray(S.kiModelle)) return [];
-  return S.kiModelle.filter(m => m && KI_MODELL_MUSTER.test(m.id || ''))
-    .map((m, i) => Object.assign({}, m, {empfohlen:i === 0}));
+  const l = S.kiModelle.filter(m => m && KI_MODELL_MUSTER.test(m.id || ''));
+  /* 3.33.0: empfohlen ist das erste schnelle Modell, sonst das erste. */
+  let e = l.findIndex(m => !m.langsam);
+  if(e < 0) e = 0;
+  return l.map((m, i) => Object.assign({}, m, {empfohlen:i === e}));
 }
 function kiModellAktiv(){
   const l = kiModelle();
@@ -17693,7 +17729,13 @@ function kiProtokollZeichnen(){
    beim Holen jedes Flash-Modell eine Mini-Anfrage — einmal je Modell,
    nicht bei jeder Frage. */
 const KI_PRUEF_FRIST = 30000;
+/* 3.33.0: Braucht die Prüfanfrage länger, gilt das Modell als langsam.
+   15 s, weil 3.1 Flash Lite bei der Prüfung 11,5 s brauchte, die echte
+   Frage aber nur 9,1 s; 3.8 Flash lief in die Zeitgrenze und brauchte
+   für die echte Frage 115 s (Protokoll vom 26.10.2026). */
+const KI_LANGSAM_MS = 15000;
 let KI_PRUEF_AUS = [];
+let KI_PRUEF_LANGSAM = [];
 function kiDenkCfg(id, stufe){
   if(stufe !== 'niedrig' && stufe !== 'mittel') return null;
   const gv = kiModellVersion(id), mittel = stufe === 'mittel';
@@ -17722,14 +17764,15 @@ async function kiModellPruefen(k, m, alleIds){
       const zeit = !!(e && e.name === 'AbortError');
       kiProtokollEintragen({zweck:'Prüfung', modell:m.id, ergebnis:zeit ? 'Zeitgrenze' : 'keine Verbindung',
         dauer:Date.now() - t0, zeichen:prompt.length});
-      return {status:0, netz:!zeit, dc:!!dc};
+      return {status:0, netz:!zeit, zeit:zeit, dauer:Date.now() - t0, dc:!!dc};
     }
     if(uhr) clearTimeout(uhr);
     const fehler = (d && d.error) || null;
+    const dauer = Date.now() - t0;
     kiProtokollEintragen({zweck:'Prüfung', modell:m.id,
       ergebnis:r.ok ? 'ok' : String(r.status) + (fehler && fehler.message ? ' · ' + fehler.message : ''),
-      dauer:Date.now() - t0, zeichen:prompt.length});
-    return {status:r.ok ? 200 : r.status, d:d, fehler:fehler, dc:!!dc};
+      dauer:dauer, zeichen:prompt.length});
+    return {status:r.ok ? 200 : r.status, d:d, fehler:fehler, dc:!!dc, dauer:dauer};
   };
   let e = await versuch(true);
   let denken = true;
@@ -17740,6 +17783,7 @@ async function kiModellPruefen(k, m, alleIds){
     e = await versuch(false);
   }
   if(e.netz) return {netz:true};
+  const langsam = !!e.zeit || (e.dauer || 0) > KI_LANGSAM_MS;
   if(e.status === 200){
     /* Leitet Google ein altes Modell auf ein neues um, nennt die
        Antwort das neue. Das alte stünde sonst doppelt in der Liste. */
@@ -17748,18 +17792,18 @@ async function kiModellPruefen(k, m, alleIds){
     const ziel = echt && echt.indexOf(gefragt) !== 0
       ? (alleIds || []).find(id => id !== m.id && echt.indexOf(id.replace(/^models\//, '')) === 0) : null;
     if(ziel) return {frei:false, grund:'weitergeleitet auf ' + kiNameVon(ziel)};
-    return {frei:true, denken:denken};
+    return {frei:true, denken:denken, langsam:langsam};
   }
   if(e.status === 429)
-    return kiNichtKostenlos(e.fehler) ? {frei:false, grund:'nicht kostenlos'} : {frei:true, denken:denken};
+    return kiNichtKostenlos(e.fehler) ? {frei:false, grund:'nicht kostenlos'} : {frei:true, denken:denken, langsam:langsam};
   if(e.status === 401 || e.status === 403) return {schluessel:true, status:e.status, fehler:e.fehler};
   /* Überlastet oder zu langsam heißt nicht „kostenpflichtig“. */
-  if(e.status === 0 || e.status === 500 || e.status === 503) return {frei:true, denken:denken};
+  if(e.status === 0 || e.status === 500 || e.status === 503) return {frei:true, denken:denken, langsam:langsam};
   return {frei:false, grund:'Fehler ' + e.status};
 }
 function kiAusgeblendetText(){
-  if(!KI_PRUEF_AUS.length) return '';
-  return ' Ausgeblendet: ' + KI_PRUEF_AUS.map(x => x.anzeige + ' (' + x.grund + ')').join(', ') + '.';
+  return (KI_PRUEF_LANGSAM.length ? ' Langsam, nicht vorausgewählt: ' + KI_PRUEF_LANGSAM.join(', ') + '.' : '')
+    + (KI_PRUEF_AUS.length ? ' Ausgeblendet: ' + KI_PRUEF_AUS.map(x => x.anzeige + ' (' + x.grund + ')').join(', ') + '.' : '');
 }
 function kiModellAusblenden(id){
   if(!Array.isArray(S.kiModelle)) return;
@@ -17797,17 +17841,23 @@ async function kiModelleHolen(schluessel){
     + (schl.fehler && schl.fehler.message ? ' Google meldet: ' + schl.fehler.message : ''));
   KI_PRUEF_AUS = kandidaten.map((m, i) => erg[i].frei ? null : {anzeige:m.anzeige, grund:erg[i].grund})
     .filter(Boolean);
-  const liste = kandidaten.map((m, i) => erg[i].frei ? Object.assign({}, m, {denken:erg[i].denken}) : null)
+  const liste = kandidaten.map((m, i) => erg[i].frei ? Object.assign({}, m, {denken:erg[i].denken, langsam:!!erg[i].langsam}) : null)
     .filter(Boolean);
+  KI_PRUEF_LANGSAM = liste.filter(m => m.langsam).map(m => m.anzeige);
   if(!liste.length)
     throw new Error('Keines der Flash-Modelle läuft mit diesem Schlüssel kostenlos.' + kiAusgeblendetText()
       + ' Prüf in Google AI Studio, ob das Projekt im kostenlosen Kontingent ist.');
-  S.kiModelle = liste.map((m, i) => {
-    const o = {id:m.id, anzeige:m.anzeige, empfohlen:i === 0};
+  S.kiModelle = liste.map(m => {
+    const o = {id:m.id, anzeige:m.anzeige};
     if(m.denken === false) o.denken = false;
+    if(m.langsam) o.langsam = true;
     return o;
   });
-  if(!S.kiModell || !S.kiModelle.some(m => m.id === S.kiModell)) S.kiModell = S.kiModelle[0].id;
+  /* Vorausgewählt ist das neueste schnelle Modell. Eine schnelle
+     Wahl von Hand bleibt, eine langsame wird umgestellt. */
+  const empf = kiModelle().find(m => m.empfohlen);
+  const jetzt = S.kiModelle.find(m => m.id === S.kiModell);
+  if(!jetzt || (jetzt.langsam && empf && !empf.langsam)) S.kiModell = empf ? empf.id : S.kiModelle[0].id;
   sichern();
   return S.kiModelle;
 }
@@ -18132,7 +18182,7 @@ function kiModellZeichnen(){
     sel.innerHTML = liste.length
       ? liste.map(m => '<option value="' + esc(m.id) + '"'
           + (aktiv && m.id === aktiv.id ? ' selected' : '') + '>'
-          + esc(m.anzeige) + (m.empfohlen ? ' \u2713' : '') + '</option>').join('')
+          + esc(m.anzeige) + (m.langsam ? ' (langsam)' : '') + (m.empfohlen ? ' \u2713' : '') + '</option>').join('')
       : '<option value="">'
         + (kiBereit() ? 'Modellliste noch nicht geholt' : 'Erst Schlüssel eintragen') + '</option>';
     sel.disabled = !liste.length;
@@ -18824,12 +18874,9 @@ $('#btn-paste-los').onclick = ()=>{
     return;
   }
   const uebernommen = [];
-  /* Nur sichere Treffer übernehmen. Eine reine Tippfehler-Ähnlichkeit
-     würde sonst aus „Nonexistus fictus“ einen Ficus machen. */
-  const sicher = q => { const t = bibTreffer(q, 1)[0]; return t && t.s >= SICHERER_TREFFER ? t.a : null; };
-  let treffer = d.bot && BIB_NACH_BOT[d.bot] ? BIB_NACH_BOT[d.bot] : null;
-  if(!treffer && d.bot) treffer = sicher(d.bot);
-  if(!treffer && d.art) treffer = sicher(d.art);
+  /* 3.33.0: nur genau diese Art (bibExakt). Ein Teil- oder
+     Tippfehler-Treffer machte aus einer Gattung eine bestimmte Art. */
+  const treffer = bibExakt(d.bot, d.art);
   if(treffer){
     artWaehlen(treffer.bot);
     /* Der von der KI genannte botanische Name ist oft genauer als der
@@ -28555,6 +28602,7 @@ function karteiFormat(art){
   format = format.replace(' und ein bis drei MASSNAHME-Zeilen', '');
   if(typeof formatZeileErgaenzen === 'function'){
     const wie = 'Steht oben der Text meiner Karte dazu und stimmt er inhaltlich, schreib genau: wie Karte';
+    format = formatZeileErgaenzen(format, 'BOTANISCH', KI_KREUZUNG_REGEL);
     format = formatZeileErgaenzen(format, 'WICHTIG', wie);
     format = formatZeileErgaenzen(format, 'PFLEGE', wie);
     format = formatZeileErgaenzen(format, 'WINTERRUHE', wie);
