@@ -158,7 +158,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 3.33.0', w.__T('FASSUNG') === '3.33.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 3.34.0', w.__T('FASSUNG') === '3.34.0', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -295,22 +295,27 @@ setTimeout(async () => {
   await zu('gift-modal');
   pruef('nach Aufheben schließt es', stapel().length === 0);
 
-  const knopf = d.querySelector('[data-design-go="klartext"]');
-  w.__T("modalAuf('gift-modal', document.querySelector('[data-design-go=\\'klartext\\']'))");
+  /* 3.34.0 (wie beta.2): Ein sichtbarer Auslöser. jsdom 30.1 fokussiert
+     nichts in einem versteckten Bereich, und der Designknopf liegt in
+     einem eingeklappten Mehr-Bereich. */
+  const knopf = d.createElement('button'); knopf.id = 'fokus-ausloeser'; knopf.textContent = 'Test';
+  d.body.appendChild(knopf);
+  w.__T("modalAuf('gift-modal', document.getElementById('fokus-ausloeser'))");
   await zu('gift-modal');
   pruef('Fokus kehrt zum Auslöser zurück', d.activeElement === knopf, d.activeElement && d.activeElement.id);
   /* 3.28.1: Sofort wieder geschlossen — der verzoegerte Titelfokus darf
      danach nicht mehr in das versteckte Fenster springen. */
-  w.__T("modalAuf('gift-modal', document.querySelector('[data-design-go=\\'klartext\\']')); _modalWeg('gift-modal');");
+  w.__T("modalAuf('gift-modal', document.getElementById('fokus-ausloeser')); _modalWeg('gift-modal');");
   await tick();
   pruef('Sofort geschlossen: Fokus bleibt am Auslöser', d.activeElement === knopf, d.activeElement && (d.activeElement.id || d.activeElement.tagName));
+  knopf.remove();
   try{ w.history.back(); }catch(e){}
   await tick();
 
   /* Abschnittsfenster */
   const keys = ['doktor','giessplan','substrat','vermehren','stammbaum','grundriss',
-                'sicherung','urlaub','tiere','rundgang','ansicht','tour','rueck','install','melde','patch'];
-  pruef('16 Abschnitte auffindbar',
+                'sicherung','urlaub','tiere','rundgang','ansicht','rueck','install','melde','patch'];
+  pruef('15 Abschnitte auffindbar',
     keys.every(k => w.__T(`!!sekAbschnitt('${k}')`)),
     keys.filter(k => !w.__T(`!!sekAbschnitt('${k}')`)).join(','));
 
@@ -350,7 +355,7 @@ setTimeout(async () => {
       if (!sec.querySelector('.wz-in')) kaputt.push(k + '(verloren)');
     } catch (e) { kaputt.push(k + ': ' + e.message); }
   }
-  pruef('alle 17 öffnen und hängen zurück', kaputt.length === 0, kaputt.join(' | '));
+  pruef('alle Abschnitte öffnen und hängen zurück', kaputt.length === 0, kaputt.join(' | '));
 
   /* Der Inhalt darf beim Öffnen nicht neu gebaut werden. */
   w.__T("sektionOeffnen('melde')");
@@ -369,7 +374,7 @@ setTimeout(async () => {
   pruef('Reiterwechsel schließt', !w.__T("modalOffen('sek-modal')"));
 
   /* Migration: die drei Schlüssel müssen weg sein. */
-  w.__T("S.wzOffen='doktor'; S.mehrOffen='tour'; S.ansichtAlles=true; grundwerteErgaenzen();");
+  w.__T("S.wzOffen='doktor'; S.mehrOffen='install'; S.ansichtAlles=true; grundwerteErgaenzen();");
   pruef('alte Schlüssel entfernt',
     w.__T("!('wzOffen' in S) && !('mehrOffen' in S) && !('ansichtAlles' in S)"));
 
@@ -590,15 +595,10 @@ setTimeout(async () => {
   pruef('Wetterabschnitt öffnet', w.__T("sektionOeffnen('wetter')") === true);
   await zu('sek-modal');
 
-  /* ══════════ 2.9.9 — Tour und Kartenfenster ══════════ */
+  /* ══════════ 2.9.9 — Kartenfenster (Tour seit 3.34.0 entfernt) ══════════ */
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
 
-  const tourBox = d.getElementById('tour');
-  /* Beim Öffnen eines Abschnitts startet sonst von allein ein Kapitel
-     und steht dem gezielten Durchlauf weiter unten im Weg. */
-  w.__T('if(typeof tourLauf !== "undefined" && tourLauf) tourSchliessen();');
-  w.__T('S.tutorial = {aus:true, kapitel:{}, einricht:0}; sichern();');
 
   /* Eine Pflanze anlegen, damit es eine Karte gibt. */
   w.__T("S.plants = S.plants || []; if(!allePflanzen().length){ S.plants.push({id:'p1', name:'Probe', art:'Monstera', klasse:'mittel', angelegt:new Date().toISOString()}); sichern(); render(); }");
@@ -606,28 +606,19 @@ setTimeout(async () => {
   const pid = w.__T('allePflanzen()[0].id');
   pruef('Probepflanze steht', !!pid, pid);
 
-  /* — Fenstersperre nimmt die Tour aus — */
+  /* — Fenstersperre — */
   w.__T("sektionOeffnen('doktor')");
   await tick();
   pruef('Doktorfenster offen', w.__T("modalOffen('sek-modal')") === true);
-  pruef('Tour bleibt bedienbar', !tourBox.hasAttribute('inert'));
   pruef('Seite ist gesperrt',
     d.querySelector('.wrap') ? d.querySelector('.wrap').hasAttribute('inert') : true);
   await zu('sek-modal');
-  pruef('nach dem Schließen niemand mehr gesperrt', !tourBox.hasAttribute('inert'));
+  pruef('nach dem Schließen niemand mehr gesperrt',
+    !(d.querySelector('.wrap') && d.querySelector('.wrap').hasAttribute('inert')));
 
-  /* — Tourziele lösen in der Fensterwelt auf — */
-  const zielDa = (kap, i) => w.__T(
-    `(function(){ const s = TOUR_KAPITEL['${kap}'].schritte()[${i}];
-       if(!s) return 'kein Schritt';
-       if(s.fenster && !modalOffen(s.fenster)) return 'Fenster zu';
-       try{ return s.ziel() ? 'da' : 'fehlt'; }catch(e){ return 'Fehler: ' + e.message; } })()`);
 
   pruef('Kartenfenster öffnet', w.__T(`karteOeffnen('${pid}')`) === true);
   await tick();
-  ['schnell', 'ktabs', 'acc', 'Fertig'].forEach((n, i) => {
-    pruef('Karte · Schritt ' + (i+1) + ' (' + n + ')', zielDa('karte', i) === 'da', zielDa('karte', i));
-  });
   /* Die feste Leiste unter dem Kopf ist leer: die Karte beginnt mit
      dem Bild, die Handlungen stehen darunter im Fluss. */
   pruef('Feste Leiste ist leer geräumt',
@@ -712,13 +703,9 @@ setTimeout(async () => {
     !d.querySelector('#karte-modal [data-do="karte-zu-oben"]'));
   pruef('„Fertig" ist da', !!d.getElementById('karte-zu'));
   await zu('karte-modal');
-  pruef('Kartenschritt ohne Fenster hat kein Ziel', zielDa('karte', 0) === 'Fenster zu');
 
   w.__T("sektionOeffnen('doktor')");
   await tick();
-  [0,1,2].forEach(i => {
-    pruef('Doktor · Schritt ' + (i+1), zielDa('doktor', i) === 'da', zielDa('doktor', i));
-  });
 
   /* Der Doktor war der einzige Assistent, der seine Stufen stapelte:
      jede erledigte blieb stehen, und am Ende scrollte man durch vier
@@ -947,9 +934,6 @@ setTimeout(async () => {
 
   w.__T("sektionOeffnen('substrat')");
   await tick();
-  [0,1,2].forEach(i => {
-    pruef('Substrat · Schritt ' + (i+1), zielDa('substrat', i) === 'da', zielDa('substrat', i));
-  });
   await zu('sek-modal');
 
   /* Der Rechner wurde einmal beim Start aufgebaut. Da sind die Fotos
@@ -1037,62 +1021,14 @@ setTimeout(async () => {
 
   w.__T("sektionOeffnen('sicherung')");
   await tick();
-  [0,1,2].forEach(i => {
-    pruef('Sicherung · Schritt ' + (i+1), zielDa('sicherung', i) === 'da', zielDa('sicherung', i));
-  });
   await zu('sek-modal');
 
-  /* Kein Schritt zeigt mehr in die alte Inline-Welt. */
-  const alteZiele = w.__T(`(function(){
-    const treffer = [];
-    Object.keys(TOUR_KAPITEL).forEach(k=>{
-      let ss = []; try{ ss = TOUR_KAPITEL[k].schritte() || []; }catch(e){ return; }
-      ss.forEach((s, i)=>{
-        const q = String(s.ziel);
-        if(q.indexOf('.card.open') !== -1 || q.indexOf('.wz-i') !== -1) treffer.push(k + '#' + (i+1));
-      });
-    });
-    return treffer.join(', '); })()`);
-  pruef('keine Ziele mehr in der alten Inline-Welt', alteZiele === '', alteZiele);
-
-  /* — Ein Kapitel wirklich durchlaufen — */
-  w.__T('if(tourLauf) tourSchliessen();');
-  w.__T('S.tutorial = {aus:false, kapitel:{}, einricht:0}; sichern();');
-  pruef('Kartenfenster öffnet erneut', w.__T(`karteOeffnen('${pid}')`) === true);
-  await tick();
-  pruef('Tour startet', w.__T("tourStart('karte')") === true);
-  await tick();
-  pruef('Tourkasten sichtbar', tourBox.hidden === false);
-  pruef('Tour steht auf Schritt 1', w.__T('tourLauf.i') === 0);
-  d.getElementById('tour-weiter').click();
-  await tick();
-  pruef('„Weiter" geht einen Schritt vor', w.__T('tourLauf.i') === 1, w.__T('tourLauf.i'));
-  pruef('Fenster steht noch offen', w.__T("modalOffen('karte-modal')") === true);
-  d.getElementById('tour-weiter').click();
-  await tick();
-  d.getElementById('tour-weiter').click();
-  await tick();
-  pruef('bis zum letzten Schritt', w.__T('tourLauf.i') === 3, w.__T('tourLauf.i'));
-  d.getElementById('tour-zurueck').click();
-  await tick();
-  pruef('„Zurück" geht auch', w.__T('tourLauf.i') === 2, w.__T('tourLauf.i'));
-  w.__T('tourAbbruch()');
-  await tick();
-  pruef('Tour weg', w.__T('tourLauf') === null && tourBox.hidden === true);
-  await zu('karte-modal');
-
-  /* — Esc gehört erst der Tour — */
+  /* — Esc schließt das Fenster — */
   pruef('Fenster für Esc-Probe', w.__T(`karteOeffnen('${pid}')`) === true);
   await tick();
-  w.__T("tourStart('karte')");
-  await tick();
   d.dispatchEvent(new w.KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
   await tick();
-  pruef('Esc beendet die Tour', w.__T('tourLauf') === null);
-  pruef('Esc lässt das Fenster stehen', w.__T("modalOffen('karte-modal')") === true);
-  d.dispatchEvent(new w.KeyboardEvent('keydown', {key:'Escape', bubbles:true}));
-  await tick();
-  pruef('zweites Esc schließt das Fenster', w.__T("modalOffen('karte-modal')") === false);
+  pruef('Esc schließt das Fenster', w.__T("modalOffen('karte-modal')") === false);
 
   /* — Abhakkästchen — */
   const tickRegel = w.__T(`(function(){
@@ -1104,15 +1040,12 @@ setTimeout(async () => {
   pruef('Kästchen quadratisch', /\.tick-btn\{[^}]*width:22px;height:22px/.test(tickRegel));
   pruef('Kästchen mit Trefffläche', tickRegel.indexOf('.tick-btn::before') !== -1);
   pruef('Klartext größer', tickRegel.indexOf('html[data-design="klartext"] .tick-btn{width:26px') !== -1);
-  pruef('Tour liegt über den Fenstern',
-    tickRegel.indexOf('#tour{position:fixed;inset:0;z-index:300') !== -1);
+  pruef('3.34.0: Kein Stil mehr für die Tour', tickRegel.indexOf('#tour{') === -1);
 
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
 
   /* ══════════ 2.9.10 — Shortcuts, Sprung, „Noch feucht" ══════════ */
-  w.__T('if(tourLauf) tourSchliessen();');
-  w.__T('S.tutorial = {aus:true, kapitel:{}, einricht:0}; sichern();');
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
 
@@ -1161,27 +1094,6 @@ setTimeout(async () => {
   await tick();
   pruef('Reiterwechsel schließt weiterhin', w.__T("modalOffen('sek-modal')") === false);
 
-  /* — „Ansehen" springt in den Bereich — */
-  const sprung = async (k) => {
-    w.__T('if(tourLauf) tourSchliessen();');
-    w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
-    await tick();
-    w.__T(`tourHin('${k}')`);
-    await tick();
-    return w.__T('JSON.stringify({a:S.ansicht, sek:_sekOffen?_sekOffen.key:null, stapel:MODAL_STAPEL})');
-  };
-  pruef('Sprung Doktor', JSON.parse(await sprung('doktor')).sek === 'doktor');
-  pruef('Sprung Substrat', JSON.parse(await sprung('substrat')).sek === 'substrat');
-  pruef('Sprung Sicherung', JSON.parse(await sprung('sicherung')).sek === 'sicherung');
-  pruef('Sprung Vermehren', JSON.parse(await sprung('vermehren')).sek === 'vermehren');
-  pruef('Sprung Grundriss', JSON.parse(await sprung('grundriss')).sek === 'grundriss');
-  pruef('Sprung Mehr', JSON.parse(await sprung('mehr')).a === 'mehr');
-  pruef('Sprung Sammlung', JSON.parse(await sprung('sammlung')).a === 'sammlung');
-  const sk = JSON.parse(await sprung('karte'));
-  pruef('Sprung Karte öffnet eine Karte', sk.stapel.indexOf('karte-modal') !== -1, JSON.stringify(sk));
-  pruef('jedes Kapitel kennt seinen Weg', w.__T(`
-    Object.keys(TOUR_KAPITEL).filter(k => k !== 'einricht' && k !== 'plan'
-      && typeof TOUR_KAPITEL[k].hin !== 'function').join(',')`) === '');
 
   /* ══ Overlays behalten ihre Verankerung ═══════════════════════
      In 2.9.28 hob eine Regel fuer den Hintergrund alle Body-Kinder
@@ -1191,7 +1103,7 @@ setTimeout(async () => {
      unbenutzbar, und keine der 610 Pruefungen schlug an \u2014 jsdom
      rechnet kein Layout, aber die Kaskade rechnet es sehr wohl. */
   {
-    const overlays = ['willkommen','tour','giessmodus','rundgang','urlaub-blatt',
+    const overlays = ['willkommen','giessmodus','rundgang','urlaub-blatt',
                       'karte-modal','sek-modal','lightbox','foto-modal',
                       'gift-modal','neu-modal'];
     ['botanisch','klartext','terrarium'].forEach(dz => {
@@ -1307,34 +1219,10 @@ setTimeout(async () => {
     w.__T("modalZu('karte-modal')"); await tick();
     pruef('Kartenfenster schlie\u00dft', !w.__T("modalOffen('karte-modal')"));
 
-    /* Die Runde von vorn bis hinten. Sie wechselt dabei viermal die
-       Ansicht \u2014 genau daran ist sie zuerst gescheitert. */
-    /* Fruehere Pruefungen haben Kapitel durchlaufen lassen; „runde"
-       gilt danach als gesehen und tourStart verweigert. Zuruecksetzen. */
-    w.__T("const _t = tourZustand(); _t.aus = false; delete _t.kapitel.runde; sichern()");
-    w.__T("tourStart('runde')"); await tick();
-    pruef('Die Runde startet', !!w.__T('tourLauf'),
-      'aus=' + String(w.__T('tourZustand().aus'))
-      + ' noetig=' + String(w.__T("tourNoetig('runde')")));
-    pruef('Der Deckel liegt auf', d.getElementById('tour').hidden === false);
-    for(let i = 0; i < 5; i++){
-      d.getElementById('tour-weiter').click();
-      await tick();
-      if(!w.__T('tourLauf')) break;
-    }
-    pruef('Sie \u00fcbersteht den Ansichtswechsel', !!w.__T('tourLauf'),
-      'nach Schritt ' + String(w.__T('tourLauf && tourLauf.i')));
-    pruef('Sie ist \u00fcber Heute hinaus',
-      w.__T('tourLauf && tourLauf.i') >= 2,
-      String(w.__T('tourLauf && tourLauf.i')));
-    w.__T('tourAbbruch()'); await tick();
-    pruef('Sie r\u00e4umt sich weg', d.getElementById('tour').hidden === true);
-    pruef('Kein Deckel bleibt liegen', !w.__T('tourLauf'));
-
-    /* Nach der Tour muss alles weiter bedienbar sein */
+    /* 3.34.0: Die Tour ist weg; Reiter und Fenster bleiben bedienbar. */
     w.__T("ansichtZeigen('werkzeuge')"); await tick();
-    pruef('Reiter nach der Tour erreichbar', d.body.dataset.ansicht === 'werkzeuge');
-    pruef('Fenster nach der Tour bedienbar', w.__T("sektionOeffnen('doktor')") === true);
+    pruef('Reiter erreichbar', d.body.dataset.ansicht === 'werkzeuge');
+    pruef('Fenster bedienbar', w.__T("sektionOeffnen('doktor')") === true);
     w.__T("modalZu('sek-modal')"); await tick();
     w.__T("ansichtZeigen('heute')"); await tick();
   }
@@ -2198,14 +2086,12 @@ setTimeout(async () => {
       const modal = zahl(/\.modal\{[^}]*z-index:(\d+)/);
       const sekm  = zahl(/\.sekm\{[^}]*z-index:(\d+)/);
       const wk    = zahl(/\.wk\{[^}]*z-index:(\d+)/);
-      const tour  = zahl(/#tour\{[^}]*z-index:(\d+)/);
       pruef('Alle Schichten sind auffindbar',
-        modal && sekm && wk && tour,
-        JSON.stringify({modal, sekm, wk, tour}));
+        modal && sekm && wk,
+        JSON.stringify({modal, sekm, wk}));
       pruef('Ein Fenster liegt \u00fcber dem Sektionsfenster', modal > sekm,
         modal + ' gegen ' + sekm);
       pruef('und \u00fcber der Werkzeugansicht', modal > wk, modal + ' gegen ' + wk);
-      pruef('Die Tour liegt weiter dar\u00fcber', tour > modal, tour + ' gegen ' + modal);
       pruef('Die Sonderregel f\u00fcrs Vollbild wird nicht mehr gebraucht',
         html.indexOf('body.vollbild .modal') === -1);
     }
@@ -2919,111 +2805,56 @@ setTimeout(async () => {
     await tick();
   }
 
-  /* ══ App Tour ══════════════════════════════════════════════════
-     Frueher startete auf jedem Reiter und beim ersten Oeffnen jedes
-     Bereichs ungefragt ein Kapitel. Jetzt gibt es eine Runde, die man
-     holt — und Kapitel, die nur auf Anforderung laufen. */
+  /* ══ 3.34.0: App Tour entfernt ══════════════════════════════
+     Chris: Die Tour behindert die Nutzung. Sie ist ganz entfernt:
+     kein Overlay, keine Kapitel, kein Start nach dem Willkommen, kein
+     Angebot, kein Punkt unter Mehr. Gespeicherte Merker bleiben liegen. */
   {
-    pruef('Die Runde ist ein eigenes Kapitel', !!w.__T('TOUR_KAPITEL.runde'));
-    pruef('Sie hat sieben Schritte',
-      w.__T('TOUR_KAPITEL.runde.schritte().length') === 7,
-      String(w.__T('TOUR_KAPITEL.runde.schritte().length')));
-    pruef('Jeder Schritt hat Titel und Text',
-      w.__T(`TOUR_KAPITEL.runde.schritte().every(s=>s.titel && s.text)`));
-    pruef('Jeder Schritt hat ein Ziel',
-      w.__T(`TOUR_KAPITEL.runde.schritte().every(s=>typeof s.ziel === 'function')`));
-    /* Bei leerer Sammlung darf nichts ins Leere zeigen — darum die
-       Komma-Fallbacks auf die Leerstart-Karte. */
-    pruef('Der Sammlungs-Schritt hat einen Ausweichweg',
-      /,/.test(w.__T('String(TOUR_KAPITEL.runde.schritte()[2].ziel)')));
-    pruef('Der Schlussschritt ebenso',
-      /,/.test(w.__T('String(TOUR_KAPITEL.runde.schritte()[6].ziel)')));
-
-    /* Kein Kapitel startet mehr von selbst */
-    pruef('Ansichtswechsel l\u00f6st nichts aus',
-      w.__T('tourAnsichtPruefen("werkzeuge")') === undefined
-      && !w.__T('!!tourLauf'));
-    w.__T("ansichtZeigen('werkzeuge')"); await tick();
-    pruef('Werkzeuge-Reiter startet keine Tour', !w.__T('!!tourLauf'));
-    w.__T("ansichtZeigen('mehr')"); await tick();
-    pruef('Mehr-Reiter startet keine Tour', !w.__T('!!tourLauf'));
-    pruef('Erstes \u00d6ffnen eines Bereichs auch nicht',
-      w.__T('tourNachOeffnen("substrat")') === undefined && !w.__T('!!tourLauf'));
-    w.__T("sektionOeffnen('substrat')"); await tick();
-    pruef('Der Substratmischer bleibt unverstellt', !w.__T('!!tourLauf'));
-    w.__T("modalZu('sek-modal')"); await tick();
-    pruef('Kein card-btn-Listener mehr in der Quelle',
-      html.indexOf("e.target.closest('.card-btn')") === -1);
-
-    /* Willkommen */
-    pruef('Willkommen hat keine Bereichsliste mehr',
-      !d.querySelector('[data-wk="1"] .wk-liste'));
-    pruef('Der Hauptknopf hei\u00dft „Kurze Runde durch die App\u201c',
-      d.querySelector('[data-wkfertig="1"]').textContent.trim() === 'Kurze Runde durch die App',
-      d.querySelector('[data-wkfertig="1"]').textContent.trim());
-    pruef('Der Nebenknopf hei\u00dft „Selbst umsehen\u201c',
-      d.querySelector('[data-wk="4"] [data-wkfertig="0"]').textContent.trim() === 'Selbst umsehen');
+    pruef('3.34.0: Kein Tour-Overlay im Dokument', !d.getElementById('tour'));
+    pruef('3.34.0: Keine Tour-Kapitel mehr',
+      w.__T('typeof TOUR_KAPITEL') === 'undefined' && w.__T('typeof tourStart') === 'undefined');
+    pruef('3.34.0: Kein Aufruf von tourStart in der Quelle', html.indexOf('tourStart(') === -1);
+    pruef('3.34.0: Kein Punkt „App Tour“ unter Mehr',
+      !d.querySelector('section[data-mh="tour"]') && !d.getElementById('tour-liste'));
+    pruef('3.34.0: Gruppe App ohne Tour',
+      w.__T("JSON.stringify(MH_GRUPPEN.find(g=>g.titel==='App').punkte)") === '["sicherung","einstell","install"]',
+      w.__T("JSON.stringify(MH_GRUPPEN.find(g=>g.titel==='App').punkte)"));
+    pruef('3.34.0: Willkommen hat keinen Knopf zur Runde',
+      !d.querySelector('[data-wkfertig="1"]'));
+    const los = d.querySelector('[data-wk="4"] [data-wkfertig="0"]');
+    pruef('3.34.0: Der letzte Schritt heißt „Loslegen“',
+      !!los && los.textContent.trim() === 'Loslegen', los ? los.textContent.trim() : 'fehlt');
+    pruef('3.34.0: Kein Hinweis auf „Mehr › App Tour“ im Willkommen',
+      !/App Tour/.test(d.getElementById('willkommen').textContent));
     pruef('Die Haustier-Frage bleibt', !!d.querySelector('[data-wk="2"] [data-wktiere]'));
     pruef('Die Grundriss-Frage bleibt', !!d.querySelector('[data-wk="3"] [data-wkplan]'));
 
-    /* Rueckweg-Hinweise an jedem Ausgang */
-    const hinweisAuf = el => el && /Mehr\s*\u203a\s*App Tour/.test(el.textContent);
-    pruef('Willkommen Schritt 1 nennt den R\u00fcckweg',
-      hinweisAuf(d.querySelector('[data-wk="1"]')));
-    pruef('Willkommen Schritt 4 nennt den R\u00fcckweg',
-      hinweisAuf(d.querySelector('[data-wk="4"]')));
-    pruef('Der Schlussschritt der Runde nennt ihn',
-      /Mehr \u203a App Tour/.test(w.__T('TOUR_KAPITEL.runde.schritte()[6].text')));
-    pruef('Der \u00dcberspringen-Knopf nennt ihn',
-      html.indexOf('Du findest die Runde jederzeit unter Mehr \u203a App Tour wieder.') !== -1);
-
-    /* Ersteinrichtung bleibt, startet aber nie von allein */
-    pruef('Die Ersteinrichtung ist noch da', !!w.__T('TOUR_KAPITEL.einricht'));
-    pruef('Sie ist weiterhin ein Sperrablauf',
-      w.__T('TOUR_KAPITEL.einricht.modus') === 'sperre');
-    pruef('wkFertig startet die Runde, nicht die Einrichtung',
-      html.indexOf("requestAnimationFrame(()=>tourStart('runde'))") !== -1
-      && html.indexOf("if(tourNoetig('einricht')) requestAnimationFrame(()=>tourStart('einricht'))") === -1);
-
-    /* Bestandsnutzer: ein Angebot, dann nie wieder */
-    pruef('Der Angebotskasten existiert', !!d.getElementById('runde-angebot'));
+    /* Bestandsnutzer bekommen kein Angebot mehr */
     w.__T("S.startGesehen = iso(HEUTE); S.rundeAngeboten = null; sichern(); rundeAngebotZeichnen()");
-    pruef('Das Angebot erscheint einmal',
-      d.getElementById('runde-angebot').hidden === false);
-    d.querySelector('[data-do="angebot-nein"]').click();
-    pruef('Weggetippt bleibt es weg',
-      d.getElementById('runde-angebot').hidden === true
-      && !!w.__T('S.rundeAngeboten'));
-    w.__T('rundeAngebotZeichnen()');
-    pruef('Auch nach neuem Aufbau', d.getElementById('runde-angebot').hidden === true);
+    pruef('3.34.0: Das Angebot der Runde bleibt zu',
+      d.getElementById('runde-angebot').hidden === true);
 
-    /* Liste unter Mehr */
-    w.__T('tourListeZeichnen()');
-    const liste = d.getElementById('tour-liste');
-    pruef('Die Runde steht in der Liste',
-      !!liste.querySelector('[data-tourgo="runde"]'));
-    pruef('Sie steht abgesetzt oben',
-      liste.innerHTML.indexOf('Von vorn') < liste.innerHTML.indexOf('Einzelne Bereiche'));
-    pruef('Alle Kapitel stehen zur Wahl',
-      liste.querySelectorAll('[data-tourgo]').length
-        === w.__T('Object.keys(TOUR_KAPITEL).length'));
-    pruef('Der Erkl\u00e4rtext verspricht kein Aufploppen mehr',
-      !/erscheint genau einmal/.test(d.getElementById('tour-aus-text').textContent),
-      d.getElementById('tour-aus-text').textContent.slice(0, 50));
-
-    /* Die Leerstart-Karte bietet beide Wege */
-    w.__T('erststartZeigen()');
+    /* Die Leerstart-Karte führt nicht mehr in die Tour */
+    const altEigene = w.__T('JSON.stringify(S.eigene || [])');
+    w.__T('S.eigene = []; erststartZeigen()');
     const es = d.getElementById('erststart');
-    if(!es.hidden){
-      pruef('Leerstart bietet die Runde', !!es.querySelector('[data-do="start-runde"]'));
-      pruef('und die Ersteinrichtung', !!es.querySelector('[data-do="start-tour"]'));
-      pruef('und nennt den R\u00fcckweg', hinweisAuf(es));
-    }
+    pruef('Leerstart erscheint ohne Pflanzen', es.hidden === false);
+    pruef('3.34.0: Leerstart ohne Runde und Einrichtung',
+      !es.querySelector('[data-do="start-runde"]') && !es.querySelector('[data-do="start-tour"]')
+      && !/App Tour/.test(es.textContent));
+    pruef('Leerstart bietet weiter das Anlegen', !!es.querySelector('[data-do="start-anlegen"]'));
+    w.__T('S.eigene = ' + altEigene + '; erststartZeigen()');
 
-    /* Das Mehr-Kapitel zielte auf einen stillgelegten Punkt */
-    pruef('Das Mehr-Kapitel zeigt nicht mehr auf „ansicht\u201c',
-      w.__T('JSON.stringify(TOUR_KAPITEL.mehr.schritte().map(s=>String(s.ziel)))')
-        .indexOf('data-mh=\\"ansicht\\"') === -1);
+    /* Willkommen beenden startet nichts und lässt die App bedienbar */
+    w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
+    w.__T("modalAuf('willkommen'); wkSchritt(4)"); await tick();
+    d.querySelector('[data-wk="4"] [data-wkfertig="0"]').click();
+    await new Promise(r => setTimeout(r, 120));
+    pruef('3.34.0: Nach „Loslegen“ ist das Willkommen zu', !w.__T("modalOffen('willkommen')"));
+    pruef('3.34.0: Danach steht Heute ohne Sperre',
+      d.body.dataset.ansicht === 'heute'
+      && !(d.querySelector('.wrap') && d.querySelector('.wrap').hasAttribute('inert')),
+      d.body.dataset.ansicht);
   }
 
   /* ══ Vermehrung im Verlauf ═════════════════════════════════════
@@ -3993,16 +3824,13 @@ setTimeout(async () => {
     const lb   = ebene(/#lightbox\{[^}]*z-index:(\d+)/);
     const fenster = ebene(/\n\.wk\{[^}]*z-index:(\d+)/);
     const blatt = ebene(/\n\.modal\{[^}]*z-index:(\d+)/);
-    const tour = ebene(/#tour\{[^}]*z-index:(\d+)/);
     pruef('Die Ebenen sind im Stilblatt zu finden',
-      lb !== null && fenster !== null && blatt !== null && tour !== null,
-      lb + '/' + fenster + '/' + blatt + '/' + tour);
+      lb !== null && fenster !== null && blatt !== null,
+      lb + '/' + fenster + '/' + blatt);
     pruef('Die Fotoansicht liegt ueber dem Kartenfenster',
       lb > fenster, lb + ' vs ' + fenster);
     pruef('Die Fotoansicht liegt ueber den Blattfenstern',
       lb > blatt, lb + ' vs ' + blatt);
-    pruef('Die Tour bleibt ueber der Fotoansicht',
-      tour > lb, tour + ' vs ' + lb);
   }
 
   /* ══ 3.13.0 · Historie und Lernen über einem Handwert ═══════════
@@ -4224,9 +4052,9 @@ setTimeout(async () => {
     pruef('Jeder Menüpunkt liegt in einer Gruppe',
       alle.length === gruppiert.length,
       alle.filter(x=>gruppiert.indexOf(x) === -1).join(','));
-    pruef('Vierzehn Punkte in der Liste (3.31.0: „Aus der Sammlung genommen“ ist weg)', alle.length === 14, String(alle.length));
+    pruef('Dreizehn Punkte in der Liste (3.31.0: „Aus der Sammlung genommen“ ist weg, 3.34.0: „App Tour“ ist weg)', alle.length === 13, String(alle.length));
     pruef('Kein Punkt ist ersatzlos weg',
-      d.querySelectorAll('section[data-mh]').length === 25,
+      d.querySelectorAll('section[data-mh]').length === 24,
       String(d.querySelectorAll('section[data-mh]').length));
     /* Stillgelegt heisst nicht unerreichbar: der KI-Dienst steht
        nicht in der Liste, aber eine Zeile in den Einstellungen fuehrt
@@ -4236,7 +4064,7 @@ setTimeout(async () => {
     pruef('KI-Dienst ist aus den Einstellungen erreichbar',
       !!d.querySelector('#mh-in-einstell [data-mh-go="kidienst"]'));
     ['aufgaben','wunsch','giess','wetter','bibliothek','sicherung','einstell',
-     'tour','install','patch','rueck','melde','sprot','ansicht','tiere','rundgang'].forEach(k=>{
+     'install','patch','rueck','melde','sprot','ansicht','tiere','rundgang'].forEach(k=>{
       if(k === 'ansicht' || k === 'tiere' || k === 'rundgang') return;
       pruef('Punkt ' + k + ' vorhanden', alle.indexOf(k) !== -1);
     });
@@ -4866,24 +4694,6 @@ setTimeout(async () => {
     await tick();
   }
 
-  /* Der Sprung darf kein zweites Kapitel auslösen. */
-  w.__T('if(tourLauf) tourSchliessen();');
-  w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
-  w.__T('S.tutorial = {aus:false, kapitel:{}, einricht:0}; sichern();');
-  await tick();
-  pruef('Doktorkapitel startet', w.__T("tourStart('doktor')") === true);
-  await tick();
-  pruef('und beginnt bei Schritt 1', w.__T('tourLauf.i') === 0, w.__T('tourLauf && tourLauf.i'));
-  pruef('im richtigen Kapitel', w.__T('tourLauf.key') === 'doktor', w.__T('tourLauf && tourLauf.key'));
-  pruef('Doktorfenster steht offen', w.__T("modalOffen('sek-modal')") === true);
-  d.getElementById('tour-weiter').click();
-  await tick();
-  pruef('Schritt 2 erreichbar', w.__T('tourLauf.i') === 1, w.__T('tourLauf && tourLauf.i'));
-  d.getElementById('tour-weiter').click();
-  await tick();
-  pruef('Schritt 3 erreichbar', w.__T('tourLauf.i') === 2, w.__T('tourLauf && tourLauf.i'));
-  w.__T('tourAbbruch()');
-  w.__T('S.tutorial.aus = true; sichern();');
   w.__T('while(MODAL_STAPEL.length) _modalWeg(modalOben());');
   await tick();
 
@@ -7016,7 +6826,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 3.33.0', e0.nr === '3.33.0', e0.nr);
+    pruef('Der oberste Eintrag ist 3.34.0', e0.nr === '3.34.0', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);

@@ -4,6 +4,14 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 3.34.0 — 2. November 2026
+**Ohne App Tour**
+
+### Anders
+- Die App Tour ist entfernt. Nach dem Willkommen startet keine Runde mehr; der letzte Schritt hat nur noch „Loslegen“. Auf Heute erscheint kein Angebot der Runde, auf der leeren Startseite stehen keine Links zur Runde oder zur geführten Einrichtung, und unter Mehr fehlt der Punkt „App Tour“. Erklärungen stehen weiter hinter dem i oben rechts in jedem Bereich.
+
+---
+
 ## 3.33.0 — 26. Oktober 2026
 **Richtige Art, schnelles Modell**
 
