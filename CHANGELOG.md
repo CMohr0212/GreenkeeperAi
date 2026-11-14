@@ -4,6 +4,50 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 4.0.0 — 14. November 2026
+**GreenkeeperAi 4.0**
+
+### Neu
+- Neuer Grundstil mit den Designs Botanisch und Terrarium. Beim ersten Start fragt die App nach Modus und Design. Der Modus Sammler zeigt wenig, Entdecker alles; einzelne Teile lassen sich in den Einstellungen an- und abschalten
+- Navigation über die Reiter Heute, Sammlung und BOTaniker, auch durch Wischen nach links und rechts. Die Einstellungen liegen hinter dem Zahnrad. Werkzeuge öffnen als Fenster aus dem BOTaniker und aus der Karte
+- Anlegen in fünf Stufen: zuerst das Foto, dann das Artwissen, KI-Stufe wählbar. Raum, Stellplatz und Gießart sind Knöpfe, Raum und Topf sind Pflicht
+- Gießmodus mit Gießwegen und Symbolen, Hinweiskärtchen, festen Gießtagen und Topffrage. Die Gießliste ordnet nach Raum und Stellplatz, mit „Alle gegossen“ oder „Nacheinander“ und Bildern; offene Termine lassen sich dort abhaken
+- Tag-System: Markierungen ohne Wirkung und Tags mit Wirkung (Gießpause, Gießabstand verkürzen oder verlängern, Düngen sperren, Dünger, Schädlingsbekämpfung, Winterruhe). Markierungen bleiben an der Pflanze und lassen sich filtern; neue Tags legt man überall an, wo man einen wählt
+- Kalender mit Terminen und Serien: Woche und Monat, Kachel auf Heute, Vorschau der Gießtage. Termine gelten für einzelne oder mehrere Pflanzen, die Auswahl zeigt Bilder und eine Suche. Vorlagen mit Serien sind änderbar und löschbar. „Erledigt“ trägt in den Verlauf ein und setzt den Tag des Termins
+- Doktor, Umtopf-Assistent und Anzucht bieten den passenden Termin an
+- Pflanzenkarte: Gießzeile (ein Tipp auf „gelernt“ erklärt den Rhythmus, mit „Zurücksetzen“), Notiz und die Reiter Verlauf, Platz, Pflegeheft, Steckbrief und Stammbaum. Der Verlauf zeigt den Kalender der Pflanze mit Löschen einzelner Einträge, „Geplant“ mit „Erledigt“ und einen Zeitstrahl
+- Pflegeheft als Register mit sieben Kategorien: eigene Einträge, „KI fragen“ mit Vorschlägen und ein Spickzettel für ein leeres Heft. Das Anlegen füllt das Heft je Kategorie
+- BOTaniker als Chat mit acht Werkzeug-Kacheln, im Gespräch als Leiste über der Eingabe. Die Pflanze gilt über mehrere Nachrichten. Eine Frage geht über den Knopf „KI“ direkt an die KI; Antworten nennen ihre Sicherheit und „So prüfst du es“, fragen nach, statt zu vermuten, und lassen sich mit Kategorie ins Pflegeheft übernehmen
+- Sammlung mit Liste, Galerie und Raster 3 bis 5. Langes Drücken wählt mehrere Pflanzen: Gegossen, Gießen später, Tag setzen, Verschieben, jeweils mit Rückgängig, dazu „Termin planen“ für alle Gewählten. Tags stehen im Filter-Fenster, gesetzte als Marken unter der Suche
+- Anzucht in der Sammlung: Umschalter „Pflanzen | Anzucht“, Gefäße als Kacheln mit Foto, Stecklingen, nächstem Wasserwechsel und Wurzel-Balken, nach Raum und Stellplatz, mit eigener Ansichtswahl und Mehrfachauswahl („Versorgt“, „Verschieben“). Das Plus legt neue Stecklinge und Gefäße an, Stecklinge auch ohne Mutterpflanze
+- Stammbaum als Reiter der Karte mit Mutter, Ablegern und Sprung in den Baum der Pflanze
+- Rankhilfe je Pflanze (Moosstab, Kokosstab, Gitter, Brett). Ein Moosstab erinnert beim Gießen mit „+ Moosstab“ oder mit eigenem Rhythmus auf einer eigenen Karte im Gießmodus, auch wenn die Pflanze nicht gegossen wird
+- Frostgrenze beim Anlegen und Bearbeiten als Knöpfe, von der KI vorbelegt; sie steht im Steckbrief
+- Substrat-Mix mit Standardmischungen
+- App Tour: kurze Runde nach dem Willkommen, Kapitel „Grundlagen“ und „Werkzeuge“ in einer Übersicht mit Fortschritt, „Weiter“ von Kapitel zu Kapitel und „Erste Pflanze geführt anlegen“. Die Tour kreist ein, statt abzudunkeln, und löst nichts aus
+- Erklärtexte einstellbar: Aus, Knapp oder Ausführlich
+- Nachschlagen nennt die Besonderheiten der Arten in Worten
+
+### Anders
+- Einstellungen neu geordnet: Sammlung (Räume, Tags), Pflege (Gießen, Wetter, Nachschlagen, Haustiere), App (Ansicht, KI-Dienst, Sicherung, App Tour) und Hilfe. „Gießen“ und „Nachschlagen“ ersetzen Gießcenter und Bibliothek, die Gießklassen stehen in „Nachschlagen“. Unter Sicherung steht der Speicher der Fotos mit „Fotos verkleinern“
+- Rückfragen, Hinweise und Eingaben erscheinen in App-Fenstern statt in Browser-Dialogen. Auswahllisten sind Knöpfe, lange Listen und das KI-Modell ein Dropdown
+- KI: Modellwahl mit Tempo und Hinweisen, schnellere Nachschlage-Anfragen, Laufzeit-Zähler mit Modellwechsel und ein Protokoll mit Token und Tempo. Sorten werden gezielter erkannt
+- Der Steckbrief ist ein Block: Art, botanischer Name, Sorte, Licht, Gießklasse, Düngebedarf, Winterruhe, Giftigkeit je Tier, Merkmale, Herkunft. Giftigkeit heißt giftig, nicht giftig oder nicht geprüft, Düngebedarf nein, wenig, mittel oder hoch. Der Warnkasten der Karte hat einen eigenen Schalter
+- Fotos lassen sich über das Teilen-Menü sichern. Löschen einer Pflanze fragt in der Karte nach und nennt, was mitgeht
+- Der Vertretungszettel nennt Raum und Stellplatz in einer Liste statt in der Grundriss-Zeichnung
+- Heute und der Gießmodus lassen Pflanzen in der Gießpause aus
+- Der erste Start legt keinen Raum mehr an; neue Räume und Stellplätze entstehen beim Anlegen und direkt beim Verschieben
+- Gefäße der Anzucht stehen an Raum und Stellplatz. Ein früherer Bereich ist jetzt ein Stellplatz gleichen Namens im ersten Raum
+- Winterruhe gibt es nur noch als Tag, den man je Pflanze setzt
+- Substrat mischen zeigt den Block „Worauf du achten solltest“ nicht mehr
+- Die Verknüpfung „Rundgang“ am App-Symbol entfällt
+
+### Gut zu wissen
+- Entfernt: Grundrissplaner mit Lichtberechnung, Aufgabenliste, Zustände mit Zustandsfragen und Ereignisknöpfen, „Kartei auffrischen“, Düngerrechnung und „Dünger selbst ansetzen“, Wachstum, Rundgang, Wunschliste, der Reiter Werkzeuge, das Gießplan-Werkzeug mit Jahreszeiten-Alarmen, der Schalter „Pflegehinweise auf den Karten“, die Pflegetexte der Karte, die Balken der Gießabstände und die Liste „Einträge“
+- Beim ersten Start mit 4.0.0 baut die App vorhandene Daten um und löscht die Daten der entfernten Teile, ohne vorher eine Sicherung zu verlangen. Pflanzen, Gießdaten, Fotos, Räume und Stellplätze bleiben. Eine Sicherung aus 3.34 lässt sich weiter einlesen
+
+---
+
 ## 3.34.0 — 2. November 2026
 **Ohne App Tour**
 

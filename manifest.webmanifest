@@ -20,8 +20,6 @@
   "shortcuts": [
     { "name": "Gießmodus", "short_name": "Gießen", "url": "./?start=giessen",
       "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] },
-    { "name": "Rundgang", "short_name": "Rundgang", "url": "./?start=rundgang",
-      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] },
     { "name": "Pflanzendoktor", "short_name": "Doktor", "url": "./?start=doktor",
       "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }] }
   ]
