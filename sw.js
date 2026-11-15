@@ -5,7 +5,7 @@
    nächsten Öffnen die neue Fassung.
    ══════════════════════════════════════════════════════════════ */
 
-const VERSION = 'greenkeeperai-v131';
+const VERSION = 'greenkeeperai-v132';
 const DATEIEN = [
   './',
   './index.html',
@@ -14,7 +14,9 @@ const DATEIEN = [
   './icon-512.png',
   './icon-maskable.png',
   './apple-touch-icon.png',
-  './bg-terrarium.webp'
+  './bg-terrarium.webp',
+  './bg-papier.webp',
+  './lade-blaetter.webp'
 ];
 
 self.addEventListener('install', ev=>{

@@ -192,7 +192,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 4.0.0', w.__T('FASSUNG') === '4.0.0', w.__T('FASSUNG'));
+  pruef('FASSUNG 4.0.1', w.__T('FASSUNG') === '4.0.1', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -4664,7 +4664,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 4.0.0', e0.nr === '4.0.0', e0.nr);
+    pruef('Der oberste Eintrag ist 4.0.1', e0.nr === '4.0.1', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -6353,8 +6353,8 @@ setTimeout(async () => {
     pruef('3.31.0: Der Download startet mit dem Sicherungsnamen', geladen === 'pflanzen-sicherung.json', String(geladen));
     pruef('3.31.0: Nach dem Download ist das Fenster zu', T(`modalOffen('sich-pflicht')`) === false);
     pruef('3.31.0: Nach dem Download ist bereinigt', T(`'edits' in S`) === false && T('S.bereinigtFassung') === '3.31.0');
-    pruef('3.31.0/4.0.0: Danach nennt „Neu in Fassung“ die 4.0.0, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
-      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.0', d.getElementById('neu-titel').textContent);
+    pruef('3.31.0/4.0.1: Danach nennt „Neu in Fassung“ die 4.0.1, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
+      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1', d.getElementById('neu-titel').textContent);
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
     pruef('3.31.0: Ein zweiter Start zeigt kein Fenster', T(`sicherungPflichtZeigen()`) === false);
     zurueck(); T('render()');
@@ -7162,8 +7162,8 @@ setTimeout(async () => {
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
     T(`S.fassungGesehen = '3.31.0'; _sichPflichtFrei = true; fassungPruefen();`);
     await tick();
-    pruef('4.0.0: „Neu in Fassung“ nennt 4.0.0, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
-      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.0', d.getElementById('neu-titel').textContent);
+    pruef('4.0.1: „Neu in Fassung“ nennt 4.0.1, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
+      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1', d.getElementById('neu-titel').textContent);
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); await tick(); }
     pruef('beta.1: Die Fassung gilt danach als gesehen', T('S.fassungGesehen') === T('FASSUNG'), T('S.fassungGesehen'));
 
@@ -7178,7 +7178,7 @@ setTimeout(async () => {
 
     /* Sicherungsdatei (F40) */
     pruef('4.0.0: Die Sicherungsdatei heißt pflanzen-sicherung.json', T('sicherungDatei().name') === 'pflanzen-sicherung.json', T('sicherungDatei().name'));
-    pruef('4.0.0: Die Sicherung trägt die Fassung', JSON.parse(T('sicherungInhalt()')).__fassung === '4.0.0');
+    pruef('4.0.1: Die Sicherung trägt die Fassung', JSON.parse(T('sicherungInhalt()')).__fassung === '4.0.1');
 
     /* sw.js mit Attrappen: die echte App löscht jeden fremden Zwischenspeicher */
     const vm = require('vm');
@@ -7193,7 +7193,7 @@ setTimeout(async () => {
     let warten = null;
     ereignisse.activate({waitUntil:p => { warten = p; }});
     await warten;
-    pruef('4.0.0: sw.js steht auf v131', SW_JETZT === 'greenkeeperai-v131', SW_JETZT);
+    pruef('4.0.1: sw.js steht auf v132', SW_JETZT === 'greenkeeperai-v132', SW_JETZT);
     pruef('4.0.0: sw.js löscht den alten Stand der echten App', geloescht.indexOf('greenkeeperai-v127') > -1, geloescht.join(','));
     pruef('4.0.0: sw.js löscht auch Beta-Stände und fremde Speicher', geloescht.indexOf('greenkeeperai-beta-0') > -1 && geloescht.indexOf('anderes') > -1, geloescht.join(','));
     pruef('4.0.0: sw.js behält den eigenen Stand', geloescht.indexOf(SW_JETZT) === -1 && geloescht.length === 3, geloescht.join(','));
@@ -12586,10 +12586,13 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       pruef('beta.34 (K3): Die Woche hat sieben Tage', d.querySelectorAll('#kal-inhalt .kal-woche .kal-zelle').length === 7);
       pruef('beta.34 (K3): „Heute“ ist markiert und gewählt', !!q('#kal-inhalt .kal-zelle.heute[aria-pressed="true"]'));
       const listeText = () => q('#kal-inhalt .kal-liste').textContent;
-      pruef('beta.34 (K3): Die Wochenliste nennt den Termin von morgen', /K2 Neemöl/.test(listeText()) && /1 von 3/.test(listeText()), listeText().slice(0, 200));
+      /* 4.0.1: Sonntags liegt „morgen“ in der nächsten Woche; dann steht der Termin erst nach „›“ da. */
+      const morgenInWoche = T(`kalMontag('${plus(1)}') === kalMontag(KAL.tag)`) === true;
+      pruef('beta.34 (K3): Die Wochenliste nennt den Termin von morgen (sonntags erst in der nächsten Woche)',
+        morgenInWoche ? /K2 Neemöl/.test(listeText()) && /1 von 3/.test(listeText()) : !/K2 Neemöl/.test(listeText()), listeText().slice(0, 200));
       pruef('beta.34 (K3): Die Woche zeigt bei Gießtagen „Gießen“ (K1A bis K1C sind überfällig → „Dran“)', /Dran · 3|Überfällig · 3/.test(listeText()), listeText().slice(0, 300));
       q('#kal-inhalt [data-kal="vor"]').click();
-      pruef('beta.34 (K3): „›“ geht eine Woche weiter', /K2 Neemöl/.test(listeText()) || T(`KAL.tag`) === plus(7), T(`KAL.tag`));
+      pruef('beta.34 (K3): „›“ geht eine Woche weiter', (/K2 Neemöl/.test(listeText()) || T(`KAL.tag`) === plus(7)) && (morgenInWoche || (/K2 Neemöl/.test(listeText()) && /1 von 3/.test(listeText()))), T(`KAL.tag`));
       q('#kal-inhalt [data-kal="heute"]').click();
       pruef('beta.34 (K3): „Heute“ springt zurück', T(`KAL.tag`) === heute);
       q('#kal-modal [data-kal-ansicht="monat"]').click();
@@ -13934,8 +13937,9 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       pruef('beta.46 (15): Stufe 4 fragt die Frostgrenze als Knopfliste ab',
         T(`alStart(); alStufeZeigen(4); document.querySelectorAll('#f-frost-knoepfe .al-knopf').length`) === 7 && fw() === '');
       kiAnlegen('Frostia probata', '12');
-      pruef('beta.46 (15): Die Frostgrenze der KI belegt die Knopfliste vor (eigener Knopf für 12 °C)',
-        fw() === '12' && !!d.querySelector('#f-frost-knoepfe [data-alwert="12"][aria-pressed="true"]'), fw());
+      pruef('beta.46 (15)/4.0.1: Die Frostgrenze der KI steht als Zeile da (12 °C), ohne Knöpfe',
+        fw() === '12' && d.getElementById('f-frost-knoepfe').hidden === true && d.getElementById('al-frost-ki').hidden === false
+        && d.getElementById('al-frost-ki').textContent.indexOf('Ab 12 °C ins Haus') === 0, fw() + ' ' + d.getElementById('al-frost-ki').textContent);
       pruef('beta.46 (15): Vor „Pflanze anlegen“ steht keine Pflanze mit dieser Art', neuste('Frostia probata') === null);
       T('alSpeichern()'); await warte(120);
       const p1 = neuste('Frostia probata');
@@ -13947,6 +13951,8 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
         T(`(function(){ var g = S.gelernteArten; var k = Object.keys(g).filter(function(x){ return x.indexOf('frostia probata') === 0; })[0]; return k ? g[k].frost : null; })()`) === '12');
       kiAnlegen('Frostia dura', 'winterhart');
       pruef('beta.46 (15): „winterhart“ der KI wird zu Winterhart (−15 °C)', fw() === '-15', fw());
+      T(`neuWegSetzen('hand'); 1`);
+      pruef('4.0.1: Auf dem Weg „Von Hand“ sind die Frost-Knöpfe wieder da', d.getElementById('f-frost-knoepfe').hidden === false && d.getElementById('al-frost-ki').hidden === true);
       d.querySelector('#f-frost-knoepfe [data-alwert="5"]').click();
       T('alSpeichern()'); await warte(120);
       const p2 = neuste('Frostia dura');
@@ -14421,6 +14427,109 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
     }
   }
 
+  /* ── 4.0.1: Frostgrenze ohne zweite Auswahl, Löschen in der Auswahl, Kleinteile ── */
+  {
+    const T = c => w.__T(c);
+    const warte = ms => new Promise(r => setTimeout(r, ms));
+    const alt401 = T(`JSON.stringify({eigene:S.eigene, gelernt:S.gelernteArten, water:S.water, ereignisse:S.ereignisse, termine:S.termine, fotos:S.fotos})`);
+    const confirmAlt = w.confirm;
+    const $ = id => d.getElementById(id);
+    const neuste = bot => JSON.parse(T(`JSON.stringify(S.eigene.filter(function(p){ return p.botanisch === ${JSON.stringify(bot)}; }).pop() || null)`));
+    const zu = () => T(`(function(){ var m, i = 0; while((m = modalOben()) && i++ < 8) _modalWeg(m); if(SAM_WAHL) samWahlEnde(); history.replaceState(null, ''); return 1; })()`);
+    try {
+      zu();
+      /* A: KI-Wert, den die Knopfliste nicht kennt */
+      T(`alStart(); neuWegSetzen('ki'); document.getElementById('f-name').value = 'Frost401';
+        document.getElementById('f-paste').value = 'ART: Kaltprobe\\nBOTANISCH: Gelida exacta\\nGIESSKLASSE: mittel\\nLICHT: hell\\nFROST: -3';
+        document.getElementById('btn-paste-los').click(); alStufeZeigen(4); 1`);
+      pruef('4.0.1 (Frost): Im KI-Weg sind Knopfliste und Gradfeld versteckt', $('f-frost-knoepfe').hidden === true && $('al-frost-genau').hidden === true);
+      pruef('4.0.1 (Frost): Die Zeile nennt den genauen KI-Wert (−3 °C)', $('al-frost-ki').hidden === false
+        && $('al-frost-ki').textContent.indexOf('Winterhart bis −3 °C') === 0 && /KI-Antwort/.test($('al-frost-ki').textContent), $('al-frost-ki').textContent);
+      T('alSpeichern()'); await warte(120);
+      const pA = neuste('Gelida exacta');
+      pruef('4.0.1 (Frost): Der KI-Wert kommt unverändert in die Karte, Herkunft KI', !!pA && pA.frostMin === -3 && pA.quellen.frostMin === 'ki', JSON.stringify(pA && {f:pA.frostMin, q:pA.quellen.frostMin}));
+      /* B: Von Hand, genaue Gradzahl */
+      T(`alStart(); neuWegSetzen('hand'); document.getElementById('f-name').value = 'Hand401';
+        document.getElementById('f-art').value = 'Handprobe'; document.getElementById('f-bot').value = 'Manua exacta'; alStufeZeigen(4); 1`);
+      pruef('4.0.1 (Frost): Von Hand gibt es Knöpfe und das Gradfeld, keine KI-Zeile', $('f-frost-knoepfe').hidden === false && $('al-frost-genau').hidden === false && $('al-frost-ki').hidden === true
+        && d.querySelectorAll('#f-frost-knoepfe .al-knopf').length === 7);
+      $('f-frost-genau').value = '-7';
+      $('f-frost-genau').dispatchEvent(new w.Event('input', {bubbles:true}));
+      pruef('4.0.1 (Frost): Die genaue Gradzahl steht als eigener, gewählter Knopf in der Liste', $('f-frost').value === '-7'
+        && !!d.querySelector('#f-frost-knoepfe [data-alwert="-7"][aria-pressed="true"]'), $('f-frost').value);
+      T('alSpeichern()'); await warte(120);
+      const pB = neuste('Manua exacta');
+      pruef('4.0.1 (Frost): Die genaue Gradzahl kommt in die Karte, Herkunft Hand', !!pB && pB.frostMin === -7 && pB.quellen.frostMin === 'hand', JSON.stringify(pB && {f:pB.frostMin, q:pB.quellen}));
+      T(`alStart(); neuWegSetzen('hand'); alStufeZeigen(4); 1`);
+      d.querySelector('#f-frost-knoepfe [data-alwert="-15"]').click();
+      pruef('4.0.1 (Frost): Ein Tipp auf „Winterhart“ bleibt −15, das Gradfeld bleibt leer', $('f-frost').value === '-15' && $('f-frost-genau').value === '');
+      /* C: Die Bibliothek nennt eine andere Zahl → weiter einzeln wählen */
+      const bib = JSON.parse(T(`JSON.stringify(BIB.find(function(a){ return a.frost != null && !bibKreuzung(a.bot); }) || null)`));
+      if (bib) {
+        const anders = Number(bib.frost) + 4;
+        T(`alStart(); neuWegSetzen('ki'); document.getElementById('f-name').value = 'Abw401';
+          document.getElementById('f-paste').value = ${JSON.stringify('ART: ' + (bib.name || bib.de || 'Bibprobe') + '\nBOTANISCH: ' + bib.bot + '\nGIESSKLASSE: mittel\nLICHT: hell\nFROST: ' + anders)};
+          document.getElementById('btn-paste-los').click(); alStufeZeigen(4); 1`);
+        pruef('4.0.1 (Frost): Weicht die KI von einer Zahl der Bibliothek ab, bleiben die Knöpfe (einzeln wählen)',
+          $('f-frost-knoepfe').hidden === false && $('al-frost-ki').hidden === true && $('f-frost').value === String(anders), $('f-frost').value + ' / Bib ' + bib.frost);
+      } else pruef('4.0.1 (Frost): Bibliothek hat eine Art mit Frostzahl', false);
+      zu();
+
+      /* D: Löschen in der Auswahl */
+      T(`(function(){
+        ['L1','L2','L3'].forEach(function(id, i){
+          S.eigene.push({id:'E-94' + i, name:'Lösch ' + id, art:'Löschprobe', botanisch:'Delenda ' + id, klasse:'B', eigen:true, raum:(raumListe()[0] || {}).id || '', quellen:{}});
+          S.water['E-94' + i] = ['2026-11-01']; S.ereignisse['E-94' + i] = [{id:'x' + i, datum:'2026-11-02', typ:'notiz', text:'x'}];
+        });
+        S.eigene.find(function(p){ return p.id === 'E-941'; }).eltern = 'E-940';
+        if(!Array.isArray(S.termine)) S.termine = [];
+        S.termine.push({id:'T-401', titel:'Probe', tag:'', pflanzen:['E-940'], datum:'2026-12-01', n:0, k:1, erl:[], notiz:''});
+        samTeilSetzen('pflanzen'); ansichtZeigen('sammlung'); render(); return 1; })()`);
+      const waehle = ids => T(`(function(){ if(SAM_WAHL) samWahlEnde(); ${JSON.stringify(ids)}.forEach(function(id, i){ if(i === 0) samWahlStarten(id); else samWahlUmschalten(id); }); return SAM_WAHL.size; })()`);
+      const da = id => T(`S.eigene.some(function(p){ return p.id === '${id}'; })`);
+      waehle(['E-940', 'E-941']);
+      T(`samAktionenAuf(); 1`); await warte(120);
+      const knopf = () => d.querySelector('#sam-akt-inhalt [data-sak="loeschen"]');
+      pruef('4.0.1 (Löschen): Die Aktionen bieten „2 Pflanzen löschen“', !!knopf() && /2 Pflanzen löschen/.test(knopf().textContent), knopf() && knopf().textContent);
+      let frage = '';
+      w.confirm = t => { frage = t; return false; };
+      knopf().click(); await warte(120);
+      pruef('4.0.1 (Löschen): Die Rückfrage nennt Zahl, Verlauf, Termine, Stammbaum und „nicht rückgängig“',
+        /^2 Pflanzen löschen\?/.test(frage) && /Verlauf/.test(frage) && /Termine/.test(frage) && /Stammbaum/.test(frage) && /nicht rückgängig/.test(frage), frage);
+      pruef('4.0.1 (Löschen): „Abbrechen“ löscht nichts, Blatt und Auswahl bleiben', da('E-940') && da('E-941') && T(`modalOffen('sam-akt-modal')`) === true && T(`SAM_WAHL.size`) === 2);
+      w.confirm = () => true;
+      knopf().click(); await warte(600);
+      pruef('4.0.1 (Löschen): Nach „Endgültig löschen“ sind die Gewählten weg, die dritte bleibt', !da('E-940') && !da('E-941') && da('E-942'));
+      pruef('4.0.1 (Löschen): Gießdaten, Verlauf und Termine der Gelöschten sind weg',
+        T(`!S.water['E-940'] && !S.water['E-941'] && !S.ereignisse['E-940'] && !S.ereignisse['E-941'] && !S.termine.some(function(t){ return t.id === 'T-401'; })`) === true
+        && T(`!!S.water['E-942']`) === true);
+      pruef('4.0.1 (Löschen): Gespeichert ist es auch', !/"E-940"|"E-941"/.test(w.localStorage.getItem('pflanzenglossar-start') || '') && /"E-942"/.test(w.localStorage.getItem('pflanzenglossar-start') || ''));
+      pruef('4.0.1 (Löschen): Blatt und Auswahl sind zu, die Meldung hat kein „Rückgängig“',
+        T(`modalOffen('sam-akt-modal')`) === false && T(`SAM_WAHL === null`) === true && $('sam-rueck-leiste').hidden === false
+        && $('sam-rueck-text').textContent === '2 Pflanzen gelöscht' && $('sam-rueck-knoepfe').hidden === true && T(`samRueckgaengig()`) === false && !da('E-940'),
+        $('sam-rueck-text').textContent);
+      T(`samRueckWeg(); samTeilSetzen('anzucht'); 1`);
+      pruef('4.0.1 (Löschen): In der Anzucht gibt es kein „Löschen“ der Auswahl', T(`(function(){ SAK = {seite:'raum', az:true, warn:[]}; sakLoeschen(); return 1; })()`) === 1 && da('E-942'));
+      T(`SAK = null; samTeilSetzen('pflanzen'); 1`);
+
+      /* E: Kleinteile */
+      T(`(function(){ var a = document.getElementById('ru-art'); if(a) a.value = 'fehler'; return 1; })()`);
+      pruef('4.0.1: Die Rückmeldung nennt die App „GreenkeeperAi“', T('rueckText()').indexOf('GreenkeeperAi — ') === 0 && html.indexOf("'Pflanzenglossar — '") === -1, T('rueckText()').slice(0, 40));
+      const sw401 = fs.readFileSync('sw.js', 'utf8');
+      pruef('4.0.1: sw.js speichert Papier-Hintergrund und Blätter-Bild vorab', sw401.indexOf("'./bg-papier.webp'") > -1 && sw401.indexOf("'./lade-blaetter.webp'") > -1);
+      const mf401 = JSON.parse(fs.readFileSync('manifest.webmanifest', 'utf8'));
+      pruef('4.0.1: Die Beschreibung im Manifest nennt keinen Standort mehr', !/Standort/.test(mf401.description), mf401.description);
+      pruef('4.0.1: Der Ladebildschirm steht im Markup und ist nach dem Laden entfernt', /<body>\s*<!--[^>]*-->\s*<div id="lade"/.test(html) && !$('lade') && typeof w.gkLadeFertig === 'function');
+    } catch (e) {
+      pruef('4.0.1: Block lief ohne Laufzeitfehler', false, String(e && e.stack || e));
+    } finally {
+      w.confirm = confirmAlt;
+      zu();
+      T(`(function(){ var a = ${JSON.stringify(alt401)}; S.eigene = a.eigene; S.gelernteArten = a.gelernt; S.water = a.water; S.ereignisse = a.ereignisse; S.termine = a.termine; S.fotos = a.fotos;
+        if(typeof samRueckWeg === 'function') samRueckWeg(); SAK = null; samTeilSetzen('pflanzen'); ansichtZeigen('heute'); sichern(); render(); return 1; })()`);
+    }
+  }
+
   /* ══ 4.0.0 (Launch): Start unter dem Schlüssel der echten App mit Daten im
      alten Format (Planer, Aufgaben, Zustände, Wunschliste, Kartei). Eigene
      Seite, legt ihre Daten selbst an. Gegenprobe: Mit einem anderen KEY
@@ -14461,12 +14570,12 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       pruef('4.0.0 Launch: Das Design kommt aus dem gespeicherten Stand', alt.design === 'botanisch' && TL(`S.design`) === 'botanisch'
         && dL.documentElement.getAttribute('data-design') === 'botanisch', dL.documentElement.getAttribute('data-design'));
       pruef('4.0.0 Launch: Kein Pflichtfenster zur Sicherung', TL(`modalOffen('sich-pflicht')`) === false && TL(`sicherungPflichtOffen()`) === false);
-      pruef('4.0.0 Launch: Das Fenster „Neu in Fassung 4.0.0“ erscheint',
-        TL(`modalOffen('neu-modal')`) === true && dL.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.0'
-        && dL.querySelectorAll('#neu-inhalt li').length === 5, dL.getElementById('neu-titel').textContent);
+      pruef('4.0.0 Launch: Das Fenster „Neu in Fassung 4.0.1“ erscheint',
+        TL(`modalOffen('neu-modal')`) === true && dL.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1'
+        && dL.querySelectorAll('#neu-inhalt li').length === 4, dL.getElementById('neu-titel').textContent);
       const roh = wL.localStorage.getItem('pflanzenglossar-start') || '';
-      pruef('4.0.0 Launch: Gespeichert wird unter dem echten Schlüssel, mit Fassung 4.0.0',
-        JSON.parse(roh).fassungGesehen === '4.0.0' && JSON.parse(roh).eigene.length === 17);
+      pruef('4.0.0 Launch: Gespeichert wird unter dem echten Schlüssel, mit Fassung 4.0.1',
+        JSON.parse(roh).fassungGesehen === '4.0.1' && JSON.parse(roh).eigene.length === 17);
       pruef('4.0.0 Launch: Der Speicher trägt keine Daten der entfernten Teile mehr',
         !/"(tasks|wish|zustand|rundgang|kartei|raumAktiv|grundrissWunsch|moebel|kacheln|kanten|dueng|duengLangzeit|bereiche)":/.test(roh),
         (roh.match(/"(tasks|wish|zustand|rundgang|kartei|raumAktiv|grundrissWunsch|moebel|kacheln|kanten|dueng|duengLangzeit|bereiche)":/g) || []).join(' '));

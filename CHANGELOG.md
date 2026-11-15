@@ -4,6 +4,25 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 4.0.1 — 15. November 2026
+**Neues Symbol, Ladebildschirm**
+
+### Neu
+- Neues App-Symbol: ein Monstera- und ein Alocasia-Blatt auf Papier
+- Ladebildschirm beim Start: Aus einem Topf wächst ein Trieb zu den beiden Blättern, etwa drei Sekunden. Das Endbild bleibt stehen, bis die App geladen ist
+- Auswahl der Sammlung: „Löschen“ unter den Aktionen. Die App fragt nach und nennt, was mitgeht; „Rückgängig“ gibt es dafür nicht
+
+### Anders
+- Frostgrenze im Anlegen: Legst du mit der KI an, steht ihr Wert als Zeile da und wird ohne zweite Auswahl übernommen. Nennt die Artenbibliothek eine andere Zahl, wählst du weiter selbst
+- Bei „Von Hand“ und „Aus der Bibliothek“ gibt es neben den Knöpfen ein Feld für die genaue Gradzahl. „Winterhart“ bleibt −15 °C
+
+### Behoben
+- Die Rückmeldung nannte die App in Text und Betreff noch „Pflanzenglossar“
+- Der Papier-Hintergrund von Botanisch fehlte nach einem Update ohne Netz
+- Die Beschreibung der App nannte noch den Standort
+
+---
+
 ## 4.0.0 — 14. November 2026
 **GreenkeeperAi 4.0**
 

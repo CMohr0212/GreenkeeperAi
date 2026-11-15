@@ -4387,6 +4387,40 @@ html[data-design] #tour-fuss #tour-extra{flex:1 1 auto}
 html[data-design] #tour-alle{display:block;width:100%;margin:10px 0 0;padding:8px 4px;border:0;background:none;
   font:inherit;font-size:var(--t-s);color:var(--peat);text-align:center;cursor:pointer}
 html[data-design] #tour-alle[hidden]{display:none}
+
+/* ══ 4.0.1: Ladebildschirm, Frostzeile im Anlegen ══ */
+html[data-design] #lade{position:fixed;left:0;top:0;right:0;bottom:0;z-index:400;display:flex;
+  align-items:center;justify-content:center;background:#F7F4EC;opacity:1;transition:opacity .4s ease}
+html[data-design] #lade::before{content:"";position:absolute;left:0;top:0;right:0;bottom:0;
+  background:url("./bg-papier.webp") top center/cover no-repeat;opacity:.2;pointer-events:none}
+html[data-design] #lade.lade-weg{opacity:0;pointer-events:none}
+html[data-design] #lade .lade-buehne{position:relative;width:min(58vw,250px);aspect-ratio:560/720;margin-bottom:6vh}
+html[data-design] #lade .lade-buehne > svg{position:absolute;left:0;top:0;width:100%;height:100%;display:block;overflow:visible}
+html[data-design] #lade .lade-blaetter{position:absolute;left:0;top:0;width:100%;height:auto;max-width:none;display:block;
+  border:0;border-radius:0;box-shadow:none;background:none;
+  transform-origin:58.6% 97.6%;transform:scale(.06) rotate(-8deg);opacity:0;
+  animation:lade-wachsen 1.8s cubic-bezier(.22,.9,.3,1) 1.15s forwards}
+html[data-design] #lade .lade-topf{opacity:0;animation:lade-topf .5s ease-out forwards}
+html[data-design] #lade .lade-trieb{stroke-dasharray:1;stroke-dashoffset:1;
+  animation:lade-trieb .7s ease-out .4s forwards,lade-aus .35s ease 1.25s forwards}
+html[data-design] #lade .lade-keim{transform-origin:330px 422px;transform:scale(0);
+  animation:lade-keim .4s ease-out .85s forwards,lade-aus .35s ease 1.25s forwards}
+html[data-design] #lade .lade-keim2{animation-delay:.95s,1.25s}
+@keyframes lade-topf{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes lade-trieb{to{stroke-dashoffset:0}}
+@keyframes lade-keim{to{transform:scale(1)}}
+@keyframes lade-aus{to{opacity:0}}
+@keyframes lade-wachsen{0%{transform:scale(.06) rotate(-8deg);opacity:0}12%{opacity:1}
+  72%{transform:scale(1.03) rotate(1.2deg);opacity:1}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  html[data-design] #lade .lade-topf,html[data-design] #lade .lade-blaetter{animation:none;opacity:1;transform:none}
+  html[data-design] #lade .lade-trieb,html[data-design] #lade .lade-keim{animation:none;opacity:0}
+}
+html[data-design] .al-frost-ki{margin:.2rem 0 0;padding:.7rem .85rem;border:1px solid var(--linie);border-radius:12px}
+html[data-design] .al-frost-ki b{display:block}
+html[data-design] .al-frost-ki i{display:block;font-style:normal;font-size:.86rem;opacity:.75;margin-top:.15rem}
+html[data-design] .al-frost-genau{display:block;margin-top:.7rem}
+html[data-design] .al-frost-genau input{display:block;width:100%;max-width:12rem;margin-top:.25rem}
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#F1F4ED">
@@ -4396,8 +4430,52 @@ html[data-design] #tour-alle[hidden]{display:none}
 <meta name="apple-mobile-web-app-title" content="GreenkeeperAi">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" href="./icon-192.png" sizes="192x192">
+<link rel="preload" as="image" href="./lade-blaetter.webp">
 </head>
 <body>
+<!-- 4.0.1: Ladebildschirm. Topf, Trieb, zwei Blätter in rund drei Sekunden;
+     das Endbild bleibt, bis die App geladen ist (gkLadeFertig). -->
+<div id="lade" role="status" aria-label="GreenkeeperAi lädt">
+  <div class="lade-buehne" aria-hidden="true">
+    <svg class="lade-hinten" viewBox="0 0 560 720" focusable="false">
+      <ellipse class="lade-topf" cx="328" cy="499" rx="103" ry="11" style="fill:#4B392C"/>
+      <path class="lade-trieb" pathLength="1" d="M328 502 C325 474 335 452 330 420" style="fill:none;stroke:#5E8A4B;stroke-width:8;stroke-linecap:round"/>
+      <path class="lade-keim" d="M330 422 C300 420 283 398 289 384 C312 386 329 401 330 422 Z" style="fill:#8DB56A;stroke:#3F5A36;stroke-width:3;stroke-linejoin:round"/>
+      <path class="lade-keim lade-keim2" d="M330 422 C360 420 377 398 371 384 C348 386 331 401 330 422 Z" style="fill:#7CA75B;stroke:#3F5A36;stroke-width:3;stroke-linejoin:round"/>
+    </svg>
+    <img class="lade-blaetter" src="./lade-blaetter.webp" alt="" width="560" height="512" decoding="async">
+    <svg class="lade-vorn" viewBox="0 0 560 720" focusable="false">
+      <g class="lade-topf" style="stroke:#4A372B;stroke-width:4;stroke-linejoin:round;stroke-linecap:round">
+        <path d="M238 546 L418 546 L399 690 Q397 704 383 704 L273 704 Q259 704 257 690 Z" style="fill:#C8825C"/>
+        <path d="M372 548 L416 548 L398 690 Q396 702 383 702 L352 702 Z" style="fill:#A9663F;stroke:none;opacity:.55"/>
+        <path d="M262 566 L272 668" style="fill:none;stroke:#E7B08C;stroke-width:6;opacity:.75"/>
+        <rect x="216" y="498" width="224" height="50" rx="10" style="fill:#D3916B"/>
+        <path d="M392 500 L438 500 L438 546 L392 546 Z" style="fill:#A9663F;stroke:none;opacity:.4"/>
+        <path d="M232 512 L300 512" style="fill:none;stroke:#EFC3A3;stroke-width:5;opacity:.8"/>
+      </g>
+    </svg>
+  </div>
+</div>
+<script>
+(function(){
+  var el = document.getElementById('lade'), t0 = Date.now(), fertig = false, weg = false, dauer = 3000;
+  try{ if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) dauer = 0; }catch(e){}
+  function zu(){
+    if(weg) return; weg = true;
+    if(!el) return;
+    el.classList.add('lade-weg');
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 450);
+  }
+  window.gkLadeFertig = function(){
+    if(fertig) return; fertig = true;
+    setTimeout(zu, Math.max(0, dauer - (Date.now() - t0)));
+  };
+  /* Bleibt ein Skript mit einem Fehler stehen, gibt „load“ frei; ganz
+     ohne „load“ nach 12 Sekunden. */
+  window.addEventListener('load', function(){ window.gkLadeFertig(); });
+  setTimeout(zu, 12000);
+})();
+</script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    NEUE PFLANZE AUFNEHMEN
@@ -11577,6 +11655,11 @@ function pflanzeEntfernen(id){
             <option value="15">ab 15 °C ins Haus</option>
           </select>
           <div class="al-knoepfe" id="f-frost-knoepfe"></div>
+          <p class="al-frost-ki" id="al-frost-ki" hidden></p>
+          <label class="al-frost-genau" id="al-frost-genau">
+            <span class="lab">Genaue Gradzahl in °C</span>
+            <input id="f-frost-genau" type="number" min="-40" max="25" step="1" placeholder="zum Beispiel -3" autocomplete="off">
+          </label>
         </div>
       </div>
 
@@ -12030,7 +12113,7 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '4.0.0';
+const FASSUNG = '4.0.1';
 /* Unter Mehr stehen nur die letzten zehn Fassungen, alle weiteren im
    CHANGELOG. `sicherung:true` heißt: Diese Fassung löscht alte Daten
    und verlangt vorher eine Sicherung. Der neueste so markierte Eintrag
@@ -12038,6 +12121,28 @@ const FASSUNG = '4.0.0';
    Fassung die Kennung trägt. */
 const CHANGELOG_URL = REPO_URL + '/blob/HEAD/CHANGELOG.md';
 const PATCHNOTES = [
+  {
+    nr: '4.0.1', datum: '2026-11-15', titel: 'Neues Symbol, Ladebildschirm',
+    kurz: [
+      'Neues App-Symbol: ein Monstera- und ein Alocasia-Blatt.',
+      'Beim Start wächst aus einem Topf ein Trieb zu den beiden Blättern. Das Bild bleibt stehen, bis die App geladen ist.',
+      'Legst du mit der KI an, steht ihre Frostgrenze fest da, ohne zweite Auswahl. Von Hand trägst du jetzt auch die genaue Gradzahl ein.',
+      'In der Sammlung löschst du mehrere gewählte Pflanzen auf einmal, nach einer Rückfrage.'
+    ],
+    neu: [
+      'App-Symbol mit Monstera- und Alocasia-Blatt auf Papier.',
+      'Ladebildschirm beim Start: Topf, Trieb, zwei Blätter, etwa drei Sekunden.',
+      'Auswahl der Sammlung: „Löschen“ unter den Aktionen. Die App fragt nach; „Rückgängig“ gibt es dafür nicht.'
+    ],
+    besser: [
+      'Frostgrenze im Anlegen: Der Wert der KI steht als Zeile da und wird übernommen. Nennt die Artenbibliothek eine andere Zahl, wählst du weiter selbst. Bei „Von Hand“ und „Aus der Bibliothek“ gibt es neben den Knöpfen ein Feld für die genaue Gradzahl.'
+    ],
+    behoben: [
+      'Die Rückmeldung nannte die App in Text und Betreff noch „Pflanzenglossar“.',
+      'Der Papier-Hintergrund von Botanisch fehlte nach einem Update ohne Netz.',
+      'Die Beschreibung der App nannte noch den Standort.'
+    ]
+  },
   {
     nr: '4.0.0', datum: '2026-11-14', titel: 'GreenkeeperAi 4.0',
     kurz: [
@@ -12213,27 +12318,6 @@ const PATCHNOTES = [
       'Die Anzucht geht mit in die Sicherung, ihre Fotos auch.'
     ],
     behoben: []
-  },
-  {
-    nr: '3.27.0', datum: '2026-09-22', titel: 'Verlässliche Sorten und Pflegeangaben',
-    kurz: [
-      'Die KI muss jede Sorte begründen, der Code prüft sie. Dein Spitzname wird nie mehr zur Sorte, und unplausible Pflegeangaben werden gar nicht erst angeboten.'
-    ],
-    besser: [
-      'Die Sorte wird nur noch aus Foto und botanischem Namen bestimmt. Die KI nennt die Merkmale, an denen sie die Sorte erkennt, und ähnliche Sorten.',
-      'Ohne Foto oder ohne Begründung gibt es keine Sorte. Bei Verwechslungsgefahr ist die Sicherheit höchstens mittel.',
-      'Steht schon eine Sorte auf der Karte, bleibt sie. Eine andere Antwort erscheint als strittig und lässt sich nur einzeln übernehmen.',
-      'Weicht eine Antwort von der Artenbibliothek ab, ist das markiert und nur einzeln übernehmbar.',
-      'Feste Grenzen je Pflanzenfamilie: etwa kein Frost unter 5 °C, keine volle Sonne und keine Winterruhe für Aronstab-, Maranten-, Begonien-, Gesnerien- und Bromeliengewächse.',
-      'Pflanzen derselben Art kommen ins selbe Bündel und bekommen dieselben Artangaben. Bündel mit Fotos denken gründlicher.',
-      'Sortenmerkmale und Vermehrung werden nicht mehr nur umformuliert angeboten.',
-      'Auf der Karte steht, welche Angaben von der KI und welche von dir stammen.'
-    ],
-    behoben: [
-      'Spitznamen wie „Beauty“ oder „King Green“ wurden als Sorte vorgeschlagen.',
-      'Ein deutscher Name in Klammern im botanischen Namen wurde als Sorte angeboten.',
-      'Bei Überlastung (503) weicht die Kartei jetzt einmal auf das nächste Modell aus.'
-    ]
   }
 ];
 let SPEICHER_OK = true;
@@ -15091,8 +15175,41 @@ function frostSetzen(sel, n){
     sel.insertBefore(o, nach || null);
   }
   sel.value = n == null ? '' : String(n);
-  if(typeof alKnopfGruppe === 'function' && sel.id === 'f-frost') alKnopfGruppe('f-frost');
+  if(typeof alKnopfGruppe === 'function' && sel.id === 'f-frost'){ alKnopfGruppe('f-frost'); alFrostZeichnen(); }
 }
+/* 4.0.1: Im KI-Weg steht die Frostgrenze der Antwort als Zeile da, ohne
+   zweite Auswahl. Knöpfe und das Feld für die genaue Gradzahl gibt es
+   auf den anderen Wegen, ohne KI-Wert und dann, wenn die Bibliothek
+   eine andere Zahl nennt (Regel: Abweichungen nur einzeln). */
+function alFrostFest(){
+  let weg = null;
+  try{ weg = neuWeg; }catch(e){}
+  const sel = document.getElementById('f-frost');
+  if(weg !== 'ki' || !sel || frostZahl(sel.value) == null) return false;
+  if(typeof AW === 'undefined' || !AW || !AW.gesetzt || AW.gesetzt.frostMin !== 'ki') return false;
+  return !AW.frostAbweich && !(AW.hand && AW.hand.frost);
+}
+function alFrostZeichnen(){
+  const sel = document.getElementById('f-frost'), box = document.getElementById('f-frost-knoepfe');
+  const zeile = document.getElementById('al-frost-ki'), genau = document.getElementById('al-frost-genau');
+  const feld = document.getElementById('f-frost-genau');
+  if(!sel || !box || !zeile || !genau || !feld) return;
+  const fest = alFrostFest(), n = frostZahl(sel.value);
+  box.hidden = fest; genau.hidden = fest; zeile.hidden = !fest;
+  zeile.innerHTML = fest ? '<b>' + esc(n <= -15 ? 'Winterhart' : n <= 0 ? 'Winterhart bis ' + String(n).replace('-', '−') + ' °C' : 'Ab ' + n + ' °C ins Haus')
+    + '</b><i>Aus der KI-Antwort. Ändern kannst du sie später in der Karte unter „Bearbeiten“.</i>' : '';
+  if(document.activeElement !== feld)
+    feld.value = (n != null && !FROST_STUFEN.some(w => w[0] === String(n))) ? String(n) : '';
+}
+document.addEventListener('input', e => {
+  if(!e.target || e.target.id !== 'f-frost-genau') return;
+  const t = String(e.target.value || '').trim();
+  if(!t || isNaN(Number(t.replace(',', '.')))) return;
+  const n = Math.max(-40, Math.min(25, Math.round(Number(t.replace(',', '.')))));
+  if(typeof AW !== 'undefined' && AW){ AW.hand = AW.hand || {}; AW.hand.frost = true; }
+  frostSetzen(document.getElementById('f-frost'), n);
+});
+document.addEventListener('change', e => { if(e.target && e.target.id === 'f-frost') alFrostZeichnen(); });
 /* Woher die Angaben stammen (3.27.0): KI-Angaben sind als solche zu
    erkennen. Die Herkunft ist je Feld gespeichert. */
 const HERKUNFT_NAMEN = {art:'Art', botanisch:'botanischer Name', typ:'Wuchsform', klasse:'Gießklasse',
@@ -17925,6 +18042,7 @@ function neuWegSetzen(weg){
   /* Stufe 2 zeigt je nach Weg etwas anderes — auch beim Wechseln,
      wenn man schon dort steht. */
   if(typeof alStufe2Zeichnen === 'function') alStufe2Zeichnen();
+  if(typeof alFrostZeichnen === 'function') alFrostZeichnen();
 }
 document.addEventListener('click', e=>{
   const w = e.target.closest('[data-neuweg]');
@@ -19949,7 +20067,9 @@ function samAktionenZeichnen(){
       <p class="ein-abschnitt">Verschieben</p>
       <div class="wahl-liste">${sakZeile('data-sak', 'raum', 'Raum und Stellplatz', 'Alle Gewählten an denselben Platz')}</div>
       <p class="ein-abschnitt">Termin</p>
-      <div class="wahl-liste">${sakZeile('data-sak', 'termin', 'Termin planen', 'Ein Termin für alle Gewählten, auch als Serie')}</div>`;
+      <div class="wahl-liste">${sakZeile('data-sak', 'termin', 'Termin planen', 'Ein Termin für alle Gewählten, auch als Serie')}</div>
+      <p class="ein-abschnitt">Löschen</p>
+      <div class="wahl-liste sak-loeschen">${sakZeile('data-sak', 'loeschen', n === 1 ? 'Pflanze löschen' : n + ' Pflanzen löschen', 'Endgültig, mit Fotos, Verlauf und Terminen')}</div>`;
   }
   box.innerHTML = h;
   if(fuss) fuss.innerHTML = f;
@@ -19965,6 +20085,33 @@ function sakTermin(){
   samWahlEnde();
   render();
   nachVerlaufRuhe(() => terminFensterAuf(null, null, null, ids));
+}
+/* 4.0.1: Die Gewählten löschen. Erst die Rückfrage, dann weg wie beim
+   Löschen in der Karte (pflanzeEntfernen); „Rückgängig“ gibt es nicht. */
+function sakLoeschText(ids){
+  const n = ids.length, w = ids.map(loeschWeg);
+  const fotos = w.reduce((z, x) => z + x.fotos, 0);
+  const band = w.some(x => x.ableger || x.mutter);
+  const teile = [];
+  if(fotos) teile.push(fotos === 1 ? '1 Foto' : fotos + ' Fotos');
+  teile.push('der Verlauf', 'die Termine');
+  if(band) teile.push('die Verbindungen im Stammbaum');
+  const p = allePflanzen().find(x => x.id === ids[0]);
+  return (n === 1 ? '„' + (p ? nice(p) : 'Pflanze') + '“ löschen?' : n + ' Pflanzen löschen?')
+    + ' Weg sind dann auch ' + teile.slice(0, -1).join(', ') + ' und ' + teile[teile.length - 1]
+    + '. Das lässt sich nicht rückgängig machen.';
+}
+function sakLoeschen(){
+  if(!SAK || SAK.az) return;
+  const ids = sakIds().filter(id => (S.eigene || []).some(p => p.id === id));
+  if(!ids.length) return;
+  appFrage(sakLoeschText(ids), {titel: ids.length === 1 ? 'Pflanze löschen' : 'Pflanzen löschen',
+    ja:'Endgültig löschen', nein:'Abbrechen', gefahr:true}).then(ja => {
+    if(!ja) return;
+    ids.forEach(pflanzeEntfernen);
+    sichern();
+    samAktionSchluss(ids.length === 1 ? 'Eine Pflanze gelöscht' : ids.length + ' Pflanzen gelöscht', null);
+  });
 }
 function sakTagWahl(tid){
   const ids = sakIds();
@@ -20047,6 +20194,7 @@ document.addEventListener('click', e => {
     return;
   }
   if(was === 'termin'){ sakTermin(); return; }
+  if(was === 'loeschen'){ sakLoeschen(); return; }
   if(was === 'zurueck'){
     SAK.seite = SAK.seite === 'platz' ? 'raum' : (SAK.seite === 'tagfrage' && SAK.vor === 'tags' ? 'tags' : 'start');
     samAktionenZeichnen(); return;
@@ -20669,7 +20817,7 @@ function alStufeZeigen(nr){
 
   if(alStufe === 2) alStufe2Zeichnen();
   if(alStufe === 3){ alKnoepfeAlle(); }
-  if(alStufe === 4){ alKnoepfeAlle(); alKulturSetzen(); alTopfZeichnen(); alBibZsfZeichnen(); }
+  if(alStufe === 4){ alKnoepfeAlle(); alKulturSetzen(); alTopfZeichnen(); alBibZsfZeichnen(); alFrostZeichnen(); }
   if(alStufe === 5){ alFotosZeichnen(); alZsfZeichnen(); if(typeof alLernZeileZeichnen === 'function') alLernZeileZeichnen(); if(typeof alGtZeichnen === 'function') alGtZeichnen(); }
   const rumpf = document.querySelector('#anleg-modal .sekm-rumpf');
   if(rumpf) rumpf.scrollTop = 0;
@@ -22422,6 +22570,9 @@ function awAnwenden(o){
   if(an('frost') && frN != null && !(AW.hand && AW.hand.frost)){
     frostSetzen(document.getElementById('f-frost'), frN);
     AW.gesetzt.frostMin = AW.quelle === 'bib' ? 'bib' : 'ki';
+    /* 4.0.1: Nur eine echte Zahl der Bibliothek zählt als Abweichung. */
+    AW.frostAbweich = !!(b && b.frost != null && Number(b.frost) !== frN);
+    alFrostZeichnen();
     const bf = b ? (b.frost == null ? -15 : Number(b.frost)) : null;
     if(bf != null && bf !== frN) msg.push('Frostgrenze: Die Bibliothek nennt ' + frostKnopfText(bf) + ' — du kannst sie auf der Stufe „Platz und Pflege“ ändern');
   }
@@ -27988,7 +28139,7 @@ function rueckText(){
   const art = ($('#ru-art') && $('#ru-art').value) || 'sonst';
   const titel = {fehler:'Fehlermeldung', art:'Fehlende Pflanzenart',
                  wunsch:'Wunsch', sonst:'Rückmeldung'}[art];
-  const zeilen = ['Pflanzenglossar — ' + titel, '',
+  const zeilen = ['GreenkeeperAi — ' + titel, '',
     ($('#ru-text') && $('#ru-text').value.trim()) || '(keine Beschreibung eingetragen)', ''];
   if($('#ru-technik') && $('#ru-technik').checked){
     let groesse = '?';
@@ -28016,7 +28167,7 @@ if($('#ru-mail')){
 if($('#btn-ru-mail')) $('#btn-ru-mail').onclick = ()=>{
   const t = rueckText();
   const an = ($('#ru-mail').value || '').trim() || MELDE_MAIL;
-  const betreff = 'Pflanzenglossar — ' +
+  const betreff = 'GreenkeeperAi — ' +
     ({fehler:'Fehlermeldung', art:'Fehlende Art', wunsch:'Wunsch', sonst:'Rückmeldung'}[$('#ru-art').value] || 'Rückmeldung');
   window.location.href = 'mailto:' + encodeURIComponent(an) +
     '?subject=' + encodeURIComponent(betreff) + '&body=' + encodeURIComponent(t);
@@ -33411,6 +33562,9 @@ document.addEventListener('click', e=>{
 })();
 
 tourListeZeichnen();
+
+/* 4.0.1: Alles geladen, der Ladebildschirm darf gehen. */
+if(typeof gkLadeFertig === 'function') gkLadeFertig();
 
 </script>
 </body>
