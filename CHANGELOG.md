@@ -1854,8 +1854,9 @@ Drei Arten ergänzt: Königsbegonie (Begonia rex-cultorum), Elatior-Begonie (Beg
 
 ## Für kommende Fassungen
 
-Beim Veröffentlichen einer neuen Fassung sind drei Stellen zu ändern:
+Beim Veröffentlichen einer neuen Fassung sind vier Stellen zu ändern:
 
-1. In `index.html` einen neuen Eintrag **oben** in `PATCHNOTES` einfügen und `FASSUNG` auf dessen Nummer setzen.
+1. In `index.html` einen neuen Eintrag **oben** in `PATCHNOTES` einfügen (den untersten streichen, es bleiben zehn) und `FASSUNG` auf dessen Nummer setzen.
 2. In `sw.js` die Zahl in `VERSION` erhöhen, damit die Geräte die neue Datei auch wirklich holen.
-3. Hier in dieser Datei denselben Eintrag ergänzen.
+3. In `pruef.js` die erwartete Fassung und die erwartete Nummer von `sw.js` nachziehen.
+4. Hier in dieser Datei denselben Eintrag ergänzen.
