@@ -4416,9 +4416,6 @@ html[data-design] #lade .lade-keim2{animation-delay:.95s,1.25s}
   html[data-design] #lade .lade-topf,html[data-design] #lade .lade-blaetter{animation:none;opacity:1;transform:none}
   html[data-design] #lade .lade-trieb,html[data-design] #lade .lade-keim{animation:none;opacity:0}
 }
-html[data-design] .al-frost-ki{margin:.2rem 0 0;padding:.7rem .85rem;border:1px solid var(--linie);border-radius:12px}
-html[data-design] .al-frost-ki b{display:block}
-html[data-design] .al-frost-ki i{display:block;font-style:normal;font-size:.86rem;opacity:.75;margin-top:.15rem}
 html[data-design] .al-frost-genau{display:block;margin-top:.7rem}
 html[data-design] .al-frost-genau input{display:block;width:100%;max-width:12rem;margin-top:.25rem}
 </style>
@@ -11643,7 +11640,7 @@ function pflanzeEntfernen(id){
           <div class="al-knoepfe" id="f-stabtage-knoepfe"></div>
           <span class="fhint" data-erkl>Beim Gießen steht dann „+ Moosstab“ auf der Karte.</span>
         </div>
-        <div class="al-feld">
+        <div class="al-feld" id="al-frost">
           <span class="lab">Frostgrenze</span>
           <select id="f-frost" hidden>
             <option value="">Weiß ich nicht</option>
@@ -11655,7 +11652,6 @@ function pflanzeEntfernen(id){
             <option value="15">ab 15 °C ins Haus</option>
           </select>
           <div class="al-knoepfe" id="f-frost-knoepfe"></div>
-          <p class="al-frost-ki" id="al-frost-ki" hidden></p>
           <label class="al-frost-genau" id="al-frost-genau">
             <span class="lab">Genaue Gradzahl in °C</span>
             <input id="f-frost-genau" type="number" min="-40" max="25" step="1" placeholder="zum Beispiel -3" autocomplete="off">
@@ -12113,7 +12109,7 @@ const ISSUE_URL  = REPO_URL + '/issues/new';
 
    Die Einträge vor 1.3 sind nachträglich zusammengetragen — die
    frühen Uploads liegen ohne Beschreibung im Verlauf. */
-const FASSUNG = '4.0.1';
+const FASSUNG = '4.0.2';
 /* Unter Mehr stehen nur die letzten zehn Fassungen, alle weiteren im
    CHANGELOG. `sicherung:true` heißt: Diese Fassung löscht alte Daten
    und verlangt vorher eine Sicherung. Der neueste so markierte Eintrag
@@ -12121,6 +12117,27 @@ const FASSUNG = '4.0.1';
    Fassung die Kennung trägt. */
 const CHANGELOG_URL = REPO_URL + '/blob/HEAD/CHANGELOG.md';
 const PATCHNOTES = [
+  {
+    nr: '4.0.2', datum: '2026-11-17', titel: 'Ein Abstand ohne Winter',
+    kurz: [
+      'Ist „Im Winter größere Abstände“ aus, hat jede Pflanze einen Gießabstand fürs ganze Jahr: den Sommerwert.',
+      'Ist der Schalter an, stellst du Sommer und Winter getrennt ein, wie bisher.',
+      'Hydro, Wasserglas und Semi-Hydro: Den Wasserwechsel stellst du jetzt selbst ein, mit dem Schalter an auch getrennt für Sommer und Winter.',
+      'Ein Gießabstand, den du selbst eingetragen hast, wird im Winter nicht mehr gestreckt.',
+      'Legst du mit der KI an, übernimmt die App ihre Frostgrenze ohne eigene Zeile. Du siehst sie in der Zusammenfassung und im Steckbrief.'
+    ],
+    neu: [
+      'Fenster „Gießabstand“ bei Gießarten mit Wasserwechsel: Zähler für den Wasserwechsel und „Vorschlag der Gießart übernehmen“.'
+    ],
+    besser: [
+      'Schalter „Im Winter größere Abstände“ aus: ein Zähler „Abstand“ im Fenster „Gießabstand“, eine Zahl je Gießklasse in den Einstellungen. Der gespeicherte Winterwert bleibt erhalten und gilt wieder, sobald du den Schalter einschaltest.',
+      'Die Stufen sanft, normal und stark strecken nur noch Abstände aus der Gießklasse, nicht deine eigenen.',
+      'Frostgrenze im KI-Anlegen: Der Wert der KI gilt immer, auch wenn die Artenbibliothek eine andere Zahl nennt. Ändern kannst du ihn später unter „Bearbeiten“.'
+    ],
+    behoben: [
+      'Mit ausgeschaltetem Schalter wurden die Abstände im Winter trotzdem länger.'
+    ]
+  },
   {
     nr: '4.0.1', datum: '2026-11-15', titel: 'Neues Symbol, Ladebildschirm',
     kurz: [
@@ -12300,24 +12317,6 @@ const PATCHNOTES = [
       'Seit Herbstbeginn stand bei vielen Pflanzen der allgemeine Wintersatz „tiefer prüfen“, auch bei Bromelien und Kakteen.',
       'Ein Fenster, das sofort wieder zugeht, zieht den Fokus nicht mehr nachträglich in seinen versteckten Titel.'
     ]
-  },
-  {
-    nr: '3.28.0', datum: '2026-09-22', titel: 'Anzucht',
-    kurz: [
-      'Aus „Vermehren“ wird das Werkzeug „Anzucht“: Stecklinge stehen als Gruppe in Gläsern und Schalen, der Wasserwechsel steht im Gießplan, und eine eigene Karte gibt es erst beim Eintopfen.'
-    ],
-    besser: [
-      'Die Anzucht zeigt alle Bereiche und Gefäße auf einen Blick: Name, Medium, Zahl der Stecklinge und den nächsten Wasserwechsel.',
-      'Bereiche wie das Anzuchthaus können einen eigenen Rhythmus haben, Vorgabe alle 10 Tage befeuchten. Dann steht der Bereich als ein Eintrag im Gießplan. Wassergläser darin behalten ihren eigenen Wechsel.',
-      'Wassergläser stehen in Heute, im Gießmodus und in der Gießplan-Vorschau wie eine Pflanze in Wasserkultur, mit Knopf „Wasser gewechselt“. Den Abstand stellst du je Gefäß ein, Vorgabe 7 Tage. Gefäße mit Substrat, Moos oder Perlite: „Befeuchtet“, Vorgabe 10 Tage.',
-      '„Neue Stecklinge“ führt durch die bekannten Wege. Neu ist die Frage „Wohin?“: in die Anzucht oder gleich als eigene Pflanzen.',
-      '„Frei eintragen“ für Stecklinge ohne Mutter in der Sammlung, etwa getauschte.',
-      'Jede Gruppe hat einen Verlauf: Wurzeln sichtbar, erstes neues Blatt, eigene Notizen. Fotos hängen am Gefäß.',
-      'Entnehmen, auch einzeln: als eigene Pflanze eintopfen (je Steckling eine Karte oder alle in einen Topf), in ein anderes Gefäß umsetzen oder als Ausfall eintragen.',
-      'Die Karte der Mutter zeigt, was von ihr gerade in der Anzucht steht.',
-      'Die Anzucht geht mit in die Sicherung, ihre Fotos auch.'
-    ],
-    behoben: []
   }
 ];
 let SPEICHER_OK = true;
@@ -13186,11 +13185,26 @@ setInterval(tagPruefen, 300000);
    Wert gilt nur noch, wenn er ausdrücklich von ihr abweicht. */
 /* Wasser- und Hydrokultur folgen keinem Gießintervall — dort zählt,
    wie schnell das Wasser kippt, nicht wie schnell Erde abtrocknet. */
-function wechselIntervall(p){
+/* 4.0.2: Ein eigener Wasserwechsel der Pflanze (`p.wechselEigen`,
+   [Sommer, Winter], 1 bis 60 Tage) geht der Vorgabe der Gießart vor. */
+function wechselVorgabe(p){
   const g = (typeof giessartVon === 'function') ? giessartVon(p) : null;
   const a = g && typeof GIESSARTEN !== 'undefined' ? GIESSARTEN[g] : null;
   return (a && a.wechsel) ? a.wechsel : null;
 }
+function wechselEigen(p){
+  return p && Array.isArray(p.wechselEigen) && p.wechselEigen.length === 2
+      && p.wechselEigen.every(x => typeof x === 'number' && x >= 1 && x <= 60) ? p.wechselEigen : null;
+}
+function wechselIntervall(p){
+  const v = wechselVorgabe(p);
+  if(!v) return null;
+  return wechselEigen(p) || v;
+}
+/* 4.0.2: Der Schalter „Im Winter größere Abstände“ (`S.giess.saison`)
+   entscheidet, ob es einen Winterwert gibt. Aus heißt: ein Abstand,
+   ganzjährig der Sommerwert. */
+function winterAn(){ return !(S && S.giess && S.giess.saison === false); }
 /* Ein eigener Rhythmus gilt nur, wenn er ausdrücklich als solcher
    gesetzt wurde. Vorher wurde geraten, ob ein Wert von Hand stammt —
    dabei fielen Werte wie [8,12] als vermeintliche Kopie durch.
@@ -13274,7 +13288,7 @@ function spaeterVon(p){
 function intervallVon(p, ohneTag){
   const lage = jahresLage();
   const w = wechselIntervall(p);
-  if(w) return Math.max(1, Math.round(jahresMischung(w[0], w[1], lage)));
+  if(w) return Math.max(1, Math.round(winterAn() ? jahresMischung(w[0], w[1], lage) : w[0]));
   const anstau = anstauLage(p);
   if(anstau){
     /* In der Ruhe zählt der Winterwert der Klasse für sich. Der Faktor
@@ -13286,12 +13300,14 @@ function intervallVon(p, ohneTag){
     return basis + Math.min(4, Math.max(0, schub));
   }
   const iv = intervallBasis(p);
-  let basis = jahresMischung(iv[0], iv[1], lage);
+  let basis = winterAn() ? jahresMischung(iv[0], iv[1], lage) : iv[0];
   /* Saison-Anpassung aus dem Gießcenter. Die Winterwerte der Arten
      sind Mittelwerte für eine normale Wohnung — wer kühl oder dunkel
      hält, braucht deutlich längere Abstände. Der Faktor wächst mit
      dem Winter hinein, statt am 1. November ganz einzusetzen. */
-  if(typeof saisonFaktor === 'function'){
+  /* 4.0.2 (F419): nur auf Werte der Gießklasse; ein Handwert gilt, wie er
+     eingetragen ist. */
+  if(!ivEigen(p) && typeof saisonFaktor === 'function'){
     const f = saisonFaktor();
     if(f !== 1) basis = basis * f;
   }
@@ -14914,7 +14930,9 @@ function ivKlasseWerte(p){
 function ivFensterAuf(id, ausloeser){
   const p = allePflanzen().find(x=>x.id === id); if(!p) return false;
   const b = ivEigen(p) || ivKlasseWerte(p);
+  const wv = wechselIntervall(p) || [7, 7];
   IVF = {pid:id, s:Math.round(b[0]), w:Math.round(b[1]), geaendert:false, klasse:false,
+         ws:Math.round(wv[0]), ww:Math.round(wv[1]), wGeaendert:false, wVorgabe:false,
          giessart:(p.giessart && GIESSARTEN[p.giessart]) ? p.giessart : ''};
   ivFensterZeichnen();
   return modalAuf('iv-modal', ausloeser);
@@ -14935,18 +14953,34 @@ function ivFensterZeichnen(){
       ? `<p class="iv-hinweis">Gerade läuft eine Gießpause („${esc(tg.t.name)}“). Hier stellst du den Abstand für danach.</p>`
       : `<p class="iv-hinweis">Gerade wirkt „${esc(tg.t.name)}“: ${esc(tagWirkText(intervallVon(p, true), tg.t.giess, tagProzent(tg)))}. Hier stellst du den Abstand ohne diese Wirkung.</p>`;
   let zaehler;
-  if(wechselIntervall(pv)){
-    zaehler = '<p class="kb-klein iv-wechsel">Der Abstand folgt dem Wasserwechsel dieser Gießart und lässt sich nicht von Hand stellen.</p>';
+  /* 4.0.2: Ist „Im Winter größere Abstände“ aus, gibt es einen Zähler
+     (den Sommerwert); an, gibt es Sommer und Winter. So auch beim
+     Wasserwechsel. */
+  const winter = winterAn();
+  const regler = (k, name) => `<div class="iv-regler"><span>${name}</span><span class="zaehler">`
+    + `<button type="button" class="takt-pm" data-ivf-schritt="${k}" data-d="-1" aria-label="${name} kürzer">−</button>`
+    + `<output class="takt-zahl" data-ivf-out="${k}">${t(IVF[k])}</output>`
+    + `<button type="button" class="takt-pm" data-ivf-schritt="${k}" data-d="1" aria-label="${name} länger">+</button></span></div>`;
+  const vorgabe = wechselVorgabe(pv);
+  if(vorgabe){
+    const vg = [Math.round(vorgabe[0]), Math.round(vorgabe[1])];
+    const artName = GIESSARTEN[IVF.giessart || giessartVon(p)].name;
+    const gleich = IVF.ws === vg[0] && (!winter || IVF.ww === vg[1]);
+    zaehler = (winter
+        ? `<p class="ein-abschnitt">Wasserwechsel</p>${regler('ws', 'Sommer')}${regler('ww', 'Winter')}
+      <p class="iv-klasse">Vorgabe für ${esc(artName)}: ${t(vg[0])} im Sommer, ${t(vg[1])} im Winter.</p>`
+        : `${regler('ws', 'Wasserwechsel alle')}
+      <p class="iv-klasse">Vorgabe für ${esc(artName)}: ${t(vg[0])}.</p>`)
+      + (gleich ? '' : '<div class="kb-aktionen"><button type="button" class="kb-link" data-ivf-wvorgabe>Vorschlag der Gießart übernehmen</button></div>');
   } else {
     const kl = ivKlasseWerte(p);
-    const regler = (k, name) => `<div class="iv-regler"><span>${name}</span><span class="zaehler">`
-      + `<button type="button" class="takt-pm" data-ivf-schritt="${k}" data-d="-1" aria-label="${name} kürzer">−</button>`
-      + `<output class="takt-zahl" data-ivf-out="${k}">${t(IVF[k])}</output>`
-      + `<button type="button" class="takt-pm" data-ivf-schritt="${k}" data-d="1" aria-label="${name} länger">+</button></span></div>`;
-    const gleich = IVF.s === kl[0] && IVF.w === kl[1];
-    zaehler = `<p class="ein-abschnitt">Grundabstand</p>${regler('s', 'Sommer')}${regler('w', 'Winter')}
-      <p class="iv-klasse">Gießklasse ${esc(p.klasse || '')}: ${t(kl[0])} im Sommer, ${t(kl[1])} im Winter.</p>
-      ${gleich ? '' : '<div class="kb-aktionen"><button type="button" class="kb-link" data-ivf-klasse>Vorschlag der Gießklasse übernehmen</button></div>'}`;
+    const gleich = IVF.s === kl[0] && (!winter || IVF.w === kl[1]);
+    zaehler = (winter
+        ? `<p class="ein-abschnitt">Grundabstand</p>${regler('s', 'Sommer')}${regler('w', 'Winter')}
+      <p class="iv-klasse">Gießklasse ${esc(p.klasse || '')}: ${t(kl[0])} im Sommer, ${t(kl[1])} im Winter.</p>`
+        : `${regler('s', 'Abstand')}
+      <p class="iv-klasse">Gießklasse ${esc(p.klasse || '')}: ${t(kl[0])}.</p>`)
+      + (gleich ? '' : '<div class="kb-aktionen"><button type="button" class="kb-link" data-ivf-klasse>Vorschlag der Gießklasse übernehmen</button></div>');
   }
   const artWahl = IVF.giessart || giessartVon(p);
   const arten = Object.keys(GIESSARTEN).map(k =>
@@ -14962,13 +14996,17 @@ function ivFensterSpeichern(){
   const pv = Object.assign({}, p, IVF.giessart ? {giessart:IVF.giessart} : {});
   const felder = {};
   let lernWeg = false, vorWeg = false;
-  if(!wechselIntervall(pv)){
+  if(wechselVorgabe(pv)){
+    if(IVF.wVorgabe && wechselEigen(p)) felder.wechselEigen = null;
+    else if(IVF.wGeaendert) felder.wechselEigen = [IVF.ws, IVF.ww];
+  } else {
     if(IVF.klasse && ivEigen(p)){ felder.intervallEigen = false; vorWeg = true; }
     else if(IVF.geaendert){ felder.intervall = [IVF.s, IVF.w]; felder.intervallEigen = true; lernWeg = true; }
   }
   /* Wie im Bearbeiten (4.0-beta.11): der automatische Weg wird nicht festgeschrieben. */
   if(IVF.giessart && IVF.giessart !== (p.giessart || '')
      && !(!p.giessart && IVF.giessart === giessartRaten(p))) felder.giessart = IVF.giessart;
+  if(felder.giessart && wechselEigen(p) && !wechselVorgabe(pv)) felder.wechselEigen = null;
   if(Object.keys(felder).length) aenderungSetzen(p.id, felder);
   if(lernWeg && typeof lernZuruecksetzen === 'function') lernZuruecksetzen(p.id);
   if(vorWeg) ivVorschlagWeg(p.id);
@@ -14982,9 +15020,10 @@ document.addEventListener('click', e=>{
   if(!IVF || !e.target.closest('#iv-modal')) return;
   const sch = e.target.closest('[data-ivf-schritt]');
   if(sch){
-    const k = sch.dataset.ivfSchritt === 'w' ? 'w' : 's';
+    const k = ['s', 'w', 'ws', 'ww'].indexOf(sch.dataset.ivfSchritt) > -1 ? sch.dataset.ivfSchritt : 's';
     IVF[k] = Math.max(1, Math.min(60, IVF[k] + Number(sch.dataset.d || 0)));
-    IVF.geaendert = true; IVF.klasse = false;
+    if(k === 'ws' || k === 'ww'){ IVF.wGeaendert = true; IVF.wVorgabe = false; }
+    else { IVF.geaendert = true; IVF.klasse = false; }
     ivFensterZeichnen();
     const neu = document.querySelector('#iv-modal [data-ivf-schritt="' + k + '"][data-d="' + sch.dataset.d + '"]');
     if(neu) try{ neu.focus({preventScroll:true}); }catch(x){}
@@ -14997,8 +15036,28 @@ document.addEventListener('click', e=>{
     ivFensterZeichnen();
     return;
   }
+  if(e.target.closest('[data-ivf-wvorgabe]')){
+    const p = allePflanzen().find(x=>x.id === IVF.pid); if(!p) return;
+    const v = wechselVorgabe(Object.assign({}, p, IVF.giessart ? {giessart:IVF.giessart} : {}));
+    if(!v) return;
+    IVF.ws = Math.round(v[0]); IVF.ww = Math.round(v[1]); IVF.wVorgabe = true; IVF.wGeaendert = false;
+    ivFensterZeichnen();
+    return;
+  }
   const art = e.target.closest('[data-ivf-art]');
-  if(art){ IVF.giessart = art.dataset.ivfArt; ivFensterZeichnen(); return; }
+  if(art){
+    IVF.giessart = art.dataset.ivfArt;
+    /* 4.0.2: Ein eigener Wasserwechsel gehört zur Gießart, mit der er
+       gestellt wurde; eine andere Gießart beginnt mit ihrer Vorgabe. */
+    const p = allePflanzen().find(x=>x.id === IVF.pid);
+    const v = p ? wechselVorgabe(Object.assign({}, p, {giessart:IVF.giessart})) : null;
+    if(p && v){
+      const eig = IVF.giessart === giessartVon(p) ? wechselEigen(p) : null;
+      const q = eig || v;
+      IVF.ws = Math.round(q[0]); IVF.ww = Math.round(q[1]); IVF.wVorgabe = !eig; IVF.wGeaendert = false;
+    }
+    ivFensterZeichnen(); return;
+  }
   /* Gelernter Vorschlag: übernommen wird sofort (Knopf „Übernehmen“), der
      Zuhörer oben hat schon gespeichert; hier nur neu zeichnen. */
   const vor = e.target.closest('[data-do="iv-vor-ja"],[data-do="iv-vor-nein"]');
@@ -15015,7 +15074,7 @@ document.addEventListener('click', e=>{
 
 /* Woher der Rhythmus kommt — eine Marke neben der Zahl. */
 function rhythmusQuelle(p){
-  if(wechselIntervall(p)) return {wort:'Wasserwechsel', ton:''};
+  if(wechselIntervall(p)) return wechselEigen(p) ? {wort:'von Hand', ton:'wasser'} : {wort:'Wasserwechsel', ton:''};
   if(ivEigen(p)) return {wort:'von Hand', ton:'wasser'};
   if(anstauLage(p)) return {wort:'Anstau', ton:''};
   const lernt = typeof gruppeLernt !== 'function' || gruppeLernt(p);
@@ -15033,7 +15092,7 @@ function rhythmusQuelle(p){
 function vorschlagRechnen(p, richtung){
   const eigen = ivEigen(p); if(!eigen) return null;
   const g = gruppeVon(p);
-  const saison = (typeof sommer === 'function' && sommer()) ? 's' : 'w';
+  const saison = (!winterAn() || (typeof sommer === 'function' && sommer())) ? 's' : 'w';
   const basis = Math.round(eigen[saison === 's' ? 0 : 1]);
   /* Fällt die Rundung auf denselben Wert, wird es ein Tag — ein
      Vorschlag, der nichts ändert, ist keiner. */
@@ -15051,7 +15110,7 @@ function ivVorschlagVon(p){
   const eigen = ivEigen(p); if(!eigen) return null;
   const v = (S.lernen && S.lernen[p.id] && S.lernen[p.id].ivVorschlag) || null;
   if(!v || !v.wert) return null;
-  const saison = (typeof sommer === 'function' && sommer()) ? 's' : 'w';
+  const saison = (!winterAn() || (typeof sommer === 'function' && sommer())) ? 's' : 'w';
   if(v.saison !== saison) return null;
   if(Math.round(eigen[saison === 's' ? 0 : 1]) !== v.von) return null;
   return v;
@@ -15076,7 +15135,7 @@ function ivVorschlagUebernehmen(id){
 function ivVorschlagHTML(p){
   const v = ivVorschlagVon(p);
   if(!v) return '';
-  const wort = v.saison === 's' ? 'Sommer' : 'Winter';
+  const wort = !winterAn() ? 'Abstand' : v.saison === 's' ? 'Sommer' : 'Winter';
   const anlass = v.richtung === 'hoch' ? 'Zweimal „noch feucht“' : 'Zweimal „staubtrocken“';
   const ziel = v.wert === 1 ? 'auf täglich' : 'auf ' + v.wert + ' Tage';
   return `<div class="iv-vor">
@@ -15177,27 +15236,22 @@ function frostSetzen(sel, n){
   sel.value = n == null ? '' : String(n);
   if(typeof alKnopfGruppe === 'function' && sel.id === 'f-frost'){ alKnopfGruppe('f-frost'); alFrostZeichnen(); }
 }
-/* 4.0.1: Im KI-Weg steht die Frostgrenze der Antwort als Zeile da, ohne
-   zweite Auswahl. Knöpfe und das Feld für die genaue Gradzahl gibt es
-   auf den anderen Wegen, ohne KI-Wert und dann, wenn die Bibliothek
-   eine andere Zahl nennt (Regel: Abweichungen nur einzeln). */
+/* 4.0.2 (F417): Im KI-Weg steht in Stufe 4 nichts zur Frostgrenze. Der
+   Wert der KI wird immer übernommen, auch wenn die Bibliothek eine andere
+   Zahl nennt; sichtbar ist er in der Zusammenfassung und im Steckbrief.
+   Knöpfe und das Feld für die genaue Gradzahl gibt es auf den Wegen
+   „Von Hand“ und „Aus der Bibliothek“. */
 function alFrostFest(){
   let weg = null;
   try{ weg = neuWeg; }catch(e){}
-  const sel = document.getElementById('f-frost');
-  if(weg !== 'ki' || !sel || frostZahl(sel.value) == null) return false;
-  if(typeof AW === 'undefined' || !AW || !AW.gesetzt || AW.gesetzt.frostMin !== 'ki') return false;
-  return !AW.frostAbweich && !(AW.hand && AW.hand.frost);
+  return weg === 'ki';
 }
 function alFrostZeichnen(){
-  const sel = document.getElementById('f-frost'), box = document.getElementById('f-frost-knoepfe');
-  const zeile = document.getElementById('al-frost-ki'), genau = document.getElementById('al-frost-genau');
+  const sel = document.getElementById('f-frost'), feldBox = document.getElementById('al-frost');
   const feld = document.getElementById('f-frost-genau');
-  if(!sel || !box || !zeile || !genau || !feld) return;
+  if(!sel || !feldBox || !feld) return;
   const fest = alFrostFest(), n = frostZahl(sel.value);
-  box.hidden = fest; genau.hidden = fest; zeile.hidden = !fest;
-  zeile.innerHTML = fest ? '<b>' + esc(n <= -15 ? 'Winterhart' : n <= 0 ? 'Winterhart bis ' + String(n).replace('-', '−') + ' °C' : 'Ab ' + n + ' °C ins Haus')
-    + '</b><i>Aus der KI-Antwort. Ändern kannst du sie später in der Karte unter „Bearbeiten“.</i>' : '';
+  feldBox.hidden = fest;
   if(document.activeElement !== feld)
     feld.value = (n != null && !FROST_STUFEN.some(w => w[0] === String(n))) ? String(n) : '';
 }
@@ -20990,7 +21044,7 @@ function planTabellen(){
     const wer = allePflanzen().filter(p=>p.klasse===k).map(nice).join(', ')||'—';
     return `<div class="gp-k"><p class="gp-kopf"><span class="cls-key">${k}</span> <b>${esc(v.name)}</b></p>
       <p class="gp-txt">${esc(v.kurz)}</p>
-      <dl class="gp-werte"><div><dt>Sommer</dt><dd>${esc(v.sommer)}</dd></div><div><dt>Winter</dt><dd>${esc(v.winter)}</dd></div></dl>
+      <dl class="gp-werte">${winterAn() ? `<div><dt>Sommer</dt><dd>${esc(v.sommer)}</dd></div><div><dt>Winter</dt><dd>${esc(v.winter)}</dd></div>` : `<div><dt>Abstand</dt><dd>${esc(v.sommer)}</dd></div>`}</dl>
       <p class="gp-wer">${esc(wer)}</p></div>`;
   }).join('');
 }
@@ -22570,11 +22624,7 @@ function awAnwenden(o){
   if(an('frost') && frN != null && !(AW.hand && AW.hand.frost)){
     frostSetzen(document.getElementById('f-frost'), frN);
     AW.gesetzt.frostMin = AW.quelle === 'bib' ? 'bib' : 'ki';
-    /* 4.0.1: Nur eine echte Zahl der Bibliothek zählt als Abweichung. */
-    AW.frostAbweich = !!(b && b.frost != null && Number(b.frost) !== frN);
     alFrostZeichnen();
-    const bf = b ? (b.frost == null ? -15 : Number(b.frost)) : null;
-    if(bf != null && bf !== frN) msg.push('Frostgrenze: Die Bibliothek nennt ' + frostKnopfText(bf) + ' — du kannst sie auf der Stufe „Platz und Pflege“ ändern');
   }
   /* 4.0-beta.31 (B4a, F293): keine Frostzeile mehr in der Notiz. */
   if(AW.ausGattung && an('klasse') && !w.klasse) msg.push('Gießklasse S aus dem Gattungswissen gesetzt');
@@ -32655,10 +32705,12 @@ const TOUR_KAPITEL = {
         titel: 'Gießart',
         text: 'Wie du gießt, bestimmt Weg und Hinweise im Gießmodus; Gießklasse und Licht darüber schlägt die KI oder die Bibliothek vor.' },
       { fenster: 'anleg-modal',
-        ziel: ()=>{ const s = document.getElementById('f-frost');
+        ziel: ()=>{ const fr = document.getElementById('al-frost');
+                    if(fr && !fr.closest('[hidden]')) return fr;
+                    const s = document.getElementById('f-rankhilfe');
                     return s ? s.closest('.al-feld') : null; },
         titel: 'Rankhilfe und Frostgrenze',
-        text: 'Beim Moosstab erinnert die App ans Befeuchten; die Frostgrenze darunter belegt die KI vor, ändern kannst du sie immer.' },
+        text: 'Beim Moosstab erinnert die App ans Befeuchten. Die Frostgrenze der KI übernimmt die App ohne Rückfrage; von Hand oder aus der Bibliothek wählst du sie hier, ändern kannst du sie immer unter „Bearbeiten“.' },
       { fenster: 'anleg-modal',
         vor: ()=>tourAnlegenAuf(5),
         ziel: ()=>document.getElementById('al-weiter'),

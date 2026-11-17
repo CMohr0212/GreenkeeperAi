@@ -192,7 +192,7 @@ setTimeout(async () => {
   pruef('Zweitschlüssel geschrieben',
     w.localStorage.getItem('gk-design') === 'botanisch',
     w.localStorage.getItem('gk-design'));
-  pruef('FASSUNG 4.0.1', w.__T('FASSUNG') === '4.0.1', w.__T('FASSUNG'));
+  pruef('FASSUNG 4.0.2', w.__T('FASSUNG') === '4.0.2', w.__T('FASSUNG'));
   pruef('Drei Umschaltknöpfe', d.querySelectorAll('[data-design-go]').length === 3);
   pruef('Botanisch ist gedrückt',
     d.querySelector('[data-design-go="botanisch"]').getAttribute('aria-pressed') === 'true');
@@ -2392,8 +2392,9 @@ setTimeout(async () => {
         !!karteAus('A2P').querySelector('.km-giess [data-do="iv-fenster"]'));
       w.__T(`aenderungSetzen('A2P', {intervall:[5,5], intervallEigen:true})`);
       const ivEigen = w.__T(`intervallVon(allePflanzen().find(x=>x.id==='A2P'))`);
+      /* 4.0.2 (F419): Ein Handwert wird nicht mehr gestreckt. */
       pruef('Ein von Hand gesetzter Rhythmus wird übernommen',
-        ivEigen === w.__T(`Math.max(1, Math.round(5 * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`),
+        ivEigen === 5,
         ivBasis + ' → ' + ivEigen);
       pruef('Die Marke sagt jetzt „von Hand“',
         w.__T(`rhythmusQuelle(allePflanzen().find(x=>x.id==='A2P')).wort`) === 'von Hand');
@@ -3881,8 +3882,7 @@ setTimeout(async () => {
       const v = intervallVon(p);
       delete p.intervall; delete p.intervallEigen;
       return v;
-    })()`) === w.__T(`Math.max(1, Math.round(9
-      * (typeof saisonFaktor === 'function' ? saisonFaktor() : 1)))`));
+    })()`) === 9);
   w.__T("(function(){ const a = " + karSicher + "; S.eigene = a.e; S.lernen = a.z; S.tagEin = a.t; sichern(); })()");
 
 
@@ -4664,7 +4664,7 @@ setTimeout(async () => {
   {
     const n = w.__T("JSON.stringify(PATCHNOTES[0])");
     const e0 = JSON.parse(n);
-    pruef('Der oberste Eintrag ist 4.0.1', e0.nr === '4.0.1', e0.nr);
+    pruef('Der oberste Eintrag ist 4.0.2', e0.nr === '4.0.2', e0.nr);
     pruef('Und traegt eine Kurzfassung',
       Array.isArray(e0.kurz) && e0.kurz.length > 0 && e0.kurz.length <= 5,
       e0.kurz && e0.kurz.length);
@@ -6353,8 +6353,8 @@ setTimeout(async () => {
     pruef('3.31.0: Der Download startet mit dem Sicherungsnamen', geladen === 'pflanzen-sicherung.json', String(geladen));
     pruef('3.31.0: Nach dem Download ist das Fenster zu', T(`modalOffen('sich-pflicht')`) === false);
     pruef('3.31.0: Nach dem Download ist bereinigt', T(`'edits' in S`) === false && T('S.bereinigtFassung') === '3.31.0');
-    pruef('3.31.0/4.0.1: Danach nennt „Neu in Fassung“ die 4.0.1, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
-      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1', d.getElementById('neu-titel').textContent);
+    pruef('3.31.0/4.0.1: Danach nennt „Neu in Fassung“ die 4.0.2, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
+      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.2', d.getElementById('neu-titel').textContent);
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
     pruef('3.31.0: Ein zweiter Start zeigt kein Fenster', T(`sicherungPflichtZeigen()`) === false);
     zurueck(); T('render()');
@@ -7162,8 +7162,8 @@ setTimeout(async () => {
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); }
     T(`S.fassungGesehen = '3.31.0'; _sichPflichtFrei = true; fassungPruefen();`);
     await tick();
-    pruef('4.0.1: „Neu in Fassung“ nennt 4.0.1, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
-      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1', d.getElementById('neu-titel').textContent);
+    pruef('4.0.1: „Neu in Fassung“ nennt 4.0.2, nicht 3.31.0', T(`modalOffen('neu-modal')`) === true
+      && d.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.2', d.getElementById('neu-titel').textContent);
     if(T(`modalOffen('neu-modal')`)){ T(`modalZu('neu-modal')`); await tick(); await tick(); }
     pruef('beta.1: Die Fassung gilt danach als gesehen', T('S.fassungGesehen') === T('FASSUNG'), T('S.fassungGesehen'));
 
@@ -7178,7 +7178,7 @@ setTimeout(async () => {
 
     /* Sicherungsdatei (F40) */
     pruef('4.0.0: Die Sicherungsdatei heißt pflanzen-sicherung.json', T('sicherungDatei().name') === 'pflanzen-sicherung.json', T('sicherungDatei().name'));
-    pruef('4.0.1: Die Sicherung trägt die Fassung', JSON.parse(T('sicherungInhalt()')).__fassung === '4.0.1');
+    pruef('4.0.1: Die Sicherung trägt die Fassung', JSON.parse(T('sicherungInhalt()')).__fassung === '4.0.2');
 
     /* sw.js mit Attrappen: die echte App löscht jeden fremden Zwischenspeicher */
     const vm = require('vm');
@@ -7193,7 +7193,7 @@ setTimeout(async () => {
     let warten = null;
     ereignisse.activate({waitUntil:p => { warten = p; }});
     await warten;
-    pruef('4.0.1: sw.js steht auf v132', SW_JETZT === 'greenkeeperai-v132', SW_JETZT);
+    pruef('4.0.1: sw.js steht auf v133', SW_JETZT === 'greenkeeperai-v133', SW_JETZT);
     pruef('4.0.0: sw.js löscht den alten Stand der echten App', geloescht.indexOf('greenkeeperai-v127') > -1, geloescht.join(','));
     pruef('4.0.0: sw.js löscht auch Beta-Stände und fremde Speicher', geloescht.indexOf('greenkeeperai-beta-0') > -1 && geloescht.indexOf('anderes') > -1, geloescht.join(','));
     pruef('4.0.0: sw.js behält den eigenen Stand', geloescht.indexOf(SW_JETZT) === -1 && geloescht.length === 3, geloescht.join(','));
@@ -9083,7 +9083,8 @@ setTimeout(async () => {
         T(`mixWasserStufe(${JSON.stringify(VIEL)}).stufe`) === 'viel' && T(`mixWasserStufe(${JSON.stringify(MITTEL)}).stufe`) === 'mittel' && T(`mixWasserStufe(${JSON.stringify(WENIG)}).stufe`) === 'wenig');
       const pf = o => Object.assign({id:'MB1', name:'Testi', art:'Testart', botanisch:'Testus testus', klasse:'B', gruppe:'laub', giessart:'durch'}, o);
       const iv = o => T(`(function(){ S.eigene = [${JSON.stringify(pf(o))}]; S.lernen = {}; return intervallVon(allePflanzen()[0]); })()`);
-      const roh = T(`(function(){ var p = ${JSON.stringify(pf({}))}; var b = intervallBasis(p); return jahresMischung(b[0], b[1], jahresLage()); })()`);
+      /* 4.0.2: Schalter aus heißt ganzjährig der Sommerwert. */
+      const roh = T(`(function(){ var p = ${JSON.stringify(pf({}))}; var b = intervallBasis(p); return b[0]; })()`);
       pruef('beta.17 (F166): Mix viel streckt den Abstand ×1,2', iv({mix:VIEL}) === Math.max(1, Math.round(roh * 1.2)), iv({mix:VIEL}) + ' / ' + roh);
       pruef('beta.17 (F166): Mix wenig kürzt den Abstand ×0,8', iv({mix:WENIG}) === Math.max(1, Math.round(roh * 0.8)), iv({mix:WENIG}) + ' / ' + roh);
       pruef('beta.17 (F166): Mix mittel lässt den Abstand', iv({mix:MITTEL}) === Math.round(roh), iv({mix:MITTEL}));
@@ -11531,16 +11532,17 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       const ivTxt = (q('#iv-inhalt') || {}).textContent || '';
       pruef('beta.30 B2 (2): Fenster nennt die Tag-Wirkung als Hinweis, nicht als Eingabe',
         /Gerade wirkt „Gießabstand verlängern“: 10 → 13 Tage/.test(ivTxt) && !q('#iv-inhalt input'), ivTxt.slice(0, 160));
-      pruef('beta.30 B2 (2): Zähler Sommer und Winter, Gießart als Knopfliste, keine Systemliste',
-        qa('#iv-modal [data-ivf-schritt]').length === 4 && qa('#iv-modal [data-ivf-art]').length >= 5 && !q('#iv-modal select'));
+      /* 4.0.2: Der Block läuft mit „Im Winter größere Abstände“ aus: ein Zähler. */
+      pruef('beta.30 B2 (2)/4.0.2: Ein Zähler (Schalter aus), Gießart als Knopfliste, keine Systemliste',
+        qa('#iv-modal [data-ivf-schritt]').length === 2 && qa('#iv-modal [data-ivf-art]').length >= 5 && !q('#iv-modal select'));
       const plus = q('#iv-modal [data-ivf-schritt="s"][data-d="1"]'); if(plus) plus.click();
       const plusW = q('#iv-modal [data-ivf-schritt="w"][data-d="1"]'); if(plusW){ plusW.click(); }
       pruef('beta.30 B2 (2): Zähler zeigt 11 Tage vor dem Speichern, gespeichert ist noch 10',
         ((q('#iv-modal [data-ivf-out="s"]') || {}).textContent || '') === '11 Tage'
         && TS(`JSON.stringify(allePflanzen().find(function(x){ return x.id === 'B2A'; }).intervall)`) === '[10,10]');
       const sp = d.getElementById('iv-speichern'); if(sp) sp.click(); await warte(400);
-      pruef('beta.30 B2 (2): Speichern setzt den Grundabstand 11/11 von Hand',
-        TS(`JSON.stringify(ivEigen(allePflanzen().find(function(x){ return x.id === 'B2A'; })))`) === '[11,11]',
+      pruef('beta.30 B2 (2)/4.0.2: Speichern setzt den Abstand 11 von Hand, der Winterwert bleibt (11/10)',
+        TS(`JSON.stringify(ivEigen(allePflanzen().find(function(x){ return x.id === 'B2A'; })))`) === '[11,10]',
         TS(`JSON.stringify(allePflanzen().find(function(x){ return x.id === 'B2A'; }).intervall)`));
       pruef('beta.30 B2 (2): Fenster zu, Karte offen, Gießzeile zeigt 11 → 14', TS(`modalOffen('iv-modal')`) === false
         && /· alle 14 Tage/.test(gz()) && /11 → 14 Tage/.test(gz()), gz().replace(/\s+/g, ' ').trim());
@@ -11548,13 +11550,13 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       TS(`ivFensterAuf('B2A')`); await warte(30);
       const minus = q('#iv-modal [data-ivf-schritt="s"][data-d="-1"]'); if(minus) minus.click();
       const ab = d.getElementById('iv-abbrechen'); if(ab) ab.click(); await warte(400);
-      pruef('beta.30 B2 (2): Abbrechen ändert nichts', TS(`JSON.stringify(allePflanzen().find(function(x){ return x.id === 'B2A'; }).intervall)`) === '[11,11]'
+      pruef('beta.30 B2 (2): Abbrechen ändert nichts', TS(`JSON.stringify(allePflanzen().find(function(x){ return x.id === 'B2A'; }).intervall)`) === '[11,10]'
         && TS(`modalOffen('iv-modal')`) === false);
       /* Vorschlag der Gießklasse: zurück zur Klasse */
       TS(`ivFensterAuf('B2A')`); await warte(30);
       const kl = q('#iv-modal [data-ivf-klasse]'); if(kl) kl.click();
-      pruef('beta.30 B2 (2): Vorschlag der Gießklasse steht im Fenster (B: 8 / 12 Tage)',
-        /Gießklasse B: 8 Tage im Sommer, 12 Tage im Winter/.test((q('#iv-inhalt') || {}).textContent || '')
+      pruef('beta.30 B2 (2)/4.0.2: Vorschlag der Gießklasse steht im Fenster, nur der Sommerwert (B: 8 Tage)',
+        /Gießklasse B: 8 Tage\./.test((q('#iv-inhalt') || {}).textContent || '')
         && ((q('#iv-modal [data-ivf-out="s"]') || {}).textContent || '') === '8 Tage');
       const sp2 = d.getElementById('iv-speichern'); if(sp2) sp2.click(); await warte(400);
       pruef('beta.30 B2 (2): „Vorschlag übernehmen“ und Speichern stellt zurück auf die Gießklasse',
@@ -13937,9 +13939,8 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       pruef('beta.46 (15): Stufe 4 fragt die Frostgrenze als Knopfliste ab',
         T(`alStart(); alStufeZeigen(4); document.querySelectorAll('#f-frost-knoepfe .al-knopf').length`) === 7 && fw() === '');
       kiAnlegen('Frostia probata', '12');
-      pruef('beta.46 (15)/4.0.1: Die Frostgrenze der KI steht als Zeile da (12 °C), ohne Knöpfe',
-        fw() === '12' && d.getElementById('f-frost-knoepfe').hidden === true && d.getElementById('al-frost-ki').hidden === false
-        && d.getElementById('al-frost-ki').textContent.indexOf('Ab 12 °C ins Haus') === 0, fw() + ' ' + d.getElementById('al-frost-ki').textContent);
+      pruef('beta.46 (15)/4.0.2: Im KI-Weg steht in Stufe 4 nichts zur Frostgrenze, der KI-Wert (12 °C) ist gesetzt',
+        fw() === '12' && d.getElementById('al-frost').hidden === true, fw());
       pruef('beta.46 (15): Vor „Pflanze anlegen“ steht keine Pflanze mit dieser Art', neuste('Frostia probata') === null);
       T('alSpeichern()'); await warte(120);
       const p1 = neuste('Frostia probata');
@@ -13952,7 +13953,7 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       kiAnlegen('Frostia dura', 'winterhart');
       pruef('beta.46 (15): „winterhart“ der KI wird zu Winterhart (−15 °C)', fw() === '-15', fw());
       T(`neuWegSetzen('hand'); 1`);
-      pruef('4.0.1: Auf dem Weg „Von Hand“ sind die Frost-Knöpfe wieder da', d.getElementById('f-frost-knoepfe').hidden === false && d.getElementById('al-frost-ki').hidden === true);
+      pruef('4.0.1: Auf dem Weg „Von Hand“ sind die Frost-Knöpfe wieder da', d.getElementById('f-frost-knoepfe').hidden === false && d.getElementById('al-frost').hidden === false);
       d.querySelector('#f-frost-knoepfe [data-alwert="5"]').click();
       T('alSpeichern()'); await warte(120);
       const p2 = neuste('Frostia dura');
@@ -14442,16 +14443,16 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       T(`alStart(); neuWegSetzen('ki'); document.getElementById('f-name').value = 'Frost401';
         document.getElementById('f-paste').value = 'ART: Kaltprobe\\nBOTANISCH: Gelida exacta\\nGIESSKLASSE: mittel\\nLICHT: hell\\nFROST: -3';
         document.getElementById('btn-paste-los').click(); alStufeZeigen(4); 1`);
-      pruef('4.0.1 (Frost): Im KI-Weg sind Knopfliste und Gradfeld versteckt', $('f-frost-knoepfe').hidden === true && $('al-frost-genau').hidden === true);
-      pruef('4.0.1 (Frost): Die Zeile nennt den genauen KI-Wert (−3 °C)', $('al-frost-ki').hidden === false
-        && $('al-frost-ki').textContent.indexOf('Winterhart bis −3 °C') === 0 && /KI-Antwort/.test($('al-frost-ki').textContent), $('al-frost-ki').textContent);
+      pruef('4.0.2 (Frost): Im KI-Weg fehlt die Frostgrenze in Stufe 4 ganz (Zeile, Knöpfe, Gradfeld)', $('al-frost').hidden === true && !$('al-frost-ki') && $('f-frost').value === '-3');
+      T('alStufeZeigen(5)');
+      pruef('4.0.2 (Frost): Die Zusammenfassung nennt die Frostgrenze der KI', !!$('al-zsf') && /Frostgrenze/.test($('al-zsf').textContent) && /3 °C/.test($('al-zsf').textContent), $('al-zsf') && $('al-zsf').textContent.slice(0, 300));
       T('alSpeichern()'); await warte(120);
       const pA = neuste('Gelida exacta');
       pruef('4.0.1 (Frost): Der KI-Wert kommt unverändert in die Karte, Herkunft KI', !!pA && pA.frostMin === -3 && pA.quellen.frostMin === 'ki', JSON.stringify(pA && {f:pA.frostMin, q:pA.quellen.frostMin}));
       /* B: Von Hand, genaue Gradzahl */
       T(`alStart(); neuWegSetzen('hand'); document.getElementById('f-name').value = 'Hand401';
         document.getElementById('f-art').value = 'Handprobe'; document.getElementById('f-bot').value = 'Manua exacta'; alStufeZeigen(4); 1`);
-      pruef('4.0.1 (Frost): Von Hand gibt es Knöpfe und das Gradfeld, keine KI-Zeile', $('f-frost-knoepfe').hidden === false && $('al-frost-genau').hidden === false && $('al-frost-ki').hidden === true
+      pruef('4.0.1 (Frost): Von Hand gibt es Knöpfe und das Gradfeld', $('al-frost').hidden === false && $('f-frost-knoepfe').hidden === false && $('al-frost-genau').hidden === false
         && d.querySelectorAll('#f-frost-knoepfe .al-knopf').length === 7);
       $('f-frost-genau').value = '-7';
       $('f-frost-genau').dispatchEvent(new w.Event('input', {bubbles:true}));
@@ -14470,8 +14471,12 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
         T(`alStart(); neuWegSetzen('ki'); document.getElementById('f-name').value = 'Abw401';
           document.getElementById('f-paste').value = ${JSON.stringify('ART: ' + (bib.name || bib.de || 'Bibprobe') + '\nBOTANISCH: ' + bib.bot + '\nGIESSKLASSE: mittel\nLICHT: hell\nFROST: ' + anders)};
           document.getElementById('btn-paste-los').click(); alStufeZeigen(4); 1`);
-        pruef('4.0.1 (Frost): Weicht die KI von einer Zahl der Bibliothek ab, bleiben die Knöpfe (einzeln wählen)',
-          $('f-frost-knoepfe').hidden === false && $('al-frost-ki').hidden === true && $('f-frost').value === String(anders), $('f-frost').value + ' / Bib ' + bib.frost);
+        pruef('4.0.2 (Frost): Weicht die KI von einer Zahl der Bibliothek ab, steht trotzdem nichts in Stufe 4',
+          $('al-frost').hidden === true && $('f-frost').value === String(anders), $('f-frost').value + ' / Bib ' + bib.frost);
+        T('alSpeichern()'); await warte(120);
+        const pC = neuste(bib.bot);
+        pruef('4.0.2 (Frost): KI-Wert wird übernommen, auch bei Abweichung von der Bibliothek (Herkunft KI)',
+          !!pC && pC.frostMin === anders && pC.quellen.frostMin === 'ki', JSON.stringify(pC && {f:pC.frostMin, q:pC.quellen.frostMin, bib:bib.frost}));
       } else pruef('4.0.1 (Frost): Bibliothek hat eine Art mit Frostzahl', false);
       zu();
 
@@ -14530,6 +14535,103 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
     }
   }
 
+  /* ── 4.0.2: Ein Abstand ohne Winter, Wasserwechsel von Hand, Handwert ohne Streckung ── */
+  {
+    const T = c => w.__T(c);
+    const alt402 = T(`JSON.stringify({eigene:S.eigene, water:S.water, lernen:S.lernen, giess:S.giess, tagEin:S.tagEin})`);
+    const $ = id => d.getElementById(id);
+    const zu = () => T(`(function(){ var m, i = 0; while((m = modalOben()) && i++ < 8) _modalWeg(m); history.replaceState(null, ''); return 1; })()`);
+    T(`window.__heute402 = HEUTE; 1`);
+    const tag = (j, m, t) => T(`HEUTE = new Date(${j}, ${m}, ${t}, 12); 1`);
+    const schalter = (an, st) => T(`S.giess = {art:'leitung', haerte:'', saison:${an}, saisonStaerke:'${st || 'normal'}'}; 1`);
+    const iv = id => T(`intervallVon(S.eigene.find(function(p){ return p.id === '${id}'; }))`);
+    const pf = id => JSON.parse(T(`JSON.stringify(S.eigene.find(function(p){ return p.id === '${id}'; }) || null)`));
+    try {
+      zu();
+      T(`(function(){
+        var r = raumListe()[0] ? raumListe()[0].id : '';
+        var basis = {typ:'Test', raum:r, stellplatz:'', topf:12};
+        S.eigene = (S.eigene || []).filter(function(p){ return ['E-9201','E-9202','E-9203','E-9204'].indexOf(p.id) === -1; });
+        S.water = S.water || {}; S.lernen = S.lernen || {}; S.tagEin = S.tagEin || {}; S.fotos = S.fotos || {};
+        S.eigene.push(Object.assign({id:'E-9201', name:'KlasseA', art:'Probe A', klasse:'A', giessart:'durch'}, basis));
+        S.eigene.push(Object.assign({id:'E-9202', name:'Hand', art:'Probe H', klasse:'B', giessart:'durch', intervallEigen:true, intervall:[10, 10]}, basis));
+        S.eigene.push(Object.assign({id:'E-9203', name:'Hydro', art:'Probe W', klasse:'B', giessart:'hydro'}, basis));
+        S.eigene.push(Object.assign({id:'E-9204', name:'Hand2', art:'Probe H2', klasse:'B', giessart:'durch', intervallEigen:true, intervall:[5, 20]}, basis));
+        ['E-9201','E-9202','E-9203','E-9204'].forEach(function(id){ delete S.water[id]; if(S.lernen) delete S.lernen[id]; if(S.tagEin) delete S.tagEin[id]; });
+        sichern(); return 1; })()`);
+      /* Gießklasse */
+      schalter(false); tag(2027, 0, 10);
+      const aJanAus = iv('E-9201');
+      tag(2027, 6, 10);
+      const aJulAus = iv('E-9201');
+      pruef('4.0.2 (Gießen): Klasse A mit Schalter aus: im Januar 3 Tage', aJanAus === 3, String(aJanAus));
+      pruef('4.0.2 (Gießen): Klasse A mit Schalter aus: im Juli 3 Tage', aJulAus === 3, String(aJulAus));
+      schalter(true); tag(2027, 0, 10);
+      const aJanAn = iv('E-9201');
+      pruef('4.0.2 (Gießen): Klasse A mit Schalter an: im Januar mehr als 3 Tage', aJanAn > 3, String(aJanAn));
+      /* F419: Handwert ohne Streckung */
+      schalter(true, 'stark'); tag(2026, 11, 21);
+      pruef('4.0.2 (F419): Handwert 10/10 bleibt mit Schalter an (stark) im tiefsten Winter 10 Tage', iv('E-9202') === 10, String(iv('E-9202')));
+      schalter(false); 
+      pruef('4.0.2 (Gießen): Handwert 5/20 mit Schalter aus im Winter: der Sommerwert 5', iv('E-9204') === 5, String(iv('E-9204')));
+      /* Wasserwechsel */
+      pruef('4.0.2 (Wechsel): Hydro mit Schalter aus im Winter: Vorgabe Sommer 10 Tage', iv('E-9203') === 10, String(iv('E-9203')));
+      T(`aenderungSetzen('E-9203', {wechselEigen:[6, 30]}); 1`);
+      pruef('4.0.2 (Wechsel): Eigener Wasserwechsel 6/30 gilt mit Schalter aus (6 Tage)', iv('E-9203') === 6, String(iv('E-9203')));
+      pruef('4.0.2 (Wechsel): Die Marke heißt dann „von Hand“', T(`rhythmusQuelle(S.eigene.find(function(p){ return p.id === 'E-9203'; })).wort`) === 'von Hand');
+      schalter(true);
+      pruef('4.0.2 (Wechsel): Mit Schalter an gilt im tiefsten Winter der eigene Winterwert (30 Tage)', iv('E-9203') === 30, String(iv('E-9203')));
+      /* Fenster: Schalter aus, ein Zähler */
+      schalter(false); tag(2027, 0, 10);
+      T(`ivFensterAuf('E-9204'); 1`);
+      pruef('4.0.2 (Fenster): Schalter aus: ein Zähler „Abstand“, ohne Sommer und Winter',
+        d.querySelectorAll('#iv-inhalt [data-ivf-schritt]').length === 2 && /Abstand/.test($('iv-inhalt').textContent)
+        && !/Winter/.test($('iv-inhalt').textContent), $('iv-inhalt').textContent.slice(0, 200));
+      d.querySelector('#iv-inhalt [data-ivf-schritt="s"][data-d="1"]').click();
+      T(`ivFensterSpeichern(); 1`);
+      pruef('4.0.2 (Fenster): Der eine Zähler schreibt den Sommerwert, der Winterwert bleibt (6/20)', JSON.stringify(pf('E-9204').intervall) === '[6,20]', JSON.stringify(pf('E-9204').intervall));
+      zu();
+      schalter(true);
+      T(`ivFensterAuf('E-9204'); 1`);
+      pruef('4.0.2 (Fenster): Schalter an: zwei Zähler Sommer und Winter', d.querySelectorAll('#iv-inhalt [data-ivf-schritt]').length === 4
+        && /Sommer/.test($('iv-inhalt').textContent) && /Winter/.test($('iv-inhalt').textContent));
+      zu();
+      /* Fenster: Wasserwechsel */
+      T(`aenderungSetzen('E-9203', {wechselEigen:null}); ivFensterAuf('E-9203'); 1`);
+      pruef('4.0.2 (Fenster): Hydro zeigt Zähler für den Wasserwechsel (Sommer und Winter)', !!d.querySelector('#iv-inhalt [data-ivf-schritt="ws"]')
+        && !!d.querySelector('#iv-inhalt [data-ivf-schritt="ww"]') && /Wasserwechsel/.test($('iv-inhalt').textContent) && !/nicht von Hand/.test($('iv-inhalt').textContent));
+      d.querySelector('#iv-inhalt [data-ivf-schritt="ws"][data-d="1"]').click();
+      pruef('4.0.2 (Fenster): Nach einer Änderung steht „Vorschlag der Gießart übernehmen“ da', !!d.querySelector('#iv-inhalt [data-ivf-wvorgabe]'));
+      T(`ivFensterSpeichern(); 1`);
+      pruef('4.0.2 (Fenster): Gespeichert ist der eigene Wasserwechsel 11/16', JSON.stringify(pf('E-9203').wechselEigen) === '[11,16]', JSON.stringify(pf('E-9203').wechselEigen));
+      zu();
+      T(`ivFensterAuf('E-9203'); 1`);
+      d.querySelector('#iv-inhalt [data-ivf-wvorgabe]').click();
+      T(`ivFensterSpeichern(); 1`);
+      pruef('4.0.2 (Fenster): „Vorschlag der Gießart übernehmen“ nimmt den eigenen Wert weg', pf('E-9203').wechselEigen == null && iv('E-9203') >= 10);
+      zu();
+      schalter(false);
+      T(`ivFensterAuf('E-9203'); 1`);
+      pruef('4.0.2 (Fenster): Schalter aus: ein Zähler „Wasserwechsel alle“', d.querySelectorAll('#iv-inhalt [data-ivf-schritt]').length === 2
+        && /Wasserwechsel alle/.test($('iv-inhalt').textContent) && !/Winter/.test($('iv-inhalt').textContent));
+      zu();
+      /* Einstellungen: Gießklassen */
+      T(`planTabellen(); 1`);
+      pruef('4.0.2 (Klassen): Schalter aus: eine Zahl je Gießklasse', !/Winter/.test($('klassen').textContent) && $('klassen').querySelectorAll('.gp-werte > div').length === 4);
+      schalter(true); T(`planTabellen(); 1`);
+      pruef('4.0.2 (Klassen): Schalter an: Sommer und Winter je Gießklasse', $('klassen').querySelectorAll('.gp-werte > div').length === 8);
+      /* Der eigene Wert übersteht Speichern und Laden */
+      T(`aenderungSetzen('E-9203', {wechselEigen:[4, 9]}); sichern(); 1`);
+      pruef('4.0.2 (Wechsel): Der eigene Wasserwechsel steht im Speicher', /"wechselEigen":\[4,9\]/.test(w.localStorage.getItem('pflanzenglossar-start') || ''));
+    } catch (e) {
+      pruef('4.0.2: Block lief ohne Laufzeitfehler', false, String(e && e.stack || e));
+    } finally {
+      zu();
+      T(`(function(a){ a = JSON.parse(a); S.eigene = a.eigene; S.water = a.water; S.lernen = a.lernen; S.giess = a.giess; S.tagEin = a.tagEin;
+        HEUTE = window.__heute402; delete window.__heute402; sichern(); render(); return 1; })(${JSON.stringify(alt402)})`);
+    }
+  }
+
   /* ══ 4.0.0 (Launch): Start unter dem Schlüssel der echten App mit Daten im
      alten Format (Planer, Aufgaben, Zustände, Wunschliste, Kartei). Eigene
      Seite, legt ihre Daten selbst an. Gegenprobe: Mit einem anderen KEY
@@ -14570,12 +14672,12 @@ pruef('beta.20: Der Kopierweg fragt weiter Topfart und Abzugsloch', /TOPFART:/.t
       pruef('4.0.0 Launch: Das Design kommt aus dem gespeicherten Stand', alt.design === 'botanisch' && TL(`S.design`) === 'botanisch'
         && dL.documentElement.getAttribute('data-design') === 'botanisch', dL.documentElement.getAttribute('data-design'));
       pruef('4.0.0 Launch: Kein Pflichtfenster zur Sicherung', TL(`modalOffen('sich-pflicht')`) === false && TL(`sicherungPflichtOffen()`) === false);
-      pruef('4.0.0 Launch: Das Fenster „Neu in Fassung 4.0.1“ erscheint',
-        TL(`modalOffen('neu-modal')`) === true && dL.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.1'
-        && dL.querySelectorAll('#neu-inhalt li').length === 4, dL.getElementById('neu-titel').textContent);
+      pruef('4.0.0 Launch: Das Fenster „Neu in Fassung 4.0.2“ erscheint',
+        TL(`modalOffen('neu-modal')`) === true && dL.getElementById('neu-titel').textContent === 'Neu in Fassung 4.0.2'
+        && dL.querySelectorAll('#neu-inhalt li').length === 5, dL.getElementById('neu-titel').textContent);
       const roh = wL.localStorage.getItem('pflanzenglossar-start') || '';
-      pruef('4.0.0 Launch: Gespeichert wird unter dem echten Schlüssel, mit Fassung 4.0.1',
-        JSON.parse(roh).fassungGesehen === '4.0.1' && JSON.parse(roh).eigene.length === 17);
+      pruef('4.0.0 Launch: Gespeichert wird unter dem echten Schlüssel, mit Fassung 4.0.2',
+        JSON.parse(roh).fassungGesehen === '4.0.2' && JSON.parse(roh).eigene.length === 17);
       pruef('4.0.0 Launch: Der Speicher trägt keine Daten der entfernten Teile mehr',
         !/"(tasks|wish|zustand|rundgang|kartei|raumAktiv|grundrissWunsch|moebel|kacheln|kanten|dueng|duengLangzeit|bereiche)":/.test(roh),
         (roh.match(/"(tasks|wish|zustand|rundgang|kartei|raumAktiv|grundrissWunsch|moebel|kacheln|kanten|dueng|duengLangzeit|bereiche)":/g) || []).join(' '));

@@ -4,6 +4,23 @@ Was sich in jeder Fassung getan hat — Funktionen und Bedienung, keine Technik.
 
 ---
 
+## 4.0.2 — 17. November 2026
+**Ein Abstand ohne Winter**
+
+### Neu
+- Hydro, Wasserglas und Semi-Hydro: Im Fenster „Gießabstand“ stellst du den Wasserwechsel selbst ein. „Vorschlag der Gießart übernehmen“ holt die Vorgabe zurück
+
+### Anders
+- Ist „Im Winter größere Abstände“ aus, hat jede Pflanze einen Gießabstand fürs ganze Jahr, den Sommerwert. Das Fenster „Gießabstand“ zeigt dann einen Zähler „Abstand“, die Gießklassen in den Einstellungen eine Zahl je Klasse. Der gespeicherte Winterwert bleibt erhalten und gilt wieder, sobald du den Schalter einschaltest
+- Ist der Schalter an, gibt es Sommer und Winter wie bisher, auch beim Wasserwechsel
+- Die Stufen sanft, normal und stark strecken nur noch Abstände aus der Gießklasse; ein Abstand, den du selbst eingetragen hast, gilt so, wie er dasteht
+- Frostgrenze im KI-Anlegen: keine eigene Zeile mehr in „Platz und Pflege“. Der Wert der KI gilt immer, auch wenn die Artenbibliothek eine andere Zahl nennt; du siehst ihn in der Zusammenfassung und im Steckbrief
+
+### Behoben
+- Mit ausgeschaltetem Schalter wurden die Abstände im Winter trotzdem länger
+
+---
+
 ## 4.0.1 — 15. November 2026
 **Neues Symbol, Ladebildschirm**
 
